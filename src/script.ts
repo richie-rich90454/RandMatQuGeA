@@ -815,10 +815,13 @@ function generateQuestion(): void{
     }
 }
 function isAnswerCorrect(userInput: string, correct: string, alternate?: string): boolean{
+    function prepareForEval(expr: string): string{
+        return expr.replace(/\\?π/g, "pi").replace(/[°˚]|deg(rees?)?/g, "").replace(/rad(ians?)?/g, "").replace(/\s+/g, "");
+    }
     function evaluateExpression(expr: string): number | null{
         try{
-            let processed=expr.replace(/π/g, "pi").replace(/\s+/g, "");
-            const result=math.evaluate(processed);
+            const cleaned=prepareForEval(expr);
+            const result=math.evaluate(cleaned);
             if (typeof result==="number"&&!isNaN(result)){
                 return result;
             }
@@ -828,24 +831,35 @@ function isAnswerCorrect(userInput: string, correct: string, alternate?: string)
             return null;
         }
     }
-    function normalizeSymbolic(input: string): string{
-        return input.replace(/\s+/g, "").toLowerCase()
-            .replace(/π/g, "pi")
-            .replace(/\\pi/g, "pi")
-            .replace(/degree/g, "deg")
-            .replace(/degrees/g, "deg")
-            .replace(/radians?/g, "");
+    function getTolerance(ref: string): number{
+        const match=ref.match(/\.(\d+)/);
+        if (match){
+            return 0.5 * Math.pow(10, -match[1].length);
+        }
+        return 1e-8;
     }
     const trimmedInput=userInput.trim();
     if (!trimmedInput) return false;
     const userNum=evaluateExpression(trimmedInput);
     if (userNum!==null){
         const correctNum=evaluateExpression(correct);
-        if (correctNum!==null&&Math.abs(userNum - correctNum) < 1e-8) return true;
+        if (correctNum!==null){
+            const tol=getTolerance(correct);
+            if (Math.abs(userNum - correctNum) < tol) return true;
+        }
         if (alternate){
             const altNum=evaluateExpression(alternate);
-            if (altNum!==null&&Math.abs(userNum - altNum) < 1e-8) return true;
+            if (altNum!==null){
+                const tol=getTolerance(alternate);
+                if (Math.abs(userNum - altNum) < tol) return true;
+            }
         }
+    }
+    function normalizeSymbolic(input: string): string{
+        return input.replace(/\s+/g, "").toLowerCase()
+            .replace(/\\?π/g, "pi")
+            .replace(/[°˚]|deg(rees?)?/g, "")
+            .replace(/rad(ians?)?/g, "");
     }
     const userSym=normalizeSymbolic(trimmedInput);
     const correctSym=normalizeSymbolic(correct);
