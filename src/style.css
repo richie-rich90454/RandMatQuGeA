@@ -1383,3 +1383,38 @@ body.font-opendyslexic *:not(.katex):not(.mjx-chtml){
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
 }
+.setting-item select{
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    background-size: 12px !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: var(--spacing-xl) !important;
+}
+.setting-item select option{
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+    padding: var(--spacing-xs);
+}
+
+.dark .setting-item select option{
+    background: #2D3748;
+    color: #F1F5F9;
+}
+.setting-item select option:hover,
+.setting-item select option:focus{
+    background: var(--primary);
+    color: var(--text-on-primary);
+}
+.dark .setting-item select{
+    background-color: #2D3748;
+    color: #F1F5F9;
+    border-color: #4A5568;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a0aec0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
+}
+.modal-content{
+    transform: translateZ(0);
+    isolation: isolate;
+}

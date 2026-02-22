@@ -54,6 +54,11 @@ let settingsPerfBlur: HTMLInputElement | null=document.getElementById("settings-
 let settingsPerfPreview: HTMLInputElement | null=document.getElementById("settings-perf-preview") as HTMLInputElement | null;
 let settingsPerfAnimations: HTMLInputElement | null=document.getElementById("settings-perf-animations") as HTMLInputElement | null;
 let settingsFpsCap: HTMLSelectElement | null=document.getElementById("settings-fps-cap") as HTMLSelectElement | null;
+let settingsNotifications: HTMLInputElement | null=document.getElementById("settings-notifications") as HTMLInputElement | null;
+let settingsAutoCheckDelay: HTMLInputElement | null=document.getElementById("settings-auto-check-delay") as HTMLInputElement | null;
+let settingsDecimalPlaces: HTMLInputElement | null=document.getElementById("settings-decimal-places") as HTMLInputElement | null;
+let settingsSound: HTMLInputElement | null=document.getElementById("settings-sound") as HTMLInputElement | null;
+let settingsVibration: HTMLInputElement | null=document.getElementById("settings-vibration") as HTMLInputElement | null;
 let pauseSessionBtn: HTMLButtonElement | null=document.getElementById("pause-session") as HTMLButtonElement | null;
 let skipQuestionBtn: HTMLButtonElement | null=document.getElementById("skip-question") as HTMLButtonElement | null;
 let customContextMenu: HTMLElement | null=document.getElementById("custom-context-menu");
@@ -149,7 +154,12 @@ let settings={
     perfBlur: true,
     perfPreview: true,
     perfAnimations: true,
-    fpsCap: 0
+    fpsCap: 0,
+    notifications: true,
+    autoCheckDelay: 800,
+    decimalPlaces: 2,
+    sound: false,
+    vibration: false
 };
 function updateAriaPressed(): void{
     if (modeSingleBtn) modeSingleBtn.setAttribute("aria-pressed", String(currentMode==="single"));
@@ -342,6 +352,11 @@ function loadSettings(): void{
     if(settingsPerfPreview) settingsPerfPreview.checked=settings.perfPreview;
     if(settingsPerfAnimations) settingsPerfAnimations.checked=settings.perfAnimations;
     if(settingsFpsCap) settingsFpsCap.value=settings.fpsCap.toString();
+    if (settingsNotifications) settingsNotifications.checked=settings.notifications;
+    if (settingsAutoCheckDelay) settingsAutoCheckDelay.value=settings.autoCheckDelay.toString();
+    if (settingsDecimalPlaces) settingsDecimalPlaces.value=settings.decimalPlaces.toString();
+    if (settingsSound) settingsSound.checked=settings.sound;
+    if (settingsVibration) settingsVibration.checked=settings.vibration;
     applySettingsToApp();
 }
 function saveSettings(): void{
@@ -360,6 +375,11 @@ function saveSettings(): void{
     if(settingsPerfPreview) settings.perfPreview=settingsPerfPreview.checked;
     if(settingsPerfAnimations) settings.perfAnimations=settingsPerfAnimations.checked;
     if(settingsFpsCap) settings.fpsCap=parseInt(settingsFpsCap.value)||0;
+    if (settingsNotifications) settings.notifications=settingsNotifications.checked;
+    if (settingsAutoCheckDelay) settings.autoCheckDelay=parseInt(settingsAutoCheckDelay.value)||800;
+    if (settingsDecimalPlaces) settings.decimalPlaces=parseInt(settingsDecimalPlaces.value)||2;
+    if (settingsSound) settings.sound=settingsSound.checked;
+    if (settingsVibration) settings.vibration=settingsVibration.checked;
     localStorage.setItem("appSettings", JSON.stringify(settings));
     applySettingsToApp();
 }
@@ -438,6 +458,21 @@ function previewSetting(field: string, value: any): void{
             settings.fpsCap=parseInt(value)||0;
             applyFPSCap(settings.fpsCap);
             break;
+        case "notifications":
+            settings.notifications=value;
+            break;
+        case "autoCheckDelay":
+            settings.autoCheckDelay=parseInt(value)||800;
+            break;
+        case "decimalPlaces":
+            settings.decimalPlaces=parseInt(value)||2;
+            break;
+        case "sound":
+            settings.sound=value;
+            break;
+        case "vibration":
+            settings.vibration=value;
+            break;
     }
 }
 function applySettingsToApp(): void{
@@ -504,6 +539,11 @@ function resetSettings(): void{
     if(settingsPerfPreview) settingsPerfPreview.checked=true;
     if(settingsPerfAnimations) settingsPerfAnimations.checked=true;
     if(settingsFpsCap) settingsFpsCap.value="0";
+    if (settingsNotifications) settingsNotifications.checked=true;
+    if (settingsAutoCheckDelay) settingsAutoCheckDelay.value="800";
+    if (settingsDecimalPlaces) settingsDecimalPlaces.value="2";
+    if (settingsSound) settingsSound.checked=false;
+    if (settingsVibration) settingsVibration.checked=false;
     saveSettings();
 }
 function openSettings(): void{
@@ -831,12 +871,8 @@ function isAnswerCorrect(userInput: string, correct: string, alternate?: string)
             return null;
         }
     }
-    function getTolerance(ref: string): number{
-        const match=ref.match(/\.(\d+)/);
-        if (match){
-            return 0.5 * Math.pow(10, -match[1].length);
-        }
-        return 1e-8;
+    function getTolerance(): number{
+        return 0.5 * Math.pow(10, -settings.decimalPlaces);
     }
     const trimmedInput=userInput.trim();
     if (!trimmedInput) return false;
@@ -844,13 +880,13 @@ function isAnswerCorrect(userInput: string, correct: string, alternate?: string)
     if (userNum!==null){
         const correctNum=evaluateExpression(correct);
         if (correctNum!==null){
-            const tol=getTolerance(correct);
+            const tol=getTolerance();
             if (Math.abs(userNum - correctNum) < tol) return true;
         }
         if (alternate){
             const altNum=evaluateExpression(alternate);
             if (altNum!==null){
-                const tol=getTolerance(alternate);
+                const tol=getTolerance();
                 if (Math.abs(userNum - altNum) < tol) return true;
             }
         }
@@ -891,6 +927,20 @@ function checkAnswer(): void{
     let correct=window.correctAnswer.correct;
     let alternate=window.correctAnswer.alternate;
     let isCorrect=isAnswerCorrect(userInput, correct, alternate);
+    if (settings.sound){
+        const audioCtx=new (window.AudioContext||(window as any).webkitAudioContext)();
+        const oscillator=audioCtx.createOscillator();
+        const gainNode=audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.frequency.value=isCorrect ? 880 : 440;
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.1);
+    }
+    if (settings.vibration&&navigator.vibrate) {
+        navigator.vibrate(isCorrect ? 50 : 100);
+    }
     if (isCorrect){
         answerResults.innerHTML=`
       <div class="result-success">
@@ -960,6 +1010,7 @@ function updateUIState(): void{
     }
 }
 function showNotification(message: string, type: "info" | "warning"="info"): void{
+    if (!settings.notifications) return;
     let notification=document.createElement("div");
     notification.className=`notification notification-${type}`;
     notification.textContent=message;
@@ -1086,7 +1137,21 @@ function setupEventListeners(): void{
     if(settingsFpsCap){
         settingsFpsCap.addEventListener("change", (e)=>previewSetting("fpsCap", (e.target as HTMLSelectElement).value));
     }
-
+    if (settingsNotifications){
+        settingsNotifications.addEventListener("change", (e)=>previewSetting("notifications", (e.target as HTMLInputElement).checked));
+    }
+    if (settingsAutoCheckDelay){
+        settingsAutoCheckDelay.addEventListener("input", (e)=>previewSetting("autoCheckDelay", (e.target as HTMLInputElement).value));
+    }
+    if (settingsDecimalPlaces){
+        settingsDecimalPlaces.addEventListener("input", (e)=>previewSetting("decimalPlaces", (e.target as HTMLInputElement).value));
+    }
+    if (settingsSound){
+        settingsSound.addEventListener("change", (e)=>previewSetting("sound", (e.target as HTMLInputElement).checked));
+    }
+    if (settingsVibration){
+        settingsVibration.addEventListener("change", (e)=>previewSetting("vibration", (e.target as HTMLInputElement).checked));
+    }
     modeSingleBtn.addEventListener("click", function (){
         if (modeSingleBtn!.classList.contains("disabled")) return;
         modeSingleBtn!.classList.add("active");
@@ -1262,7 +1327,7 @@ function skipMentalQuestion(): void{
             generateNextMentalQuestion();
         }
         mentalNextQuestionTimeout=null;
-    },500);
+    }, settings.autoCheckDelay);
 }
 function startMentalSession(): void{
     if (!selectedTopic&&!mentalShuffle){
@@ -1449,6 +1514,20 @@ function handleMentalAnswer(): void{
     let alternate=window.correctAnswer.alternate;
     checkAnswerFast(userInput, correct, alternate).then(isCorrect=>{
         if (!sessionActive) return;
+        if (settings.sound) {
+            const audioCtx=new (window.AudioContext||(window as any).webkitAudioContext)();
+            const oscillator=audioCtx.createOscillator();
+            const gainNode=audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.frequency.value=isCorrect ? 880 : 440;
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        }
+        if (settings.vibration&&navigator.vibrate) {
+            navigator.vibrate(isCorrect ? 50 : 100);
+        }
         if (isCorrect) sessionScore.correct++;
         sessionScore.total++;
         updateScoreDisplay();
@@ -1478,7 +1557,7 @@ function handleMentalAnswer(): void{
                 generateNextMentalQuestion();
             }
             mentalNextQuestionTimeout=null;
-        }, 800);
+        }, settings.autoCheckDelay);
     });
 }
 async function checkAnswerFast(userInput: string, correct: string, alternate?: string): Promise<boolean>{
@@ -1586,7 +1665,7 @@ function startTimer(): void{
                     generateNextMentalQuestion();
                 }
                 mentalNextQuestionTimeout=null;
-            }, 800);
+            }, settings.autoCheckDelay);
         }
     }, 1000);
 }

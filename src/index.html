@@ -275,6 +275,10 @@
                                 <option value="all">All</option>
                             </select>
                         </div>
+                        <div class="setting-item">
+                            <label for="settings-notifications">Show notifications</label>
+                            <input type="checkbox" id="settings-notifications" class="settings-checkbox" checked>
+                        </div>
                     </div>
                     <div class="settings-section">
                         <h3>Mental Mode</h3>
@@ -293,6 +297,25 @@
                         <div class="setting-item">
                             <label for="settings-max-questions">Questions per session</label>
                             <input type="number" id="settings-max-questions" min="1" max="20" value="5" class="settings-number">
+                        </div>
+                        <div class="setting-item">
+                            <label for="settings-auto-check-delay">Auto‑check delay (ms)</label>
+                            <input type="number" id="settings-auto-check-delay" min="100" max="5000" step="50" value="800" class="settings-number">
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h3>Answer Options</h3>
+                        <div class="setting-item">
+                            <label for="settings-decimal-places">Decimal places (tolerance)</label>
+                            <input type="number" id="settings-decimal-places" min="0" max="10" value="2" class="settings-number">
+                        </div>
+                        <div class="setting-item">
+                            <label for="settings-sound">Sound effects</label>
+                            <input type="checkbox" id="settings-sound" class="settings-checkbox">
+                        </div>
+                        <div class="setting-item">
+                            <label for="settings-vibration">Vibration (mobile)</label>
+                            <input type="checkbox" id="settings-vibration" class="settings-checkbox">
                         </div>
                     </div>
                     <div class="settings-section">
