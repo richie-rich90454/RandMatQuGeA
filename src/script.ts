@@ -97,9 +97,17 @@ let topics: Topic[]=[
 const scopeTopics={
     simple: ["add", "subtrt", "mult", "divid"],
     algebra: ["add", "subtrt", "mult", "divid", "root", "log", "exp", "fact", "ser", "perm", "comb", "prob"],
-    precalc: ["add", "subtrt", "mult", "divid", "root", "log", "exp", "fact", "ser", "perm", "comb", "prob", "sin", "cos", "tan", "cosec", "sec", "cot", "stats", "trig_graph"],
-    calc: ["add", "subtrt", "mult", "divid", "root", "log", "exp", "fact", "ser", "perm", "comb", "prob", "deri", "inte", "lim", "relRates"],
-    all: topics.map(t=>t.id)
+    precalc: [
+        "add", "subtrt", "mult", "divid", "root", "log", "exp", "fact", "ser", "perm", "comb", "prob",
+        "sin", "cos", "tan", "cosec", "sec", "cot", "stats", "trig_graph",
+        "mtrx", "vctr", "area_circle", "pythag", "volume_sphere"
+    ],
+    calc: [
+        "add", "subtrt", "mult", "divid", "root", "log", "exp", "fact", "ser", "perm", "comb", "prob",
+        "deri", "inte", "lim", "relRates",
+        "mtrx", "vctr", "area_circle", "pythag", "volume_sphere"
+    ],
+    all: topics.map(t => t.id)
 };
 let appWindow: Window | null=null;
 try{
