@@ -815,41 +815,51 @@ function generateQuestion(): void{
     }
 }
 function isAnswerCorrect(userInput: string, correct: string, alternate?: string): boolean{
-    const trimmedInput=userInput.replace(/\s+/g, "");
-    const isValidNumber=(s: string): boolean=>{
-        return /^-?\d*\.?\d+(?:[eE][-+]?\d+)?$/.test(s);
-    };
-    if (isValidNumber(trimmedInput)){
-        let userNum=parseFloat(userInput);
-        if (!isNaN(userNum)){
-            let correctNum=parseFloat(correct);
-            if (!isNaN(correctNum)&&Math.abs(userNum - correctNum) < 1e-8) return true;
-            if (alternate){
-                let altNum=parseFloat(alternate);
-                if (!isNaN(altNum)&&Math.abs(userNum - altNum) < 1e-8) return true;
+    function evaluateExpression(expr: string): number | null{
+        try{
+            let processed=expr.replace(/π/g, "pi").replace(/\s+/g, "");
+            const result=math.evaluate(processed);
+            if (typeof result==="number"&&!isNaN(result)){
+                return result;
             }
+            return null;
+        }
+        catch{
+            return null;
         }
     }
-    const normalize=(input: string): string | number=>{
-        let cleaned=input.replace(/°/g, "");
-        try{
-            let simplified=math.simplify(cleaned);
-            if ((simplified as any).isConstantNode&&(simplified as any).value != null){
-                return parseFloat((simplified as any).value);
-            }
-            return simplified.toString();
+    function normalizeSymbolic(input: string): string{
+        return input.replace(/\s+/g, "").toLowerCase()
+            .replace(/π/g, "pi")
+            .replace(/\\pi/g, "pi")
+            .replace(/degree/g, "deg")
+            .replace(/degrees/g, "deg")
+            .replace(/radians?/g, "");
+    }
+    const trimmedInput=userInput.trim();
+    if (!trimmedInput) return false;
+    const userNum=evaluateExpression(trimmedInput);
+    if (userNum!==null){
+        const correctNum=evaluateExpression(correct);
+        if (correctNum!==null&&Math.abs(userNum - correctNum) < 1e-8) return true;
+        if (alternate){
+            const altNum=evaluateExpression(alternate);
+            if (altNum!==null&&Math.abs(userNum - altNum) < 1e-8) return true;
         }
-        catch (e){
-            return cleaned.replace(/\s+/g, "").toLowerCase();
-        }
-    };
-    let userNorm=normalize(userInput);
-    let possible=[correct, alternate].filter(v=>v!==undefined);
-    for (let ans of possible){
-        let ansNorm=normalize(ans!);
-        if (userNorm===ansNorm) return true;
-        if (typeof userNorm==="number"&&typeof ansNorm==="number"&&Math.abs(userNorm - ansNorm) < 1e-8) return true;
-        if (typeof ans==="string"&&userInput.replace(/\s+/g, "").toLowerCase()===ans.replace(/\s+/g, "").toLowerCase()) return true;
+    }
+    const userSym=normalizeSymbolic(trimmedInput);
+    const correctSym=normalizeSymbolic(correct);
+    if (userSym===correctSym) return true;
+    if (alternate){
+        const altSym=normalizeSymbolic(alternate);
+        if (userSym===altSym) return true;
+    }
+    const userSimple=trimmedInput.replace(/\s+/g, "").toLowerCase();
+    const correctSimple=correct.replace(/\s+/g, "").toLowerCase();
+    if (userSimple===correctSimple) return true;
+    if (alternate){
+        const altSimple=alternate.replace(/\s+/g, "").toLowerCase();
+        if (userSimple===altSimple) return true;
     }
     return false;
 }
