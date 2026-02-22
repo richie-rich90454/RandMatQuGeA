@@ -1,61 +1,9 @@
-import {questionArea} from "../script.js";
-import * as THREE from "three";
-import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+import{questionArea} from "../script.js";
 
-let currentAnimationFrame: number | null=null;
 function getAngleRange(difficulty?: string): number[]{
     if (difficulty==="easy") return [0, 90];
     if (difficulty==="hard") return [0, 360];
     return [0, 180];
-}
-function setup3DScene(container: HTMLElement, width: number=400, height: number=300):{scene: THREE.Scene; camera: THREE.PerspectiveCamera; renderer: THREE.WebGLRenderer}{
-    if (currentAnimationFrame !== null) {
-        cancelAnimationFrame(currentAnimationFrame);
-        currentAnimationFrame=null;
-    }
-    while (container.firstChild) container.removeChild(container.firstChild);
-    const scene=new THREE.Scene();
-    scene.background=new THREE.Color(0x111122);
-    const camera=new THREE.PerspectiveCamera(45, width/height, 0.1, 1000);
-    camera.position.set(5, 5, 10);
-    camera.lookAt(0, 0, 0);
-    const renderer=new THREE.WebGLRenderer({antialias: true});
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    container.appendChild(renderer.domElement);
-    const ambientLight=new THREE.AmbientLight(0x404060);
-    scene.add(ambientLight);
-    const dirLight=new THREE.DirectionalLight(0xffffff, 1);
-    dirLight.position.set(2, 5, 3);
-    scene.add(dirLight);
-    const controls=new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping=true;
-    controls.autoRotate=true;
-    controls.autoRotateSpeed=2.0;
-    function animate(){
-        currentAnimationFrame=requestAnimationFrame(animate);
-        controls.update();
-        renderer.render(scene, camera);
-    }
-    animate();
-    return{scene, camera, renderer};
-}
-function drawAxes(scene: THREE.Scene, size: number=5): void{
-    const xMat=new THREE.LineBasicMaterial({color: 0xff0000});
-    const xPoints=[new THREE.Vector3(-size, 0, 0), new THREE.Vector3(size, 0, 0)];
-    const xGeo=new THREE.BufferGeometry().setFromPoints(xPoints);
-    const xLine=new THREE.Line(xGeo, xMat);
-    scene.add(xLine);
-    const yMat=new THREE.LineBasicMaterial({color: 0x00ff00});
-    const yPoints=[new THREE.Vector3(0, -size, 0), new THREE.Vector3(0, size, 0)];
-    const yGeo=new THREE.BufferGeometry().setFromPoints(yPoints);
-    const yLine=new THREE.Line(yGeo, yMat);
-    scene.add(yLine);
-    const zMat=new THREE.LineBasicMaterial({color: 0x0000ff});
-    const zPoints=[new THREE.Vector3(0, 0, -size), new THREE.Vector3(0, 0, size)];
-    const zGeo=new THREE.BufferGeometry().setFromPoints(zPoints);
-    const zLine=new THREE.Line(zGeo, zMat);
-    scene.add(zLine);
 }
 export function generateSin(difficulty?: string): void{
     if (!questionArea) return;
@@ -76,22 +24,22 @@ export function generateSin(difficulty?: string): void{
             }
             else{
                 let radianAngles=[
-            {value: 0, label: "0"},
-            {value: Math.PI/6, label: "\\frac{\\pi}{6}"},
-            {value: Math.PI/4, label: "\\frac{\\pi}{4}"},
-            {value: Math.PI/3, label: "\\frac{\\pi}{3}"},
-            {value: Math.PI/2, label: "\\frac{\\pi}{2}"},
-            {value: 2*Math.PI/3, label: "\\frac{2\\pi}{3}"},
-            {value: 3*Math.PI/4, label: "\\frac{3\\pi}{4}"},
-            {value: 5*Math.PI/6, label: "\\frac{5\\pi}{6}"},
-            {value: Math.PI, label: "\\pi"},
-            {value: 7*Math.PI/6, label: "\\frac{7\\pi}{6}"},
-            {value: 5*Math.PI/4, label: "\\frac{5\\pi}{4}"},
-            {value: 4*Math.PI/3, label: "\\frac{4\\pi}{3}"},
-            {value: 3*Math.PI/2, label: "\\frac{3\\pi}{2}"},
-            {value: 5*Math.PI/3, label: "\\frac{5\\pi}{3}"},
-            {value: 7*Math.PI/4, label: "\\frac{7\\pi}{4}"},
-            {value: 11*Math.PI/6, label: "\\frac{11\\pi}{6}"}
+        {value: 0, label: "0"},
+        {value: Math.PI/6, label: "\\frac{\\pi}{6}"},
+        {value: Math.PI/4, label: "\\frac{\\pi}{4}"},
+        {value: Math.PI/3, label: "\\frac{\\pi}{3}"},
+        {value: Math.PI/2, label: "\\frac{\\pi}{2}"},
+        {value: 2*Math.PI/3, label: "\\frac{2\\pi}{3}"},
+        {value: 3*Math.PI/4, label: "\\frac{3\\pi}{4}"},
+        {value: 5*Math.PI/6, label: "\\frac{5\\pi}{6}"},
+        {value: Math.PI, label: "\\pi"},
+        {value: 7*Math.PI/6, label: "\\frac{7\\pi}{6}"},
+        {value: 5*Math.PI/4, label: "\\frac{5\\pi}{4}"},
+        {value: 4*Math.PI/3, label: "\\frac{4\\pi}{3}"},
+        {value: 3*Math.PI/2, label: "\\frac{3\\pi}{2}"},
+        {value: 5*Math.PI/3, label: "\\frac{5\\pi}{3}"},
+        {value: 7*Math.PI/4, label: "\\frac{7\\pi}{4}"},
+        {value: 11*Math.PI/6, label: "\\frac{11\\pi}{6}"}
                 ];
                 let obj=radianAngles[Math.floor(Math.random()*radianAngles.length)];
                 let value=Math.sin(obj.value).toFixed(2);
@@ -227,14 +175,14 @@ export function generateCosine(difficulty?: string): void{
             }
             else{
                 let radianAngles=[
-            {value: 0, label: "0"},
-            {value: Math.PI/3, label: "\\frac{\\pi}{3}"},
-            {value: Math.PI/2, label: "\\frac{\\pi}{2}"},
-            {value: 2*Math.PI/3, label: "\\frac{2\\pi}{3}"},
-            {value: Math.PI, label: "\\pi"},
-            {value: 4*Math.PI/3, label: "\\frac{4\\pi}{3}"},
-            {value: 3*Math.PI/2, label: "\\frac{3\\pi}{2}"},
-            {value: 5*Math.PI/3, label: "\\frac{5\\pi}{3}"}
+        {value: 0, label: "0"},
+        {value: Math.PI/3, label: "\\frac{\\pi}{3}"},
+        {value: Math.PI/2, label: "\\frac{\\pi}{2}"},
+        {value: 2*Math.PI/3, label: "\\frac{2\\pi}{3}"},
+        {value: Math.PI, label: "\\pi"},
+        {value: 4*Math.PI/3, label: "\\frac{4\\pi}{3}"},
+        {value: 3*Math.PI/2, label: "\\frac{3\\pi}{2}"},
+        {value: 5*Math.PI/3, label: "\\frac{5\\pi}{3}"}
                 ];
                 let obj=radianAngles[Math.floor(Math.random()*radianAngles.length)];
                 let value=Math.cos(obj.value).toFixed(2);
@@ -568,8 +516,8 @@ export function generateTrigEquations(difficulty?: string): void{
     let type=types[Math.floor(Math.random()*types.length)];
     let hint="", questionText="", answer="";
     let isDegree=Math.random()<0.5;
-    let unit=isDegree ? "°" : "";
-    let maxCoeff=(difficulty==="easy") ? 2 : (difficulty==="hard" ? 4 : 3);
+    let unit=isDegree?"°":"";
+    let maxCoeff=(difficulty==="easy")?2:(difficulty==="hard"?4:3);
     let simpleValues=[0, 0.5, Math.sqrt(2)/2, Math.sqrt(3)/2, 1];
     let useSimpleValues=(difficulty==="easy");
     switch (type){
@@ -585,10 +533,10 @@ export function generateTrigEquations(difficulty?: string): void{
             val=Math.min(0.99, Math.max(-0.99, val));
             let angle=Math.asin(val)*(isDegree?180/Math.PI:1);
             let sol1=angle;
-            let sol2=func==="sin"? 180-angle : 360-angle;
+            let sol2=func==="sin"? 180-angle:360-angle;
             if (!isDegree){
                 sol1=angle;
-                sol2=func==="sin"? Math.PI-angle : 2*Math.PI-angle;
+                sol2=func==="sin"? Math.PI-angle:2*Math.PI-angle;
             }
             questionText=`Solve \\( ${func}\\theta=${val.toFixed(2)} \\) for \\( 0 \\le \\theta < ${isDegree?360:"2\\pi"} \\) (in ${isDegree?"degrees":"radians"}).`;
             answer=`${sol1.toFixed(2)}${unit}, ${sol2.toFixed(2)}${unit}`;
@@ -664,99 +612,209 @@ export function generateTrigEquations(difficulty?: string): void{
 export function generateTrigGraphs(difficulty?: string): void{
     if (!questionArea) return;
     questionArea.innerHTML="";
-    let types=["sine", "cosine", "tangent"];
-    let type=types[Math.floor(Math.random()*types.length)];
-    let hint="", questionText="", answer="";
-    let maxA=(difficulty==="easy") ? 2 : (difficulty==="hard" ? 5 : 3);
-    let maxB=(difficulty==="easy") ? 2 : (difficulty==="hard" ? 4 : 3);
-    let A=Math.floor(Math.random()*maxA)+1;
-    let B=Math.floor(Math.random()*maxB)+1;
-    let C=Math.floor(Math.random()*2);
+    const types=["sine", "cosine", "tangent"];
+    const type=types[Math.floor(Math.random() * types.length)];
+    let maxA=(difficulty==="easy")?2:(difficulty==="hard"?5:3);
+    let maxB=(difficulty==="easy")?2:(difficulty==="hard"?4:3);
+    const A=Math.floor(Math.random() * maxA) + 1;
+    const B=Math.floor(Math.random() * maxB) + 1;
+    const C=Math.floor(Math.random() * 2);
     const container=document.createElement("div");
     container.style.display="flex";
     container.style.flexDirection="column";
     container.style.alignItems="center";
+    container.style.width="100%";
     questionArea.appendChild(container);
-    const canvasContainer=document.createElement("div");
-    canvasContainer.style.width="400px";
-    canvasContainer.style.height="300px";
-    canvasContainer.style.marginBottom="20px";
-    container.appendChild(canvasContainer);
-    const{scene}=setup3DScene(canvasContainer, 400, 300);
-    drawAxes(scene, 5);
-    const points=[];
-    const steps=200;
-    const xMin=-2*Math.PI/B;
-    const xMax=2*Math.PI/B;
-    for (let i=0; i<=steps; i++){
-        let x=xMin + (i/steps)*(xMax-xMin);
-        let y=0;
+    const canvas=document.createElement("canvas");
+    canvas.width=400;
+    canvas.height=300;
+    canvas.style.width="100%";
+    canvas.style.height="auto";
+    canvas.style.maxWidth="400px";
+    canvas.style.border="1px solid var(--border)";
+    canvas.style.borderRadius="8px";
+    canvas.style.backgroundColor="#111122";
+    container.appendChild(canvas);
+    const ctx=canvas.getContext("2d")!;
+    const w=canvas.width;
+    const h=canvas.height;
+    const padding=40;
+    const xMin=-2 * Math.PI / B;
+    const xMax=2 * Math.PI / B;
+    const yLimit=5;
+    const yMin=type==="tangent"?-yLimit:-A - 0.5;
+    const yMax=type==="tangent"?yLimit:A + 0.5;
+    function mapX(x: number): number{
+        return padding + ((x - xMin) / (xMax - xMin)) * (w - 2 * padding);
+    }
+    function mapY(y: number): number{
+        return h - padding - ((y - yMin) / (yMax - yMin)) * (h - 2 * padding);
+    }
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle="#111122";
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle="#335588";
+    ctx.lineWidth=0.5;
+    ctx.beginPath();
+    for (let i=-3; i <= 3; i++){
+        const xVal=i * Math.PI / B;
+        if (xVal < xMin || xVal > xMax) continue;
+        const x=mapX(xVal);
+        ctx.moveTo(x, padding);
+        ctx.lineTo(x, h - padding);
+    }
+    for (let i=Math.floor(yMin); i <= Math.ceil(yMax); i++){
+        const y=mapY(i);
+        ctx.moveTo(padding, y);
+        ctx.lineTo(w - padding, y);
+    }
+    ctx.strokeStyle="#335588";
+    ctx.stroke();
+    ctx.strokeStyle="#ffffff";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    const x0=mapX(0);
+    const y0=mapY(0);
+    ctx.moveTo(x0, padding);
+    ctx.lineTo(x0, h - padding);
+    ctx.moveTo(padding, y0);
+    ctx.lineTo(w - padding, y0);
+    ctx.stroke();
+    ctx.fillStyle="#ffffff";
+    ctx.font="12px monospace";
+    ctx.fillText("0", x0 + 5, y0 - 5);
+    const piOverB=Math.PI / B;
+    ctx.fillText(piOverB.toFixed(2), mapX(piOverB) - 20, y0 - 10);
+    ctx.fillText((-piOverB).toFixed(2), mapX(-piOverB) - 25, y0 - 10);
+    ctx.fillText(A.toString(), x0 + 10, mapY(A) - 5);
+    ctx.fillText((-A).toString(), x0 + 10, mapY(-A) + 15);
+    let asymptotes: number[]=[];
+    if (type==="tangent"){
+        const kStart=Math.ceil((xMin * B - (Math.PI/2 - C)) / Math.PI);
+        const kEnd=Math.floor((xMax * B - (Math.PI/2 - C)) / Math.PI);
+        for (let k=kStart; k <= kEnd; k++){
+            const xAsymp=(Math.PI/2 - C + k * Math.PI) / B;
+            if (xAsymp >= xMin && xAsymp <= xMax){
+                asymptotes.push(xAsymp);
+            }
+        }
+        ctx.strokeStyle="#ff6666";
+        ctx.lineWidth=2;
+        ctx.setLineDash([5, 5]);
+        asymptotes.forEach(x =>{
+            const xCanvas=mapX(x);
+            ctx.beginPath();
+            ctx.moveTo(xCanvas, padding);
+            ctx.lineTo(xCanvas, h - padding);
+            ctx.stroke();
+        });
+        ctx.setLineDash([]);
+    }
+    ctx.strokeStyle="#FFAA00";
+    ctx.lineWidth=2.5;
+    ctx.beginPath();
+    const steps=400;
+    let pathStarted=false;
+    for (let i=0; i <= steps; i++){
+        const t=i / steps;
+        const x=xMin + t * (xMax - xMin);
+        if (type==="tangent"){
+            let tooClose=false;
+            for (let a of asymptotes){
+                if (Math.abs(x - a) < 0.01){
+                    tooClose=true;
+                    break;
+                }
+            }
+            if (tooClose){
+                if (pathStarted){
+                    ctx.stroke();
+                    ctx.beginPath();
+                    pathStarted=false;
+                }
+                continue;
+            }
+        }
+        let rawY: number;
         switch (type){
             case "sine":
-                y=A * Math.sin(B*x + C);
+                rawY=A * Math.sin(B * x + C);
                 break;
             case "cosine":
-                y=A * Math.cos(B*x + C);
+                rawY=A * Math.cos(B * x + C);
                 break;
             case "tangent":
-                y=A * Math.tan(B*x + C);
-                if (Math.abs(y)>5) continue;
+                rawY=A * Math.tan(B * x + C);
                 break;
+            default:
+                rawY=0;
         }
-        points.push(new THREE.Vector3(x, y, 0));
+        if (type==="tangent" && (rawY < yMin || rawY > yMax)){
+            if (pathStarted){
+                ctx.stroke();
+                ctx.beginPath();
+                pathStarted=false;
+            }
+            continue;
+        }
+        const canvasX=mapX(x);
+        const canvasY=mapY(rawY);
+        if (!pathStarted){
+            ctx.moveTo(canvasX, canvasY);
+            pathStarted=true;
+        }
+        else{
+            ctx.lineTo(canvasX, canvasY);
+        }
     }
-    const lineGeo=new THREE.BufferGeometry().setFromPoints(points);
-    const lineMat=new THREE.LineBasicMaterial({color: 0xffaa00});
-    const line=new THREE.Line(lineGeo, lineMat);
-    scene.add(line);
+    if (pathStarted){
+        ctx.stroke();
+    }
+    let questionText="", answer="", hint="";
     switch (type){
         case "sine":
-        case "cosine":
-        {
-                let askType=Math.floor(Math.random()*3);
-                if (askType===0){
-                    questionText=`What is the amplitude of the graphed ${type} function?`;
-                    answer=A.toString();
-                }
-                else if (askType===1){
-                    let period=2*Math.PI/B;
-                    questionText=`What is the period of the graphed ${type} function?`;
-                    answer=period.toFixed(2)+" rad";
-                }
-                else{
-                    let phaseShift=-C/B;
-                    questionText=`What is the phase shift of the graphed ${type} function?`;
-                    answer=phaseShift.toFixed(2)+" rad";
-                }
+        case "cosine":{
+            const askType=Math.floor(Math.random() * 3);
+            if (askType===0){
+                questionText=`What is the amplitude of the graphed ${type} function?`;
+                answer=A.toString();
                 hint="Enter a number";
             }
-            break;
-        case "tangent":
-        {
-                let askType=Math.floor(Math.random()*2);
-                if (askType===0){
-                    let period=Math.PI/B;
-                    questionText=`What is the period of the graphed tangent function?`;
-                    answer=period.toFixed(2)+" rad";
-                }
-                else{
-                    questionText=`Give the equation of the vertical asymptotes for the graphed tangent function.`;
-                    answer=`x=π/(2*${B}) + πk/${B}`;
-                }
-                hint="Enter as described";
+            else if (askType===1){
+                const period=2 * Math.PI / B;
+                questionText=`What is the period of the graphed ${type} function?`;
+                answer=period.toFixed(2) + " rad";
+                hint="Enter a number with units (e.g., 3.14 rad)";
+            }
+            else{
+                const phaseShift=-C / B;
+                questionText=`What is the phase shift of the graphed ${type} function?`;
+                answer=phaseShift.toFixed(2) + " rad";
+                hint="Enter a number with units (e.g., 0.5 rad)";
             }
             break;
+        }
+        case "tangent":{
+            const askType=Math.floor(Math.random() * 2);
+            if (askType===0){
+                const period=Math.PI / B;
+                questionText=`What is the period of the graphed tangent function?`;
+                answer=period.toFixed(2) + " rad";
+                hint="Enter a number with units";
+            }
+            else{
+                questionText=`Give the equation of the vertical asymptotes for the graphed tangent function.`;
+                answer=`x=π/(2*${B}) + πk/${B}`;
+                hint="Enter as 'x=π/(2B) + πk/B'";
+            }
+            break;
+        }
     }
     const textDiv=document.createElement("div");
     textDiv.innerHTML=questionText;
-    textDiv.style.marginBottom="10px";
+    textDiv.style.marginTop="10px";
     container.appendChild(textDiv);
-    window.correctAnswer={
-        correct: answer,
-        alternate: answer
-    };
+    window.correctAnswer={ correct: answer, alternate: answer };
     window.expectedFormat=hint;
-    if (window.MathJax&&window.MathJax.typeset){
-        window.MathJax.typeset();
-    }
+    if (window.MathJax?.typeset) window.MathJax.typeset();
 }

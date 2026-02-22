@@ -79,6 +79,7 @@ let topics: Topic[]=[
 {id: "cosec", name: "Cosecant", icon: "csc", category: "Trigonometry"},
 {id: "sec", name: "Secant", icon: "sec", category: "Trigonometry"},
 {id: "cot", name: "Cotangent", icon: "cot", category: "Trigonometry"},
+{id: "trig_graph", name: "Trig Graphs", icon: "f(x)", category: "Trigonometry"},
 {id: "log", name: "Logarithm", icon: "log", category: "Algebra"},
 {id: "exp", name: "Exponential", icon: "eˣ", category: "Algebra"},
 {id: "fact", name: "Factorial", icon: "!", category: "Algebra"},
@@ -96,7 +97,7 @@ let topics: Topic[]=[
 const scopeTopics={
     simple: ["add", "subtrt", "mult", "divid"],
     algebra: ["add", "subtrt", "mult", "divid", "root", "log", "exp", "fact", "ser", "perm", "comb", "prob"],
-    precalc: ["add", "subtrt", "mult", "divid", "root", "log", "exp", "fact", "ser", "perm", "comb", "prob", "sin", "cos", "tan", "cosec", "sec", "cot", "stats"],
+    precalc: ["add", "subtrt", "mult", "divid", "root", "log", "exp", "fact", "ser", "perm", "comb", "prob", "sin", "cos", "tan", "cosec", "sec", "cot", "stats", "trig_graph"],
     calc: ["add", "subtrt", "mult", "divid", "root", "log", "exp", "fact", "ser", "perm", "comb", "prob", "deri", "inte", "lim", "relRates"],
     all: topics.map(t=>t.id)
 };
@@ -745,6 +746,9 @@ function generateQuestion(): void{
         case "cot":
             Trigonometry.generateCotangent();
             break;
+        case "trig_graph":
+            Trigonometry.generateTrigGraphs();
+            break;
         case "log":
             Algebra.generateLogarithm();
             break;
@@ -1339,6 +1343,9 @@ function generateNextMentalQuestion(): void{
             break;
         case "cot":
             Trigonometry.generateCotangent(currentDifficulty);
+            break;
+        case "trig_graph":
+            Trigonometry.generateTrigGraphs(currentDifficulty);
             break;
         case "log":
             Algebra.generateLogarithm(currentDifficulty);

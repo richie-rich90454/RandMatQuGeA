@@ -17,7 +17,9 @@ function createVisualization(shape: string, params: any): void{
     const container=document.createElement("div");
     container.id="geometry-visualization";
     container.style.width="100%";
-    container.style.height="300px";
+    container.style.height="120px";
+    container.style.minHeight="120px";
+    container.style.maxHeight="180px";
     container.style.marginTop="20px";
     container.style.position="relative";
     container.style.borderRadius="12px";
@@ -49,7 +51,7 @@ function createVisualization(shape: string, params: any): void{
     renderer.setClearColor(0x1a1a2e);
     const scene=new THREE.Scene();
     const camera=new THREE.PerspectiveCamera(45, width/height, 0.1, 1000);
-    camera.position.set(5,5,10);
+    camera.position.set(8,8,15);
     camera.lookAt(0,0,0);
     const ambientLight=new THREE.AmbientLight(0x404060);
     scene.add(ambientLight);
