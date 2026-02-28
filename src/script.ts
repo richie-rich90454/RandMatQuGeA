@@ -434,9 +434,12 @@ function loadSettings():void{
 	const saved=localStorage.getItem("appSettings");
 	if (saved){
 		try{
-			settings=JSON.parse(saved);
+			const parsed=JSON.parse(saved);
+			settings={...settings, ...parsed};
 		}
-        catch(e){}
+		catch(e){
+			console.warn("Failed to parse settings", e);
+		}
 	}
 	if (settingsTheme) settingsTheme.value=settings.theme;
 	if (settingsDefaultMode) settingsDefaultMode.value=settings.defaultMode;
