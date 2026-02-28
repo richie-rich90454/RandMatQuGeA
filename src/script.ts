@@ -1,7 +1,7 @@
 import * as Algebra from "./modules/Algebra/index";
 import * as Arithmetic from "./modules/Arithmetic/index";
 import * as Calculus from "./modules/Calculus/index";
-import * as DiscreteMathematics from "./modules/DiscreteMathematics";
+import * as DiscreteMathematics from "./modules/DiscreteMathematics/index";
 import * as LinearAlgebra from "./modules/LinearAlgebra";
 import * as Trigonometry from "./modules/Trigonometry/index";
 import * as Geometry from "./modules/Geometry";
