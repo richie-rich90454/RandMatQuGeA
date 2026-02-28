@@ -15,15 +15,16 @@ A comprehensive, free online math question generator built with TypeScript that 
 
 ## ✨ Key Features
 
-- **📚 25+ Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus
+- **📚 45+ Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus
 - **⚡ Instant Feedback**: Real-time answer checking with detailed explanations
 - **📱 Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 - **🎯 Progressive Difficulty**: Questions adapt to different skill levels
 - **🔢 Math Notation Support**: Beautiful mathematical rendering with MathJax
 - **🎲 Unlimited Questions**: Generate endless practice problems
 - **💡 Educational Focus**: Designed specifically for learning and practice
-- **🖥️ Cross-Platform Desktop App**: Native desktop application built with Tauri (Windows, macOS, Linux with Linux support comming soon)
+- **🖥️ Cross-Platform Desktop App**: Native desktop application built with Tauri (Windows, macOS, Linux with Linux support coming soon)
 - **🔒 Type Safety**: Built with TypeScript for robust, maintainable code
+- **🧩 Modular Architecture**: Organized into focused modules for each math category
 
 ### ❓ Why Not Just Use AI Generated Questions/Answers?
 
@@ -47,21 +48,24 @@ Download the latest installer from **GitHub Releases**:
 
 - Windows: `.exe`
 - macOS: `.dmg`
-- Linux: `.AppImage` / `.deb` (comming soon)
+- Linux: `.AppImage` / `.deb` (coming soon)
 
 ➡️ https://github.com/richie-rich90454/random-math-question-generator-app/releases
 
-
-### Supported Math Topics
+### Supported Math Topics (45+ Topics)
 
 | Category | Topics |
 |----------|--------|
-| **Arithmetic** | Addition, Subtraction, Multiplication, Division |
-| **Algebra** | Roots, Logarithms, Exponentials, Factorials, Series |
-| **Calculus** | Differentiation, Integration, Limits, Related Rates |
-| **Linear Algebra** | Matrix Operations, Vector Operations |
-| **Trigonometry** | Sine, Cosine, Tangent, Cosecant, Secant, Cotangent |
-| **Discrete Math** | Permutations, Combinations, Probability |
+| **Arithmetic** | Addition, Subtraction, Multiplication, Division, Whole Number Place Value, Number Line Ordering, Divisibility Rules, Prime Numbers, GCF/LCM |
+| **Algebra** | Logarithms (Basic, Change of Base, Equations, Properties), Exponents (Basic, Solve, Laws, Growth, Compare), Factorials, Series (Arithmetic/Geometric Sums, Convergence, nth Term), Roots, Fractions (Add, Subtract, Multiply, Divide, Simplify, Convert), Percents (Percent of, Increase, Decrease, Interest, Markup), Ratio & Proportion, Unit Conversion (Length, Area, Volume, Multi-step), Expression Evaluation, Number Sets, Properties of Operations, Order of Operations |
+| **Equations & Inequalities** | Linear Equations (One-step, Two-step, Both Sides, Parentheses, Literal), Linear Word Problems, Quadratic Equations (Factoring, Complete Square, Quadratic Formula, Discriminant), Linear Inequalities, Quadratic Inequalities, Rational Inequalities, Systems of 2x2 Equations, Systems of 3x3 Equations |
+| **Polynomials & Graphing** | Polynomial Operations (Add, Subtract, Multiply), Polynomial Division, Factoring (GCF, Trinomials, Difference of Squares, Sum/Difference of Cubes), Function Concepts (Domain, Range, Notation, Evaluate), Linear Graphing (Slope, Intercepts, Equation from Points, Parallel/Perpendicular), Non-Linear Graphing (Parabolas, Absolute Value, Square Root, Transformations), Variation (Direct, Inverse, Joint) |
+| **Radicals & Exponents** | Radical Simplification (Add, Subtract, Multiply, Divide, Rationalize), Radical Equations, Rational Exponents, Exponent Rules (Product, Quotient, Power, Negative, Zero), Scientific Notation, Complex Numbers (Add, Subtract, Multiply, Divide, Powers of i) |
+| **Calculus** | Derivatives (Polynomial, Trigonometric, Exponential, Logarithmic, Product, Quotient, Chain, Implicit, Higher Order, Motion), Integrals (Polynomial, Trigonometric, Exponential, Logarithmic, Substitution, Definite, Initial Value, Area, Motion), Limits, Related Rates (Ladder, Cone) |
+| **Linear Algebra** | Matrix Operations (Add, Subtract, Multiply, Inverse, Transpose, Scalar Multiplication, Power, Row Echelon), Systems via Matrices, Vector Operations (Magnitude, Direction, Unit Vector, Dot Product, Angle, Projection, Parametric Equations, Polar/Cartesian Conversion, Polar Graphs, Motion, De Moivre's Theorem) |
+| **Trigonometry** | Sine (Evaluate, Solve, Amplitude, Period, Phase Shift, Law of Sines, Unit Circle, Identity), Cosine (Evaluate, Solve, Amplitude, Period, Phase Shift, Law of Cosines, Identity), Tangent, Cosecant, Secant, Cotangent, Inverse Trig, Trig Equations, Trig Graphs |
+| **Discrete Mathematics** | Permutations (Basic, Equation, Word, Circular, Identical, With Replacement), Combinations (Basic, Equation, Word, Complement, Paths, Multiset), Probability (Basic, Conditional, Independent, Mutually Exclusive, Bayes, Binomial, Expected Value, Complement, Permutation/Combination, Geometric), Statistics (Mean, Median, Mode, Range, Stem-and-Leaf, Box Plot, Standard Deviation) |
+| **Geometry** | Area (Circle, Rectangle, Triangle, Sector), Volume (Sphere, Cylinder, Cone, Pyramid, Cube), Surface Area (Cube), Triangles (Pythagorean Theorem, Similar Triangles, Classification), Perimeter, Arc Length, Distance Formula, Angle Relations |
 
 ## 🚀 Quick Start
 
@@ -99,7 +103,7 @@ npm run tauri build
 
 ## 🎯 How to Use
 
-1. **Select a Topic**: Choose from 25+ math categories in the dropdown
+1. **Select a Topic**: Choose from 45+ math categories organized by subject
 2. **Generate Question**: Click "Generate Question" to get a new problem
 3. **Enter Answer**: Type your solution in the answer box
 4. **Check Answer**: Click "Check Answer" or press `Shift+Enter` for instant feedback
@@ -129,12 +133,49 @@ random_math_question_generator/
 │   ├── types/                   # TypeScript type definitions
 │   │   └── global.d.ts          # Global type declarations
 │   ├── modules/                 # Modular math question generators (TypeScript)
-│   │   ├── algebra.ts           # Algebraic operations
-│   │   ├── arithmetic.ts        # Basic arithmetic
-│   │   ├── calculus.ts          # Calculus problems
-│   │   ├── linearAlgebra.ts     # Matrix and vector operations
-│   │   ├── trigonometry.ts      # Trigonometric functions
-│   │   └── discreteMathematics.ts # Combinatorics and probability
+│   │   ├── Algebra/             # Algebraic operations (split into 5 focused files)
+│   │   │   ├── algebraUtils.ts
+│   │   │   ├── algebraBasics.ts
+│   │   │   ├── algebraAdvanced.ts
+│   │   │   ├── algebraEquations.ts
+│   │   │   ├── algebraGraphingPolynomials.ts
+│   │   │   └── index.ts
+│   │   ├── Arithmetic/          # Basic arithmetic (split into 3 files)
+│   │   │   ├── arithmeticUtils.ts
+│   │   │   ├── arithmeticBasic.ts
+│   │   │   ├── arithmeticAdvanced.ts
+│   │   │   └── index.ts
+│   │   ├── Calculus/            # Calculus problems (split into 4 files)
+│   │   │   ├── calculusUtils.ts
+│   │   │   ├── calculusDerivatives.ts
+│   │   │   ├── calculusIntegrals.ts
+│   │   │   ├── calculusLimitsRelated.ts
+│   │   │   └── index.ts
+│   │   ├── LinearAlgebra/       # Matrix and vector operations (split into 3 files)
+│   │   │   ├── linearAlgebraUtils.ts
+│   │   │   ├── linearAlgebraMatrix.ts
+│   │   │   ├── linearAlgebraVector.ts
+│   │   │   └── index.ts
+│   │   ├── Trigonometry/        # Trigonometric functions (split into 4 files)
+│   │   │   ├── trigUtils.ts
+│   │   │   ├── trigBasic.ts
+│   │   │   ├── trigReciprocal.ts
+│   │   │   ├── trigAdvanced.ts
+│   │   │   └── index.ts
+│   │   ├── DiscreteMathematics/ # Combinatorics and probability (split into 4 files)
+│   │   │   ├── discreteUtils.ts
+│   │   │   ├── discretePermutationsCombinations.ts
+│   │   │   ├── discreteProbability.ts
+│   │   │   ├── discreteStatistics.ts
+│   │   │   └── index.ts
+│   │   └── Geometry/            # Geometry problems (split into 6 files)
+│   │       ├── geometryUtils.ts
+│   │       ├── geometryVisualization.ts
+│   │       ├── geometryArea.ts
+│   │       ├── geometryVolume.ts
+│   │       ├── geometryTriangles.ts
+│   │       ├── geometryMisc.ts
+│   │       └── index.ts
 │   ├── components/              # UI components
 │   ├── utils/                   # Utility functions
 │   └── assets/                  # Static assets
@@ -200,6 +241,12 @@ random_math_question_generator/
 - **Better IDE Support**: Enhanced autocomplete, refactoring, and documentation
 - **Improved Maintainability**: Clear type definitions make code easier to understand
 - **Modern Development**: Leverages latest ECMAScript features with type checking
+
+### Modular Architecture
+- **Organized by Subject**: Each math category has its own module directory
+- **Focused Files**: Large modules split into smaller, focused files for better maintainability
+- **Reusable Utilities**: Common functions extracted into utility files
+- **Clear Exports**: Each module has an index.ts that exports all public functions
 
 ## 🚀 Deployment
 
@@ -283,9 +330,10 @@ npm run build:typescript
 
 ## 📊 Project Stats
 
-- **25+** Math topics supported
-- **1500+** Lines of educational TypeScript code
-- **5** Major math categories
+- **45+** Math topics supported
+- **3000+** Lines of educational TypeScript code
+- **7** Major math categories (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry)
+- **25+** Module files organized by subject
 - **Unlimited** Question combinations
 - **Instant** Answer verification
 - **Cross-platform** Desktop application
@@ -301,6 +349,7 @@ npm run build:typescript
 - **📚 Comprehensive**: Covers high school to college-level math
 - **🖥️ Native Desktop**: Lightweight, secure desktop application
 - **🔒 Type Safe**: Built with TypeScript for reliability
+- **🧩 Modular**: Well-organized codebase that's easy to understand and contribute to
 
 ## 📄 License
 
