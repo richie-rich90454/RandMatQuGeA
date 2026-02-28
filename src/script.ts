@@ -4,7 +4,7 @@ import * as Calculus from "./modules/Calculus/index";
 import * as DiscreteMathematics from "./modules/DiscreteMathematics/index";
 import * as LinearAlgebra from "./modules/LinearAlgebra";
 import * as Trigonometry from "./modules/Trigonometry/index";
-import * as Geometry from "./modules/Geometry";
+import * as Geometry from "./modules/Geometry/index";
 import type {Topic} from "./types/global";``
 import * as math from "mathjs";
 import {getCurrentWindow, type Window} from "@tauri-apps/api/window";
