@@ -1,5 +1,5 @@
 import * as Algebra from "./modules/Algebra/index";
-import * as Arithmetic from "./modules/Arithmetic";
+import * as Arithmetic from "./modules/Arithmetic/index";
 import * as Calculus from "./modules/Calculus";
 import * as DiscreteMathematics from "./modules/DiscreteMathematics";
 import * as LinearAlgebra from "./modules/LinearAlgebra";
