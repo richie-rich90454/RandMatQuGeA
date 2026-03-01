@@ -1,0 +1,5 @@
+dist/** linguist-generated=true
+*.go   linguist-language=Go
+*.rs   linguist-language=Rust
+*.go   linguist-detectable=true
+*.rs   linguist-detectable=true
