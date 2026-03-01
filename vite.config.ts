@@ -1,7 +1,7 @@
-import{defineConfig} from "vite";
-import{createHtmlPlugin} from "vite-plugin-html";
-import{readFileSync} from "fs";
-import{join} from "path";
+import {defineConfig} from "vite";
+import {createHtmlPlugin} from "vite-plugin-html";
+import {readFileSync} from "fs";
+import {join} from "path";
 
 let packageJson=JSON.parse(readFileSync(join(__dirname, "package.json"), "utf-8"));
 let version=packageJson.version;
