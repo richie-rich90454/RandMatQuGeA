@@ -5,10 +5,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite",
-    "start": "vite preview",
+    "start": "go run main.go",
     "build:typescript": "tsc --noEmit",
     "build:web": "vite build",
-    "build": "npm run build:typescript && npm run build:web",
+    "build": "npm run build:typescript && npm run build:web && npm run build:go",
+    "build:go": "go build -o server main.go",
+    "start:nodejs": "vite preview",
     "tauri": "tauri"
   },
   "keywords": [

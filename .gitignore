@@ -155,6 +155,29 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+# Go binaries and build outputs
+server
+server.exe
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+*.test.exe
+
+# Coverage and profiling outputs
+*.out
+coverage.out
+
+# Vendor directory (if you use vendoring and don't want to commit it)
+# vendor/
+
+# Temporary files (if any)
+tmp/
+temp/
 random_math.docx
 plans
 survey.md
