@@ -33,6 +33,12 @@ export let topics: Topic[]=[
 	{id:"deri",name:"Differentiation",icon:"∂",category:"Calculus"},
 	{id:"inte",name:"Integration",icon:"∫",category:"Calculus"},
 	{id:"relRates",name:"Related Rates",icon:"dx/dt",category:"Calculus"},
+	{id:"limits_continuity",name:"Limits & Continuity",icon:"limC",category:"Calculus"},
+	{id:"applications_diff",name:"Applications of Diff",icon:"appD",category:"Calculus"},
+	{id:"integration_advanced",name:"Advanced Integration",icon:"intA",category:"Calculus"},
+	{id:"graphical_calculus",name:"Graphical Calculus",icon:"graph",category:"Calculus"},
+	{id:"parametric_polar",name:"Parametric/Polar",icon:"param",category:"Calculus"},
+	{id:"sequences_series",name:"Sequences & Series",icon:"series",category:"Calculus"},
 	{id:"mtrx",name:"Matrix Operations",icon:"[ ]",category:"Linear Algebra"},
 	{id:"vctr",name:"Vector Operations",icon:"→",category:"Linear Algebra"},
 	{id:"system3x3",name:"3x3 Systems",icon:"3×3",category:"Linear Algebra"},
@@ -117,6 +123,8 @@ export let scopeTopics={
 	calc:[
 		"add","subtrt","mult","divid","root","log","exp","fact","ser","perm","comb","prob",
 		"deri","inte","lim","relRates",
+		"limits_continuity","applications_diff","integration_advanced","graphical_calculus",
+		"parametric_polar","sequences_series",
 		"mtrx","vctr","area_circle","pythag","volume_sphere"
 	],
 	all:topics.map(t=>t.id)

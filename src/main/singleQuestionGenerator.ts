@@ -107,6 +107,24 @@ export function generateSingleQuestion(topicId: string, difficulty: string): voi
 		case "relRates":
 			Calculus.generateRelatedRates(difficulty);
 			break;
+		case "limits_continuity":
+			Calculus.generateLimitsContinuity(difficulty);
+			break;
+		case "applications_diff":
+			Calculus.generateApplicationsDiff(difficulty);
+			break;
+		case "integration_advanced":
+			Calculus.generateIntegrationAdvanced(difficulty);
+			break;
+		case "graphical_calculus":
+			Calculus.generateGraphicalCalculus(difficulty);
+			break;
+		case "parametric_polar":
+			Calculus.generateParametricPolarVector(difficulty);
+			break;
+		case "sequences_series":
+			Calculus.generateSequencesSeries(difficulty);
+			break;
 		case "mtrx":
 			LinearAlgebra.generateMatrix(difficulty);
 			break;
