@@ -1,8 +1,7 @@
 import * as dom from "./main/dom";
 import * as settings from "./main/settings";
 import {topics,scopeTopics,SESSION_STORAGE_KEY} from "./main/constants";
-import {generateSingleQuestion} from "./main/singleQuestionGenerator";
-import {generateMentalQuestion} from "./main/mentalQuestionGenerator";
+import {generateQuestion as callGenerator} from "./main/questionGenerator";
 import {invoke} from "@tauri-apps/api/core";
 export * from "./main/dom";
 window.correctAnswer={correct:""};
@@ -81,7 +80,7 @@ function setSessionButton(isActive: boolean): void{
 		if (dom.pauseSessionBtn) dom.pauseSessionBtn.style.display="inline-flex";
 		if (dom.skipQuestionBtn) dom.skipQuestionBtn.style.display="inline-flex";
 	}
-    else{
+	else{
 		dom.startSessionBtn.textContent="Start Session";
 		dom.startSessionBtn.classList.remove("stop-session");
 		dom.startSessionBtn.removeEventListener("click",stopMentalSession);
@@ -107,7 +106,7 @@ function updateUIState(): void{
       <kbd class="shortcut-hint">Ctrl+G</kbd>
     `;
 	}
-    else{
+	else{
 		dom.generateQuestionButton.innerHTML=`
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
         <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -117,7 +116,7 @@ function updateUIState(): void{
     `;
 	}
 }
-function showNotification(message: string, type: "info"|"warning" = "info"): void{
+function showNotification(message: string, type: "info"|"warning"="info"): void{
 	if (!settings.settings.notifications) return;
 	let notification=document.createElement("div");
 	notification.className=`notification notification-${type}`;
@@ -138,8 +137,10 @@ function renderTopicGrid(): void{
 	const currentScope=currentMode==="single"?scope:mentalScope;
 	const allowedIds=scopeTopics[currentScope as keyof typeof scopeTopics]||scopeTopics.simple;
 	const filteredTopics=topics.filter(t=>allowedIds.includes(t.id));
+	const searchTerm=dom.topicSearch?.value.toLowerCase().trim()||"";
+	const displayedTopics=searchTerm?filteredTopics.filter(t=>t.name.toLowerCase().includes(searchTerm)||t.id.toLowerCase().includes(searchTerm)):filteredTopics;
 	dom.topicGrid.innerHTML="";
-	filteredTopics.forEach(topic=>{
+	displayedTopics.forEach(topic=>{
 		let topicElement=document.createElement("button");
 		topicElement.className="topic-pill";
 		topicElement.dataset.topicId=topic.id;
@@ -151,18 +152,18 @@ function renderTopicGrid(): void{
 		dom.topicGrid!.appendChild(topicElement);
 	});
 	if (selectedTopic&&!allowedIds.includes(selectedTopic)){
-		if (filteredTopics.length>0){
-			selectTopic(filteredTopics[0].id);
+		if (displayedTopics.length>0){
+			selectTopic(displayedTopics[0].id);
 		}
-        else{
+		else{
 			selectedTopic=null;
 			if (dom.currentTopicDisplay) dom.currentTopicDisplay.textContent="Select a topic";
 		}
 	}
-    else if (!selectedTopic&&filteredTopics.length>0){
-		selectTopic(filteredTopics[0].id);
+	else if (!selectedTopic&&displayedTopics.length>0){
+		selectTopic(displayedTopics[0].id);
 	}
-    else if (selectedTopic){
+	else if (selectedTopic){
 		document.querySelectorAll(".topic-pill").forEach(item=>{
 			item.classList.remove("active");
 		});
@@ -208,7 +209,7 @@ function generateQuestion(): void{
 		if (randomTopic){
 			selectTopic(randomTopic);
 		}
-        else{
+		else{
 			showNotification("No topics available in current scope","warning");
 			return;
 		}
@@ -239,7 +240,7 @@ function generateQuestion(): void{
       <p>Generating question...</p>
     </div>
   `;
-	generateSingleQuestion(selectedTopic,currentDifficulty);
+	callGenerator(selectedTopic,currentDifficulty);
 	if (dom.expectedFormatDiv&&window.expectedFormat){
 		dom.expectedFormatDiv.textContent="Expected format: "+window.expectedFormat;
 	}
@@ -296,8 +297,10 @@ function checkAnswer(): void{
     `;
 		dom.answerResults.className="results-display correct";
 		if (dom.copyAnswerBtn) dom.copyAnswerBtn.style.display="inline-flex";
+		dom.answerResults.classList.add("correct-flash");
+		setTimeout(()=>dom.answerResults?.classList.remove("correct-flash"),300);
 	}
-    else{
+	else{
 		dom.answerResults.innerHTML=`
       <div class="result-error">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -311,6 +314,8 @@ function checkAnswer(): void{
     `;
 		dom.answerResults.className="results-display incorrect";
 		if (dom.copyAnswerBtn) dom.copyAnswerBtn.style.display="inline-flex";
+		dom.answerResults.classList.add("incorrect-flash");
+		setTimeout(()=>dom.answerResults?.classList.remove("incorrect-flash"),300);
 	}
 	dom.userAnswer.value="";
 	updatePreview();
@@ -320,7 +325,7 @@ function checkAnswer(): void{
 		autoTimeout=setTimeout(()=>{
 			generateQuestion();
 			autoTimeout=null;
-		},3000);
+		},settings.settings.autoCheckDelay);
 	}
 }
 function saveSessionSnapshot(): void{
@@ -368,7 +373,7 @@ function restoreSessionSnapshot(): void{
 		generateNextMentalQuestion();
 		localStorage.removeItem(SESSION_STORAGE_KEY);
 	} catch (e){
-		console.warn("Failed to restore session", e);
+		console.warn("Failed to restore session",e);
 	}
 }
 function startTimer(): void{
@@ -423,7 +428,7 @@ function generateNextMentalQuestion(): void{
 				dom.currentTopicDisplay.textContent=topic?topic.name:"Topic";
 			}
 		}
-        else{
+		else{
 			endMentalSession();
 			showNotification("No topics available","warning");
 			return;
@@ -444,7 +449,7 @@ function generateNextMentalQuestion(): void{
       <p>Generating...</p>
     </div>
   `;
-	generateMentalQuestion(selectedTopic,currentDifficulty);
+	callGenerator(selectedTopic,currentDifficulty);
 	if (dom.expectedFormatDiv&&window.expectedFormat){
 		dom.expectedFormatDiv.textContent="Expected format: "+window.expectedFormat;
 	}
@@ -499,6 +504,8 @@ async function handleMentalAnswer(): Promise<void>{
 			?`<div class="result-success">✅ Correct!</div>`
 			:`<div class="result-error">❌ Incorrect. The answer was ${correct}</div>`;
 		dom.answerResults.className=isCorrect?"results-display correct":"results-display incorrect";
+		dom.answerResults.classList.add(isCorrect?"correct-flash":"incorrect-flash");
+		setTimeout(()=>dom.answerResults?.classList.remove(isCorrect?"correct-flash":"incorrect-flash"),300);
 	}
 	if (dom.copyAnswerBtn) dom.copyAnswerBtn.style.display="inline-flex";
 	if (dom.userAnswer) dom.userAnswer.value="";
@@ -626,6 +633,7 @@ function endMentalSession(): void{
 	if (dom.expectedFormatDiv) dom.expectedFormatDiv.textContent="";
 	showNotification(`Session finished! Score: ${sessionScore.correct}/${sessionScore.total}`,"info");
 	promptSaveScore();
+	updateLeaderboard();
 }
 function promptSaveScore(): void{
 	if (!window.__TAURI__){
@@ -640,7 +648,7 @@ function promptSaveScore(): void{
 		localStorage.setItem("leaderboard",JSON.stringify(scores));
 		showNotification("Score saved locally!","info");
 	}
-    else{
+	else{
 		invoke("save_score",{
 			entry:{
 				topic:selectedTopic,
@@ -652,6 +660,24 @@ function promptSaveScore(): void{
 		}).then(()=>showNotification("Score saved!","info"))
 			.catch(_err=>showNotification("Failed to save score","warning"));
 	}
+}
+function updateLeaderboard(): void{
+	if (!dom.leaderboardContent) return;
+	let scores=JSON.parse(localStorage.getItem("leaderboard")||"[]");
+	if (scores.length===0){
+		dom.leaderboardContent.innerHTML=`<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/></svg><p>No scores yet. Complete a mental session to see your results.</p></div>`;
+		if (dom.leaderboardCard) dom.leaderboardCard.style.display="none";
+		return;
+	}
+	let recent=scores.slice(-10).reverse();
+	let html='<div style="display:flex; flex-direction:column; gap:var(--spacing-xs);">';
+	recent.forEach((s:any)=>{
+		let topicName=topics.find(t=>t.id===s.topic)?.name||s.topic;
+		html+=`<div class="leaderboard-item"><span>${topicName} (${s.difficulty})</span><span class="leaderboard-score">${s.score}/${s.total}</span></div>`;
+	});
+	html+='</div>';
+	dom.leaderboardContent.innerHTML=html;
+	if (dom.leaderboardCard) dom.leaderboardCard.style.display="block";
 }
 function updatePreview(): void{
 	if (!dom.previewDiv||!dom.userAnswer) return;
@@ -682,12 +708,21 @@ function updatePreviewDebounced(): void{
 }
 function insertSymbol(symbol: string): void{
 	if (!dom.userAnswer) return;
+	//@ts-ignore
+	let wrappedSymbol=symbol;
 	const start=dom.userAnswer.selectionStart;
 	const end=dom.userAnswer.selectionEnd;
 	const text=dom.userAnswer.value;
-	const newText=text.substring(0,start)+symbol+text.substring(end);
-	dom.userAnswer.value=newText;
-	dom.userAnswer.selectionStart=dom.userAnswer.selectionEnd=start+symbol.length;
+	if (symbol==="\\sqrt{}"){
+		const newText=text.substring(0,start)+"\\sqrt{"+text.substring(start,end)+"}"+text.substring(end);
+		dom.userAnswer.value=newText;
+		dom.userAnswer.selectionStart=dom.userAnswer.selectionEnd=start+6;
+	}
+	else{
+		const newText=text.substring(0,start)+symbol+text.substring(end);
+		dom.userAnswer.value=newText;
+		dom.userAnswer.selectionStart=dom.userAnswer.selectionEnd=start+symbol.length;
+	}
 	dom.userAnswer.focus();
 	updatePreviewDebounced();
 }
@@ -699,6 +734,68 @@ function copyCorrectAnswer(): void{
 		showNotification("Failed to copy","warning");
 	});
 }
+function clearAnswer(): void{
+	if (dom.userAnswer){
+		dom.userAnswer.value="";
+		updatePreview();
+		dom.userAnswer.focus();
+	}
+}
+function showShortcutsModal(): void{
+	if (dom.shortcutsModal) dom.shortcutsModal.classList.add("show");
+}
+function hideShortcutsModal(): void{
+	if (dom.shortcutsModal) dom.shortcutsModal.classList.remove("show");
+}
+function showOnboarding(): void{
+	if (!localStorage.getItem("onboardingShown")){
+		if (dom.onboardingOverlay) dom.onboardingOverlay.classList.add("show");
+		localStorage.setItem("onboardingShown","true");
+	}
+}
+function hideOnboarding(): void{
+	if (dom.onboardingOverlay) dom.onboardingOverlay.classList.remove("show");
+}
+function switchToSingle(): void{
+	if (dom.modeSingleBtn?.classList.contains("disabled")) return;
+	dom.modeSingleBtn?.classList.add("active");
+	dom.modeMentalBtn?.classList.remove("active");
+	currentMode="single";
+	if (dom.mentalControls) dom.mentalControls.style.display="none";
+	if (dom.singleControls) dom.singleControls.style.display="flex";
+	if (sessionActive) endMentalSession();
+	if (autoTimeout){
+		clearTimeout(autoTimeout);
+		autoTimeout=null;
+	}
+	if (dom.mentalScopeSelect) scope=dom.mentalScopeSelect.value;
+	if (dom.scopeSelect) dom.scopeSelect.value=scope;
+	if (dom.mentalShuffleToggle) shuffle=dom.mentalShuffleToggle.checked;
+	if (dom.shuffleToggle) dom.shuffleToggle.checked=shuffle;
+	updateAriaPressed();
+	renderTopicGrid();
+	updateUIState();
+}
+function switchToMental(): void{
+	if (dom.modeMentalBtn?.classList.contains("disabled")) return;
+	dom.modeMentalBtn?.classList.add("active");
+	dom.modeSingleBtn?.classList.remove("active");
+	currentMode="mental";
+	if (dom.mentalControls) dom.mentalControls.style.display="flex";
+	if (dom.singleControls) dom.singleControls.style.display="none";
+	if (sessionActive) endMentalSession();
+	if (autoTimeout){
+		clearTimeout(autoTimeout);
+		autoTimeout=null;
+	}
+	if (dom.scopeSelect) mentalScope=dom.scopeSelect.value;
+	if (dom.mentalScopeSelect) dom.mentalScopeSelect.value=mentalScope;
+	if (dom.shuffleToggle) mentalShuffle=dom.shuffleToggle.checked;
+	if (dom.mentalShuffleToggle) dom.mentalShuffleToggle.checked=mentalShuffle;
+	updateAriaPressed();
+	renderTopicGrid();
+	updateUIState();
+}
 function setupEventListeners(): void{
 	if (!dom.generateQuestionButton||!dom.checkAnswerButton||!dom.userAnswer||!dom.themeToggle||!dom.helpButton||!dom.settingsButton||!dom.modeSingleBtn||!dom.modeMentalBtn||!dom.mentalControls||!dom.singleControls||!dom.difficultySelect||!dom.timerDisplay||!dom.scoreDisplay||!dom.startSessionBtn) return;
 	dom.generateQuestionButton.addEventListener("click",debounceGenerate);
@@ -709,7 +806,10 @@ function setupEventListeners(): void{
 			else if (sessionActive) handleMentalAnswer();
 		}
 	});
-	document.addEventListener("keydown",(e: KeyboardEvent) =>{
+	dom.userAnswer.addEventListener("input",()=>{
+		updatePreviewDebounced();
+	});
+	document.addEventListener("keydown",(e: KeyboardEvent)=>{
 		if (e.ctrlKey||e.metaKey){
 			switch (e.key){
 				case "g": case "G":
@@ -762,109 +862,85 @@ function setupEventListeners(): void{
 		settings.closeSettings();
 	});
 	if (dom.settingsReset) dom.settingsReset.addEventListener("click",settings.resetSettings);
-	if (dom.settingsModal) dom.settingsModal.addEventListener("click",(e) =>{
+	if (dom.settingsModal) dom.settingsModal.addEventListener("click",(e)=>{
 		if (e.target===dom.settingsModal) settings.closeSettings();
 	});
+	if (dom.settingsTabBasic && dom.settingsTabAdvanced && dom.settingsBasicPanel && dom.settingsAdvancedPanel){
+		dom.settingsTabBasic.addEventListener("click",()=>{
+			dom.settingsTabBasic?.classList.add("active");
+			dom.settingsTabAdvanced?.classList.remove("active");
+			if (dom.settingsBasicPanel) dom.settingsBasicPanel.style.display="block";
+			if (dom.settingsAdvancedPanel) dom.settingsAdvancedPanel.style.display="none";
+		});
+		dom.settingsTabAdvanced.addEventListener("click",()=>{
+			dom.settingsTabAdvanced?.classList.add("active");
+			dom.settingsTabBasic?.classList.remove("active");
+			if (dom.settingsAdvancedPanel) dom.settingsAdvancedPanel.style.display="block";
+			if (dom.settingsBasicPanel) dom.settingsBasicPanel.style.display="none";
+		});
+	}
 	if (dom.settingsTheme){
-		dom.settingsTheme.addEventListener("change",(e) => settings.previewSetting("theme",(e.target as HTMLSelectElement).value));
+		dom.settingsTheme.addEventListener("change",(e)=>settings.previewSetting("theme",(e.target as HTMLSelectElement).value));
 	}
 	if (dom.settingsDefaultMode){
-		dom.settingsDefaultMode.addEventListener("change",(e) => settings.previewSetting("defaultMode",(e.target as HTMLSelectElement).value));
+		dom.settingsDefaultMode.addEventListener("change",(e)=>settings.previewSetting("defaultMode",(e.target as HTMLSelectElement).value));
 	}
 	if (dom.settingsAutoContinue){
-		dom.settingsAutoContinue.addEventListener("change",(e) => settings.previewSetting("autoContinue",(e.target as HTMLInputElement).checked));
+		dom.settingsAutoContinue.addEventListener("change",(e)=>settings.previewSetting("autoContinue",(e.target as HTMLInputElement).checked));
 	}
 	if (dom.settingsShuffle){
-		dom.settingsShuffle.addEventListener("change",(e) => settings.previewSetting("shuffle",(e.target as HTMLInputElement).checked));
+		dom.settingsShuffle.addEventListener("change",(e)=>settings.previewSetting("shuffle",(e.target as HTMLInputElement).checked));
 	}
 	if (dom.settingsScope){
-		dom.settingsScope.addEventListener("change",(e) => settings.previewSetting("scope",(e.target as HTMLSelectElement).value));
+		dom.settingsScope.addEventListener("change",(e)=>settings.previewSetting("scope",(e.target as HTMLSelectElement).value));
 	}
 	if (dom.settingsDifficulty){
-		dom.settingsDifficulty.addEventListener("change",(e) => settings.previewSetting("difficulty",(e.target as HTMLSelectElement).value));
+		dom.settingsDifficulty.addEventListener("change",(e)=>settings.previewSetting("difficulty",(e.target as HTMLSelectElement).value));
 	}
 	if (dom.settingsTimer){
-		dom.settingsTimer.addEventListener("input",(e) => settings.previewSetting("timer",(e.target as HTMLInputElement).value));
+		dom.settingsTimer.addEventListener("input",(e)=>settings.previewSetting("timer",(e.target as HTMLInputElement).value));
 	}
 	if (dom.settingsMaxQuestions){
-		dom.settingsMaxQuestions.addEventListener("input",(e) => settings.previewSetting("maxQuestions",(e.target as HTMLInputElement).value));
+		dom.settingsMaxQuestions.addEventListener("input",(e)=>settings.previewSetting("maxQuestions",(e.target as HTMLInputElement).value));
 	}
 	if (dom.settingsFont){
-		dom.settingsFont.addEventListener("change",(e) => settings.previewSetting("font",(e.target as HTMLSelectElement).value));
+		dom.settingsFont.addEventListener("change",(e)=>settings.previewSetting("font",(e.target as HTMLSelectElement).value));
 	}
 	if (dom.settingsPerfMaster){
-		dom.settingsPerfMaster.addEventListener("change",(e) => settings.previewSetting("perfMaster",(e.target as HTMLInputElement).checked));
+		dom.settingsPerfMaster.addEventListener("change",(e)=>settings.previewSetting("perfMaster",(e.target as HTMLInputElement).checked));
 	}
 	if (dom.settingsPerfWave){
-		dom.settingsPerfWave.addEventListener("change",(e) => settings.previewSetting("perfWave",(e.target as HTMLInputElement).checked));
+		dom.settingsPerfWave.addEventListener("change",(e)=>settings.previewSetting("perfWave",(e.target as HTMLInputElement).checked));
 	}
 	if (dom.settingsPerfBlur){
-		dom.settingsPerfBlur.addEventListener("change",(e) => settings.previewSetting("perfBlur",(e.target as HTMLInputElement).checked));
+		dom.settingsPerfBlur.addEventListener("change",(e)=>settings.previewSetting("perfBlur",(e.target as HTMLInputElement).checked));
 	}
 	if (dom.settingsPerfPreview){
-		dom.settingsPerfPreview.addEventListener("change",(e) => settings.previewSetting("perfPreview",(e.target as HTMLInputElement).checked));
+		dom.settingsPerfPreview.addEventListener("change",(e)=>settings.previewSetting("perfPreview",(e.target as HTMLInputElement).checked));
 	}
 	if (dom.settingsPerfAnimations){
-		dom.settingsPerfAnimations.addEventListener("change",(e) => settings.previewSetting("perfAnimations",(e.target as HTMLInputElement).checked));
+		dom.settingsPerfAnimations.addEventListener("change",(e)=>settings.previewSetting("perfAnimations",(e.target as HTMLInputElement).checked));
 	}
 	if (dom.settingsFpsCap){
-		dom.settingsFpsCap.addEventListener("change",(e) => settings.previewSetting("fpsCap",(e.target as HTMLSelectElement).value));
+		dom.settingsFpsCap.addEventListener("change",(e)=>settings.previewSetting("fpsCap",(e.target as HTMLSelectElement).value));
 	}
 	if (dom.settingsNotifications){
-		dom.settingsNotifications.addEventListener("change",(e) => settings.previewSetting("notifications",(e.target as HTMLInputElement).checked));
+		dom.settingsNotifications.addEventListener("change",(e)=>settings.previewSetting("notifications",(e.target as HTMLInputElement).checked));
 	}
 	if (dom.settingsAutoCheckDelay){
-		dom.settingsAutoCheckDelay.addEventListener("input",(e) => settings.previewSetting("autoCheckDelay",(e.target as HTMLInputElement).value));
+		dom.settingsAutoCheckDelay.addEventListener("input",(e)=>settings.previewSetting("autoCheckDelay",(e.target as HTMLInputElement).value));
 	}
 	if (dom.settingsDecimalPlaces){
-		dom.settingsDecimalPlaces.addEventListener("input",(e) => settings.previewSetting("decimalPlaces",(e.target as HTMLInputElement).value));
+		dom.settingsDecimalPlaces.addEventListener("input",(e)=>settings.previewSetting("decimalPlaces",(e.target as HTMLInputElement).value));
 	}
 	if (dom.settingsSound){
-		dom.settingsSound.addEventListener("change",(e) => settings.previewSetting("sound",(e.target as HTMLInputElement).checked));
+		dom.settingsSound.addEventListener("change",(e)=>settings.previewSetting("sound",(e.target as HTMLInputElement).checked));
 	}
 	if (dom.settingsVibration){
-		dom.settingsVibration.addEventListener("change",(e) => settings.previewSetting("vibration",(e.target as HTMLInputElement).checked));
+		dom.settingsVibration.addEventListener("change",(e)=>settings.previewSetting("vibration",(e.target as HTMLInputElement).checked));
 	}
-	dom.modeSingleBtn.addEventListener("click",function (){
-		if (dom.modeSingleBtn!.classList.contains("disabled")) return;
-		dom.modeSingleBtn!.classList.add("active");
-		dom.modeMentalBtn!.classList.remove("active");
-		currentMode="single";
-		dom.mentalControls!.style.display="none";
-		dom.singleControls!.style.display="flex";
-		if (sessionActive) endMentalSession();
-		if (autoTimeout){
-			clearTimeout(autoTimeout);
-			autoTimeout=null;
-		}
-		if (dom.mentalScopeSelect) scope=dom.mentalScopeSelect.value;
-		if (dom.scopeSelect) dom.scopeSelect.value=scope;
-		if (dom.mentalShuffleToggle) shuffle=dom.mentalShuffleToggle.checked;
-		if (dom.shuffleToggle) dom.shuffleToggle.checked=shuffle;
-		updateAriaPressed();
-		renderTopicGrid();
-		updateUIState();
-	});
-	dom.modeMentalBtn.addEventListener("click",function (){
-		if (dom.modeMentalBtn!.classList.contains("disabled")) return;
-		dom.modeMentalBtn!.classList.add("active");
-		dom.modeSingleBtn!.classList.remove("active");
-		currentMode="mental";
-		dom.mentalControls!.style.display="flex";
-		dom.singleControls!.style.display="none";
-		if (sessionActive) endMentalSession();
-		if (autoTimeout){
-			clearTimeout(autoTimeout);
-			autoTimeout=null;
-		}
-		if (dom.scopeSelect) mentalScope=dom.scopeSelect.value;
-		if (dom.mentalScopeSelect) dom.mentalScopeSelect.value=mentalScope;
-		if (dom.shuffleToggle) mentalShuffle=dom.shuffleToggle.checked;
-		if (dom.mentalShuffleToggle) dom.mentalShuffleToggle.checked=mentalShuffle;
-		updateAriaPressed();
-		renderTopicGrid();
-		updateUIState();
-	});
+	dom.modeSingleBtn.addEventListener("click",switchToSingle);
+	dom.modeMentalBtn.addEventListener("click",switchToMental);
 	dom.difficultySelect.addEventListener("change",function (e: Event){
 		currentDifficulty=(e.target as HTMLSelectElement).value;
 	});
@@ -876,7 +952,7 @@ function setupEventListeners(): void{
 		dom.skipQuestionBtn.addEventListener("click",skipMentalQuestion);
 	}
 	if (dom.autocontinueToggle){
-		dom.autocontinueToggle.addEventListener("change",(e) =>{
+		dom.autocontinueToggle.addEventListener("change",(e)=>{
 			autocontinue=(e.target as HTMLInputElement).checked;
 			updateCheckboxAria(dom.autocontinueToggle);
 			if (!autocontinue&&autoTimeout){
@@ -886,7 +962,7 @@ function setupEventListeners(): void{
 		});
 	}
 	if (dom.scopeSelect){
-		dom.scopeSelect.addEventListener("change",(e) =>{
+		dom.scopeSelect.addEventListener("change",(e)=>{
 			scope=(e.target as HTMLSelectElement).value;
 			renderTopicGrid();
 			if (autoTimeout){
@@ -896,39 +972,80 @@ function setupEventListeners(): void{
 		});
 	}
 	if (dom.shuffleToggle){
-		dom.shuffleToggle.addEventListener("change",(e) =>{
+		dom.shuffleToggle.addEventListener("change",(e)=>{
 			shuffle=(e.target as HTMLInputElement).checked;
 			updateCheckboxAria(dom.shuffleToggle);
 		});
 	}
 	if (dom.mentalScopeSelect){
-		dom.mentalScopeSelect.addEventListener("change",(e) =>{
+		dom.mentalScopeSelect.addEventListener("change",(e)=>{
 			mentalScope=(e.target as HTMLSelectElement).value;
 			renderTopicGrid();
 		});
 	}
 	if (dom.mentalShuffleToggle){
-		dom.mentalShuffleToggle.addEventListener("change",(e) =>{
+		dom.mentalShuffleToggle.addEventListener("change",(e)=>{
 			mentalShuffle=(e.target as HTMLInputElement).checked;
 			updateCheckboxAria(dom.mentalShuffleToggle);
 		});
 	}
+	if (dom.topicSearch){
+		dom.topicSearch.addEventListener("input",()=>{
+			renderTopicGrid();
+		});
+	}
+	if (dom.clearAnswerBtn){
+		dom.clearAnswerBtn.addEventListener("click",clearAnswer);
+	}
 	if (dom.mathToolbar){
 		dom.mathToolbar.querySelectorAll(".math-toolbar-btn").forEach(btn=>{
-			btn.addEventListener("click",(e) =>{
+			btn.addEventListener("click",(e)=>{
 				const symbol=(e.target as HTMLElement).dataset.symbol||"";
 				insertSymbol(symbol);
 			});
 		});
-	}
-	if (dom.userAnswer){
-		dom.userAnswer.addEventListener("input",updatePreviewDebounced);
+		dom.userAnswer?.addEventListener("focus",()=>{
+			if (dom.answerCard) dom.answerCard.classList.add("focused");
+		});
+		dom.userAnswer?.addEventListener("blur",()=>{
+			if (dom.answerCard) dom.answerCard.classList.remove("focused");
+		});
 	}
 	if (dom.copyAnswerBtn){
 		dom.copyAnswerBtn.addEventListener("click",copyCorrectAnswer);
 	}
+	if (dom.shortcutsButton){
+		dom.shortcutsButton.addEventListener("click",showShortcutsModal);
+	}
+	if (dom.shortcutsClose){
+		dom.shortcutsClose.addEventListener("click",hideShortcutsModal);
+	}
+	if (dom.shortcutsGotit){
+		dom.shortcutsGotit.addEventListener("click",hideShortcutsModal);
+	}
+	if (dom.shortcutsModal){
+		dom.shortcutsModal.addEventListener("click",(e)=>{
+			if (e.target===dom.shortcutsModal) hideShortcutsModal();
+		});
+	}
+	if (dom.leaderboardClose){
+		dom.leaderboardClose.addEventListener("click",()=>{
+			if (dom.leaderboardCard) dom.leaderboardCard.style.display="none";
+		});
+	}
+	if (dom.onboardingClose){
+		dom.onboardingClose.addEventListener("click",hideOnboarding);
+	}
+	if (dom.onboardingGotit){
+		dom.onboardingGotit.addEventListener("click",hideOnboarding);
+	}
+	if (dom.onboardingOverlay){
+		dom.onboardingOverlay.addEventListener("click",(e)=>{
+			if (e.target===dom.onboardingOverlay) hideOnboarding();
+		});
+	}
 	if (dom.userAnswer&&dom.customContextMenu){
-		dom.userAnswer.addEventListener("contextmenu",(e) =>{
+		dom.userAnswer.addEventListener("contextmenu",(e)=>{
 			e.preventDefault();
 			const x=e.clientX;
 			const y=e.clientY;
@@ -936,18 +1053,19 @@ function setupEventListeners(): void{
 			dom.customContextMenu!.style.left=x+"px";
 			dom.customContextMenu!.style.top=y+"px";
 		});
-		document.addEventListener("click",() =>{
+		document.addEventListener("click",()=>{
 			if (dom.customContextMenu) dom.customContextMenu.style.display="none";
 		});
 		dom.customContextMenu.querySelectorAll(".context-menu-item").forEach(item=>{
-			item.addEventListener("click",(e) =>{
+			item.addEventListener("click",(e)=>{
 				const action=(e.target as HTMLElement).dataset.action;
 				if (action==="paste"){
 					navigator.clipboard.readText().then(text=>{
 						if (dom.userAnswer) dom.userAnswer.value=text;
 						updatePreviewDebounced();
 					});
-				} else if (action==="clear"){
+				}
+				else if (action==="clear"){
 					if (dom.userAnswer) dom.userAnswer.value="";
 					updatePreviewDebounced();
 				}
@@ -971,22 +1089,39 @@ async function initializeTheme(): Promise<void>{
 	if (settings.settings.theme==="system"){
 		let prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
 		settings.applyTheme(prefersDark?"dark":"light");
-		window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",(e) =>{
+		window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",(e)=>{
 			if (settings.settings.theme==="system"){
 				settings.applyTheme(e.matches?"dark":"light");
 			}
 		});
-	} else{
+	}
+	else{
 		settings.applyTheme(settings.settings.theme as "light"|"dark");
 	}
 }
 function initApp(): void{
 	settings.loadSettings();
+	if (settings.settings.defaultMode==="mental"){
+		switchToMental();
+	}
+	else{
+		switchToSingle();
+	}
+	scope=settings.settings.scope;
+	shuffle=settings.settings.shuffle;
+	mentalScope=settings.settings.scope;
+	mentalShuffle=settings.settings.shuffle;
+	if (dom.scopeSelect) dom.scopeSelect.value=scope;
+	if (dom.mentalScopeSelect) dom.mentalScopeSelect.value=mentalScope;
+	if (dom.shuffleToggle) dom.shuffleToggle.checked=shuffle;
+	if (dom.mentalShuffleToggle) dom.mentalShuffleToggle.checked=mentalShuffle;
 	setupEventListeners();
 	initializeTheme();
 	updateUIState();
 	restoreSessionSnapshot();
 	renderTopicGrid();
+	updateLeaderboard();
+	showOnboarding();
 }
 if (document.readyState==="loading"){
 	document.addEventListener("DOMContentLoaded",initApp);

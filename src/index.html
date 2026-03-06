@@ -29,6 +29,34 @@
         <script id="MathJax-script" async src="/mathjax/tex-chtml.js"></script>
     </head>
     <body>
+        <div id="onboarding-overlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+            <div class="modal-content onboarding-content">
+                <div class="modal-header">
+                    <h2 id="onboarding-title">Welcome to RandMatQuGeA!</h2>
+                    <button class="icon-button modal-close" id="onboarding-close" aria-label="Close onboarding">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="onboarding-steps">
+                        <div class="onboarding-step">
+                            <span class="step-number">1</span>
+                            <span>Pick a topic from the list above</span>
+                        </div>
+                        <div class="onboarding-step">
+                            <span class="step-number">2</span>
+                            <span>Click <strong>Generate</strong> to get a question</span>
+                        </div>
+                        <div class="onboarding-step">
+                            <span class="step-number">3</span>
+                            <span>Type your answer and press <kbd>Shift+Enter</kbd> or click <strong>Check</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="primary-button" id="onboarding-gotit">Got it!</button>
+                </div>
+            </div>
+        </div>
+
         <div id="wave-container">
             <div class="liquid-bg"></div>
         </div>
@@ -43,20 +71,28 @@
                         </div>
                         <div class="toolbar-section">
                             <h2 class="toolbar-title" id="topics-heading">Topics</h2>
+                            <div class="topic-search-wrapper">
+                                <input type="text" id="topic-search" class="answer-input topic-search" placeholder="Search topics..." aria-label="Search topics">
+                            </div>
                             <div class="topic-pills-container" id="topic-grid" role="group" aria-labelledby="topics-heading"></div>
                         </div>
                         <div class="utility-buttons">
-                            <button class="icon-button" id="theme-toggle" aria-label="Toggle theme">
+                            <button class="icon-button" id="theme-toggle" aria-label="Toggle theme" title="Toggle light/dark theme">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
                                 </svg>
                             </button>
-                            <button class="icon-button" id="help-button" aria-label="Help">
+                            <button class="icon-button" id="help-button" aria-label="Help" title="Show help">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
                                 </svg>
                             </button>
-                            <button class="icon-button" id="settings-button" aria-label="Settings">
+                            <button class="icon-button" id="shortcuts-button" aria-label="Keyboard shortcuts" title="Show keyboard shortcuts">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2zm0 3h2v2h-2zM8 8h2v2H8zm0 3h2v2H8zm-1 2H5v-2h2zm0-3H5V8h2zm9 7H8v-2h8zm0-4h-2v-2h2zm0-3h-2V8h2zm3 3h-2v-2h2zm0-3h-2V8h2z"/>
+                                </svg>
+                            </button>
+                            <button class="icon-button" id="settings-button" aria-label="Settings" title="Open settings">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94 0 .31.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5-.38 1.03-.7 1.62-.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
                                 </svg>
@@ -66,15 +102,15 @@
                     <div class="toolbar-row-bottom">
                         <div class="toolbar-actions" id="single-controls">
                             <div class="single-actions">
-                                <button class="primary-button toolbar-button" id="genQ">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+                                <button class="primary-button toolbar-button" id="genQ" title="Generate a new question (Ctrl+G)">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="button-icon">
                                         <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                                     </svg>
                                     Generate
                                     <kbd class="shortcut-hint">Ctrl+G</kbd>
                                 </button>
-                                <button class="secondary-button toolbar-button" id="check-answer" disabled aria-disabled="true">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+                                <button class="secondary-button toolbar-button" id="check-answer" disabled aria-disabled="true" title="Check your answer (Shift+Enter)">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="button-icon">
                                         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                                     </svg>
                                     Check
@@ -82,66 +118,66 @@
                                 </button>
                             </div>
                             <div class="auto-controls">
-                                <label class="auto-toggle" id="auto-label">
+                                <label class="auto-toggle" id="auto-label" title="Automatically generate next question after 3 seconds">
                                     <input type="checkbox" id="autocontinue-toggle" aria-checked="false"> Auto (3s)
                                 </label>
-                                <select id="scope-select" class="scope-select" aria-label="Scope">
+                                <select id="scope-select" class="scope-select" aria-label="Scope" title="Select question scope">
                                     <option value="simple">Simple Math</option>
                                     <option value="algebra">Algebra</option>
                                     <option value="precalc">Precalculus</option>
                                     <option value="calc">Calculus</option>
                                     <option value="all">All</option>
                                 </select>
-                                <label class="shuffle-toggle" id="shuffle-label">
+                                <label class="shuffle-toggle" id="shuffle-label" title="Randomly pick topics">
                                     <input type="checkbox" id="shuffle-toggle" aria-checked="false"> Shuffle
                                 </label>
                             </div>
                         </div>
-                        <div id="mental-controls" class="mental-controls-wrapper" style="display: none;">
+                        <div id="mental-controls" class="mental-controls-wrapper hidden">
                             <div class="mental-stats">
-                                <select id="difficulty-select" class="difficulty-select" aria-label="Difficulty">
+                                <select id="difficulty-select" class="difficulty-select" aria-label="Difficulty" title="Select difficulty level">
                                     <option value="easy">Easy</option>
                                     <option value="medium" selected>Medium</option>
                                     <option value="hard">Hard</option>
                                 </select>
-                                <span id="timer-display" class="stat-with-icon">
+                                <span id="timer-display" class="stat-with-icon" title="Time remaining">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
                                     </svg>
                                     00:30
                                 </span>
-                                <span id="score-display" class="stat-with-icon">
+                                <span id="score-display" class="stat-with-icon" title="Correct / Total">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                                     </svg>
                                     0 / 0
                                 </span>
-                                <button class="icon-button" id="pause-session" aria-label="Pause" style="display: none;">
+                                <button class="icon-button mental-action-btn hidden" id="pause-session" aria-label="Pause" title="Pause session">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                                     </svg>
                                 </button>
-                                <button class="icon-button" id="skip-question" aria-label="Skip" style="display: none;">
+                                <button class="icon-button mental-action-btn hidden" id="skip-question" aria-label="Skip" title="Skip this question">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
                                     </svg>
                                 </button>
                             </div>
                             <div class="mental-extra-controls">
-                                <select id="mental-scope-select" class="scope-select" aria-label="Mental scope">
+                                <select id="mental-scope-select" class="scope-select" aria-label="Mental scope" title="Select scope for mental mode">
                                     <option value="simple">Simple Math</option>
                                     <option value="algebra">Algebra</option>
                                     <option value="precalc">Precalculus</option>
                                     <option value="calc">Calculus</option>
                                     <option value="all">All</option>
                                 </select>
-                                <label class="shuffle-toggle" id="mental-shuffle-label">
+                                <label class="shuffle-toggle" id="mental-shuffle-label" title="Randomly pick topics in mental mode">
                                     <input type="checkbox" id="mental-shuffle-toggle" aria-checked="false"> Shuffle
                                 </label>
-                                <button id="start-session" class="primary-button">Start Session</button>
+                                <button id="start-session" class="primary-button" title="Start a mental math session">Start Session</button>
                             </div>
                             <div class="mental-progress">
-                                <div class="progress-bar" id="mental-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width: 0%;"></div>
+                                <div class="progress-bar" id="mental-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
                             </div>
                         </div>
                     </div>
@@ -170,20 +206,27 @@
                                 <div class="card-header">
                                     <h2 class="card-title">Your Answer</h2>
                                 </div>
-                                <div class="card-content">
+                                <div class="card-content answer-content">
                                     <div class="math-toolbar" id="math-toolbar">
-                                        <button class="math-toolbar-btn" data-symbol="\int">∫</button>
-                                        <button class="math-toolbar-btn" data-symbol="\sum">∑</button>
-                                        <button class="math-toolbar-btn" data-symbol="\sqrt{}">√</button>
-                                        <button class="math-toolbar-btn" data-symbol="\pi">π</button>
-                                        <button class="math-toolbar-btn" data-symbol="\infty">∞</button>
-                                        <button class="math-toolbar-btn" data-symbol="\pm">±</button>
-                                        <button class="math-toolbar-btn" data-symbol="\approx">≈</button>
-                                        <button class="math-toolbar-btn" data-symbol="\neq">≠</button>
-                                        <button class="math-toolbar-btn" data-symbol="\le">≤</button>
-                                        <button class="math-toolbar-btn" data-symbol="\ge">≥</button>
+                                        <button class="math-toolbar-btn" data-symbol="\int" aria-label="Insert integral">∫</button>
+                                        <button class="math-toolbar-btn" data-symbol="\sum" aria-label="Insert sum">∑</button>
+                                        <button class="math-toolbar-btn" data-symbol="\sqrt{}" aria-label="Insert square root">√</button>
+                                        <button class="math-toolbar-btn" data-symbol="\pi" aria-label="Insert pi">π</button>
+                                        <button class="math-toolbar-btn" data-symbol="\infty" aria-label="Insert infinity">∞</button>
+                                        <button class="math-toolbar-btn" data-symbol="\pm" aria-label="Insert plus-minus">±</button>
+                                        <button class="math-toolbar-btn" data-symbol="\approx" aria-label="Insert approximately">≈</button>
+                                        <button class="math-toolbar-btn" data-symbol="\neq" aria-label="Insert not equal">≠</button>
+                                        <button class="math-toolbar-btn" data-symbol="\le" aria-label="Insert less than or equal">≤</button>
+                                        <button class="math-toolbar-btn" data-symbol="\ge" aria-label="Insert greater than or equal">≥</button>
                                     </div>
-                                    <textarea id="answer-box" class="answer-input" placeholder="Enter your answer here. Use Shift + Enter to submit." disabled aria-describedby="expected-format symbols-hint"></textarea>
+                                    <div class="answer-input-wrapper">
+                                        <textarea id="answer-box" class="answer-input" placeholder="Enter your answer here. Use Shift + Enter to submit." disabled aria-describedby="expected-format symbols-hint"></textarea>
+                                        <button id="clear-answer" class="icon-button clear-answer-btn" aria-label="Clear answer" title="Clear answer input">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
                                     <div id="preview" class="math-preview"></div>
                                     <div class="symbols-hint" id="symbols-hint">
                                         <span class="hint-label">Symbols:</span>
@@ -195,7 +238,7 @@
                             <div class="results-card card">
                                 <div class="card-header">
                                     <h2 class="card-title">Results</h2>
-                                    <button class="icon-button" id="copy-answer" aria-label="Copy correct answer" style="display: none;">
+                                    <button class="icon-button copy-answer-btn hidden" id="copy-answer" aria-label="Copy correct answer" title="Copy correct answer to clipboard">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
                                         </svg>
@@ -213,6 +256,22 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="leaderboard-card card hidden" id="leaderboard-card">
+                            <div class="card-header">
+                                <h2 class="card-title">Leaderboard / Score History</h2>
+                                <button class="icon-button" id="leaderboard-close" aria-label="Close leaderboard">✕</button>
+                            </div>
+                            <div class="card-content">
+                                <div id="leaderboard-content" class="leaderboard-content">
+                                    <div class="empty-state">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/>
+                                        </svg>
+                                        <p>No scores yet. Complete a mental session to see your results.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -223,138 +282,148 @@
                 </div>
             </div>
         </div>
-        <div id="settings-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+
+        <!-- Settings Modal (with tabs) -->
+        <div id="settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
             <div class="modal-content">
                 <div class="modal-header">
                     <h2 id="settings-title">Settings</h2>
                     <button class="icon-button modal-close" id="settings-close" aria-label="Close settings">✕</button>
                 </div>
                 <div class="modal-body">
-                    <div class="settings-section">
-                        <h3>Appearance</h3>
-                        <div class="setting-item">
-                            <label for="settings-theme">Theme</label>
-                            <select id="settings-theme" class="scope-select">
-                                <option value="system">System</option>
-                                <option value="light">Light</option>
-                                <option value="dark">Dark</option>
-                            </select>
+                    <div class="settings-tabs">
+                        <button id="settings-tab-basic" class="mode-button settings-tab active">Basic</button>
+                        <button id="settings-tab-advanced" class="mode-button settings-tab">Advanced</button>
+                    </div>
+                    <div id="settings-basic" class="settings-panel">
+                        <div class="settings-section">
+                            <h3>Appearance</h3>
+                            <div class="setting-item">
+                                <label for="settings-theme">Theme</label>
+                                <select id="settings-theme" class="scope-select">
+                                    <option value="system">System</option>
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-font">Font</label>
+                                <select id="settings-font" class="scope-select">
+                                    <option value="default">Default</option>
+                                    <option value="opendyslexic">OpenDyslexic</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="setting-item">
-                            <label for="settings-font">Font</label>
-                            <select id="settings-font" class="scope-select">
-                                <option value="default">Default</option>
-                                <option value="opendyslexic">OpenDyslexic</option>
-                            </select>
+                        <div class="settings-section">
+                            <h3>General</h3>
+                            <div class="setting-item">
+                                <label for="settings-default-mode">Default mode</label>
+                                <select id="settings-default-mode" class="scope-select">
+                                    <option value="single">Single</option>
+                                    <option value="mental">Mental</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-auto-continue">Auto-continue (Single mode)</label>
+                                <input type="checkbox" id="settings-auto-continue" class="settings-checkbox">
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-shuffle">Shuffle by default</label>
+                                <input type="checkbox" id="settings-shuffle" class="settings-checkbox">
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-scope">Default scope</label>
+                                <select id="settings-scope" class="scope-select">
+                                    <option value="simple">Simple Math</option>
+                                    <option value="algebra">Algebra</option>
+                                    <option value="precalc">Precalculus</option>
+                                    <option value="calc">Calculus</option>
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-notifications">Show notifications</label>
+                                <input type="checkbox" id="settings-notifications" class="settings-checkbox" checked>
+                            </div>
+                        </div>
+                        <div class="settings-section">
+                            <h3>Mental Mode</h3>
+                            <div class="setting-item">
+                                <label for="settings-difficulty">Difficulty</label>
+                                <select id="settings-difficulty" class="scope-select">
+                                    <option value="easy">Easy</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="hard">Hard</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-timer">Timer (seconds)</label>
+                                <input type="number" id="settings-timer" min="10" max="120" value="30" class="settings-number">
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-max-questions">Questions per session</label>
+                                <input type="number" id="settings-max-questions" min="1" max="20" value="5" class="settings-number">
+                            </div>
                         </div>
                     </div>
-                    <div class="settings-section">
-                        <h3>General</h3>
-                        <div class="setting-item">
-                            <label for="settings-default-mode">Default mode</label>
-                            <select id="settings-default-mode" class="scope-select">
-                                <option value="single">Single</option>
-                                <option value="mental">Mental</option>
-                            </select>
+                    <div id="settings-advanced" class="settings-panel hidden">
+                        <div class="settings-section">
+                            <h3>Answer Options</h3>
+                            <div class="setting-item">
+                                <label for="settings-auto-check-delay">Auto‑check delay (ms)</label>
+                                <input type="number" id="settings-auto-check-delay" min="100" max="5000" step="50" value="800" class="settings-number">
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-decimal-places">Decimal places (tolerance)</label>
+                                <input type="number" id="settings-decimal-places" min="0" max="10" value="2" class="settings-number">
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-sound">Sound effects</label>
+                                <input type="checkbox" id="settings-sound" class="settings-checkbox">
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-vibration">Vibration (mobile)</label>
+                                <input type="checkbox" id="settings-vibration" class="settings-checkbox">
+                            </div>
                         </div>
-                        <div class="setting-item">
-                            <label for="settings-auto-continue">Auto-continue (Single mode)</label>
-                            <input type="checkbox" id="settings-auto-continue" class="settings-checkbox">
+                        <div class="settings-section">
+                            <h3>Performance</h3>
+                            <div class="setting-item">
+                                <label for="settings-perf-master">Performance mode (disables eye candy)</label>
+                                <input type="checkbox" id="settings-perf-master" class="settings-checkbox">
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-perf-wave">Wave background</label>
+                                <input type="checkbox" id="settings-perf-wave" class="settings-checkbox" checked>
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-perf-blur">Blur effects</label>
+                                <input type="checkbox" id="settings-perf-blur" class="settings-checkbox" checked>
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-perf-preview">Live preview (KaTeX)</label>
+                                <input type="checkbox" id="settings-perf-preview" class="settings-checkbox" checked>
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-perf-animations">Animations</label>
+                                <input type="checkbox" id="settings-perf-animations" class="settings-checkbox" checked>
+                            </div>
+                            <div class="setting-item">
+                                <label for="settings-fps-cap">FPS cap (for JS animations)</label>
+                                <select id="settings-fps-cap" class="scope-select">
+                                    <option value="30">30</option>
+                                    <option value="60">60</option>
+                                    <option value="90">90</option>
+                                    <option value="120">120</option>
+                                    <option value="0" selected>Screen (no cap)</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="setting-item">
-                            <label for="settings-shuffle">Shuffle by default</label>
-                            <input type="checkbox" id="settings-shuffle" class="settings-checkbox">
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-scope">Default scope</label>
-                            <select id="settings-scope" class="scope-select">
-                                <option value="simple">Simple Math</option>
-                                <option value="algebra">Algebra</option>
-                                <option value="precalc">Precalculus</option>
-                                <option value="calc">Calculus</option>
-                                <option value="all">All</option>
-                            </select>
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-notifications">Show notifications</label>
-                            <input type="checkbox" id="settings-notifications" class="settings-checkbox" checked>
-                        </div>
-                    </div>
-                    <div class="settings-section">
-                        <h3>Mental Mode</h3>
-                        <div class="setting-item">
-                            <label for="settings-difficulty">Difficulty</label>
-                            <select id="settings-difficulty" class="scope-select">
-                                <option value="easy">Easy</option>
-                                <option value="medium">Medium</option>
-                                <option value="hard">Hard</option>
-                            </select>
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-timer">Timer (seconds)</label>
-                            <input type="number" id="settings-timer" min="10" max="120" value="30" class="settings-number">
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-max-questions">Questions per session</label>
-                            <input type="number" id="settings-max-questions" min="1" max="20" value="5" class="settings-number">
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-auto-check-delay">Auto‑check delay (ms)</label>
-                            <input type="number" id="settings-auto-check-delay" min="100" max="5000" step="50" value="800" class="settings-number">
-                        </div>
-                    </div>
-                    <div class="settings-section">
-                        <h3>Answer Options</h3>
-                        <div class="setting-item">
-                            <label for="settings-decimal-places">Decimal places (tolerance)</label>
-                            <input type="number" id="settings-decimal-places" min="0" max="10" value="2" class="settings-number">
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-sound">Sound effects</label>
-                            <input type="checkbox" id="settings-sound" class="settings-checkbox">
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-vibration">Vibration (mobile)</label>
-                            <input type="checkbox" id="settings-vibration" class="settings-checkbox">
-                        </div>
-                    </div>
-                    <div class="settings-section">
-                        <h3>Performance</h3>
-                        <div class="setting-item">
-                            <label for="settings-perf-master">Performance mode (disables eye candy)</label>
-                            <input type="checkbox" id="settings-perf-master" class="settings-checkbox">
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-perf-wave">Wave background</label>
-                            <input type="checkbox" id="settings-perf-wave" class="settings-checkbox" checked>
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-perf-blur">Blur effects</label>
-                            <input type="checkbox" id="settings-perf-blur" class="settings-checkbox" checked>
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-perf-preview">Live preview (KaTeX)</label>
-                            <input type="checkbox" id="settings-perf-preview" class="settings-checkbox" checked>
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-perf-animations">Animations</label>
-                            <input type="checkbox" id="settings-perf-animations" class="settings-checkbox" checked>
-                        </div>
-                        <div class="setting-item">
-                            <label for="settings-fps-cap">FPS cap (for JS animations)</label>
-                            <select id="settings-fps-cap" class="scope-select">
-                                <option value="30">30</option>
-                                <option value="60">60</option>
-                                <option value="90">90</option>
-                                <option value="120">120</option>
-                                <option value="0" selected>Screen (no cap)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="settings-section">
-                        <h3>Data</h3>
-                        <div class="setting-item">
-                            <button class="secondary-button" id="settings-reset">Reset to defaults</button>
+                        <div class="settings-section">
+                            <h3>Data</h3>
+                            <div class="setting-item">
+                                <button class="secondary-button" id="settings-reset">Reset to defaults</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -363,7 +432,28 @@
                 </div>
             </div>
         </div>
-        <div id="custom-context-menu" style="display: none; position: fixed; background: var(--surface-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--spacing-xs); box-shadow: var(--shadow-lg); z-index: 10000;">
+        <div id="shortcuts-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title">
+            <div class="modal-content shortcuts-content">
+                <div class="modal-header">
+                    <h2 id="shortcuts-title">Keyboard Shortcuts</h2>
+                    <button class="icon-button modal-close" id="shortcuts-close" aria-label="Close shortcuts">✕</button>
+                </div>
+                <div class="modal-body">
+                    <table class="shortcuts-table">
+                        <tr><td><kbd>Ctrl+G</kbd></td><td>Generate new question</td></tr>
+                        <tr><td><kbd>Shift+Enter</kbd></td><td>Check answer</td></tr>
+                        <tr><td><kbd>Ctrl+1</kbd></td><td>Switch to Single mode</td></tr>
+                        <tr><td><kbd>Ctrl+2</kbd></td><td>Switch to Mental mode</td></tr>
+                        <tr><td><kbd>Ctrl+,</kbd></td><td>Open settings</td></tr>
+                        <tr><td><kbd>Ctrl+Shift+T</kbd></td><td>Toggle theme</td></tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button class="primary-button" id="shortcuts-gotit">Got it</button>
+                </div>
+            </div>
+        </div>
+        <div id="custom-context-menu" class="context-menu hidden">
             <button class="context-menu-item" data-action="paste">Paste</button>
             <button class="context-menu-item" data-action="clear">Clear</button>
         </div>
