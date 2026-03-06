@@ -332,6 +332,9 @@ body{
     flex-wrap: wrap;
     gap: 6px;
     padding-right: var(--spacing-xs);
+    max-height: 15dvh;
+    overflow-y: auto;
+    padding-right: 1dvh;
 }
 .topic-pill{
     padding: 2px var(--spacing-sm);
@@ -876,6 +879,7 @@ kbd.shortcut-hint{
     color: var(--text-primary);
     transition: all var(--transition-fast);
     box-shadow: var(--shadow-sm);
+    margin-bottom: 0.5rem;
 }
 #topic-search:focus{
     outline: none;
