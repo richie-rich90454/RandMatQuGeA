@@ -268,7 +268,8 @@ function checkAnswer(): void{
 	}
 	let correct=window.correctAnswer.correct;
 	let alternate=window.correctAnswer.alternate;
-	let isCorrect=settings.isAnswerCorrect(userInput,correct,alternate);
+	let normalizedCorrect=correct.replace(/\s+/g,'').toLowerCase();
+	let isCorrect=settings.isAnswerCorrect(userInput,normalizedCorrect,alternate);
 	if (settings.settings.sound){
 		const audioCtx=new (window.AudioContext||(window as any).webkitAudioContext)();
 		const oscillator=audioCtx.createOscillator();
@@ -475,7 +476,8 @@ async function handleMentalAnswer(): Promise<void>{
 	}
 	let correct=window.correctAnswer.correct;
 	let alternate=window.correctAnswer.alternate;
-	let isCorrect=await settings.checkAnswerFast(userInput,correct,alternate);
+	let normalizedCorrect=correct.replace(/\s+/g,'').toLowerCase();
+	let isCorrect=await settings.checkAnswerFast(userInput,normalizedCorrect,alternate);
 	if (!sessionActive) return;
 	if (settings.settings.sound){
 		const audioCtx=new (window.AudioContext||(window as any).webkitAudioContext)();
@@ -501,8 +503,8 @@ async function handleMentalAnswer(): Promise<void>{
 	}
 	if (dom.answerResults){
 		dom.answerResults.innerHTML=isCorrect
-			?`<div class="result-success">✅ Correct!</div>`
-			:`<div class="result-error">❌ Incorrect. The answer was ${correct}</div>`;
+			?`<div class="result-success">Correct!</div>`
+			:`<div class="result-error">Incorrect. The answer was ${correct}</div>`;
 		dom.answerResults.className=isCorrect?"results-display correct":"results-display incorrect";
 		dom.answerResults.classList.add(isCorrect?"correct-flash":"incorrect-flash");
 		setTimeout(()=>dom.answerResults?.classList.remove(isCorrect?"correct-flash":"incorrect-flash"),300);

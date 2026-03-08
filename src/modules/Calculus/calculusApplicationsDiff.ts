@@ -118,7 +118,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 		);
 	}
 	window.correctAnswer={
-		correct: plainCorrectAnswer.replace(/\s+/g, "").toLowerCase(),
+		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer
 	};
 	window.expectedFormat=expectedFormat;

@@ -183,7 +183,7 @@ export function generateDerivative(difficulty?: string): void{
         );
     }
     window.correctAnswer={
-        correct: plainCorrectDerivative.replace(/\s+/g, "").toLowerCase(),
+        correct: plainCorrectDerivative,
         alternate: plainCorrectDerivative
     };
     window.expectedFormat="Enter the derivative as an expression, e.g., 2x+3, cos(x), etc.";
