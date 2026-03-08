@@ -1,5 +1,16 @@
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
+
+function getAppropriateStep(range: number, targetTicks: number=6): number{
+    if (range<=0) return 1;
+    let rawStep=range/targetTicks;
+    let magnitude=Math.pow(10, Math.floor(Math.log10(rawStep)));
+    let normalized=rawStep/magnitude;
+    if (normalized < 1.5) return magnitude*1;
+    else if (normalized < 3) return magnitude*2;
+    else if (normalized < 7) return magnitude*5;
+    else return magnitude*10;
+}
 export function generateGraphicalCalculus(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -13,18 +24,18 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 	switch (questionType){
 		case "limitFromGraph":{
 			let coeff=Math.floor(Math.random()*maxCoeff)+1;
-			let holeX=Math.floor(Math.random()*3)+2;
-			let holeY=Math.floor(Math.random()*5)+1;
+			let holeX=Math.floor(Math.random()*3);
+			let holeY=coeff*holeX*holeX;
 			canvas=drawLimitGraph(coeff, holeX, holeY);
-			mathExpression=`\\[ \\lim_{x\\to ${holeX}} f(x) = ? \\]`;
-			plainCorrectAnswer=(coeff*holeY*holeY).toString();
+			mathExpression=`\\[ \\lim_{x\\to ${holeX}} f(x)=? \\]`;
+			plainCorrectAnswer=holeY.toString();
 			expectedFormat="Enter a number";
 			break;
 		}
 		case "multipleReps":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
-			let c=Math.floor(Math.random()*5)+1;
+			let c=Math.floor(Math.random()*4)+1;
 			canvas=drawQuadraticGraph(a, b, -2, 4);
 			let table=`\\begin{array}{c|c} x & f(x) \\\\ ${c-0.1} & ${a*(c-0.1)**2+b} \\\\ ${c+0.1} & ${a*(c+0.1)**2+b} \\end{array}`;
 			mathExpression=`\\[ \\text{Graph and table given, find } \\lim_{x\\to ${c}} f(x). \\] ${table}`;
@@ -50,7 +61,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			break;
 		}
 		case "diffContinuity":{
-			let x0=Math.floor(Math.random()*3)+1;
+			let x0=Math.floor(Math.random()*3);
 			canvas=drawAbsoluteGraph(x0);
 			mathExpression=`\\[ \\text{Is } f(x)=|x-${x0}| \\text{ differentiable at } x=${x0}? \\]`;
 			plainCorrectAnswer="no";
@@ -197,6 +208,9 @@ function drawLimitGraph(coeff: number, holeX: number, holeY: number): HTMLCanvas
 	let ctx=canvas.getContext("2d");
 	if (!ctx) return canvas;
 	ctx.clearRect(0,0,300,200);
+	let xMin=-2, xMax=2;
+	let yMax=coeff*Math.max(xMin*xMin, xMax*xMax);
+	let scaleY=150/yMax;
 	ctx.beginPath();
 	ctx.strokeStyle="#000";
 	ctx.lineWidth=1;
@@ -205,21 +219,50 @@ function drawLimitGraph(coeff: number, holeX: number, holeY: number): HTMLCanvas
 	ctx.moveTo(150,50);
 	ctx.lineTo(150,150);
 	ctx.stroke();
+	ctx.fillStyle="#000";
+	ctx.font="10px sans-serif";
+	ctx.textAlign="center";
+	ctx.textBaseline="top";
+	for (let x=-2; x<=2; x+=1){
+		let screenX=150+50*x;
+		ctx.beginPath();
+		ctx.moveTo(screenX, 145);
+		ctx.lineTo(screenX, 155);
+		ctx.strokeStyle="#888";
+		ctx.lineWidth=1;
+		ctx.stroke();
+		ctx.fillText(x.toString(), screenX, 160);
+	}
+	ctx.textAlign="right";
+	ctx.textBaseline="middle";
+	let yStep=getAppropriateStep(yMax, 6);
+	for (let y=0; y<=yMax; y+=yStep){
+		let screenY=150 - scaleY*y;
+		if (screenY < 50 || screenY > 150) continue;
+		ctx.beginPath();
+		ctx.moveTo(145, screenY);
+		ctx.lineTo(155, screenY);
+		ctx.stroke();
+		ctx.fillText(y.toFixed(yStep>=1?0:1), 140, screenY);
+	}
+	ctx.fillStyle="#000";
+	ctx.font="12px sans-serif";
+	ctx.fillText("x", 240, 140);
+	ctx.fillText("y", 160, 60);
 	ctx.beginPath();
 	ctx.strokeStyle="blue";
 	ctx.lineWidth=2;
 	for (let x=-2; x<=2; x+=0.1){
 		let screenX=150+50*x;
 		let y=coeff*x*x;
-		let screenY=150-30*y;
+		let screenY=150 - scaleY*y;
 		if (x===-2) ctx.moveTo(screenX, screenY);
 		else ctx.lineTo(screenX, screenY);
 	}
 	ctx.stroke();
 	ctx.beginPath();
-	ctx.fillStyle="red";
 	let holeScreenX=150+50*holeX;
-	let holeScreenY=150-30*coeff*holeY*holeY;
+	let holeScreenY=150 - scaleY*holeY;
 	ctx.arc(holeScreenX, holeScreenY, 3, 0, 2*Math.PI);
 	ctx.fillStyle="white";
 	ctx.fill();
@@ -234,22 +277,64 @@ function drawAbsoluteGraph(cornerX: number): HTMLCanvasElement{
 	let ctx=canvas.getContext("2d");
 	if (!ctx) return canvas;
 	ctx.clearRect(0,0,300,200);
+	let xMin=cornerX - 2;
+	let xMax=cornerX + 2;
+	let scaleX=200/(xMax - xMin);
+	let yMax=Math.max(Math.abs(xMin - cornerX), Math.abs(xMax - cornerX));
+	let scaleY=150/yMax;
+	let xAxisScreen=50 + (0 - xMin)*scaleX;
 	ctx.beginPath();
 	ctx.strokeStyle="#000";
 	ctx.lineWidth=1;
-	ctx.moveTo(50,100);
-	ctx.lineTo(250,100);
-	ctx.moveTo(150,50);
-	ctx.lineTo(150,150);
+	ctx.moveTo(50,150);
+	ctx.lineTo(250,150);
+	if (xAxisScreen >= 50&&xAxisScreen<=250){
+		ctx.moveTo(xAxisScreen, 50);
+		ctx.lineTo(xAxisScreen, 150);
+	}
 	ctx.stroke();
+	ctx.fillStyle="#000";
+	ctx.font="10px sans-serif";
+	ctx.textAlign="center";
+	ctx.textBaseline="top";
+	let xStep=1;
+	for (let x=Math.ceil(xMin); x<=Math.floor(xMax); x+=xStep){
+		let screenX=50 + (x - xMin)*scaleX;
+		if (screenX < 50 || screenX > 250) continue;
+		ctx.beginPath();
+		ctx.moveTo(screenX, 145);
+		ctx.lineTo(screenX, 155);
+		ctx.strokeStyle="#888";
+		ctx.lineWidth=1;
+		ctx.stroke();
+		ctx.fillText(x.toString(), screenX, 160);
+	}
+	if (xAxisScreen >= 50&&xAxisScreen<=250){
+		ctx.textAlign="right";
+		ctx.textBaseline="middle";
+		let yStep=getAppropriateStep(yMax, 6);
+		for (let y=0; y<=yMax; y+=yStep){
+			let screenY=150 - scaleY*y;
+			if (screenY < 50 || screenY > 150) continue;
+			ctx.beginPath();
+			ctx.moveTo(xAxisScreen - 5, screenY);
+			ctx.lineTo(xAxisScreen + 5, screenY);
+			ctx.stroke();
+			ctx.fillText(y.toFixed(yStep>=1?0:1), xAxisScreen - 8, screenY);
+		}
+	}
+	ctx.fillStyle="#000";
+	ctx.font="12px sans-serif";
+	ctx.fillText("x", 240, 140);
+	ctx.fillText("y", 160, 60);
 	ctx.beginPath();
 	ctx.strokeStyle="blue";
 	ctx.lineWidth=2;
-	for (let x=-2; x<=2; x+=0.1){
-		let screenX=150+50*x;
-		let y=Math.abs(x-cornerX);
-		let screenY=100-30*y;
-		if (x===-2) ctx.moveTo(screenX, screenY);
+	for (let x=xMin; x<=xMax; x+=0.05){
+		let screenX=50 + (x - xMin)*scaleX;
+		let y=Math.abs(x - cornerX);
+		let screenY=150 - scaleY*y;
+		if (x===xMin) ctx.moveTo(screenX, screenY);
 		else ctx.lineTo(screenX, screenY);
 	}
 	ctx.stroke();
@@ -262,22 +347,70 @@ function drawQuadraticGraph(a: number, b: number, xMin: number, xMax: number): H
 	let ctx=canvas.getContext("2d");
 	if (!ctx) return canvas;
 	ctx.clearRect(0,0,300,200);
+	let yMin=Infinity, yMax=-Infinity;
+	for (let x=xMin; x<=xMax; x+=0.1){
+		let y=a*x*x + b;
+		if (y < yMin) yMin=y;
+		if (y > yMax) yMax=y;
+	}
+	let k=Infinity;
+	if (yMax > 0) k=Math.min(k, 150/yMax);
+	if (yMin < 0) k=Math.min(k, 50/Math.abs(yMin));
+	if (k === Infinity) k=1;
+	let scaleX=200/(xMax - xMin);
+	let xAxisScreen=50 + (0 - xMin)*scaleX;
 	ctx.beginPath();
 	ctx.strokeStyle="#000";
 	ctx.lineWidth=1;
 	ctx.moveTo(50,150);
 	ctx.lineTo(250,150);
-	ctx.moveTo(150,50);
-	ctx.lineTo(150,150);
+	if (xAxisScreen >= 50&&xAxisScreen<=250){
+		ctx.moveTo(xAxisScreen, 50);
+		ctx.lineTo(xAxisScreen, 150);
+	}
 	ctx.stroke();
+	ctx.fillStyle="#000";
+	ctx.font="10px sans-serif";
+	ctx.textAlign="center";
+	ctx.textBaseline="top";
+	let xStep=(xMax - xMin)<=4 ? 1 : 2;
+	for (let x=Math.ceil(xMin); x<=Math.floor(xMax); x+=xStep){
+		let screenX=50 + (x - xMin)*scaleX;
+		if (screenX < 50 || screenX > 250) continue;
+		ctx.beginPath();
+		ctx.moveTo(screenX, 145);
+		ctx.lineTo(screenX, 155);
+		ctx.strokeStyle="#888";
+		ctx.lineWidth=1;
+		ctx.stroke();
+		ctx.fillText(x.toString(), screenX, 160);
+	}
+	if (xAxisScreen >= 50&&xAxisScreen<=250){
+		ctx.textAlign="right";
+		ctx.textBaseline="middle";
+		let yRange=yMax - yMin;
+		let yStep=getAppropriateStep(yRange, 6);
+		for (let y=Math.ceil(yMin/yStep)*yStep; y<=yMax; y+=yStep){
+			let screenY=150 - k*y;
+			if (screenY < 50 || screenY > 200) continue;
+			ctx.beginPath();
+			ctx.moveTo(xAxisScreen - 5, screenY);
+			ctx.lineTo(xAxisScreen + 5, screenY);
+			ctx.stroke();
+			ctx.fillText(y.toFixed(yStep>=1?0:1), xAxisScreen - 8, screenY);
+		}
+	}
+	ctx.fillStyle="#000";
+	ctx.font="12px sans-serif";
+	ctx.fillText("x", 240, 140);
+	ctx.fillText("y", 160, 60);
 	ctx.beginPath();
 	ctx.strokeStyle="blue";
 	ctx.lineWidth=2;
-	let scaleX=200/(xMax-xMin);
 	for (let x=xMin; x<=xMax; x+=0.05){
-		let screenX=50+(x-xMin)*scaleX;
-		let y=a*x*x+b;
-		let screenY=150-30*y;
+		let screenX=50 + (x - xMin)*scaleX;
+		let y=a*x*x + b;
+		let screenY=150 - k*y;
 		if (x===xMin) ctx.moveTo(screenX, screenY);
 		else ctx.lineTo(screenX, screenY);
 	}
@@ -291,34 +424,72 @@ function drawRiemannSum(a: number, b: number, n: number): HTMLCanvasElement{
 	let ctx=canvas.getContext("2d");
 	if (!ctx) return canvas;
 	ctx.clearRect(0,0,300,200);
+	let yMax=Math.max(a*a, b*b);
+	let scaleY=150/yMax;
+	let scaleX=200/(b - a);
+	let xAxisScreen=50 + (0 - a)*scaleX;
 	ctx.beginPath();
 	ctx.strokeStyle="#000";
 	ctx.lineWidth=1;
 	ctx.moveTo(50,150);
 	ctx.lineTo(250,150);
-	ctx.moveTo(150,50);
-	ctx.lineTo(150,150);
+	if (xAxisScreen >= 50&&xAxisScreen<=250){
+		ctx.moveTo(xAxisScreen, 50);
+		ctx.lineTo(xAxisScreen, 150);
+	}
 	ctx.stroke();
-	let delta=(b-a)/n;
-	let scaleX=200/(b-a);
-	let scaleY=30;
+	ctx.fillStyle="#000";
+	ctx.font="10px sans-serif";
+	ctx.textAlign="center";
+	ctx.textBaseline="top";
+	let xStep=(b - a)<=4 ? 1 : 2;
+	for (let x=Math.ceil(a); x<=Math.floor(b); x+=xStep){
+		let screenX=50 + (x - a)*scaleX;
+		if (screenX < 50 || screenX > 250) continue;
+		ctx.beginPath();
+		ctx.moveTo(screenX, 145);
+		ctx.lineTo(screenX, 155);
+		ctx.strokeStyle="#888";
+		ctx.lineWidth=1;
+		ctx.stroke();
+		ctx.fillText(x.toString(), screenX, 160);
+	}
+	if (xAxisScreen >= 50&&xAxisScreen<=250){
+		ctx.textAlign="right";
+		ctx.textBaseline="middle";
+		let yStep=getAppropriateStep(yMax, 6);
+		for (let y=0; y<=yMax; y+=yStep){
+			let screenY=150 - scaleY*y;
+			if (screenY < 50 || screenY > 150) continue;
+			ctx.beginPath();
+			ctx.moveTo(xAxisScreen - 5, screenY);
+			ctx.lineTo(xAxisScreen + 5, screenY);
+			ctx.stroke();
+			ctx.fillText(y.toFixed(yStep>=1?0:1), xAxisScreen - 8, screenY);
+		}
+	}
+	ctx.fillStyle="#000";
+	ctx.font="12px sans-serif";
+	ctx.fillText("x", 240, 140);
+	ctx.fillText("y", 160, 60);
+	let delta=(b - a)/n;
 	for (let i=0; i<n; i++){
-		let xLeft=a+i*delta;
-		let xRight=xLeft+delta;
+		let xLeft=a + i*delta;
+		let xRight=xLeft + delta;
 		let y=xLeft*xLeft;
-		let screenX1=50+(xLeft-a)*scaleX;
-		let screenX2=50+(xRight-a)*scaleX;
-		let screenY=150-scaleY*y;
+		let screenX1=50 + (xLeft - a)*scaleX;
+		let screenX2=50 + (xRight - a)*scaleX;
+		let screenY=150 - scaleY*y;
 		ctx.fillStyle="rgba(0,0,255,0.2)";
-		ctx.fillRect(screenX1, screenY, screenX2-screenX1, 150-screenY);
+		ctx.fillRect(screenX1, screenY, screenX2 - screenX1, 150 - screenY);
 	}
 	ctx.beginPath();
 	ctx.strokeStyle="blue";
 	ctx.lineWidth=2;
 	for (let x=a; x<=b; x+=0.05){
-		let screenX=50+(x-a)*scaleX;
+		let screenX=50 + (x - a)*scaleX;
 		let y=x*x;
-		let screenY=150-scaleY*y;
+		let screenY=150 - scaleY*y;
 		if (x===a) ctx.moveTo(screenX, screenY);
 		else ctx.lineTo(screenX, screenY);
 	}
@@ -332,36 +503,82 @@ function drawAccumGraph(a: number, x0: number): HTMLCanvasElement{
 	let ctx=canvas.getContext("2d");
 	if (!ctx) return canvas;
 	ctx.clearRect(0,0,300,200);
+	let xMin=-1, xMax=4;
+	let scaleX=200/(xMax - xMin);
+	let yMin=xMin, yMax=xMax;
+	let k=Infinity;
+	if (yMax > 0) k=Math.min(k, 150/yMax);
+	if (yMin < 0) k=Math.min(k, 50/Math.abs(yMin));
+	if (k === Infinity) k=1;
+	let xAxisScreen=50 + (0 - xMin)*scaleX;
 	ctx.beginPath();
 	ctx.strokeStyle="#000";
 	ctx.lineWidth=1;
 	ctx.moveTo(50,150);
 	ctx.lineTo(250,150);
-	ctx.moveTo(150,50);
-	ctx.lineTo(150,150);
+	if (xAxisScreen >= 50&&xAxisScreen<=250){
+		ctx.moveTo(xAxisScreen, 50);
+		ctx.lineTo(xAxisScreen, 150);
+	}
 	ctx.stroke();
+	ctx.fillStyle="#000";
+	ctx.font="10px sans-serif";
+	ctx.textAlign="center";
+	ctx.textBaseline="top";
+	let xStep=1;
+	for (let x=Math.ceil(xMin); x<=Math.floor(xMax); x+=xStep){
+		let screenX=50 + (x - xMin)*scaleX;
+		if (screenX < 50 || screenX > 250) continue;
+		ctx.beginPath();
+		ctx.moveTo(screenX, 145);
+		ctx.lineTo(screenX, 155);
+		ctx.strokeStyle="#888";
+		ctx.lineWidth=1;
+		ctx.stroke();
+		ctx.fillText(x.toString(), screenX, 160);
+	}
+	if (xAxisScreen >= 50&&xAxisScreen<=250){
+		ctx.textAlign="right";
+		ctx.textBaseline="middle";
+		let yRange=yMax - yMin;
+		let yStep=getAppropriateStep(yRange, 6);
+		for (let y=Math.ceil(yMin/yStep)*yStep; y<=yMax; y+=yStep){
+			let screenY=150 - k*y;
+			if (screenY < 50 || screenY > 200) continue;
+			ctx.beginPath();
+			ctx.moveTo(xAxisScreen - 5, screenY);
+			ctx.lineTo(xAxisScreen + 5, screenY);
+			ctx.stroke();
+			ctx.fillText(y.toFixed(yStep>=1?0:1), xAxisScreen - 8, screenY);
+		}
+	}
+	ctx.fillStyle="#000";
+	ctx.font="12px sans-serif";
+	ctx.fillText("x", 240, 140);
+	ctx.fillText("y", 160, 60);
 	ctx.beginPath();
 	ctx.strokeStyle="blue";
 	ctx.lineWidth=2;
-	for (let x=-1; x<=4; x+=0.05){
-		let screenX=50+50*(x+1);
+	for (let x=xMin; x<=xMax; x+=0.05){
+		let screenX=50 + (x - xMin)*scaleX;
 		let y=x;
-		let screenY=150-30*y;
-		if (x===-1) ctx.moveTo(screenX, screenY);
+		let screenY=150 - k*y;
+		if (x===xMin) ctx.moveTo(screenX, screenY);
 		else ctx.lineTo(screenX, screenY);
 	}
 	ctx.stroke();
 	ctx.beginPath();
 	ctx.strokeStyle="green";
 	ctx.setLineDash([5,3]);
-	ctx.moveTo(50+50*(a+1), 50);
-	ctx.lineTo(50+50*(a+1), 150);
+	let aScreenX=50 + (a - xMin)*scaleX;
+	ctx.moveTo(aScreenX, 50);
+	ctx.lineTo(aScreenX, 150);
 	ctx.stroke();
 	ctx.setLineDash([]);
 	ctx.fillStyle="red";
 	ctx.beginPath();
-	let pointX=50+50*(x0+1);
-	let pointY=150-30*x0;
+	let pointX=50 + (x0 - xMin)*scaleX;
+	let pointY=150 - k*x0;
 	ctx.arc(pointX, pointY, 4, 0, 2*Math.PI);
 	ctx.fill();
 	ctx.stroke();
@@ -374,23 +591,74 @@ function drawAccumGraph2(a: number): HTMLCanvasElement{
 	let ctx=canvas.getContext("2d");
 	if (!ctx) return canvas;
 	ctx.clearRect(0,0,300,200);
+	let xMin=-2, xMax=4;
+	let scaleX=200/(xMax - xMin);
+	let yMin=-1, yMax=1;
+	let k=Math.min(150/yMax, 50/Math.abs(yMin));
+	let xAxisScreen=50 + (0 - xMin)*scaleX;
 	ctx.beginPath();
 	ctx.strokeStyle="#000";
 	ctx.lineWidth=1;
 	ctx.moveTo(50,150);
 	ctx.lineTo(250,150);
-	ctx.moveTo(150,50);
-	ctx.lineTo(150,150);
+	if (xAxisScreen >= 50&&xAxisScreen<=250){
+		ctx.moveTo(xAxisScreen, 50);
+		ctx.lineTo(xAxisScreen, 150);
+	}
 	ctx.stroke();
+	ctx.fillStyle="#000";
+	ctx.font="10px sans-serif";
+	ctx.textAlign="center";
+	ctx.textBaseline="top";
+	let xStep=1;
+	for (let x=Math.ceil(xMin); x<=Math.floor(xMax); x+=xStep){
+		let screenX=50 + (x - xMin)*scaleX;
+		if (screenX < 50 || screenX > 250) continue;
+		ctx.beginPath();
+		ctx.moveTo(screenX, 145);
+		ctx.lineTo(screenX, 155);
+		ctx.strokeStyle="#888";
+		ctx.lineWidth=1;
+		ctx.stroke();
+		ctx.fillText(x.toString(), screenX, 160);
+	}
+	if (xAxisScreen >= 50&&xAxisScreen<=250){
+		ctx.textAlign="right";
+		ctx.textBaseline="middle";
+		let yStep=1;
+		for (let y=yMin; y<=yMax; y+=yStep){
+			let screenY=150 - k*y;
+			if (screenY < 50 || screenY > 200) continue;
+			ctx.beginPath();
+			ctx.moveTo(xAxisScreen - 5, screenY);
+			ctx.lineTo(xAxisScreen + 5, screenY);
+			ctx.stroke();
+			ctx.fillText(y.toString(), xAxisScreen - 8, screenY);
+		}
+	}
+	ctx.fillStyle="#000";
+	ctx.font="12px sans-serif";
+	ctx.fillText("x", 240, 140);
+	ctx.fillText("y", 160, 60);
 	ctx.beginPath();
 	ctx.strokeStyle="blue";
 	ctx.lineWidth=2;
-	for (let x=-2; x<=4; x+=0.05){
-		let screenX=150+40*x;
-		let y=(x>a && x<a+2)?1:-1;
-		let screenY=100-30*y;
-		if (x===-2) ctx.moveTo(screenX, screenY);
-		else ctx.lineTo(screenX, screenY);
+	let segments=[
+		{ start: xMin, end: a, value: -1 },
+		{ start: a, end: a+2, value: 1 },
+		{ start: a+2, end: xMax, value: -1 }
+	];
+	for (let seg of segments){
+		let xStart=Math.max(seg.start, xMin);
+		let xEnd=Math.min(seg.end, xMax);
+		if (xStart >= xEnd) continue;
+		let screenX1=50 + (xStart - xMin)*scaleX;
+		let screenX2=50 + (xEnd - xMin)*scaleX;
+		let screenY=150 - k*seg.value;
+		ctx.beginPath();
+		ctx.moveTo(screenX1, screenY);
+		ctx.lineTo(screenX2, screenY);
+		ctx.stroke();
 	}
 	return canvas;
 }

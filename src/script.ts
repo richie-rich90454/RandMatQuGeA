@@ -1007,7 +1007,10 @@ function setupEventListeners(): void{
 		dom.userAnswer?.addEventListener("focus",()=>{
 			if (dom.answerCard) dom.answerCard.classList.add("focused");
 		});
-		dom.userAnswer?.addEventListener("blur",()=>{
+		dom.userAnswer?.addEventListener("blur", (e)=>{
+			if (dom.mathToolbar&&e.relatedTarget instanceof Node&&dom.mathToolbar.contains(e.relatedTarget)){
+				return;
+			}
 			if (dom.answerCard) dom.answerCard.classList.remove("focused");
 		});
 	}
