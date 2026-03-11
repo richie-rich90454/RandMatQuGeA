@@ -25,6 +25,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-process": "^2.3.1",
     "@tauri-apps/plugin-updater": "^2.10.0",
     "cssnano": "^7.1.2",
     "fs": "^0.0.1-security",

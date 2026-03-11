@@ -72,6 +72,7 @@ export let settingsBasicPanel: HTMLElement|null=document.getElementById("setting
 export let settingsAdvancedPanel: HTMLElement|null=document.getElementById("settings-advanced");
 export let answerCard: HTMLElement|null=document.querySelector(".answer-card");
 export let appWindow: Window|null=null;
+export let checkUpdatesBtn: HTMLButtonElement|null=document.getElementById("check-updates") as HTMLButtonElement|null;
 try{
 	appWindow=getCurrentWindow();
 }

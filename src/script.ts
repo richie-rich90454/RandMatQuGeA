@@ -3,6 +3,8 @@ import * as settings from "./main/settings";
 import {topics,scopeTopics,SESSION_STORAGE_KEY} from "./main/constants";
 import {generateQuestion as callGenerator} from "./main/questionGenerator";
 import {invoke} from "@tauri-apps/api/core";
+import {check} from '@tauri-apps/plugin-updater';
+import {relaunch} from '@tauri-apps/plugin-process';
 export * from "./main/dom";
 window.correctAnswer={correct:""};
 window.expectedFormat="";
@@ -940,6 +942,41 @@ function setupEventListeners(): void{
 	}
 	if (dom.settingsVibration){
 		dom.settingsVibration.addEventListener("change",(e)=>settings.previewSetting("vibration",(e.target as HTMLInputElement).checked));
+	}
+	if (dom.checkUpdatesBtn){
+		dom.checkUpdatesBtn.addEventListener("click", async ()=>{
+			dom.checkUpdatesBtn!.disabled=true;
+			const originalText=dom.checkUpdatesBtn!.textContent;
+			dom.checkUpdatesBtn!.textContent="Checking...";
+			try{
+				const update=await check();
+				if (update){
+					if (confirm(`Version ${update.version} is available!\n\nRelease notes:\n${update.body||"No release notes available"}\n\nDownload and install now?`)){
+						dom.checkUpdatesBtn!.textContent="Downloading...";
+						await update.downloadAndInstall((progress)=>{
+							if (progress.event==="Progress"){
+								const data=progress.data as {chunkLength: number; contentLength: number};
+								const percent=Math.round((data.chunkLength/data.contentLength)*100);
+								console.log(`Download progress: ${percent}%`);
+							}
+						});
+						alert("Update installed. The app will now restart.");
+						await relaunch();
+					}
+				}
+				else{
+					alert("You are already using the latest version.");
+				}
+			}
+			catch (err){
+				console.error("Update check failed:", err);
+				alert("Failed to check for updates. Please ensure you are connected to the internet and try again.");
+			}
+			finally{
+				dom.checkUpdatesBtn!.disabled=false;
+				dom.checkUpdatesBtn!.textContent=originalText;
+			}
+		});
 	}
 	dom.modeSingleBtn.addEventListener("click",switchToSingle);
 	dom.modeMentalBtn.addEventListener("click",switchToMental);
