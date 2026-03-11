@@ -32,10 +32,20 @@
             "appimage",
             "deb"
         ],
+        "createUpdaterArtifacts": true,
         "icon": [
             "icons/icon.png",
             "icons/icon.ico",
             "icons/icon.icns"
         ]
+    },
+    "plugins": {
+        "updater": {
+            "active": true,
+            "endpoints": [
+                "https://downloads.richardsblogs.com/api/update/randmatqugea"
+            ],
+            "pubkey":"dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDk4MzRDNzQ5MDZCNzUzMDIKUldRQ1U3Y0dTY2MwbUwwTUdmeGtmMi9XckhBdjdZNmZ0cW1Ud1REbFBON3NJNzhwaEg4TkZUbFQK"
+        }
     }
 }

@@ -44,6 +44,6 @@ fn load_scores()->Result<Vec<ScoreEntry>, String>{
     serde_json::from_str(&data).map_err(|e| e.to_string())
 }
 
-fn main(){
-    tauri::Builder::default().plugin(tauri_plugin_shell::init()).invoke_handler(tauri::generate_handler![check_math, save_score, load_scores]).run(tauri::generate_context!()).expect("error while running tauri application");
+fn main() {
+    tauri::Builder::default().plugin(tauri_plugin_shell::init()).plugin(tauri_plugin_updater::Builder::new().build()).invoke_handler(tauri::generate_handler![check_math, save_score, load_scores]).run(tauri::generate_context!()).expect("error while running tauri application");
 }
