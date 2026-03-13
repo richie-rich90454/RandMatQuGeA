@@ -1114,6 +1114,15 @@ function setupEventListeners(): void{
 				if (dom.customContextMenu) dom.customContextMenu.style.display="none";
 			});
 		});
+		document.addEventListener("click", ()=>{
+			const container=document.querySelector(".app-container");
+			if (container){
+				container.classList.add("shake");
+				setTimeout(()=>{
+					container.classList.remove("shake");
+				}, 300);
+			}
+		});
 	}
 }
 async function initializeTheme(): Promise<void>{
