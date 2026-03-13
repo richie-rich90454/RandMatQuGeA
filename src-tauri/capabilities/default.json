@@ -1,0 +1,13 @@
+{
+    "identifier": "default",
+    "description": "Default capability for the main window",
+    "windows": [
+        "main"
+    ],
+    "permissions": [
+        "core:window:allow-set-theme",
+        "updater:default",
+        "updater:allow-check",
+        "process:default"
+    ]
+}
