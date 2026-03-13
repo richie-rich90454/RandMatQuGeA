@@ -1755,23 +1755,3 @@ body.font-opendyslexic *:not(.katex):not(.mjx-chtml){
     gap: var(--spacing-md);
     flex-wrap: wrap;
 }
-@keyframes shake{
-    0%, 100% {
-        transform: translateX(0);
-    }
-    20% {
-        transform: translateX(-.2px);
-    }
-    40% {
-        transform: translateX(.2px);
-    }
-    60% {
-        transform: translateX(-.15px);
-    }
-    80% {
-        transform: translateX(.15px);
-    }
-}
-.shake{
-    animation: shake 0.3s ease-in-out;
-}

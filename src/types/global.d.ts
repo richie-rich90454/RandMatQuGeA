@@ -24,6 +24,7 @@ declare global{
         MathJax: MathJaxConfig;
         correctAnswer: CorrectAnswer;
         expectedFormat: string;
+        hasQuestion: boolean; 
         __TAURI__?: any;
         katex: any;
     }
