@@ -1,3 +1,75 @@
+/**
+ * Generates a random advanced integration or differential equations question.
+ *
+ * This function randomly selects a topic from a comprehensive list covering
+ * applications of integration (average value, area between curves, volumes,
+ * arc length), advanced integration techniques (integration by parts, partial
+ * fractions, improper integrals), and differential equations (modeling,
+ * verification, slope fields, Euler's method, separation of variables,
+ * exponential and logistic models). It constructs a LaTeX expression for the
+ * problem, computes the correct answer (as a plain‑text string), appends the
+ * formatted question to the global `questionArea` element, triggers MathJax
+ * rendering, and sets global variables for answer validation.
+ *
+ * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`)
+ *                     that influences the maximum coefficient value used in
+ *                     generated expressions. If omitted, a default moderate value
+ *                     is used (via `getMaxCoeff` from `./calculusUtils.js`).
+ *
+ * @remarks
+ * The function relies on several imported utilities:
+ * - `questionArea` (DOM element) from `../../script.js`
+ * - `getMaxCoeff` from `./calculusUtils.js` (the import of `latexToPlain` is
+ *   currently unused and marked with `@ts-expect-error` for potential future use)
+ * - `window.MathJax` (optional) for LaTeX rendering.
+ *
+ * **Question types** (selected randomly from an array):
+ * - **Average value** (`avgValue`): average value of x² on a random interval.
+ * - **Area between curves**:
+ *   - `areaBetweenX`: area between y = x² and y = ax (intersection at x = a).
+ *   - `areaBetweenY`: area between x = y² and x = y + a.
+ *   - `areaMultiple`: area between sin x and cos x from 0 to 2π (answer 4).
+ * - **Volumes**:
+ *   - `volumeCrossSquare`: base bounded by y = x² and y = a, cross sections perpendicular to y‑axis are squares.
+ *   - `volumeCrossSemi`: same base, cross sections perpendicular to x‑axis are semicircles.
+ *   - `volumeDisc`: solid of revolution (disc method) for y = √x about x‑axis.
+ *   - `volumeDiscOther`: disc method with axis y = -1.
+ *   - `volumeWasher`: washer method for region between y = x² and y = ax about x‑axis.
+ *   - `volumeWasherOther`: same region revolved about y = -1.
+ * - **Arc length** (`arcLength`): length of y = x^(3/2) from 0 to a.
+ * - **Integration techniques**:
+ *   - `parts`: ∫ x e^(ax) dx (integration by parts).
+ *   - `partialFractions`: ∫ 1/(x² - a) dx (requires partial fractions).
+ *   - `improper`: ∫₁^∞ 1/x^a dx (converges if a > 1, else diverges).
+ *   - `selectTechnique`: multiple choice on the best technique for ∫ dx/√(4-x²).
+ * - **Differential equations**:
+ *   - `diffEqModel`: write a DE for proportional growth.
+ *   - `verifySolution`: verify that y = e^(ax) solves y'' - a²y = 0.
+ *   - `slopeField`: slope of dy/dx = x - y at (0,0).
+ *   - `euler`: one step of Euler's method for dy/dx = x + ay.
+ *   - `separationGeneral`: general solution of dy/dx = a x y.
+ *   - `separationParticular`: particular solution with initial condition.
+ *   - `exponentialModel`: find decay constant from half‑life.
+ *   - `logisticModel`: write logistic DE given carrying capacity and growth rate.
+ *
+ * **Side effects**:
+ * - Clears `questionArea.innerHTML`.
+ * - Appends a new `<div>` containing the LaTeX question.
+ * - Calls `window.MathJax.typesetPromise` (if available) to render the math.
+ * - Sets `window.correctAnswer` to an object with `correct` and `alternate`
+ *   properties (both set to the plain‑text answer).
+ * - Sets `window.expectedFormat` to a string describing the expected answer format
+ *   (e.g., `"Enter a number"`, `"Enter expression"`, `"Enter equation"`, etc.).
+ *
+ * @example
+ * ```typescript
+ * // Generate a default‑difficulty advanced integration question
+ * generateIntegrationAdvanced();
+ *
+ * // Generate a hard question
+ * generateIntegrationAdvanced("hard");
+ * ```
+ */
 import {questionArea} from "../../script.js";
 // @ts-expect-error - latexToPlain is imported for potential future use
 import {getMaxCoeff, latexToPlain} from "./calculusUtils.js";

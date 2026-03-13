@@ -1,3 +1,47 @@
+/**
+ * Generates and displays a random question involving parametric equations, polar coordinates, or vector-valued functions.
+ *
+ * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
+ *                     Influences the maximum coefficient value used in generated expressions
+ *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
+ * @returns void
+ *
+ * @remarks
+ * The function performs the following steps:
+ * 1. Clears `questionArea.innerHTML`.
+ * 2. Randomly selects a question type from a predefined list.
+ * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type.
+ * 4. Appends a `<div>` containing the LaTeX to `questionArea`.
+ * 5. Triggers MathJax (if available) to render the math.
+ * 6. Sets two global variables for answer validation:
+ *    - `window.correctAnswer` – an object with `correct` and `alternate` properties (both equal to the answer).
+ *    - `window.expectedFormat` – a string describing the expected input format (e.g., "Enter number").
+ *
+ * **Question types** (each uses random coefficients scaled by `difficulty`):
+ * - `parametricDeriv`     – first derivative dy/dx of a parametric curve at a given t.
+ * - `parametricSecond`    – second derivative d²y/dx² of a parametric curve at a given t.
+ * - `arcLengthParam`      – arc length of a simple linear parametric curve.
+ * - `vectorDeriv`         – derivative of a vector‑valued function r(t) = ⟨t², e^(at)⟩.
+ * - `vectorIntegral`      – definite integral of a vector‑valued function from 0 to 1.
+ * - `motionParam`         – speed of a particle given by r(t) = ⟨cos(at), sin(at)⟩.
+ * - `polarDeriv`          – slope dy/dx of a polar curve r = 1 + a cos θ at θ = π/2.
+ * - `polarArea`           – area enclosed by a limaçon r = 1 + a cos θ.
+ * - `polarAreaBetween`    – area inside one polar curve and outside another.
+ *
+ * **External dependencies**:
+ * - `questionArea` (imported from `../../script.js`) – must be a DOM element.
+ * - `getMaxCoeff` (imported from `./calculusUtils.js`) – provides the coefficient limit.
+ * - `window.MathJax` – optional; if present, `MathJax.typesetPromise` is called.
+ *
+ * @example
+ * ```typescript
+ * // Generate a question with default difficulty
+ * generateParametricPolarVector();
+ *
+ * // Generate a hard question
+ * generateParametricPolarVector("hard");
+ * ```
+ */
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
 export function generateParametricPolarVector(difficulty?: string): void{

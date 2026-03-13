@@ -1,3 +1,46 @@
+/**
+ * Generates a random differentiation question and displays it in the global question area.
+ *
+ * The function randomly selects a question type (polynomial, trigonometric, exponential,
+ * logarithmic, product, quotient, chain, implicit, higher‑order, or motion), constructs
+ * a LaTeX expression for the function, computes its derivative (both in LaTeX and plain
+ * text), and appends the formatted question to the DOM. It also triggers MathJax
+ * rendering and sets global variables for answer validation.
+ *
+ * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that
+ *                     influences the maximum coefficient value used in generated
+ *                     expressions. If omitted, a default moderate value is used
+ *                     (via `getMaxCoeff`).
+ *
+ * @remarks
+ * The function relies on several imported utilities:
+ * - `questionArea` (DOM element) from `../../script.js`
+ * - `getMaxCoeff`, `trigFunctions`, `expFunctions`, `logFunctions`, `latexToPlain`
+ *   from `./calculusUtils.js`
+ * - `window.MathJax` (optional) for LaTeX rendering.
+ *
+ * **Side effects**:
+ * - Clears `questionArea.innerHTML`.
+ * - Appends a new `<div>` containing the LaTeX question.
+ * - Sets `window.correctAnswer` to an object with `correct` and `alternate` properties
+ *   (both set to the plain‑text derivative).
+ * - Sets `window.expectedFormat` to a string describing the expected answer format
+ *   (e.g., `"Enter the derivative as an expression, e.g., 2x+3, cos(x), etc."`).
+ * - If MathJax is available, calls `MathJax.typesetPromise` on the new element.
+ *
+ * The generated derivative answer is stored as a plain string (e.g., `"2x+3"`, `"cos(x)"`)
+ * and is intended for comparison with user input. The expected format is also provided
+ * for user guidance.
+ *
+ * @example
+ * ```typescript
+ * // Generate a default‑difficulty derivative question
+ * generateDerivative();
+ *
+ * // Generate a hard derivative question
+ * generateDerivative("hard");
+ * ```
+ */
 import {questionArea} from "../../script.js";
 import {getMaxCoeff, trigFunctions, expFunctions, logFunctions, latexToPlain} from "./calculusUtils.js";
 

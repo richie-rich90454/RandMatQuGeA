@@ -1,6 +1,45 @@
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
 
+/**
+ * Generates and displays a random limit question in the global `questionArea`.
+ *
+ * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
+ *                     Influences the maximum coefficient value used in generated expressions
+ *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
+ * @returns void
+ *
+ * @remarks
+ * The function performs the following steps:
+ * 1. Clears `questionArea.innerHTML`.
+ * 2. Randomly selects a limit type from a predefined list.
+ * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type.
+ * 4. Appends a `<div>` containing the LaTeX to `questionArea`.
+ * 5. Triggers MathJax (if available) to render the math.
+ * 6. Sets two global variables for answer validation:
+ *    - `window.correctAnswer` – an object with `correct` and `alternate` properties (both equal to the answer).
+ *    - `window.expectedFormat` – a string describing the expected input format.
+ *
+ * **Limit types**:
+ * - `polynomial` – limit of a quadratic polynomial at a random point.
+ * - `rational`   – limit of a simple rational function at a random point (answer may be decimal).
+ * - `infinity`   – limit of a rational function as x → ∞ (leading coefficient ratio).
+ * - `trig`       – fundamental limit lim_{x→0} sin(x)/x = 1.
+ *
+ * **External dependencies**:
+ * - `questionArea` (imported from `../../script.js`) – must be a DOM element.
+ * - `getMaxCoeff` (imported from `./calculusUtils.js`) – provides the coefficient limit.
+ * - `window.MathJax` – optional; if present, `MathJax.typesetPromise` is called.
+ *
+ * @example
+ * ```typescript
+ * // Generate a limit question with default difficulty
+ * generateLimit();
+ *
+ * // Generate a hard limit question
+ * generateLimit("hard");
+ * ```
+ */
 export function generateLimit(difficulty?: string): void{
     if (!questionArea) return;
     questionArea.innerHTML="";
@@ -61,6 +100,45 @@ export function generateLimit(difficulty?: string): void{
     }
 }
 
+/**
+ * Generates and displays a random related rates problem in the global `questionArea`.
+ *
+ * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
+ *                     Scales the numerical values in the problem (ladder length, distances,
+ *                     rates, etc.) via `getMaxCoeff`. If omitted, a moderate default is used.
+ * @returns void
+ *
+ * @remarks
+ * The function performs the following steps:
+ * 1. Clears `questionArea.innerHTML`.
+ * 2. Randomly selects a related rates scenario.
+ * 3. Constructs descriptive problem text and a LaTeX expression for the unknown rate.
+ * 4. Appends the problem text (with class `"problem-text"`) followed by a `<div>` containing the LaTeX.
+ * 5. Triggers MathJax (if available) to render the math.
+ * 6. Sets two global variables for answer validation:
+ *    - `window.correctAnswer` – an object with `correct` and `alternate` properties (both equal to the answer).
+ *    - `window.expectedFormat` – a string describing the expected input format (including units).
+ *
+ * **Problem types**:
+ * - `ladder` – classic ladder against a wall: given bottom distance and its rate,
+ *              find the rate at which the top slides down.
+ * - `cone`   – conical tank: given radius and height, and rate of radius increase,
+ *              find the rate of change of volume.
+ *
+ * **External dependencies**:
+ * - `questionArea` (imported from `../../script.js`) – must be a DOM element.
+ * - `getMaxCoeff` (imported from `./calculusUtils.js`) – provides the scaling factor.
+ * - `window.MathJax` – optional; if present, `MathJax.typesetPromise` is called.
+ *
+ * @example
+ * ```typescript
+ * // Generate a related rates question with default difficulty
+ * generateRelatedRates();
+ *
+ * // Generate an easy related rates question
+ * generateRelatedRates("easy");
+ * ```
+ */
 export function generateRelatedRates(difficulty?: string): void{
     if (!questionArea) return;
     questionArea.innerHTML="";

@@ -1,3 +1,59 @@
+/**
+ * Generates a random limits and continuity question and displays it in the global question area.
+ *
+ * The function randomly selects a question type from a predefined list covering limit notation,
+ * estimation from tables, limit properties, algebraic manipulation, the Squeeze theorem,
+ * discontinuity types, continuity conditions, continuity intervals, removable discontinuities,
+ * asymptotes, the Intermediate Value Theorem (IVT), and selection of appropriate limit procedures.
+ * It constructs a LaTeX expression for the problem, computes the correct answer (as a plain‑text
+ * string), appends the formatted question to the DOM, triggers MathJax rendering, and sets global
+ * variables for answer validation.
+ *
+ * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that influences
+ *                     the maximum coefficient value used in generated expressions. If omitted,
+ *                     a default moderate value is used (via `getMaxCoeff` from `./calculusUtils.js`).
+ *
+ * @remarks
+ * The function relies on several imported utilities:
+ * - `questionArea` (DOM element) from `../../script.js`
+ * - `getMaxCoeff` from `./calculusUtils.js` (the import of `latexToPlain` is currently unused
+ *   and marked with `@ts-expect-error` for potential future use)
+ * - `window.MathJax` (optional) for LaTeX rendering.
+ *
+ * **Question types** (selected randomly from an array):
+ * - `limitNotation`        – use limit notation to describe behavior of a rational function near a point.
+ * - `limitFromTable`       – estimate a limit from a table of function values.
+ * - `limitProperties`      – apply limit laws (linear combination) given two limits.
+ * - `limitManipulation`    – algebraically simplify a limit expression (e.g., rationalizing).
+ * - `limitSqueeze`         – evaluate a limit using the Squeeze theorem (xⁿ cos(1/x) → 0).
+ * - `discontinuityType`    – classify a discontinuity (removable, jump, infinite) for a given rational function.
+ * - `continuityConditions` – list the three conditions for continuity at a point.
+ * - `continuityInterval`   – find the interval(s) where a function (e.g., √(a-x²)) is continuous.
+ * - `removeDiscontinuity`  – define a function value to remove a removable discontinuity.
+ * - `verticalAsymptote`    – find vertical asymptotes of a rational function.
+ * - `horizontalAsymptote`  – evaluate a limit at infinity to find a horizontal asymptote.
+ * - `ivt`                  – apply the Intermediate Value Theorem to show existence of a root.
+ * - `selectProcedure`      – choose the most efficient method for evaluating a given limit (multiple choice).
+ *
+ * **Side effects**:
+ * - Clears `questionArea.innerHTML`.
+ * - Appends a new `<div>` containing the LaTeX question.
+ * - Calls `window.MathJax.typesetPromise` (if available) to render the math.
+ * - Sets `window.correctAnswer` to an object with `correct` and `alternate` properties (both set
+ *   to the plain‑text answer).
+ * - Sets `window.expectedFormat` to a string describing the expected answer format
+ *   (e.g., `"Enter a number"`, `"Enter the limit statement"`, `"Enter removable, jump, or infinite"`,
+ *   `"Enter interval like [-2,2]"`, `"Enter the letter of the correct option"`, etc.).
+ *
+ * @example
+ * ```typescript
+ * // Generate a default‑difficulty limits and continuity question
+ * generateLimitsContinuity();
+ *
+ * // Generate a hard question
+ * generateLimitsContinuity("hard");
+ * ```
+ */
 import {questionArea} from "../../script.js";
 // @ts-expect-error - latexToPlain is imported for potential future use
 import {getMaxCoeff, latexToPlain} from "./calculusUtils.js";

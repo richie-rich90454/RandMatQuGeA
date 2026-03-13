@@ -1,3 +1,61 @@
+/**
+ * Generates a random integration question and displays it in the global question area.
+ *
+ * The function randomly selects a question type (polynomial, trigonometric, exponential,
+ * logarithmic, substitution, definite, initial value, area, or motion), constructs a
+ * LaTeX expression for the integrand or problem statement, computes the correct
+ * antiderivative or definite integral result (as a plain‑text string), and appends the
+ * formatted question to the DOM. It triggers MathJax rendering and sets global variables
+ * for answer validation.
+ *
+ * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that
+ *                     influences the maximum coefficient value used in generated
+ *                     expressions. If omitted, a default moderate value is used
+ *                     (via `getMaxCoeff`).
+ *
+ * @remarks
+ * The function relies on several imported utilities:
+ * - `questionArea` (DOM element) from `../../script.js`
+ * - `getMaxCoeff` and `trigIntegrals` from `./calculusUtils.js`
+ * - `window.MathJax` (optional) for LaTeX rendering.
+ *
+ * **Question types** (each uses random coefficients scaled by `difficulty`):
+ * - `polynomial`      – indefinite integral of a polynomial (answers include +C).
+ * - `trigonometric`   – integral of a trigonometric function (sin(ax), cos(ax), etc.).
+ * - `exponential`     – integral of e^(ax) or a^x.
+ * - `logarithmic`     – integral of c/x (natural log).
+ * - `substitution`    – integral of c(ax+b)^n (simple linear substitution).
+ * - `definite`        – definite integral of a polynomial from lower to upper.
+ * - `initialValue`    – find f(x) given f'(x) and an initial condition f(x₀)=y₀.
+ * - `area`            – set up the integral for the area under a given function.
+ * - `motion`          – find position from velocity or acceleration.
+ *
+ * **Answer formatting**:
+ * - Indefinite integrals include an integration constant "+C".
+ * - Coefficients are often simplified and shown with two decimal places, but
+ *   trailing zeros may be removed (e.g., "2.00x^3" becomes "2x^3").
+ * - The global `window.correctAnswer` stores both a normalized version (spaces
+ *   removed, braces stripped) and the original plain‑text answer for flexible
+ *   matching.
+ *
+ * **Side effects**:
+ * - Clears `questionArea.innerHTML`.
+ * - Appends a new `<div>` containing the LaTeX question.
+ * - Calls `window.MathJax.typesetPromise` (if available) to render the math.
+ * - Sets `window.correctAnswer` to an object with `correct` (normalized) and
+ *   `alternate` (original) properties.
+ * - Sets `window.expectedFormat` to a string describing the expected input format
+ *   (e.g., "Enter the integral as an expression, e.g., 2x^3/3+5x^2/2+C, ...").
+ *
+ * @example
+ * ```typescript
+ * // Generate a default‑difficulty integral question
+ * generateIntegral();
+ *
+ * // Generate a hard integral question
+ * generateIntegral("hard");
+ * ```
+ */
 import {questionArea} from "../../script.js";
 import {getMaxCoeff, trigIntegrals} from "./calculusUtils.js";
 

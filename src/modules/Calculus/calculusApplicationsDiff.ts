@@ -1,3 +1,51 @@
+/**
+ * Generates and displays a random "applications of derivatives" question in the global `questionArea`.
+ *
+ * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
+ *                     Influences the maximum coefficient value used in generated expressions
+ *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
+ * @returns void
+ *
+ * @remarks
+ * The function performs the following steps:
+ * 1. Clears `questionArea.innerHTML`.
+ * 2. Randomly selects a question type from a predefined list.
+ * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type.
+ * 4. Appends a `<div>` containing the LaTeX to `questionArea`.
+ * 5. Triggers MathJax (if available) to render the math.
+ * 6. Sets two global variables for answer validation:
+ *    - `window.correctAnswer` – an object with `correct` and `alternate` properties (both equal to the answer).
+ *    - `window.expectedFormat` – a string describing the expected input format (e.g., "Enter a number").
+ *
+ * **Question types** (each uses random coefficients scaled by `difficulty`):
+ * - `linearization`      – approximate a square root using linear approximation.
+ * - `lhopital`           – evaluate a limit using l'Hôpital's rule.
+ * - `mvt`                – find a point `c` satisfying the Mean Value Theorem.
+ * - `evt`                – find critical points on a closed interval (Extreme Value Theorem).
+ * - `incDec`             – determine intervals where a function is increasing.
+ * - `firstDerivativeTest`– classify critical points as local maxima/minima.
+ * - `candidatesTest`     – find the absolute maximum on a closed interval.
+ * - `concavity`          – find intervals of concavity and inflection points.
+ * - `secondDerivativeTest`– apply the second derivative test at a point.
+ * - `graphSketch`        – describe the shape of `f` from conditions on `f'` and `f''`.
+ * - `connecting`         – relate the signs of `f'` and `f''` to the behavior of `f`.
+ * - `optimization`       – maximize the product of two numbers given their sum.
+ * - `implicitBehavior`   – find the slope of a tangent line to an implicitly defined curve.
+ *
+ * **External dependencies**:
+ * - `questionArea` (imported from `../../script.js`) – must be a DOM element.
+ * - `getMaxCoeff` (imported from `./calculusUtils.js`) – provides the coefficient limit.
+ * - `window.MathJax` – optional; if present, `MathJax.typesetPromise` is called.
+ *
+ * @example
+ * ```typescript
+ * // Generate a question with default difficulty
+ * generateApplicationsDiff();
+ *
+ * // Generate a hard question
+ * generateApplicationsDiff("hard");
+ * ```
+ */
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
 export function generateApplicationsDiff(difficulty?: string): void{

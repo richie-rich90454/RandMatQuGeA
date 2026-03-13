@@ -1,3 +1,68 @@
+/**
+ * Generates a random "graphical calculus" question involving visual or tabular data.
+ *
+ * The function randomly selects a question type from a predefined list, constructs
+ * a mathematical expression (often including LaTeX tables or references to drawn
+ * graphs), draws an appropriate canvas if needed, and appends the content to the
+ * global `questionArea` element. It triggers MathJax rendering and sets global
+ * variables for answer validation.
+ *
+ * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`)
+ *                     that influences the maximum coefficient value used in
+ *                     generated expressions. If omitted, a default moderate value
+ *                     is used (via `getMaxCoeff`).
+ *
+ * @remarks
+ * The function relies on several imported utilities:
+ * - `questionArea` (DOM element) from `../../script.js`
+ * - `getMaxCoeff` from `./calculusUtils.js`
+ * - `window.MathJax` (optional) for LaTeX rendering.
+ *
+ * **Question types** (each may involve a drawn canvas and/or a LaTeX table):
+ * - `limitFromGraph`      – limit of a quadratic function with a removable discontinuity (hole).
+ * - `multipleReps`        – limit inferred from both a graph and a table.
+ * - `estimateDerivTable`  – estimate a derivative using a table of function values.
+ * - `diffContinuity`      – differentiability of |x - a| at x = a.
+ * - `inverseFunc`         – derivative of an inverse function given f(a) and f'(a).
+ * - `invTrigDeriv`        – derivative of arctan(ax).
+ * - `selectProcedure`     – choose which differentiation rule(s) apply to a given function.
+ * - `derivContext`        – interpret the meaning of a derivative in a real‑world context.
+ * - `riemannSum`          – left Riemann sum for ∫x² dx, with a drawn graph.
+ * - `riemannNotation`     – rewrite a limit of Riemann sums as a definite integral.
+ * - `accumFTC`            – evaluate F'(x₀) for an accumulation function F(x)=∫_a^x f(t) dt.
+ * - `accumBehavior`       – determine where an accumulation function is increasing.
+ * - `definiteProps`       – use properties of definite integrals to combine two intervals.
+ * - `longDivision`        – integrate a rational function after polynomial long division.
+ * - `flowAccum`           – total accumulated water from a variable rate.
+ * - `instantChange`       – explain how limits give instantaneous velocity.
+ * - `derivativeLimit`     – use the limit definition to find the derivative of a linear function.
+ *
+ * **Internal drawing functions** (used to generate canvases):
+ * - `drawLimitGraph`      – draws a parabola with a hole.
+ * - `drawAbsoluteGraph`   – draws a V‑shaped absolute value graph.
+ * - `drawQuadraticGraph`  – draws a parabola.
+ * - `drawRiemannSum`      – draws a function and shades left‑endpoint rectangles.
+ * - `drawAccumGraph`      – draws f(t)=t and marks the accumulation starting point.
+ * - `drawAccumGraph2`     – draws a piecewise constant function.
+ *
+ * **Side effects**:
+ * - Clears `questionArea.innerHTML`.
+ * - Appends any generated canvas first, then a `<div>` containing the LaTeX question.
+ * - Calls `window.MathJax.typesetPromise` (if available) to render the math.
+ * - Sets `window.correctAnswer` to an object with `correct` and `alternate`
+ *   properties (both set to the plain‑text answer).
+ * - Sets `window.expectedFormat` to a string describing the expected answer format
+ *   (e.g., `"Enter a number"`, `"Enter expression"`, `"Enter interval"`, etc.).
+ *
+ * @example
+ * ```typescript
+ * // Generate a default‑difficulty graphical calculus question
+ * generateGraphicalCalculus();
+ *
+ * // Generate an easy question
+ * generateGraphicalCalculus("easy");
+ * ```
+ */
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
 

@@ -1,3 +1,50 @@
+/**
+ * Generates and displays a random sequences and series question in the global `questionArea`.
+ *
+ * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
+ *                     Influences the maximum coefficient value used in generated expressions
+ *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
+ * @returns void
+ *
+ * @remarks
+ * The function performs the following steps:
+ * 1. Clears `questionArea.innerHTML`.
+ * 2. Randomly selects a question type from a predefined list.
+ * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type.
+ * 4. Appends a `<div>` containing the LaTeX to `questionArea`.
+ * 5. Triggers MathJax (if available) to render the math.
+ * 6. Sets two global variables for answer validation:
+ *    - `window.correctAnswer` – an object with `correct` and `alternate` properties (both equal to the answer).
+ *    - `window.expectedFormat` – a string describing the expected input format.
+ *
+ * **Question types** (each uses random coefficients scaled by `difficulty` where applicable):
+ * - `integralTest`      – apply the integral test to determine convergence of ∑ 1/(n²+p).
+ * - `pSeries`           – determine convergence of a p‑series with random p.
+ * - `comparisonTest`    – compare ∑ 1/(n²+p) to ∑ 1/n².
+ * - `alternatingTest`   – classify convergence of the alternating harmonic series.
+ * - `ratioTest`         – apply the ratio test to ∑ aⁿ/n!.
+ * - `absCond`           – classify absolute/conditional convergence of ∑ (-1)ⁿ⁺¹/n³.
+ * - `altError`          – estimate error of an alternating series using first 3 terms.
+ * - `taylorPoly`        – write the 3rd degree Taylor polynomial for e^{ax} at x=0.
+ * - `lagrangeError`     – estimate the Lagrange error bound for the Taylor polynomial.
+ * - `radiusInterval`    – find the interval of convergence for ∑ xⁿ/aⁿ.
+ * - `maclaurin`         – recall the Maclaurin series for sin x.
+ * - `powerSeries`       – express 1/(1‑x) as a power series.
+ *
+ * **External dependencies**:
+ * - `questionArea` (imported from `../../script.js`) – must be a DOM element.
+ * - `getMaxCoeff` (imported from `./calculusUtils.js`) – provides the coefficient limit.
+ * - `window.MathJax` – optional; if present, `MathJax.typesetPromise` is called.
+ *
+ * @example
+ * ```typescript
+ * // Generate a question with default difficulty
+ * generateSequencesSeries();
+ *
+ * // Generate a hard question
+ * generateSequencesSeries("hard");
+ * ```
+ */
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
 export function generateSequencesSeries(difficulty?: string): void{
