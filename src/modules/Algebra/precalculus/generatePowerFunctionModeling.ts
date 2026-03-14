@@ -1,0 +1,60 @@
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
+/**
+ * Generates a modeling question using power functions: direct, inverse, or power variation.
+ * @param difficulty - Optional difficulty level to adjust constants.
+ * @returns void
+ */
+export function generatePowerFunctionModeling(difficulty?: string): void{
+	if (!questionArea) return;
+	questionArea.innerHTML="";
+	const types=["direct","inverse","power"];
+	const type=types[Math.floor(Math.random()*types.length)];
+	const max=getMaxForDifficulty(difficulty,10);
+	let hint="";
+
+	const k=Math.floor(Math.random()*max)+1;
+	const x1=Math.floor(Math.random()*max)+1;
+	const y1=k*x1;
+	const x2=Math.floor(Math.random()*max)+1;
+
+	switch (type){
+		case "direct":{
+			questionArea.innerHTML=`If y varies directly with x, and y=${y1} when x=${x1}, find y when x=${x2}.`;
+			const y2=k*x2;
+			window.correctAnswer={
+				correct:y2.toString(),
+				alternate:y2.toString()
+			};
+			hint="Enter a number";
+			break;
+		}
+		case "inverse":{
+			const kInv=x1*y1;
+			questionArea.innerHTML=`If y varies inversely with x, and y=${y1} when x=${x1}, find y when x=${x2}.`;
+			const y2=kInv/x2;
+			window.correctAnswer={
+				correct:y2.toFixed(2),
+				alternate:y2.toString()
+			};
+			hint="Enter a number";
+			break;
+		}
+		case "power":{
+			const exp=Math.floor(Math.random()*2)+2;
+			const y1pow=k*Math.pow(x1,exp);
+			questionArea.innerHTML=`If y varies as the ${exp}rd power of x, and y=${y1pow} when x=${x1}, find y when x=${x2}.`;
+			const y2=k*Math.pow(x2,exp);
+			window.correctAnswer={
+				correct:y2.toString(),
+				alternate:y2.toString()
+			};
+			hint="Enter a number";
+			break;
+		}
+	}
+	window.expectedFormat=hint;
+	if (window.MathJax&&window.MathJax.typeset){
+		window.MathJax.typeset();
+	}
+}
