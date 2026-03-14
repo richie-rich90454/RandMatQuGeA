@@ -262,7 +262,17 @@ export function setupEventListeners(): void{
 	dom.difficultySelect.addEventListener("change",function (e: Event){
 		state.setCurrentDifficulty((e.target as HTMLSelectElement).value);
 	});
-	dom.startSessionBtn.addEventListener("click",session.startMentalSession);
+
+	// Centralized start/stop session button handler
+	dom.startSessionBtn.addEventListener("click",()=>{
+		if (state.sessionActive){
+			session.stopMentalSession();
+		}
+		else{
+			session.startMentalSession();
+		}
+	});
+
 	if (dom.pauseSessionBtn){
 		dom.pauseSessionBtn.addEventListener("click",session.pauseMentalSession);
 	}

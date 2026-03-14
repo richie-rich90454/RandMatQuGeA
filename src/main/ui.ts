@@ -75,16 +75,12 @@ export function setSessionButton(isActive: boolean): void{
 	if (isActive){
 		dom.startSessionBtn.textContent="Stop Session";
 		dom.startSessionBtn.classList.add("stop-session");
-		dom.startSessionBtn.removeEventListener("click",startMentalSession);
-		dom.startSessionBtn.addEventListener("click",stopMentalSession);
 		if (dom.pauseSessionBtn) dom.pauseSessionBtn.style.display="inline-flex";
 		if (dom.skipQuestionBtn) dom.skipQuestionBtn.style.display="inline-flex";
 	}
 	else{
 		dom.startSessionBtn.textContent="Start Session";
 		dom.startSessionBtn.classList.remove("stop-session");
-		dom.startSessionBtn.removeEventListener("click",stopMentalSession);
-		dom.startSessionBtn.addEventListener("click",startMentalSession);
 		if (dom.pauseSessionBtn) dom.pauseSessionBtn.style.display="none";
 		if (dom.skipQuestionBtn) dom.skipQuestionBtn.style.display="none";
 	}
@@ -206,12 +202,4 @@ export function showOnboarding(): void{
 }
 export function hideOnboarding(): void{
 	if (dom.onboardingOverlay) dom.onboardingOverlay.classList.remove("show");
-}
-async function startMentalSession(): Promise<void>{
-	const {startMentalSession: start} = await import("./session");
-	start();
-}
-async function stopMentalSession(): Promise<void>{
-	const {stopMentalSession: stop} = await import("./session");
-	stop();
 }

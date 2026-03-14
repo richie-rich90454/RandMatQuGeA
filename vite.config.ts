@@ -13,10 +13,10 @@ export default defineConfig({
         outDir: "../dist",
         emptyOutDir: true,
         assetsDir: "assets",
-        minify: "esbuild",
+        minify: "oxc",
         cssMinify: true,
-        chunkSizeWarningLimit: 600,
-        rollupOptions: {
+        chunkSizeWarningLimit: 800,
+        rolldownOptions: {
             output: {
                 manualChunks(id){
                     if (id.includes("node_modules")){
