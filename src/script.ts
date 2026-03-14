@@ -3,12 +3,13 @@ import * as settings from "./main/settings";
 import {topics,scopeTopics,SESSION_STORAGE_KEY} from "./main/constants";
 import {generateQuestion as callGenerator} from "./main/questionGenerator";
 import {invoke} from "@tauri-apps/api/core";
-import {check} from '@tauri-apps/plugin-updater';
-import {relaunch} from '@tauri-apps/plugin-process';
+import {check} from "@tauri-apps/plugin-updater";
+import {relaunch} from "@tauri-apps/plugin-process";
+import packageJson from "../package.json";
 export * from "./main/dom";
 window.correctAnswer={correct:""};
 window.expectedFormat="";
-window.hasQuestion = false;
+window.hasQuestion=false;
 
 export let selectedTopic: string|null=null;
 export let currentMode: "single"|"mental"="single";
@@ -31,29 +32,29 @@ export let previewTimeout: ReturnType<typeof setTimeout>|null=null;
 export let modeButtons=[dom.modeSingleBtn,dom.modeMentalBtn];
 
 function syncSettingsToState(): void {
-    scope = settings.settings.scope;
-    shuffle = settings.settings.shuffle;
-    autocontinue = settings.settings.autoContinue;
-    currentDifficulty = settings.settings.difficulty;
-    mentalScope = settings.settings.scope;
-    mentalShuffle = settings.settings.shuffle;
-    maxQuestions = settings.settings.maxQuestions;
-    timeLeft = settings.settings.timer;
+    scope=settings.settings.scope;
+    shuffle=settings.settings.shuffle;
+    autocontinue=settings.settings.autoContinue;
+    currentDifficulty=settings.settings.difficulty;
+    mentalScope=settings.settings.scope;
+    mentalShuffle=settings.settings.shuffle;
+    maxQuestions=settings.settings.maxQuestions;
+    timeLeft=settings.settings.timer;
 
-    if (dom.scopeSelect) dom.scopeSelect.value = scope;
-    if (dom.mentalScopeSelect) dom.mentalScopeSelect.value = mentalScope;
-    if (dom.shuffleToggle) dom.shuffleToggle.checked = shuffle;
-    if (dom.mentalShuffleToggle) dom.mentalShuffleToggle.checked = mentalShuffle;
-    if (dom.autocontinueToggle) dom.autocontinueToggle.checked = autocontinue;
-    if (dom.difficultySelect) dom.difficultySelect.value = currentDifficulty;
+    if (dom.scopeSelect) dom.scopeSelect.value=scope;
+    if (dom.mentalScopeSelect) dom.mentalScopeSelect.value=mentalScope;
+    if (dom.shuffleToggle) dom.shuffleToggle.checked=shuffle;
+    if (dom.mentalShuffleToggle) dom.mentalShuffleToggle.checked=mentalShuffle;
+    if (dom.autocontinueToggle) dom.autocontinueToggle.checked=autocontinue;
+    if (dom.difficultySelect) dom.difficultySelect.value=currentDifficulty;
 }
 
 function clearAllTimeouts(): void {
-    if (autoTimeout) { clearTimeout(autoTimeout); autoTimeout = null; }
-    if (previewTimeout) { clearTimeout(previewTimeout); previewTimeout = null; }
-    if (generateDebounceTimeout) { clearTimeout(generateDebounceTimeout); generateDebounceTimeout = null; }
-    if (mentalNextQuestionTimeout) { clearTimeout(mentalNextQuestionTimeout); mentalNextQuestionTimeout = null; }
-    if (sessionTimer) { clearInterval(sessionTimer); sessionTimer = null; }
+    if (autoTimeout) { clearTimeout(autoTimeout); autoTimeout=null; }
+    if (previewTimeout) { clearTimeout(previewTimeout); previewTimeout=null; }
+    if (generateDebounceTimeout) { clearTimeout(generateDebounceTimeout); generateDebounceTimeout=null; }
+    if (mentalNextQuestionTimeout) { clearTimeout(mentalNextQuestionTimeout); mentalNextQuestionTimeout=null; }
+    if (sessionTimer) { clearInterval(sessionTimer); sessionTimer=null; }
 }
 
 function updateAriaPressed(): void{
@@ -123,7 +124,7 @@ function setSessionButton(isActive: boolean): void{
 function updateUIState(): void{
 	if (!dom.generateQuestionButton||!dom.checkAnswerButton||!dom.questionArea) return;
 	let hasTopic=selectedTopic!==null;
-	let hasQuestion = window.hasQuestion || !!window.correctAnswer.correct;
+	let hasQuestion=window.hasQuestion || !!window.correctAnswer.correct;
 	dom.generateQuestionButton.disabled=!hasTopic;
 	dom.generateQuestionButton.setAttribute("aria-disabled",String(!hasTopic));
 	dom.checkAnswerButton.disabled=!hasTopic||!hasQuestion;
@@ -273,10 +274,10 @@ function generateQuestion(): void{
   `;
 	try {
 		callGenerator(selectedTopic,currentDifficulty);
-		window.hasQuestion = true;
+		window.hasQuestion=true;
 	} catch (error) {
 		console.error("Question generation failed:", error);
-		dom.questionArea.innerHTML = `
+		dom.questionArea.innerHTML=`
 			<div class="empty-state" style="color: var(--error);">
 				<svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
 					<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
@@ -284,7 +285,7 @@ function generateQuestion(): void{
 				<p>Failed to generate question. Please try again.</p>
 			</div>
 		`;
-		window.hasQuestion = false;
+		window.hasQuestion=false;
 		updateUIState();
 		return;
 	}
@@ -499,11 +500,11 @@ function generateNextMentalQuestion(): void{
   `;
 	try {
 		callGenerator(selectedTopic,currentDifficulty);
-		window.hasQuestion = true;
+		window.hasQuestion=true;
 	} catch (error) {
 		console.error("Mental question generation failed:", error);
-		dom.questionArea.innerHTML = `<div class="empty-state">Generation failed</div>`;
-		window.hasQuestion = false;
+		dom.questionArea.innerHTML=`<div class="empty-state">Generation failed</div>`;
+		window.hasQuestion=false;
 		endMentalSession();
 		return;
 	}
@@ -899,7 +900,7 @@ function setupEventListeners(): void{
 	// Escape key to close modals
 	document.addEventListener("keydown", (e: KeyboardEvent) => {
 		if (e.key === "Escape") {
-			const openModals = [dom.settingsModal, dom.shortcutsModal, dom.onboardingOverlay];
+			const openModals=[dom.settingsModal, dom.shortcutsModal, dom.onboardingOverlay];
 			openModals.forEach(modal => {
 				if (modal && modal.classList.contains("show")) {
 					modal.classList.remove("show");
@@ -1015,32 +1016,44 @@ function setupEventListeners(): void{
 			try{
 				const update=await check();
 				if (update){
-					if (confirm(`Version ${update.version} is available!\n\nRelease notes:\n${update.body||"No release notes available"}\n\nDownload and install now?`)){
+					const currentVer=packageJson.version;
+					const updateVer=update.version.replace(/^v/, '');
+					if (!isVersionGreater(updateVer, currentVer)) {
+						alert("You are already using the latest version.");
+						return;
+					}
+					if (confirm(`Version ${update.version} is available!\n\nRelease notes:\n${update.body || "No release notes available"}\n\nDownload and install now?`)) {
 						dom.checkUpdatesBtn!.textContent="Downloading...";
-						await update.downloadAndInstall((progress)=>{
-							if (progress.event==="Progress"){
-								const data=progress.data as {chunkLength: number; contentLength: number};
-								const percent=Math.round((data.chunkLength/data.contentLength)*100);
+						await update.downloadAndInstall((progress) => {
+							if (progress.event === "Progress") {
+								const data=progress.data as { chunkLength: number; contentLength: number };
+								const percent=Math.round((data.chunkLength / data.contentLength) * 100);
 								console.log(`Download progress: ${percent}%`);
 							}
 						});
 						alert("Update installed. The app will now restart.");
 						await relaunch();
 					}
-				}
-				else{
+				} else {
 					alert("You are already using the latest version.");
 				}
-			}
-			catch (err){
+			} catch (err) {
 				console.error("Update check failed:", err);
 				alert("Failed to check for updates. Please ensure you are connected to the internet and try again.");
-			}
-			finally{
+			} finally {
 				dom.checkUpdatesBtn!.disabled=false;
 				dom.checkUpdatesBtn!.textContent=originalText;
 			}
 		});
+	}
+	function isVersionGreater(v1: string, v2: string): boolean {
+		const p1=v1.split('.').map(Number);
+		const p2=v2.split('.').map(Number);
+		for (let i=0; i < 3; i++) {
+			if (p1[i] > p2[i]) return true;
+			if (p1[i] < p2[i]) return false;
+		}
+		return false;
 	}
 	dom.modeSingleBtn.addEventListener("click",switchToSingle);
 	dom.modeMentalBtn.addEventListener("click",switchToMental);
