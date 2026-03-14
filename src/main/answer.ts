@@ -45,7 +45,7 @@ import * as generation from "./generation";
  *
  * After determining correctness, the function:
  * - Provides audio/vibration feedback (if enabled).
- * - Displays the result with plain text correct answer (MathJax temporarily disabled for v1.5.2).
+ * - Displays the result with KaTeX‑formatted correct answer (using `window.katex.renderToString`).
  * - Clears the input and, in auto‑continue mode, generates the next question.
  *
  * @throws No exceptions are thrown; errors are caught and logged, with user‑friendly notifications.
@@ -376,9 +376,19 @@ export function checkAnswer(): void{
 	if (settings.settings.vibration&&navigator.vibrate){
 		navigator.vibrate(isCorrect?50:100);
 	}
-	// Temporarily disable MathJax rendering for v1.5.2; just show plain text.
+	// Render the correct answer using KaTeX (fallback to plain text if KaTeX unavailable or errors)
 	const answerToDisplay=(window.correctAnswer as any).display||window.correctAnswer.correct;
-	let answerHtml=answerToDisplay;
+	let answerHtml='';
+	if (window.katex){
+		try{
+			answerHtml=window.katex.renderToString(answerToDisplay,{throwOnError:false,displayMode:false});
+		}catch(e){
+			console.warn('KaTeX rendering failed, falling back to plain text',e);
+			answerHtml=answerToDisplay;
+		}
+	}else{
+		answerHtml=answerToDisplay;
+	}
 	if (isCorrect){
 		dom.answerResults.innerHTML=`
       <div class="result-success">
@@ -387,7 +397,7 @@ export function checkAnswer(): void{
         </svg>
         <div>
           <h3>Correct!</h3>
-          <p>The answer is <span class="math-answer">${answerHtml}</span></p>
+          <p>The answer is <span class="katex-answer">${answerHtml}</span></p>
         </div>
       </div>
     `;
@@ -404,7 +414,7 @@ export function checkAnswer(): void{
         </svg>
         <div>
           <h3>Incorrect</h3>
-          <p>The correct answer is <span class="math-answer">${answerHtml}</span></p>
+          <p>The correct answer is <span class="katex-answer">${answerHtml}</span></p>
         </div>
       </div>
     `;
