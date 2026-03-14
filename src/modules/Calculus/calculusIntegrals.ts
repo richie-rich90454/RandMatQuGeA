@@ -56,151 +56,207 @@
  * generateIntegral("hard");
  * ```
  */
-import {questionArea} from "../../script.js";
-import {getMaxCoeff, trigIntegrals} from "./calculusUtils.js";
-
+import { questionArea } from "../../script.js";
+import { getMaxCoeff } from "./calculusUtils.js";
+function gcd(a: number, b: number): number{
+	while (b){
+		let t=b;
+		b=a%b;
+		a=t;
+	}
+	return a;
+}
+function formatNumber(n: number): string{
+	return parseFloat(n.toFixed(2)).toString();
+}
+function formatFraction(num: number, den: number): string{
+	let g=gcd(num,den);
+	num/=g;
+	den/=g;
+	return den===1 ? `${num}` : `${num}/${den}`;
+}
 export function generateIntegral(difficulty?: string): void{
-    if (!questionArea) return;
-    questionArea.innerHTML="";
-    let questionTypes=["polynomial", "trigonometric", "exponential", "logarithmic", "substitution", "definite", "initialValue", "area", "motion"];
-    let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
-    let polynomial="";
-    let plainCorrectIntegral="";
-    let mathExpression="";
-    let maxCoeff=getMaxCoeff(difficulty);
-    switch (questionType){
-        case "polynomial":{
-            let numTerms=Math.floor(Math.random()*4)+2;
-            let exponents=new Set<number>();
-            while (exponents.size<numTerms){
-                exponents.add(Math.floor(Math.random()*11));
-            }
-            let exponentsArray=Array.from(exponents).sort((a, b)=>b-a);
-            let coefficients: number[]=[];
-            for (let exponent of exponentsArray){
-                let coeff=exponent===0?Math.floor(Math.random()*100)+1 :
-                    exponent===1?Math.floor(Math.random()*maxCoeff)+1 :
-                        Math.floor(Math.random()*maxCoeff*2)+1;
-                coefficients.push(coeff);
-            }
-            let terms: string[]=[];
-            for (let i=0; i<exponentsArray.length; i++){
-                let term=exponentsArray[i]===0?`${coefficients[i]}` :
-                    exponentsArray[i]===1?`${coefficients[i]}x` :
-                        `${coefficients[i]}x^{${exponentsArray[i]}}`;
-                terms.push(term);
-            }
-            polynomial=`(${terms.join("+")})`;
-            let plainIntegralTerms: string[]=[];
-            for (let i=0; i<exponentsArray.length; i++){
-                let newExponent=exponentsArray[i]+1;
-                let newCoeff=coefficients[i]/newExponent;
-                let plainTerm=`${newCoeff.toFixed(2)}x^${newExponent}`;
-                plainIntegralTerms.push(plainTerm);
-            }
-            plainIntegralTerms.push("C");
-            plainCorrectIntegral=plainIntegralTerms.join("+");
-            mathExpression=`\\[ \\int ${polynomial} \\,dx=? \\]`;
-            break;
-        }
-        case "trigonometric":{
-            let chosen=trigIntegrals[Math.floor(Math.random()*trigIntegrals.length)];
-            let a=Math.floor(Math.random()*maxCoeff)+1;
-            let coeff=Math.floor(Math.random()*maxCoeff)+1;
-            polynomial=`${coeff}${chosen.func.replace("a", a.toString())}`;
-            plainCorrectIntegral=`${(coeff/a).toFixed(2)}${chosen.plain.replace("a", a.toString()).replace("1/a", "1/"+a)}+C`.replace(/(\.00|0+)$/, "");
-            mathExpression=`\\[ \\int ${polynomial} \\,dx=? \\]`;
-            break;
-        }
-        case "exponential":{
-            let base=Math.random()<0.5?"e" : Math.floor(Math.random()*3)+2;
-            let a=Math.floor(Math.random()*maxCoeff)+1;
-            let coeff=Math.floor(Math.random()*maxCoeff)+1;
-            if (base==="e"){
-                polynomial=`${coeff}e^{${a}x}`;
-                plainCorrectIntegral=`${(coeff/a).toFixed(2)}e^(${a}x)+C`;
-            }
-            else{
-                polynomial=`${coeff}${base}^{x}`;
-                plainCorrectIntegral=`${(coeff/Math.log(base as number)).toFixed(2)}${base}^x+C`;
-            }
-            mathExpression=`\\[ \\int ${polynomial} \\,dx=? \\]`;
-            break;
-        }
-        case "logarithmic":{
-            let coeff=Math.floor(Math.random()*maxCoeff)+1;
-            polynomial=`${coeff}/x`;
-            plainCorrectIntegral=`${coeff}ln|x|+C`;
-            mathExpression=`\\[ \\int ${polynomial} \\,dx=? \\]`;
-            break;
-        }
-        case "substitution":{
-            let a=Math.floor(Math.random()*maxCoeff)+1;
-            let b=Math.floor(Math.random()*5);
-            let power=Math.floor(Math.random()*3)+2;
-            let coeff=Math.floor(Math.random()*maxCoeff)+1;
-            polynomial=`${coeff}(${a}x+${b})^{${power}}`;
-            let newPower=power+1;
-            plainCorrectIntegral=`${(coeff/(a*newPower)).toFixed(2)}(${a}x+${b})^${newPower}+C`.replace(/\.00/g, "");
-            mathExpression=`\\[ \\int ${polynomial} \\,dx=? \\]`;
-            break;
-        }
-        case "definite":{
-            let exponents=Array.from({ length: 3 }, ()=>Math.floor(Math.random()*4));
-            let coefficients=exponents.map(()=>Math.floor(Math.random()*maxCoeff)+1);
-            let [lower, upper]=[1, Math.floor(Math.random()*5)+2];
-            polynomial=coefficients.map((c, i)=>`${c}x^${exponents[i]}`).join("+");
-            let integral=coefficients.map((c, i)=>c/(exponents[i]+1)).reduce((a, b)=>a+b, 0);
-            let result=(Math.pow(upper, exponents[0]+1)-Math.pow(lower, exponents[0]+1))*integral;
-            plainCorrectIntegral=result.toFixed(2);
-            mathExpression=`\\[ \\int_{${lower}}^{${upper}} ${polynomial} \\,dx=? \\]`;
-            break;
-        }
-        case "initialValue":{
-            let coeff=Math.floor(Math.random()*maxCoeff)+1;
-            let exponent=Math.floor(Math.random()*3)+1;
-            let xVal=Math.floor(Math.random()*3)+1;
-            let yVal=Math.floor(Math.random()*20)+5;
-            polynomial=`${coeff}x^${exponent}`;
-            let c=yVal-(coeff/(exponent+1))*Math.pow(xVal, exponent+1);
-            plainCorrectIntegral=`${(coeff/(exponent+1)).toFixed(2)}x^${exponent+1}+${c.toFixed(2)}`;
-            mathExpression=`\\[ \\text{Find } f(x) \\text{ where } f'(${xVal})=${yVal} \\text{ and } f'(x)=${polynomial} \\]`;
-            break;
-        }
-        case "area":{
-            let funcs=["x^2", "sin(x)", "sqrt(x)", "2^x"];
-            let func=funcs[Math.floor(Math.random()*funcs.length)];
-            let [a, b]=[0, Math.floor(Math.random()*4)+1];
-            plainCorrectIntegral=`∫${a}^${b} ${func} dx`;
-            mathExpression=`\\[ \\text{Set up the integral for the area under } ${func} \\text{ from } ${a} \\text{ to } ${b} \\]`;
-            break;
-        }
-        case "motion":{
-            let coeff=Math.floor(Math.random()*maxCoeff)+1;
-            let type=Math.random()<0.5?"velocity" : "acceleration";
-            if (type==="velocity"){
-                polynomial=`${coeff}t^2`;
-                plainCorrectIntegral=`${(coeff/3).toFixed(2)}t^3+C`;
-            }
-            else{
-                polynomial=`${coeff}t`;
-                plainCorrectIntegral=`${(coeff/2).toFixed(2)}t^2+C`;
-            }
-            mathExpression=`\\[ \\text{Find position from } ${type} \\ a(t)=${polynomial} \\]`;
-            break;
-        }
-    }
-    let mathContainer=document.createElement("div");
-    mathContainer.innerHTML=mathExpression||`\\[ \\int ${polynomial} \\,dx=? \\]`;
-    questionArea.appendChild(mathContainer);
-    if (window.MathJax&&window.MathJax.typesetPromise){
-        window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-            console.log("MathJax typeset error:", err)
-        );
-    }
-    window.correctAnswer={
-        correct: plainCorrectIntegral.replace(/\s+/g, "").replace(/\^{/g, "^").replace(/}/g, "").replace(/{/g, "").toLowerCase(),
-        alternate: plainCorrectIntegral
-    };
-    window.expectedFormat="Enter the integral as an expression, e.g., 2x^3/3+5x^2/2+C, 1/3 sin(3x)+C, etc.";
+	if (!questionArea) return;
+	questionArea.innerHTML="";
+	const questionTypes=[
+		"polynomial","trigonometric","exponential","logarithmic",
+		"substitution","definite","initialValue","area","motion"
+	];
+	const questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
+	const maxCoeff=getMaxCoeff(difficulty);
+	let mathExpression="";
+	let plainCorrectIntegral="";
+	let alternateAnswer:string|undefined=undefined;
+	switch (questionType){
+		case "polynomial":{
+			const numTerms=Math.floor(Math.random()*4)+2;
+			const exponents=new Set<number>();
+			while (exponents.size<numTerms){
+				exponents.add(Math.floor(Math.random()*11));
+			}
+			const exponentsArray=Array.from(exponents).sort((a,b)=>b-a);
+			const coefficients: number[]=[];
+			for (const exp of exponentsArray){
+				const coeff=exp===0
+					?Math.floor(Math.random()*100)+1
+					:exp===1
+						?Math.floor(Math.random()*maxCoeff)+1
+						:Math.floor(Math.random()*maxCoeff*2)+1;
+				coefficients.push(coeff);
+			}
+			const terms: string[]=[];
+			for (let i=0;i<exponentsArray.length;i++){
+				const exp=exponentsArray[i];
+				const coeff=coefficients[i];
+				if (exp===0) terms.push(`${coeff}`);
+				else if (exp===1) terms.push(`${coeff}x`);
+				else terms.push(`${coeff}x^{${exp}}`);
+			}
+			const polynomial=`(${terms.join("+")})`;
+			mathExpression=`\\[ \\int ${polynomial} \\,dx=? \\]`;
+			const integralTerms: string[]=[];
+			for (let i=0;i<exponentsArray.length;i++){
+				const exp=exponentsArray[i];
+				const coeff=coefficients[i];
+				const newExp=exp+1;
+				const newCoeff=coeff/newExp;
+				const xPart=newExp===1?"x":`x^${newExp}`;
+				integralTerms.push(`${formatNumber(newCoeff)}${xPart}`);
+			}
+			integralTerms.push("C");
+			plainCorrectIntegral=integralTerms.join("+");
+			break;
+		}
+		case "trigonometric":{
+			const trigOptions=[
+				{ func: "sin", target: "cos", sign: -1 },
+				{ func: "cos", target: "sin", sign: 1 },
+				{ func: "sec^2", target: "tan", sign: 1 },
+				{ func: "csc^2", target: "cot", sign: -1 },
+				{ func: "sec tan", target: "sec", sign: 1 },
+				{ func: "csc cot", target: "csc", sign: -1 }
+			];
+			const chosen=trigOptions[Math.floor(Math.random()*trigOptions.length)];
+			const a=Math.floor(Math.random()*maxCoeff)+1;
+			const coeff=Math.floor(Math.random()*maxCoeff)+1;
+			const funcStr=`${coeff} ${chosen.func}(${a}x)`;
+			mathExpression=`\\[ \\int ${funcStr} \\,dx=? \\]`;
+			// Decimal answer
+			const decimalCoeff=coeff/a;
+			plainCorrectIntegral=`${formatNumber(chosen.sign*decimalCoeff)} ${chosen.target}(${a}x)+C`;
+			// Fractional alternate
+			const fractionStr=formatFraction(coeff,a);
+			const signStr=chosen.sign===1 ? '' : '-';
+			alternateAnswer=`${signStr}${fractionStr} ${chosen.target}(${a}x)+C`;
+			break;
+		}
+		case "exponential":{
+			const base=Math.random()<0.5?"e":Math.floor(Math.random()*3)+2;
+			const a=Math.floor(Math.random()*maxCoeff)+1;
+			const coeff=Math.floor(Math.random()*maxCoeff)+1;
+			if (base==="e"){
+				mathExpression=`\\[ \\int ${coeff}e^{${a}x} \\,dx=? \\]`;
+				plainCorrectIntegral=`${formatNumber(coeff/a)}e^(${a}x)+C`;
+			}
+			else{
+				mathExpression=`\\[ \\int ${coeff}${base}^{x} \\,dx=? \\]`;
+				const lnBase=Math.log(base as number);
+				plainCorrectIntegral=`${formatNumber(coeff/lnBase)}${base}^x+C`;
+			}
+			break;
+		}
+		case "logarithmic":{
+			const coeff=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\int \\frac{${coeff}}{x} \\,dx=? \\]`;
+			plainCorrectIntegral=`${coeff}ln|x|+C`;
+			break;
+		}
+		case "substitution":{
+			const a=Math.floor(Math.random()*maxCoeff)+1;
+			const b=Math.floor(Math.random()*5);
+			const power=Math.floor(Math.random()*3)+2;
+			const coeff=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\int ${coeff}(${a}x+${b})^{${power}} \\,dx=? \\]`;
+			const newPower=power+1;
+			const factor=coeff/(a*newPower);
+			plainCorrectIntegral=`${formatNumber(factor)}(${a}x+${b})^${newPower}+C`;
+			break;
+		}
+		case "definite":{
+			const numTerms=3;
+			const exponents=Array.from({ length: numTerms },()=>Math.floor(Math.random()*4));
+			const coefficients=exponents.map(()=>Math.floor(Math.random()*maxCoeff)+1);
+			const lower=1;
+			const upper=Math.floor(Math.random()*5)+2;
+			const polyTerms=coefficients.map((c,i)=>`${c}x^{${exponents[i]}}`);
+			const polynomial=polyTerms.join("+");
+			mathExpression=`\\[ \\int_{${lower}}^{${upper}} (${polynomial}) \\,dx=? \\]`;
+			let result=0;
+			for (let i=0;i<numTerms;i++){
+				const exp=exponents[i];
+				const coeff=coefficients[i];
+				const antideriv=coeff/(exp+1);
+				result+=antideriv*(Math.pow(upper,exp+1)-Math.pow(lower,exp+1));
+			}
+			plainCorrectIntegral=formatNumber(result);
+			break;
+		}
+		case "initialValue":{
+			const coeff=Math.floor(Math.random()*maxCoeff)+1;
+			const exponent=Math.floor(Math.random()*3)+1;
+			const xVal=Math.floor(Math.random()*3)+1;
+			const yVal=Math.floor(Math.random()*20)+5;
+			const polynomial=`${coeff}x^${exponent}`;
+			const antiderivCoeff=coeff/(exponent+1);
+			const c=yVal-antiderivCoeff*Math.pow(xVal,exponent+1);
+			mathExpression=`\\[ \\text{Find } f(x) \\text{ where } f(${xVal}) = ${yVal} \\text{ and } f'(x) = ${polynomial} \\]`;
+			plainCorrectIntegral=`${formatNumber(antiderivCoeff)}x^${exponent+1} + ${formatNumber(c)}`;
+			break;
+		}
+		case "area":{
+			const funcs=[
+				{ expr: "x^2", antideriv: (x: number) => Math.pow(x,3)/3 },
+				{ expr: "sin(x)", antideriv: (x: number) => -Math.cos(x) },
+				{ expr: "sqrt(x)", antideriv: (x: number) => (2/3)*Math.pow(x,1.5) },
+				{ expr: "2^x", antideriv: (x: number) => Math.pow(2,x)/Math.log(2) }
+			];
+			const chosen=funcs[Math.floor(Math.random()*funcs.length)];
+			const a=0;
+			const b=Math.floor(Math.random()*4)+1;
+			const area=chosen.antideriv(b)-chosen.antideriv(a);
+			mathExpression=`\\[ \\text{Area under } ${chosen.expr} \\text{ from } ${a} \\text{ to } ${b} = ? \\]`;
+			plainCorrectIntegral=formatNumber(area);
+			break;
+		}
+		case "motion":{
+			const coeff=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\text{Find position from velocity } v(t) = ${coeff}t^2 \\]`;
+			plainCorrectIntegral=`${formatNumber(coeff/3)}t^3 + C`;
+			alternateAnswer=`${coeff}t^3/3 + C`;
+			break;
+		}
+		default:{
+			const polynomial="x^2";
+			mathExpression=`\\[ \\int ${polynomial} \\,dx=? \\]`;
+			plainCorrectIntegral="x^3/3 + C";
+		}
+	}
+	const mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if (window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
+	}
+	const normalize=(s: string)=>
+		s.replace(/\s+/g,"")
+		 .replace(/\^{/g,"^")
+		 .replace(/[{}]/g,"")
+		 .toLowerCase();
+	window.correctAnswer={
+		correct: normalize(plainCorrectIntegral),
+		alternate: alternateAnswer ? normalize(alternateAnswer) : plainCorrectIntegral
+	};
+	window.expectedFormat="Enter the integral as an expression, e.g., 2x^3/3+5x^2/2+C, 1/3 sin(3x)+C, etc.";
 }
