@@ -29,23 +29,23 @@
     "@tauri-apps/plugin-updater": "^2.10.0",
     "cssnano": "^7.1.2",
     "fs": "^0.0.1-security",
-    "mathjax": "^3.2.2",
-    "mathjs": "^15.1.0",
+    "mathjax": "^4.1.1",
+    "mathjs": "^15.1.1",
     "path": "^0.12.7",
     "terser": "^5.39.0",
-    "three": "^0.183.1"
+    "three": "^0.183.2"
   },
   "description": "Random math question generator made with HTML, CSS, and JS.",
   "devDependencies": {
-    "@tauri-apps/cli": "^2",
-    "@types/mathjs": "^9.4.1",
-    "@types/node": "^25.2.3",
+    "@tauri-apps/cli": "^2.10.1",
+    "@types/mathjs": "^9.4.2",
+    "@types/node": "^25.5.0",
     "@types/three": "^0.183.1",
     "typescript": "^5.9.3",
     "vite": "^8.0.0",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-copy": "^0.1.6",
     "vite-plugin-html": "^3.2.2",
-    "vite-plugin-static-copy": "^3.1.4"
+    "vite-plugin-static-copy": "^3.3.0"
   }
 }

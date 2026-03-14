@@ -3,7 +3,6 @@ import * as state from "./state";
 import * as settings from "./settings";
 import * as ui from "./ui";
 import * as generation from "./generation";
-
 /**
  * Validates the user's answer against the expected correct answer.
  *
@@ -15,27 +14,38 @@ import * as generation from "./generation";
  * **Supported Features:**
  * - Whitespace normalization, case insensitivity.
  * - Multiple exponent notations: `x^2`, `x^{2}`, `x**2`.
- * - Implicit multiplication: `2x` ↔ `2*x`.
- * - Trigonometric functions: `sin`, `\sin`, `sin(x)`, `sin x`.
- * - Integration constant: optional `+C`, `+c`, constant at any position; handles constants of integration.
+ * - Implicit multiplication: `2x` ↔ `2*x`, `(x)(y)` ↔ `x*y`.
+ * - Trigonometric functions: `sin`, `\sin`, `sin(x)`, `sin x`, `sin^2 x` etc.
+ * - Inverse trigonometric and hyperbolic functions.
+ * - Integration constant: optional `+C`, `+c`, `+K` anywhere in the expression; constant term is ignored.
  * - Commutative addition: term order does not matter.
  * - Fraction ↔ decimal equivalence: `1/2` ↔ `0.5`.
  * - Algebraic equivalence: e.g., `(x+1)^2` ↔ `x^2+2x+1` (if math.js is available).
- * - Functional equivalence for indefinite integrals (handles the constant of integration).
- * - Numeric tolerance for definite integrals.
+ * - Functional equivalence for indefinite integrals: checks if expressions differ by a constant.
+ * - Numeric tolerance for definite integrals and constant comparisons.
+ * - Parentheses normalization: `sin(x)` ↔ `sin x` (after sanitization).
+ * - Special functions: `ln` ↔ `log_e`, `arcsin` ↔ `asin`, etc.
+ * - **Equation handling:** expressions containing `=` are split into left and right sides,
+ *   and each side is compared separately. Numeric evaluation is used for constant sides
+ *   (e.g., `5^2` ↔ `25`).
  * - Invalid syntax handling: gracefully falls back to plain text display.
  *
  * **Comparison Pipeline:**
- * 1. **Basic Sanitization** – Trim, lowercase, remove all whitespace, normalize braces and common Unicode symbols.
- * 2. **Constant Normalization** – Convert `+C`, `+c`, `+K` to a canonical form; optionally remove constant for functional comparison.
- * 3. **Direct String Equality** – After sanitization, check if strings are identical.
- * 4. **Fraction Handling** – If fractions are present, attempt decimal conversion and numeric comparison.
- * 5. **Term‑by‑Term Comparison** – Split expressions on `+` and `-`, sort terms lexicographically (works for polynomials).
- * 6. **Ultimate Fallback** – Use `settings.isAnswerCorrect` (which may rely on simple numeric evaluation).
+ * 1. **Sanitization** – Trim, lowercase, remove whitespace, normalize braces, Unicode symbols, and implicit multiplication.
+ * 2. **Function Name Normalization** – Convert all function names to a standard form (e.g., `ln` → `log`).
+ * 3. **Constant Removal** – Identify and remove any constant term (including numeric constants) to compare only the functional part.
+ *    - If the entire expression consists of constants, the original string is preserved (important for purely numeric answers).
+ * 4. **Direct String Equality** – After sanitization and constant removal, check if strings are identical.
+ * 5. **Fraction Handling** – If fractions are present, attempt decimal conversion and numeric comparison.
+ * 6. **Term‑by‑Term Comparison** – Split expressions on `+` and `-`, sort terms lexicographically (works for polynomials).
+ * 7. **Math.js Structural Simplification** – If math.js is available, parse and simplify both expressions to a canonical form.
+ * 8. **Numerical Sampling** – If both expressions contain a variable, evaluate at multiple points to check for constant difference or numeric equality.
+ * 9. **Equation Splitting** – If the expression contains `=`, split into left and right; compare sides separately using the above steps.
+ * 10. **Ultimate Fallback** – Use `settings.isAnswerCorrect` (simple evaluation).
  *
  * After determining correctness, the function:
  * - Provides audio/vibration feedback (if enabled).
- * - Displays the result with MathJax‑formatted correct answer.
+ * - Displays the result with plain text correct answer (MathJax temporarily disabled for v1.5.2).
  * - Clears the input and, in auto‑continue mode, generates the next question.
  *
  * @throws No exceptions are thrown; errors are caught and logged, with user‑friendly notifications.
@@ -53,65 +63,305 @@ export function checkAnswer(): void{
 	}
 	let correct=window.correctAnswer.correct;
 	let alternate=window.correctAnswer.alternate;
-	// --- Stage 1: Sanitization ---
-	const sanitize=(s: string): string=>{
-		s=s.toLowerCase().replace(/\s+/g,'');
-		s=s.replace(/\^{/g,'^').replace(/[{}]/g,'');
-		s=s.replace(/\*\*/g,'^');
-		s=s.replace(/√/g,'sqrt').replace(/π/g,'pi').replace(/∞/g,'inf');
-		s=s.replace(/(\d)([a-z])/g,'$1*$2');
-		s=s.replace(/\\?(sin|cos|tan|cot|sec|csc|log|ln|exp|sqrt)/g,'$1');
-		s=s.replace(/(sin|cos|tan|cot|sec|csc|log|ln|exp|sqrt)\s+([a-z])/g,'$1($2)');
-		return s;
+
+	// --- Helper to compare two expressions (used for left/right sides) ---
+	const compareExpressions=(exprA: string, exprB: string, useFullPipeline: boolean=true): boolean=>{
+		if (exprA===exprB) return true;
+		// Sanitize both
+		const sanitize=(s: string): string=>{
+			s=s.toLowerCase().replace(/\s+/g,'');
+			s=s.replace(/\^{/g,'^').replace(/[{}]/g,'');
+			s=s.replace(/\*\*/g,'^');
+			s=s.replace(/√/g,'sqrt').replace(/π/g,'pi').replace(/∞/g,'inf');
+			s=s.replace(/(\d)([a-z])/g,'$1*$2');
+			s=s.replace(/([a-z])(\d)/g,'$1*$2');
+			s=s.replace(/\)(?=\()/g,')*');
+			s=s.replace(/\\?(sin|cos|tan|cot|sec|csc|log|ln|exp|sqrt|arcsin|arccos|arctan|sinh|cosh|tanh)/g,'$1');
+			s=s.replace(/\bln\b/g,'log');
+			s=s.replace(/\barcsin\b/g,'asin');
+			s=s.replace(/\barccos\b/g,'acos');
+			s=s.replace(/\barctan\b/g,'atan');
+			s=s.replace(/(sin|cos|tan|cot|sec|csc|log|exp|sqrt|asin|acos|atan|sinh|cosh|tanh)\s+([a-z\(])/g,'$1($2)');
+			return s;
+		};
+		let sanA=sanitize(exprA);
+		let sanB=sanitize(exprB);
+		if (sanA===sanB) return true;
+		// Remove constants, but preserve purely numeric expressions
+		const removeConstants=(s: string): string=>{
+			let withPlus=s.replace(/-/g,'+-');
+			let terms=withPlus.split('+').filter(t=>t!=='');
+			const isConstant=(term: string): boolean=>{
+				term=term.replace(/^[+-]/,'');
+				if (term==='') return false;
+				return /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/.test(term)||
+					   term==='pi'||term==='e';
+			};
+			let nonConstantTerms=terms.filter(t=>!isConstant(t));
+			nonConstantTerms=nonConstantTerms.filter(t=>!/^[+-]?[ck]$/.test(t.replace(/[+-]/,'')));
+			let result=nonConstantTerms.join('+');
+			// If the result is empty, it means the whole expression was constant (e.g., a number)
+			// In that case, return the original sanitized string so we can compare it later.
+			return result || s;
+		};
+		let funcA=removeConstants(sanA);
+		let funcB=removeConstants(sanB);
+		if (funcA===funcB) return true;
+		// Decimal conversion
+		const toDecimal=(s: string): string=>{
+			return s.replace(/(^|[+\-*/\^\(])(\d+)\/(\d+)([+\-*/\^\)]|$)/g,(_,pre,num,den,post)=>{
+				let val=Number(num)/Number(den);
+				return pre+val+post;
+			});
+		};
+		let decA=toDecimal(funcA);
+		let decB=toDecimal(funcB);
+		if (decA===decB) return true;
+		// Term comparison
+		const toTerms=(s: string): string[]=>{
+			let withPlus=s.replace(/-/g,'+-');
+			let terms=withPlus.split('+').map(t=>t.trim()).filter(t=>t!=='');
+			terms.sort();
+			return terms;
+		};
+		let termsA=toTerms(funcA);
+		let termsB=toTerms(funcB);
+		if (termsA.join('+')===termsB.join('+')) return true;
+		// Math.js if available
+		let mathJs: any;
+		try{
+			mathJs = require('mathjs');
+		}catch(e){}
+		if (mathJs && useFullPipeline){
+			try{
+				let simpA=mathJs.simplify(funcA).toString().replace(/\s+/g,'');
+				let simpB=mathJs.simplify(funcB).toString().replace(/\s+/g,'');
+				if (simpA===simpB) return true;
+				let vars=mathJs.parse(funcA).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
+				if (vars.length===1){
+					let varName=vars[0];
+					let points=[0.5,1,2,3,Math.PI/4,Math.E];
+					let valuesA:number[]=[];
+					let valuesB:number[]=[];
+					let success=true;
+					for (let x of points){
+						try{
+							let scope={[varName]:x};
+							let valA=mathJs.evaluate(funcA,scope);
+							let valB=mathJs.evaluate(funcB,scope);
+							valuesA.push(valA);
+							valuesB.push(valB);
+						}catch(e){
+							success=false;
+							break;
+						}
+					}
+					if (success){
+						let diffs=valuesA.map((v,i)=>v-valuesB[i]);
+						let firstDiff=diffs[0];
+						let constantDiff=diffs.every(d=>Math.abs(d-firstDiff)<1e-8);
+						if (constantDiff) return true;
+						let numericMatch=valuesA.every((v,i)=>Math.abs(v-valuesB[i])<1e-8);
+						if (numericMatch) return true;
+					}
+				}
+				else if (vars.length===0){
+					try{
+						let numA=mathJs.evaluate(funcA);
+						let numB=mathJs.evaluate(funcB);
+						if (Math.abs(numA-numB)<1e-8) return true;
+					}catch(e){}
+				}
+			}catch(e){
+				console.warn("Math.js evaluation failed in side comparison",e);
+			}
+		}
+		return false;
 	};
-	let sanUser=sanitize(userInput);
-	let sanCorrect=sanitize(correct);
-	let sanAlternate=alternate?sanitize(alternate):'';
-	// --- Stage 2: Constant of integration handling ---
-	const removeConstant=(s: string): string=>{
-		return s.replace(/\+[ck]?$|^[ck]\+?/,'');
-	};
-	let funcUser=removeConstant(sanUser);
-	let funcCorrect=removeConstant(sanCorrect);
-	let funcAlternate=alternate?removeConstant(sanAlternate):'';
-	// --- Stage 3: Direct equality ---
+
+	// --- Main comparison logic ---
 	let isCorrect=false;
-	if (sanUser===sanCorrect||sanUser===sanAlternate){
-		isCorrect=true;
+	// Check if the expression contains an equals sign (equation)
+	if (userInput.includes('=') && correct.includes('=')){
+		let [userLeft, userRight] = userInput.split('=').map(s=>s.trim());
+		let [correctLeft, correctRight] = correct.split('=').map(s=>s.trim());
+		// Compare left sides
+		let leftOk=compareExpressions(userLeft, correctLeft, true);
+		// Compare right sides: use numeric evaluation if both are constant expressions
+		let rightOk=false;
+		if (leftOk){
+			// Try numeric evaluation first
+			let mathJs: any;
+			try{
+				mathJs = require('mathjs');
+			}catch(e){}
+			if (mathJs){
+				try{
+					let varsRightUser=mathJs.parse(userRight).filter((node:any)=>node.isSymbolNode).length;
+					let varsRightCorrect=mathJs.parse(correctRight).filter((node:any)=>node.isSymbolNode).length;
+					if (varsRightUser===0 && varsRightCorrect===0){
+						// Both are constant expressions, evaluate numerically
+						let valUser=mathJs.evaluate(userRight);
+						let valCorrect=mathJs.evaluate(correctRight);
+						if (Math.abs(valUser-valCorrect)<1e-8){
+							rightOk=true;
+						}
+					}
+				}catch(e){
+					console.warn("Numeric evaluation of right side failed",e);
+				}
+			}
+			// If not numeric or failed, compare as expressions
+			if (!rightOk){
+				rightOk=compareExpressions(userRight, correctRight, true);
+			}
+		}
+		isCorrect = leftOk && rightOk;
 	}
-	else if (funcUser===funcCorrect||funcUser===funcAlternate){
-		isCorrect=true;
+	else if (userInput.includes('=') || correct.includes('=')){
+		// One is equation, other is not -> incorrect
+		isCorrect=false;
 	}
 	else{
-		// --- Stage 4: Fraction ↔ decimal numeric comparison ---
-		const toDecimal=(s: string): string=>{
-			return s.replace(/(\d+)\/(\d+)/g,(_,num,den)=>String(Number(num)/Number(den)));
+		// No equals sign: treat as single expression (original logic)
+		const sanitize=(s: string): string=>{
+			s=s.toLowerCase().replace(/\s+/g,'');
+			s=s.replace(/\^{/g,'^').replace(/[{}]/g,'');
+			s=s.replace(/\*\*/g,'^');
+			s=s.replace(/√/g,'sqrt').replace(/π/g,'pi').replace(/∞/g,'inf');
+			s=s.replace(/(\d)([a-z])/g,'$1*$2');
+			s=s.replace(/([a-z])(\d)/g,'$1*$2');
+			s=s.replace(/\)(?=\()/g,')*');
+			s=s.replace(/\\?(sin|cos|tan|cot|sec|csc|log|ln|exp|sqrt|arcsin|arccos|arctan|sinh|cosh|tanh)/g,'$1');
+			s=s.replace(/\bln\b/g,'log');
+			s=s.replace(/\barcsin\b/g,'asin');
+			s=s.replace(/\barccos\b/g,'acos');
+			s=s.replace(/\barctan\b/g,'atan');
+			s=s.replace(/(sin|cos|tan|cot|sec|csc|log|exp|sqrt|asin|acos|atan|sinh|cosh|tanh)\s+([a-z\(])/g,'$1($2)');
+			return s;
 		};
-		let decUser=toDecimal(funcUser);
-		let decCorrect=toDecimal(funcCorrect);
-		if (decUser===decCorrect){
+		let sanUser=sanitize(userInput);
+		let sanCorrect=sanitize(correct);
+		let sanAlternate=alternate?sanitize(alternate):'';
+		// Modified removeConstants to preserve purely numeric expressions
+		const removeConstants=(s: string): string=>{
+			let withPlus=s.replace(/-/g,'+-');
+			let terms=withPlus.split('+').filter(t=>t!=='');
+			const isConstant=(term: string): boolean=>{
+				term=term.replace(/^[+-]/,'');
+				if (term==='') return false;
+				return /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/.test(term)||
+					   term==='pi'||term==='e';
+			};
+			let nonConstantTerms=terms.filter(t=>!isConstant(t));
+			nonConstantTerms=nonConstantTerms.filter(t=>!/^[+-]?[ck]$/.test(t.replace(/[+-]/,'')));
+			let result=nonConstantTerms.join('+');
+			// If the result is empty, the whole expression was constant (e.g., a number)
+			// Return the original string so it can be compared numerically later.
+			return result || s;
+		};
+		let funcUser=removeConstants(sanUser);
+		let funcCorrect=removeConstants(sanCorrect);
+		let funcAlternate=alternate?removeConstants(sanAlternate):'';
+		if (funcUser===funcCorrect||funcUser===funcAlternate){
+			isCorrect=true;
+		}
+		else if (sanUser===sanCorrect||sanUser===sanAlternate){
 			isCorrect=true;
 		}
 		else{
-			// --- Stage 5: Term‑by‑term comparison (commutative addition) ---
-			const toTerms=(s: string): string[]=>{
-				let withPlus=s.replace(/-/g,'+-');
-				let terms=withPlus.split('+').map(t=>t.trim()).filter(t=>t!=='');
-				terms.sort();
-				return terms;
+			const toDecimal=(s: string): string=>{
+				return s.replace(/(^|[+\-*/\^\(])(\d+)\/(\d+)([+\-*/\^\)]|$)/g,(_,pre,num,den,post)=>{
+					let val=Number(num)/Number(den);
+					return pre+val+post;
+				});
 			};
-			let termsUser=toTerms(funcUser);
-			let termsCorrect=toTerms(funcCorrect);
-			if (termsUser.join('+')===termsCorrect.join('+')){
+			let decUser=toDecimal(funcUser);
+			let decCorrect=toDecimal(funcCorrect);
+			if (decUser===decCorrect){
 				isCorrect=true;
 			}
 			else{
-				// --- Stage 6: Ultimate fallback ---
-				isCorrect=settings.isAnswerCorrect(userInput,sanCorrect,alternate);
+				const toTerms=(s: string): string[]=>{
+					let withPlus=s.replace(/-/g,'+-');
+					let terms=withPlus.split('+').map(t=>t.trim()).filter(t=>t!=='');
+					terms.sort();
+					return terms;
+				};
+				let termsUser=toTerms(funcUser);
+				let termsCorrect=toTerms(funcCorrect);
+				if (termsUser.join('+')===termsCorrect.join('+')){
+					isCorrect=true;
+				}
+				else{
+					let mathJs: any;
+					try{
+						mathJs = require('mathjs');
+					}catch(e){}
+					if (mathJs && !isCorrect){
+						try{
+							let simpUser=mathJs.simplify(funcUser).toString().replace(/\s+/g,'');
+							let simpCorrect=mathJs.simplify(funcCorrect).toString().replace(/\s+/g,'');
+							if (simpUser===simpCorrect){
+								isCorrect=true;
+							}
+							else{
+								let vars=mathJs.parse(funcCorrect).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
+								if (vars.length===1){
+									let varName=vars[0];
+									let points=[0.5,1,2,3,Math.PI/4,Math.E];
+									let valuesUser:number[]=[];
+									let valuesCorrect:number[]=[];
+									let success=true;
+									for (let x of points){
+										try{
+											let scope={[varName]:x};
+											let valUser=mathJs.evaluate(funcUser,scope);
+											let valCorrect=mathJs.evaluate(funcCorrect,scope);
+											valuesUser.push(valUser);
+											valuesCorrect.push(valCorrect);
+										}catch(e){
+											success=false;
+											break;
+										}
+									}
+									if (success){
+										let diffs=valuesUser.map((v,i)=>v-valuesCorrect[i]);
+										let firstDiff=diffs[0];
+										let constantDiff=diffs.every(d=>Math.abs(d-firstDiff)<1e-8);
+										if (constantDiff){
+											isCorrect=true;
+										}
+										else{
+											let numericMatch=valuesUser.every((v,i)=>Math.abs(v-valuesCorrect[i])<1e-8);
+											if (numericMatch){
+												isCorrect=true;
+											}
+										}
+									}
+								}
+								else if (vars.length===0){
+									try{
+										let numUser=mathJs.evaluate(funcUser);
+										let numCorrect=mathJs.evaluate(funcCorrect);
+										if (Math.abs(numUser-numCorrect)<1e-8){
+											isCorrect=true;
+										}
+									}catch(e){}
+								}
+							}
+						}catch(e){
+							console.warn("Math.js evaluation failed, falling back",e);
+						}
+					}
+					if (!isCorrect){
+						isCorrect=settings.isAnswerCorrect(userInput,sanCorrect,alternate);
+					}
+				}
 			}
 		}
 	}
-	// --- Feedback and UI updates ---
+
 	if (settings.settings.sound){
 		const audioCtx=new (window.AudioContext||(window as any).webkitAudioContext)();
 		const oscillator=audioCtx.createOscillator();
@@ -126,24 +376,9 @@ export function checkAnswer(): void{
 	if (settings.settings.vibration&&navigator.vibrate){
 		navigator.vibrate(isCorrect?50:100);
 	}
-	let answerHtml='';
-	if (window.MathJax){
-		try{
-			// Use MathJax v3 synchronous rendering to HTML; cast to any to avoid type errors
-			const mml=(window.MathJax as any).tex2chtml?.(window.correctAnswer.correct,{display:false});
-			if (mml){
-				answerHtml=mml.outerHTML;
-			}
-			else{
-				answerHtml=window.correctAnswer.correct;
-			}
-		}catch(e){
-			console.warn('MathJax rendering failed, falling back to plain text',e);
-			answerHtml=window.correctAnswer.correct;
-		}
-	}else{
-		answerHtml=window.correctAnswer.correct;
-	}
+	// Temporarily disable MathJax rendering for v1.5.2; just show plain text.
+	const answerToDisplay=(window.correctAnswer as any).display||window.correctAnswer.correct;
+	let answerHtml=answerToDisplay;
 	if (isCorrect){
 		dom.answerResults.innerHTML=`
       <div class="result-success">
