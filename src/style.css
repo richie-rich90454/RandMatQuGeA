@@ -340,6 +340,8 @@ body{
     max-height: 15dvh;
     overflow-y: auto;
     padding-right: 1dvh;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
 }
 .topic-pill{
     padding: 2px var(--spacing-sm);

@@ -114,10 +114,12 @@ export let topics: Topic[]=[
 	{id: "sphere_eq", name: "Sphere Equation", icon: "○ E", category: "Geometry"},
 	{id: "line_plane_3d", name: "Lines & Planes 3D", icon: "L+P", category: "Geometry"}
 ];
-export let scopeTopics={
+export let scopeTopics = {
 	simple: ["add","subtrt","mult","divid"],
 	algebra: [
-		"add","basic_funcs","cartesian","circle_eq","comb","complex_mult_div","complex_polar","complex_roots","complex_zeros","coord3d","cos","demoivre","divid","elev_dep","exp","exp_model","fact","finance","func_ops","func_props","inverse_funcs","line3d","line_plane_3d","linear_special","log","mult","parabola","perm","plane3d","poly_ineq","polar_to_rect","power_model","prob","pythag","rational_analysis","rational_eq","rect_to_polar","right_triangle_defs","root","ser","sin","special_triangle","sphere_eq","stats","subtrt","tan","transformations","volume_sphere"
+		"add","basic_funcs","cartesian","circle_eq","comb","complex_mult_div","complex_polar","complex_roots","complex_zeros","coord3d","cos","demoivre","divid","elev_dep","exp","exp_model","fact","finance","func_ops","func_props","inverse_funcs","line3d","line_plane_3d","linear_special","log","mult","parabola","perm","plane3d","poly_ineq","polar_to_rect","power_model","prob","pythag","rational_analysis","rational_eq","rect_to_polar","right_triangle_defs","root","ser","sin","special_triangle","sphere_eq","stats","subtrt","tan","transformations","volume_sphere",
+		"fraction","percent","ratio","unit_conv","expr_eval","number_sets","properties","order_ops",
+		"linear_word","radical_simplify","radical_eq","rational_exp","exp_rules","sci_notation","complex_basic","variation"
 	],
 	precalc: [
 		"add","subtrt","mult","divid","root","log","exp","fact","ser",
@@ -136,7 +138,9 @@ export let scopeTopics={
 		"astc_sign","sum_diff","double_angle","half_angle","polar_to_rect",
 		"rect_to_polar","polar_distance","polar_graph","parametric_to_cartesian",
 		"parametric_motion","complex_polar","complex_mult_div","demoivre",
-		"complex_roots"
+		"complex_roots",
+		"fraction","percent","ratio","unit_conv","expr_eval","number_sets","properties","order_ops",
+		"linear_word","radical_simplify","radical_eq","rational_exp","exp_rules","sci_notation","complex_basic","variation"
 	],
 	calc: [
 		"add","subtrt","mult","divid","root","log","exp","fact","ser",
