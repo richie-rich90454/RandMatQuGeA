@@ -33,23 +33,34 @@ import * as math from "mathjs";
  *   (e.g., `1*ln|x|`) is normalized to `ln|x|` to match user input that omits the 1.
  * - **Vector notation:** angle‑bracket vectors like `<a,b>` are converted to `[a,b]` for evaluation,
  *   allowing numeric comparison of vector answers.
+ * - **Matrix notation:** `\begin{pmatrix} a & b \\ c & d \end{pmatrix}` is converted to `[[a,b],[c,d]]` for evaluation.
+ * - **LaTeX command conversion:** common LaTeX constructs (`\frac`, `\sqrt`, `\int`, etc.) are transformed
+ *   into evaluable math.js expressions where possible. Non‑evaluable constructs (like `\int`, `\sum`, `\lim`)
+ *   are stripped of backslashes for symbolic comparison.
  * - Invalid syntax handling: gracefully falls back to plain text display.
  *
  * **Comparison Pipeline:**
- * 1. **Sanitization** – Trim, lowercase, remove whitespace, normalize braces, Unicode symbols, and implicit multiplication.
+ * 1. **LaTeX Preprocessing** – Convert LaTeX commands to math.js‑compatible syntax:
+ *    - `\frac{a}{b}` → `(a)/(b)`
+ *    - `\sqrt{a}` → `sqrt(a)`
+ *    - `\sqrt[n]{a}` → `a^(1/n)`
+ *    - `\langle ... \rangle` → `[...]`
+ *    - `\begin{pmatrix} a & b \\ c & d \end{pmatrix}` → `[[a,b],[c,d]]`
+ *    - Remove backslashes from other commands (e.g., `\sin` → `sin`).
+ * 2. **Sanitization** – Trim, lowercase, remove whitespace, normalize braces, Unicode symbols, and implicit multiplication.
  *    Also removes a leading "1*" before a variable or function.
- * 2. **Function Name Normalization** – Convert all function names to a standard form (e.g., `ln` → `log`).
- * 3. **Constant Removal** – Identify and remove any constant term (including numeric constants) to compare only the functional part.
+ * 3. **Function Name Normalization** – Convert all function names to a standard form (e.g., `ln` → `log`).
+ * 4. **Constant Removal** – Identify and remove any constant term (including numeric constants) to compare only the functional part.
  *    - If the entire expression consists of constants, the original string is preserved (important for purely numeric answers).
- * 4. **Direct String Equality** – After sanitization and constant removal, check if strings are identical.
- * 5. **Fraction Handling** – If fractions are present, attempt decimal conversion and numeric comparison.
- * 6. **Term‑by‑Term Comparison** – Split expressions on `+` and `-`, sort terms lexicographically (works for polynomials).
- * 7. **Numeric Evaluation** – Try to evaluate both expressions as constants (including vectors). If both evaluate to numbers or arrays,
+ * 5. **Direct String Equality** – After sanitization and constant removal, check if strings are identical.
+ * 6. **Fraction Handling** – If fractions are present, attempt decimal conversion and numeric comparison.
+ * 7. **Term‑by‑Term Comparison** – Split expressions on `+` and `-`, sort terms lexicographically (works for polynomials).
+ * 8. **Numeric Evaluation** – Try to evaluate both expressions as constants (including vectors). If both evaluate to numbers or arrays,
  *    compare with tolerance. This handles vector answers like `<−0.72,0.77>`.
- * 8. **Math.js Structural Simplification** – Use math.js to parse and simplify both expressions to a canonical form.
- * 9. **Numerical Sampling** – If both expressions contain a variable, evaluate at multiple points to check for constant difference or numeric equality.
- * 10. **Equation Splitting** – If the expression contains `=`, split into left and right; compare sides separately using the above steps.
- * 11. **Ultimate Fallback** – Use `settings.isAnswerCorrect` (simple evaluation).
+ * 9. **Math.js Structural Simplification** – Use math.js to parse and simplify both expressions to a canonical form.
+ * 10. **Numerical Sampling** – If both expressions contain a variable, evaluate at multiple points to check for constant difference or numeric equality.
+ * 11. **Equation Splitting** – If the expression contains `=`, split into left and right; compare sides separately using the above steps.
+ * 12. **Ultimate Fallback** – Use `settings.isAnswerCorrect` (simple evaluation).
  *
  * After determining correctness, the function:
  * - Provides audio/vibration feedback (if enabled).
@@ -72,13 +83,45 @@ export function checkAnswer(): void{
 	let correct=window.correctAnswer.correct;
 	let alternate=window.correctAnswer.alternate;
 
+	// --- Helper to convert LaTeX to math.js syntax ---
+	const convertLatex=(s: string): string=>{
+		// Replace fancy minus with hyphen
+		s=s.replace(/−/g,'-');
+		// Convert \frac{num}{den} to (num)/(den)
+		s=s.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g,'($1)/($2)');
+		// Convert \sqrt{arg} to sqrt(arg)
+		s=s.replace(/\\sqrt\{([^}]*)\}/g,'sqrt($1)');
+		// Convert \sqrt[root]{arg} to arg^(1/root)
+		s=s.replace(/\\sqrt\[([^\]]*)\]\{([^}]*)\}/g,'($2)^(1/($1))');
+		// Convert \langle ... \rangle to [...]
+		s=s.replace(/\\langle\s*(.*?)\s*\\rangle/g,'[$1]');
+		// Convert angle brackets <...> to [...] (if not already LaTeX)
+		s=s.replace(/<([^>]*)>/g,'[$1]');
+		// Convert matrix environments to math.js matrix syntax
+		// \begin{pmatrix} a & b \\ c & d \end{pmatrix} -> [[a,b],[c,d]]
+		// Use [\s\S] instead of . with 's' flag for ES6 compatibility
+		s=s.replace(/\\begin\{pmatrix\}([\s\S]*?)\\end\{pmatrix\}/g,(_,content)=>{
+			let rows=content.split('\\\\').map((row:string)=>row.trim());
+			let matrixRows=rows.map((row:string)=>{
+				let cells=row.split('&').map((cell:string)=>cell.trim());
+				return '['+cells.join(',')+']';
+			});
+			return '['+matrixRows.join(',')+']';
+		});
+		// Remove backslashes from other commands (e.g., \sin -> sin)
+		s=s.replace(/\\([a-zA-Z]+)/g,'$1');
+		return s;
+	};
+
 	// --- Helper to compare two expressions (used for left/right sides) ---
 	const compareExpressions=(exprA: string, exprB: string, useFullPipeline: boolean=true): boolean=>{
 		if (exprA===exprB) return true;
+		// Convert LaTeX in both expressions
+		exprA=convertLatex(exprA);
+		exprB=convertLatex(exprB);
 		// Sanitize both
 		const sanitize=(s: string): string=>{
 			s=s.toLowerCase().replace(/\s+/g,'');
-			s=s.replace(/−/g,'-'); // replace fancy minus with hyphen
 			s=s.replace(/\^{/g,'^').replace(/[{}]/g,'');
 			s=s.replace(/\*\*/g,'^');
 			s=s.replace(/√/g,'sqrt').replace(/π/g,'pi').replace(/∞/g,'inf');
@@ -140,9 +183,8 @@ export function checkAnswer(): void{
 		if (termsA.join('+')===termsB.join('+')) return true;
 		// Numeric evaluation for constants (including vectors)
 		const tryEvaluate=(expr: string): any=>{
-			// Convert angle-bracket vectors to square brackets for math.js
+			// Already converted LaTeX, but ensure angle brackets are handled
 			let normalized=expr.replace(/<([^>]*)>/g,'[$1]');
-			// Also replace fancy minus again just in case
 			normalized=normalized.replace(/−/g,'-');
 			try{
 				return math.evaluate(normalized);
@@ -256,6 +298,10 @@ export function checkAnswer(): void{
 	}
 	else{
 		// No equals sign: treat as single expression (original logic)
+		// Convert LaTeX in userInput and correct/alternate
+		let convertedUser=convertLatex(userInput);
+		let convertedCorrect=convertLatex(correct);
+		let convertedAlternate=alternate?convertLatex(alternate):'';
 		const sanitize=(s: string): string=>{
 			s=s.toLowerCase().replace(/\s+/g,'');
 			s=s.replace(/−/g,'-'); // replace fancy minus
@@ -275,9 +321,9 @@ export function checkAnswer(): void{
 			s=s.replace(/(sin|cos|tan|cot|sec|csc|log|exp|sqrt|asin|acos|atan|sinh|cosh|tanh)\s+([a-z\(])/g,'$1($2)');
 			return s;
 		};
-		let sanUser=sanitize(userInput);
-		let sanCorrect=sanitize(correct);
-		let sanAlternate=alternate?sanitize(alternate):'';
+		let sanUser=sanitize(convertedUser);
+		let sanCorrect=sanitize(convertedCorrect);
+		let sanAlternate=alternate?sanitize(convertedAlternate):'';
 		// Modified removeConstants to preserve purely numeric expressions
 		const removeConstants=(s: string): string=>{
 			let withPlus=s.replace(/-/g,'+-');
@@ -339,8 +385,8 @@ export function checkAnswer(): void{
 							return null;
 						}
 					};
-					let valUser=tryEvaluate(userInput);
-					let valCorrect=tryEvaluate(correct);
+					let valUser=tryEvaluate(convertedUser);
+					let valCorrect=tryEvaluate(convertedCorrect);
 					if (valUser!==null && valCorrect!==null){
 						if (Array.isArray(valUser) && Array.isArray(valCorrect)){
 							if (valUser.length===valCorrect.length){
