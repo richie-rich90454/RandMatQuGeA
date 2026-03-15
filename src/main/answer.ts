@@ -31,6 +31,8 @@ import * as math from "mathjs";
  *   (e.g., `5^2` ↔ `25`).
  * - **Coefficient 1 removal:** a leading coefficient of 1 multiplied by a variable or function
  *   (e.g., `1*ln|x|`) is normalized to `ln|x|` to match user input that omits the 1.
+ * - **Vector notation:** angle‑bracket vectors like `<a,b>` are converted to `[a,b]` for evaluation,
+ *   allowing numeric comparison of vector answers.
  * - Invalid syntax handling: gracefully falls back to plain text display.
  *
  * **Comparison Pipeline:**
@@ -42,10 +44,12 @@ import * as math from "mathjs";
  * 4. **Direct String Equality** – After sanitization and constant removal, check if strings are identical.
  * 5. **Fraction Handling** – If fractions are present, attempt decimal conversion and numeric comparison.
  * 6. **Term‑by‑Term Comparison** – Split expressions on `+` and `-`, sort terms lexicographically (works for polynomials).
- * 7. **Math.js Structural Simplification** – Use math.js to parse and simplify both expressions to a canonical form.
- * 8. **Numerical Sampling** – If both expressions contain a variable, evaluate at multiple points to check for constant difference or numeric equality.
- * 9. **Equation Splitting** – If the expression contains `=`, split into left and right; compare sides separately using the above steps.
- * 10. **Ultimate Fallback** – Use `settings.isAnswerCorrect` (simple evaluation).
+ * 7. **Numeric Evaluation** – Try to evaluate both expressions as constants (including vectors). If both evaluate to numbers or arrays,
+ *    compare with tolerance. This handles vector answers like `<−0.72,0.77>`.
+ * 8. **Math.js Structural Simplification** – Use math.js to parse and simplify both expressions to a canonical form.
+ * 9. **Numerical Sampling** – If both expressions contain a variable, evaluate at multiple points to check for constant difference or numeric equality.
+ * 10. **Equation Splitting** – If the expression contains `=`, split into left and right; compare sides separately using the above steps.
+ * 11. **Ultimate Fallback** – Use `settings.isAnswerCorrect` (simple evaluation).
  *
  * After determining correctness, the function:
  * - Provides audio/vibration feedback (if enabled).
@@ -74,6 +78,7 @@ export function checkAnswer(): void{
 		// Sanitize both
 		const sanitize=(s: string): string=>{
 			s=s.toLowerCase().replace(/\s+/g,'');
+			s=s.replace(/−/g,'-'); // replace fancy minus with hyphen
 			s=s.replace(/\^{/g,'^').replace(/[{}]/g,'');
 			s=s.replace(/\*\*/g,'^');
 			s=s.replace(/√/g,'sqrt').replace(/π/g,'pi').replace(/∞/g,'inf');
@@ -133,6 +138,37 @@ export function checkAnswer(): void{
 		let termsA=toTerms(funcA);
 		let termsB=toTerms(funcB);
 		if (termsA.join('+')===termsB.join('+')) return true;
+		// Numeric evaluation for constants (including vectors)
+		const tryEvaluate=(expr: string): any=>{
+			// Convert angle-bracket vectors to square brackets for math.js
+			let normalized=expr.replace(/<([^>]*)>/g,'[$1]');
+			// Also replace fancy minus again just in case
+			normalized=normalized.replace(/−/g,'-');
+			try{
+				return math.evaluate(normalized);
+			}catch{
+				return null;
+			}
+		};
+		let valA=tryEvaluate(exprA);
+		let valB=tryEvaluate(exprB);
+		if (valA!==null && valB!==null){
+			if (Array.isArray(valA) && Array.isArray(valB)){
+				if (valA.length===valB.length){
+					let allMatch=true;
+					for (let i=0;i<valA.length;i++){
+						if (Math.abs(valA[i]-valB[i])>=1e-8){
+							allMatch=false;
+							break;
+						}
+					}
+					if (allMatch) return true;
+				}
+			}
+			else if (typeof valA==='number' && typeof valB==='number'){
+				if (Math.abs(valA-valB)<1e-8) return true;
+			}
+		}
 		// Math.js if available
 		if (useFullPipeline){
 			try{
@@ -222,6 +258,7 @@ export function checkAnswer(): void{
 		// No equals sign: treat as single expression (original logic)
 		const sanitize=(s: string): string=>{
 			s=s.toLowerCase().replace(/\s+/g,'');
+			s=s.replace(/−/g,'-'); // replace fancy minus
 			s=s.replace(/\^{/g,'^').replace(/[{}]/g,'');
 			s=s.replace(/\*\*/g,'^');
 			s=s.replace(/√/g,'sqrt').replace(/π/g,'pi').replace(/∞/g,'inf');
@@ -292,59 +329,94 @@ export function checkAnswer(): void{
 					isCorrect=true;
 				}
 				else{
-					try{
-						let simpUser=math.simplify(funcUser).toString().replace(/\s+/g,'');
-						let simpCorrect=math.simplify(funcCorrect).toString().replace(/\s+/g,'');
-						if (simpUser===simpCorrect){
-							isCorrect=true;
+					// Try numeric evaluation for constants (including vectors)
+					const tryEvaluate=(expr: string): any=>{
+						let normalized=expr.replace(/<([^>]*)>/g,'[$1]');
+						normalized=normalized.replace(/−/g,'-');
+						try{
+							return math.evaluate(normalized);
+						}catch{
+							return null;
 						}
-						else{
-							let vars=math.parse(funcCorrect).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
-							if (vars.length===1){
-								let varName=vars[0];
-								let points=[0.5,1,2,3,Math.PI/4,Math.E];
-								let valuesUser:number[]=[];
-								let valuesCorrect:number[]=[];
-								let success=true;
-								for (let x of points){
-									try{
-										let scope={[varName]:x};
-										let valUser=math.evaluate(funcUser,scope);
-										let valCorrect=math.evaluate(funcCorrect,scope);
-										valuesUser.push(valUser);
-										valuesCorrect.push(valCorrect);
-									}catch(e){
-										success=false;
+					};
+					let valUser=tryEvaluate(userInput);
+					let valCorrect=tryEvaluate(correct);
+					if (valUser!==null && valCorrect!==null){
+						if (Array.isArray(valUser) && Array.isArray(valCorrect)){
+							if (valUser.length===valCorrect.length){
+								let allMatch=true;
+								for (let i=0;i<valUser.length;i++){
+									if (Math.abs(valUser[i]-valCorrect[i])>=1e-8){
+										allMatch=false;
 										break;
 									}
 								}
-								if (success){
-									let diffs=valuesUser.map((v,i)=>v-valuesCorrect[i]);
-									let firstDiff=diffs[0];
-									let constantDiff=diffs.every(d=>Math.abs(d-firstDiff)<1e-8);
-									if (constantDiff){
-										isCorrect=true;
+								if (allMatch){
+									isCorrect=true;
+								}
+							}
+						}
+						else if (typeof valUser==='number' && typeof valCorrect==='number'){
+							if (Math.abs(valUser-valCorrect)<1e-8){
+								isCorrect=true;
+							}
+						}
+					}
+					if (!isCorrect){
+						try{
+							let simpUser=math.simplify(funcUser).toString().replace(/\s+/g,'');
+							let simpCorrect=math.simplify(funcCorrect).toString().replace(/\s+/g,'');
+							if (simpUser===simpCorrect){
+								isCorrect=true;
+							}
+							else{
+								let vars=math.parse(funcCorrect).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
+								if (vars.length===1){
+									let varName=vars[0];
+									let points=[0.5,1,2,3,Math.PI/4,Math.E];
+									let valuesUser:number[]=[];
+									let valuesCorrect:number[]=[];
+									let success=true;
+									for (let x of points){
+										try{
+											let scope={[varName]:x};
+											let valUser=math.evaluate(funcUser,scope);
+											let valCorrect=math.evaluate(funcCorrect,scope);
+											valuesUser.push(valUser);
+											valuesCorrect.push(valCorrect);
+										}catch(e){
+											success=false;
+											break;
+										}
 									}
-									else{
-										let numericMatch=valuesUser.every((v,i)=>Math.abs(v-valuesCorrect[i])<1e-8);
-										if (numericMatch){
+									if (success){
+										let diffs=valuesUser.map((v,i)=>v-valuesCorrect[i]);
+										let firstDiff=diffs[0];
+										let constantDiff=diffs.every(d=>Math.abs(d-firstDiff)<1e-8);
+										if (constantDiff){
 											isCorrect=true;
+										}
+										else{
+											let numericMatch=valuesUser.every((v,i)=>Math.abs(v-valuesCorrect[i])<1e-8);
+											if (numericMatch){
+												isCorrect=true;
+											}
 										}
 									}
 								}
+								else if (vars.length===0){
+									try{
+										let numUser=math.evaluate(funcUser);
+										let numCorrect=math.evaluate(funcCorrect);
+										if (Math.abs(numUser-numCorrect)<1e-8){
+											isCorrect=true;
+										}
+									}catch(e){}
+								}
 							}
-							else if (vars.length===0){
-								try{
-									let numUser=math.evaluate(funcUser);
-									let numCorrect=math.evaluate(funcCorrect);
-									if (Math.abs(numUser-numCorrect)<1e-8){
-										isCorrect=true;
-									}
-								}catch(e){}
-							}
+						}catch(e){
+							console.warn("Math.js evaluation failed, falling back",e);
 						}
-					}catch(e){
-						console.warn("Math.js evaluation failed, falling back",e);
 					}
 					if (!isCorrect){
 						isCorrect=settings.isAnswerCorrect(userInput,sanCorrect,alternate);
