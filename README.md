@@ -3,11 +3,14 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/richie-rich90454/random-math-question-generator-app?style=social)](https://github.com/richie-rich90454/random-math-question-generator-app)
 [![Live Demo](https://img.shields.io/badge/demo-live-green.svg)](https://math.richardsblogs.com/)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen.svg)](https://nodejs.org/)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tauri](https://img.shields.io/badge/tauri-%2324C8DB.svg?style=for-the-badge&logo=tauri&logoColor=%23FFFFFF)](https://tauri.app/)
-[![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tauri](https://img.shields.io/badge/tauri-v2-%2324C8DB.svg?style=for-the-badge&logo=tauri&logoColor=%23FFFFFF)](https://tauri.app/)
+[![Rust](https://img.shields.io/badge/rust-1.85.0-%23DEA584.svg?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Vite](https://img.shields.io/badge/vite-6.0.0-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![MathJax](https://img.shields.io/badge/MathJax-3.2.2-blue)](https://www.mathjax.org/)
+[![KaTeX](https://img.shields.io/badge/KaTeX-0.16.11-blue)](https://katex.org/)
+[![Math.js](https://img.shields.io/badge/math.js-14.0.0-blue)](https://mathjs.org/)
 ![Offline First](https://img.shields.io/badge/offline-first-success)
 ![Lightweight](https://img.shields.io/badge/binary-lightweight-blue)
 
@@ -15,16 +18,17 @@ A comprehensive, free online math question generator built with TypeScript that 
 
 ## ✨ Key Features
 
-- **📚 45+ Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus
-- **⚡ Instant Feedback**: Real-time answer checking with detailed explanations
+- **📚 60+ Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus
+- **⚡ Instant Feedback**: Real-time answer checking with detailed explanations and LaTeX rendering
 - **📱 Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- **🎯 Progressive Difficulty**: Questions adapt to different skill levels
-- **🔢 Math Notation Support**: Beautiful mathematical rendering with MathJax
+- **🎯 Progressive Difficulty**: Questions adapt to different skill levels (easy, medium, hard)
+- **🔢 Math Notation Support**: Beautiful mathematical rendering with MathJax and KaTeX
 - **🎲 Unlimited Questions**: Generate endless practice problems
 - **💡 Educational Focus**: Designed specifically for learning and practice
-- **🖥️ Cross-Platform Desktop App**: Native desktop application built with Tauri (Windows, macOS, Linux with Linux support coming soon)
-- **🔒 Type Safety**: Built with TypeScript for robust, maintainable code
-- **🧩 Modular Architecture**: Organized into focused modules for each math category
+- **🖥️ Cross-Platform Desktop App**: Native desktop application built with Tauri v2 (Windows, macOS, Linux)
+- **🔒 Type Safety**: Fully migrated to TypeScript for robust, maintainable code
+- **🧩 Modular Architecture**: Organized into focused modules, each with many topic‑specific generator files
+- **✅ Smart Answer Checking**: Uses math.js to handle equivalent expressions, fractions, and LaTeX input
 
 ### ❓ Why Not Just Use AI Generated Questions/Answers?
 
@@ -48,24 +52,24 @@ Download the latest installer from **GitHub Releases**:
 
 - Windows: `.exe`
 - macOS: `.dmg`
-- Linux: `.AppImage` / `.deb` (coming soon)
+- Linux: `.AppImage` / `.deb`
 
-➡️ https://github.com/richie-rich90454/random-math-question-generator-app/releases
+➡️ [https://github.com/richie-rich90454/random-math-question-generator-app/releases](https://github.com/richie-rich90454/random-math-question-generator-app/releases)
 
-### Supported Math Topics (45+ Topics)
+### Supported Math Topics (60+ Topics)
 
 | Category | Topics |
 |----------|--------|
 | **Arithmetic** | Addition, Subtraction, Multiplication, Division, Whole Number Place Value, Number Line Ordering, Divisibility Rules, Prime Numbers, GCF/LCM |
-| **Algebra** | Logarithms (Basic, Change of Base, Equations, Properties), Exponents (Basic, Solve, Laws, Growth, Compare), Factorials, Series (Arithmetic/Geometric Sums, Convergence, nth Term), Roots, Fractions (Add, Subtract, Multiply, Divide, Simplify, Convert), Percents (Percent of, Increase, Decrease, Interest, Markup), Ratio & Proportion, Unit Conversion (Length, Area, Volume, Multi-step), Expression Evaluation, Number Sets, Properties of Operations, Order of Operations |
-| **Equations & Inequalities** | Linear Equations (One-step, Two-step, Both Sides, Parentheses, Literal), Linear Word Problems, Quadratic Equations (Factoring, Complete Square, Quadratic Formula, Discriminant), Linear Inequalities, Quadratic Inequalities, Rational Inequalities, Systems of 2x2 Equations, Systems of 3x3 Equations |
-| **Polynomials & Graphing** | Polynomial Operations (Add, Subtract, Multiply), Polynomial Division, Factoring (GCF, Trinomials, Difference of Squares, Sum/Difference of Cubes), Function Concepts (Domain, Range, Notation, Evaluate), Linear Graphing (Slope, Intercepts, Equation from Points, Parallel/Perpendicular), Non-Linear Graphing (Parabolas, Absolute Value, Square Root, Transformations), Variation (Direct, Inverse, Joint) |
-| **Radicals & Exponents** | Radical Simplification (Add, Subtract, Multiply, Divide, Rationalize), Radical Equations, Rational Exponents, Exponent Rules (Product, Quotient, Power, Negative, Zero), Scientific Notation, Complex Numbers (Add, Subtract, Multiply, Divide, Powers of i) |
-| **Calculus** | Derivatives (Polynomial, Trigonometric, Exponential, Logarithmic, Product, Quotient, Chain, Implicit, Higher Order, Motion), Integrals (Polynomial, Trigonometric, Exponential, Logarithmic, Substitution, Definite, Initial Value, Area, Motion), Limits, Related Rates (Ladder, Cone) |
-| **Linear Algebra** | Matrix Operations (Add, Subtract, Multiply, Inverse, Transpose, Scalar Multiplication, Power, Row Echelon), Systems via Matrices, Vector Operations (Magnitude, Direction, Unit Vector, Dot Product, Angle, Projection, Parametric Equations, Polar/Cartesian Conversion, Polar Graphs, Motion, De Moivre's Theorem) |
-| **Trigonometry** | Sine (Evaluate, Solve, Amplitude, Period, Phase Shift, Law of Sines, Unit Circle, Identity), Cosine (Evaluate, Solve, Amplitude, Period, Phase Shift, Law of Cosines, Identity), Tangent, Cosecant, Secant, Cotangent, Inverse Trig, Trig Equations, Trig Graphs |
-| **Discrete Mathematics** | Permutations (Basic, Equation, Word, Circular, Identical, With Replacement), Combinations (Basic, Equation, Word, Complement, Paths, Multiset), Probability (Basic, Conditional, Independent, Mutually Exclusive, Bayes, Binomial, Expected Value, Complement, Permutation/Combination, Geometric), Statistics (Mean, Median, Mode, Range, Stem-and-Leaf, Box Plot, Standard Deviation) |
-| **Geometry** | Area (Circle, Rectangle, Triangle, Sector), Volume (Sphere, Cylinder, Cone, Pyramid, Cube), Surface Area (Cube), Triangles (Pythagorean Theorem, Similar Triangles, Classification), Perimeter, Arc Length, Distance Formula, Angle Relations |
+| **Algebra (Basics)** | Logarithms (basic, change of base, equations, properties), Exponents (evaluate, solve, laws, growth, compare), Factorials, Series (arithmetic/geometric sums, convergence, nth term), Roots, Fractions (add, subtract, multiply, divide, simplify, convert), Percents (percent of, increase, decrease, interest, markup), Ratio & Proportion, Unit Conversion (length, area, volume, multi‑step), Expression Evaluation, Number Sets, Properties of Operations, Order of Operations |
+| **Algebra (Advanced)** | Complex Numbers (add, subtract, multiply, divide, powers of i), Exponent Rules (product, quotient, power, negative, zero), Scientific Notation, Radical Simplification (add, subtract, multiply, divide, rationalize), Radical Equations, Rational Exponents, Variation (direct, inverse, joint), Linear Word Problems |
+| **Equations & Inequalities** | Linear Equations (one‑step, two‑step, both sides, parentheses, literal), Quadratic Equations (factoring, complete square, quadratic formula, discriminant), Linear Inequalities, Quadratic Inequalities, Rational Inequalities, Systems of 2×2 Equations, Systems of 3×3 Equations |
+| **Polynomials & Graphing** | Polynomial Operations (add, subtract, multiply), Polynomial Division, Factoring (GCF, trinomials, difference of squares, sum/difference of cubes), Function Concepts (domain, range, notation, evaluate), Linear Graphing (slope, intercepts, equation from points, parallel/perpendicular), Non‑Linear Graphing (parabolas, absolute value, square root, transformations), Power Function Modeling, Polynomial End Behavior, Synthetic Division, Complex Zeros, Rational Graph Analysis, Logistic Functions |
+| **Calculus** | Derivatives (polynomial, trigonometric, exponential, logarithmic, product, quotient, chain, implicit, higher order, motion), Integrals (polynomial, trigonometric, exponential, logarithmic, substitution, definite, initial value, area, motion), Limits, Related Rates (ladder, cone) |
+| **Linear Algebra** | Matrix Operations (add, subtract, multiply, inverse, transpose, scalar multiplication, power, row echelon), Systems via Matrices, Vector Operations (magnitude, direction, unit vector, dot product, angle, projection, parametric equations, polar/Cartesian conversion, polar graphs, motion, De Moivre's theorem) |
+| **Trigonometry** | Sine (evaluate, solve, amplitude, period, phase shift, law of sines, unit circle, identity), Cosine (evaluate, solve, amplitude, period, phase shift, law of cosines, identity), Tangent, Cosecant, Secant, Cotangent, Inverse Trig, Trig Equations, Trig Graphs, Degrees/Radians Conversion, Arc Length, Angular/Linear Speed, Right Triangle Definitions, Special Triangles, Elevation/Depression, Reference Angle, ASTC Signs, Sum/Difference Formulas, Double/Half‑Angle Formulas, Polar/Rectangular Conversion, Polar Distance, Polar Graph Equations, Parametric → Cartesian, Parametric Motion, Complex Polar Form, Complex Multiply/Divide, De Moivre's Theorem, Complex Roots |
+| **Discrete Mathematics** | Permutations (basic, equation, word, circular, identical, with replacement), Combinations (basic, equation, word, complement, paths, multiset), Probability (basic, conditional, independent, mutually exclusive, Bayes, binomial, expected value, complement, permutation/combination, geometric), Statistics (mean, median, mode, range, stem‑and‑leaf, box plot, standard deviation) |
+| **Geometry** | Area (circle, rectangle, triangle, sector), Volume (sphere, cylinder, cone, pyramid, cube), Surface Area (cube), Triangles (Pythagorean theorem, similar triangles, classification), Perimeter, Arc Length, Distance Formula, Angle Relations |
 
 ## 🚀 Quick Start
 
@@ -103,24 +107,24 @@ npm run tauri build
 
 ## 🎯 How to Use
 
-1. **Select a Topic**: Choose from 45+ math categories organized by subject
+1. **Select a Topic**: Choose from 60+ math categories organized by subject
 2. **Generate Question**: Click "Generate Question" to get a new problem
 3. **Enter Answer**: Type your solution in the answer box
 4. **Check Answer**: Click "Check Answer" or press `Shift+Enter` for instant feedback
-5. **Learn**: Review the correct answer and explanation
+5. **Learn**: Review the correct answer rendered with KaTeX and a plain‑text alternate
 
 ## 🛠️ Technology Stack
 
 - **Frontend**: HTML5, CSS3 (Custom Properties), TypeScript (ES2020)
-- **Math Rendering**: [MathJax](https://www.mathjax.org/) for beautiful mathematical notation
-- **Build Tool**: [Vite](https://vitejs.dev/) with TypeScript support for fast development and optimized builds
-- **Math Engine**: [Math.js](https://mathjs.org/) for complex calculations with TypeScript definitions
-- **Desktop Framework**: [Tauri](https://tauri.app/) with Rust for secure, lightweight native applications
-- **Type Safety**: TypeScript with strict configuration for robust code maintenance
+- **Math Rendering**: [MathJax](https://www.mathjax.org/) and [KaTeX](https://katex.org/) for beautiful mathematical notation
+- **Build Tool**: [Vite](https://vitejs.dev/) 6.0.0 with TypeScript support for fast development and optimized builds
+- **Math Engine**: [Math.js](https://mathjs.org/) 14.0.0 for complex calculations and equivalence checking
+- **Desktop Framework**: [Tauri](https://tauri.app/) v2 with Rust 1.85.0 for secure, lightweight native applications
+- **Type Safety**: TypeScript with strict configuration and comprehensive type definitions
 - **Build Tools**: Terser for minification, CSSNano for CSS optimization
-- **Package Manager**: npm with Node.js
+- **Package Manager**: npm with Node.js 18+
 
-## 📁 Project Structure
+## 📁 Project Structure (Simplified)
 
 ```
 random_math_question_generator/
@@ -128,112 +132,53 @@ random_math_question_generator/
 │   ├── index.html               # Main web application interface
 │   ├── script.ts                # Core application logic (TypeScript)
 │   ├── style.css                # Responsive styling
-│   ├── robots.txt               # Search engine directives
-│   ├── sitemap.xml              # SEO sitemap
 │   ├── types/                   # TypeScript type definitions
-│   │   └── global.d.ts          # Global type declarations
-│   ├── modules/                 # Modular math question generators (TypeScript)
-│   │   ├── Algebra/             # Algebraic operations (split into 5 focused files)
-│   │   │   ├── algebraUtils.ts
-│   │   │   ├── algebraBasics.ts
-│   │   │   ├── algebraAdvanced.ts
-│   │   │   ├── algebraEquations.ts
-│   │   │   ├── algebraGraphingPolynomials.ts
-│   │   │   └── index.ts
-│   │   ├── Arithmetic/          # Basic arithmetic (split into 3 files)
-│   │   │   ├── arithmeticUtils.ts
-│   │   │   ├── arithmeticBasic.ts
-│   │   │   ├── arithmeticAdvanced.ts
-│   │   │   └── index.ts
-│   │   ├── Calculus/            # Calculus problems (split into 4 files)
-│   │   │   ├── calculusUtils.ts
-│   │   │   ├── calculusDerivatives.ts
-│   │   │   ├── calculusIntegrals.ts
-│   │   │   ├── calculusLimitsRelated.ts
-│   │   │   └── index.ts
-│   │   ├── LinearAlgebra/       # Matrix and vector operations (split into 3 files)
-│   │   │   ├── linearAlgebraUtils.ts
-│   │   │   ├── linearAlgebraMatrix.ts
-│   │   │   ├── linearAlgebraVector.ts
-│   │   │   └── index.ts
-│   │   ├── Trigonometry/        # Trigonometric functions (split into 4 files)
-│   │   │   ├── trigUtils.ts
-│   │   │   ├── trigBasic.ts
-│   │   │   ├── trigReciprocal.ts
-│   │   │   ├── trigAdvanced.ts
-│   │   │   └── index.ts
-│   │   ├── DiscreteMathematics/ # Combinatorics and probability (split into 4 files)
-│   │   │   ├── discreteUtils.ts
-│   │   │   ├── discretePermutationsCombinations.ts
-│   │   │   ├── discreteProbability.ts
-│   │   │   ├── discreteStatistics.ts
-│   │   │   └── index.ts
-│   │   └── Geometry/            # Geometry problems (split into 6 files)
-│   │       ├── geometryUtils.ts
-│   │       ├── geometryVisualization.ts
-│   │       ├── geometryArea.ts
-│   │       ├── geometryVolume.ts
-│   │       ├── geometryTriangles.ts
-│   │       ├── geometryMisc.ts
-│   │       └── index.ts
+│   ├── modules/                  # Modular math question generators
+│   │   ├── Algebra/              # 30+ topic‑specific generator files
+│   │   ├── Arithmetic/            # Basic arithmetic generators
+│   │   ├── Calculus/              # Derivative, integral, limit generators
+│   │   ├── LinearAlgebra/         # Matrix & vector generators
+│   │   ├── Trigonometry/          # Trig function generators
+│   │   ├── DiscreteMathematics/   # Combinatorics & probability
+│   │   └── Geometry/              # Area, volume, triangle generators
 │   ├── components/              # UI components
 │   ├── utils/                   # Utility functions
 │   └── assets/                  # Static assets
 ├── src-tauri/                   # Tauri desktop application
 │   ├── src/                     # Rust source code
 │   ├── Cargo.toml               # Rust dependencies
-│   ├── tauri.conf.json          # Tauri configuration
-│   ├── build.rs                 # Build script
-│   └── icons/                   # Application icons
-├── public/                      # Public assets
-│   ├── favicon.ico              # Desktop application icon
-│   ├── favicon.png              # Web application icon
-│   ├── apple-touch-icon.png     # iOS app icon
-│   ├── NotoSans-VariableFont_wdth_wght.ttf # Custom font
-│   └── mathjax/                 # MathJax library
-├── plans/                       # Development plans and documentation
-│   ├── typescript-migration-plan.md      # TypeScript migration plan
-│   └── typescript-migration-checklist.md # Migration implementation checklist
-├── dist/                        # Build output directory
-├── vite.config.ts               # Vite build configuration (TypeScript)
+│   └── tauri.conf.json          # Tauri configuration
+├── public/                      # Public assets (fonts, MathJax)
+├── dist/                        # Build output
+├── vite.config.ts               # Vite build configuration
 ├── tsconfig.json                # TypeScript configuration
-├── tsconfig.node.json           # TypeScript configuration for Node
-├── package.json                 # Project configuration and dependencies
-├── package-lock.json            # Dependency lock file
-├── LICENSE                      # Apache 2.0 License
-├── CODE_OF_CONDUCT.md           # Community guidelines
-├── OFL-Noto_Sans.txt            # Font license
-├── .github/                     # GitHub Actions workflows
-│   └── workflows/
-│       ├── release.yml          # Automated release build workflow
-│       └── TEST_INSTRUCTIONS.md # Workflow testing instructions
 └── README.md                    # This file
 ```
 
 ## 🎨 Features in Detail
 
 ### Smart Answer Checking
-- Supports multiple correct answer formats
-- Handles mathematical equivalences using Math.js
-- Provides detailed feedback with TypeScript type safety
-- Supports keyboard shortcuts
+- Supports multiple correct answer formats (LaTeX, plain text, fractions, decimals)
+- Handles mathematical equivalences using Math.js (e.g., `2x` ↔ `2*x`, `(x+1)^2` ↔ `x^2+2x+1`)
+- Provides detailed feedback with TypeScript‑safe structures
+- Includes a `display` field for rendering answers in KaTeX, separate from the `alternate` plain‑text representation
 
 ### Educational Design
-- Progressive difficulty levels
-- Clear mathematical notation with MathJax
+- Progressive difficulty levels (easy, medium, hard)
+- Clear mathematical notation with MathJax/KaTeX
 - Instant feedback for learning
-- Mobile-friendly interface
+- Mobile‑friendly interface with keyboard shortcuts
 
 ### Performance Optimized
-- Fast server response times
+- Fast server response times (static hosting)
 - Optimized bundle sizes with Vite and TypeScript
-- Efficient math calculations
-- Responsive design
+- Efficient math calculations using math.js
+- Responsive design with CSS custom properties
 
 ### Cross-Platform Desktop App
 - Native performance with Tauri
-- Small bundle sizes
-- Secure sandboxing
+- Small bundle sizes (~10 MB)
+- Secure sandboxing (Rust backend)
 - Windows, macOS, and Linux support
 
 ### TypeScript Benefits
@@ -244,9 +189,9 @@ random_math_question_generator/
 
 ### Modular Architecture
 - **Organized by Subject**: Each math category has its own module directory
-- **Focused Files**: Large modules split into smaller, focused files for better maintainability
-- **Reusable Utilities**: Common functions extracted into utility files
-- **Clear Exports**: Each module has an index.ts that exports all public functions
+- **Focused Files**: Large modules split into many small, topic‑specific generator files (e.g., `generateFraction.ts`, `generateLogarithm.ts`)
+- **Reusable Utilities**: Common functions extracted into utility files (e.g., `algebraUtils.ts`, `trigUtils.ts`)
+- **Clear Exports**: Each module has an `index.ts` that exports all public functions
 
 ## 🚀 Deployment
 
@@ -254,7 +199,6 @@ random_math_question_generator/
 The application is ready for deployment on any static hosting platform:
 - Vercel, Netlify, GitHub Pages
 - AWS S3, Google Cloud Storage, Azure Static Websites
-- Any static hosting service
 
 ### Desktop Application Build
 Build cross-platform desktop apps with Tauri:
@@ -272,7 +216,7 @@ npm run tauri build -- --target x86_64-unknown-linux-gnu
 ### TypeScript Development
 ```bash
 # Type checking
-npm run build:typescript
+npm run typecheck
 
 # Development with hot reload
 npm run dev
@@ -325,31 +269,23 @@ npm run dev
 npm run tauri dev
 
 # For TypeScript type checking
-npm run build:typescript
+npm run typecheck
 ```
 
 ## 📊 Project Stats
 
-- **45+** Math topics supported
-- **3000+** Lines of educational TypeScript code
-- **7** Major math categories (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry)
-- **25+** Module files organized by subject
+- **60+** Math topics supported
+- **5000+** Lines of educational TypeScript code
+- **7** Major math categories
+- **30+** Module files organized by subject
 - **Unlimited** Question combinations
 - **Instant** Answer verification
 - **Cross-platform** Desktop application
 - **TypeScript** for robust development
 
-## 🌟 Why Star This Project?
+## ⭐ Star History
 
-- **🎓 Educational Value**: Helps students learn math effectively
-- **🚀 Performance**: Fast, responsive, and reliable
-- **📱 Accessibility**: Works on all devices and platforms
-- **🔧 Well-Maintained**: Regular updates and improvements
-- **🎯 Practical**: Real-world educational tool
-- **📚 Comprehensive**: Covers high school to college-level math
-- **🖥️ Native Desktop**: Lightweight, secure desktop application
-- **🔒 Type Safe**: Built with TypeScript for reliability
-- **🧩 Modular**: Well-organized codebase that's easy to understand and contribute to
+[![Star History Chart](https://api.star-history.com/svg?repos=richie-rich90454/random-math-question-generator-app&type=Date)](https://star-history.com/#richie-rich90454/random-math-question-generator-app&Date)
 
 ## 📄 License
 
