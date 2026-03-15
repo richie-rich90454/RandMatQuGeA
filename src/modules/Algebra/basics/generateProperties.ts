@@ -1,16 +1,17 @@
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Generates a question about basic algebraic properties (commutative, associative, distributive, identity, inverse).
- * @param _difficulty - Optional difficulty level (unused, kept for consistency).
- * @returns void
+ * @fileoverview Algebraic properties identification. Sets window.correctAnswer with plain text property name.
+ * @date 2026-03-15
  */
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
+
 export function generateProperties(_difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let types=["commutative", "associative", "distributive", "identity", "inverse"];
+	let types=["commutative","associative","distributive","identity","inverse"];
 	let type=types[Math.floor(Math.random()*types.length)];
-	let maxVal=getMaxForDifficulty(_difficulty, 5);
+	let maxVal=getMaxForDifficulty(_difficulty,5);
 	let hint="";
 	let a=Math.floor(Math.random()*maxVal)+1;
 	let b=Math.floor(Math.random()*maxVal)+1;
@@ -20,7 +21,8 @@ export function generateProperties(_difficulty?: string): void{
 			questionArea.innerHTML=`Which property is illustrated? \\( ${a} + ${b}=${b} + ${a} \\)`;
 			window.correctAnswer={
 				correct: "commutative property of addition",
-				alternate: "commutative"
+				alternate: "commutative",
+				display: "commutative property of addition"
 			};
 			hint="Enter the property name";
 			break;
@@ -29,7 +31,8 @@ export function generateProperties(_difficulty?: string): void{
 			questionArea.innerHTML=`Which property is illustrated? \\( (${a} + ${b}) + ${c}=${a} + (${b} + ${c}) \\)`;
 			window.correctAnswer={
 				correct: "associative property of addition",
-				alternate: "associative"
+				alternate: "associative",
+				display: "associative property of addition"
 			};
 			hint="Enter the property name";
 			break;
@@ -38,7 +41,8 @@ export function generateProperties(_difficulty?: string): void{
 			questionArea.innerHTML=`Which property is illustrated? \\( ${a}(${b} + ${c})=${a}${b} + ${a}${c} \\)`;
 			window.correctAnswer={
 				correct: "distributive property",
-				alternate: "distributive"
+				alternate: "distributive",
+				display: "distributive property"
 			};
 			hint="Enter the property name";
 			break;
@@ -47,7 +51,8 @@ export function generateProperties(_difficulty?: string): void{
 			questionArea.innerHTML=`Which property is illustrated? \\( ${a} + 0=${a} \\)`;
 			window.correctAnswer={
 				correct: "identity property of addition",
-				alternate: "identity"
+				alternate: "identity",
+				display: "identity property of addition"
 			};
 			hint="Enter the property name";
 			break;
@@ -56,7 +61,8 @@ export function generateProperties(_difficulty?: string): void{
 			questionArea.innerHTML=`Which property is illustrated? \\( ${a} + (-${a})=0 \\)`;
 			window.correctAnswer={
 				correct: "inverse property of addition",
-				alternate: "inverse"
+				alternate: "inverse",
+				display: "inverse property of addition"
 			};
 			hint="Enter the property name";
 			break;

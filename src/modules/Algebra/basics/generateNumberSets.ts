@@ -1,13 +1,14 @@
-import {questionArea} from "../../../script.js";
 /**
  * Generates a question about number sets (identify, classify, or compare numbers).
- * @param _difficulty - Unused parameter (maintained for API consistency).
- * @returns void
+ * @fileoverview Number sets identification. Sets window.correctAnswer with plain text description.
+ * @date 2026-03-15
  */
+import {questionArea} from "../../../script.js";
+
 export function generateNumberSets(_difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let types=["identify", "classify", "compare"];
+	let types=["identify","classify","compare"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let hint="";
 	switch (type){
@@ -21,7 +22,8 @@ export function generateNumberSets(_difficulty?: string): void{
 			questionArea.innerHTML=`Identify all number sets for \\( ${num.toFixed(2)} \\) (natural, whole, integer, rational, irrational, real).`;
 			window.correctAnswer={
 				correct: desc,
-				alternate: desc
+				alternate: desc,
+				display: desc
 			};
 			hint="Enter sets separated by commas";
 			break;
@@ -32,7 +34,8 @@ export function generateNumberSets(_difficulty?: string): void{
 			let desc= num>0?"natural, whole, integer, rational, real" : "integer, rational, real";
 			window.correctAnswer={
 				correct: desc,
-				alternate: desc
+				alternate: desc,
+				display: desc
 			};
 			hint="Enter sets";
 			break;
@@ -44,7 +47,8 @@ export function generateNumberSets(_difficulty?: string): void{
 			let comp=a<b ? "<" : a>b ? ">" : "=";
 			window.correctAnswer={
 				correct: comp,
-				alternate: comp
+				alternate: comp,
+				display: comp
 			};
 			hint="Enter <, >, or =";
 			break;
