@@ -11,8 +11,8 @@ import {relaunch} from "@tauri-apps/plugin-process";
 import packageJson from "../../package.json";
 
 function isVersionGreater(v1: string, v2: string): boolean {
-	const p1=v1.split('.').map(Number);
-	const p2=v2.split('.').map(Number);
+	const p1=v1.split(".").map(Number);
+	const p2=v2.split(".").map(Number);
 	for (let i=0; i < 3; i++) {
 		if (p1[i] > p2[i]) return true;
 		if (p1[i] < p2[i]) return false;
@@ -62,6 +62,26 @@ export function switchToMental(): void{
 	topics.renderTopicGrid();
 	ui.updateUIState();
 }
+// Keyboard shortcut handler for math input
+function handleMathShortcuts(e: KeyboardEvent): void{
+	if (!dom.userAnswer) return;
+	if (document.activeElement !== dom.userAnswer) return;
+	if (e.ctrlKey || e.metaKey) return;
+	switch (e.key){
+		case "/":
+			e.preventDefault();
+			ui.insertSymbol("\\frac{}{}");
+			break;
+		case "^":
+			e.preventDefault();
+			ui.insertSymbol("^{}");
+			break;
+		case "_":
+			e.preventDefault();
+			ui.insertSymbol("_{}");
+			break;
+	}
+}
 export function setupEventListeners(): void{
 	if (!dom.generateQuestionButton||!dom.checkAnswerButton||!dom.userAnswer||!dom.themeToggle||!dom.helpButton||!dom.settingsButton||!dom.modeSingleBtn||!dom.modeMentalBtn||!dom.mentalControls||!dom.singleControls||!dom.difficultySelect||!dom.timerDisplay||!dom.scoreDisplay||!dom.startSessionBtn) return;
 	dom.generateQuestionButton.addEventListener("click",generation.debounceGenerate);
@@ -75,6 +95,7 @@ export function setupEventListeners(): void{
 	dom.userAnswer.addEventListener("input",()=>{
 		ui.updatePreviewDebounced();
 	});
+	dom.userAnswer.addEventListener("keydown",handleMathShortcuts);
 	document.addEventListener("keydown",(e: KeyboardEvent)=>{
 		if (e.ctrlKey||e.metaKey){
 			switch (e.key){
@@ -109,10 +130,10 @@ export function setupEventListeners(): void{
 			}
 		}
 	});
-	document.addEventListener("keydown", (e: KeyboardEvent) => {
+	document.addEventListener("keydown", (e: KeyboardEvent)=>{
 		if (e.key === "Escape") {
 			const openModals=[dom.settingsModal, dom.shortcutsModal, dom.onboardingOverlay];
-			openModals.forEach(modal => {
+			openModals.forEach(modal=>{
 				if (modal && modal.classList.contains("show")) {
 					modal.classList.remove("show");
 					if (modal === dom.settingsModal) settings.closeSettings();
@@ -228,14 +249,14 @@ export function setupEventListeners(): void{
 				const update=await check();
 				if (update){
 					const currentVer=packageJson.version;
-					const updateVer=update.version.replace(/^v/, '');
+					const updateVer=update.version.replace(/^v/, "");
 					if (!isVersionGreater(updateVer, currentVer)) {
 						alert("You are already using the latest version.");
 						return;
 					}
 					if (confirm(`Version ${update.version} is available!\n\nRelease notes:\n${update.body || "No release notes available"}\n\nDownload and install now?`)) {
 						dom.checkUpdatesBtn!.textContent="Downloading...";
-						await update.downloadAndInstall((progress) => {
+						await update.downloadAndInstall((progress)=>{
 							if (progress.event === "Progress") {
 								const data=progress.data as { chunkLength: number; contentLength: number };
 								const percent=Math.round((data.chunkLength / data.contentLength) * 100);
@@ -328,7 +349,8 @@ export function setupEventListeners(): void{
 	if (dom.mathToolbar){
 		dom.mathToolbar.querySelectorAll(".math-toolbar-btn").forEach(btn=>{
 			btn.addEventListener("click",(e)=>{
-				const symbol=(e.target as HTMLElement).dataset.symbol||"";
+				const target=e.target as HTMLElement;
+				const symbol=target.dataset.symbol||target.dataset.template||"";
 				ui.insertSymbol(symbol);
 			});
 		});
@@ -373,6 +395,19 @@ export function setupEventListeners(): void{
 	if (dom.onboardingOverlay){
 		dom.onboardingOverlay.addEventListener("click",(e)=>{
 			if (e.target===dom.onboardingOverlay) ui.hideOnboarding();
+		});
+	}
+	const dropdownBtn=document.getElementById("math-dropdown-btn");
+	const dropdown=document.getElementById("math-dropdown");
+	if (dropdownBtn&&dropdown) {
+		dropdownBtn.addEventListener("click", (e)=>{
+			e.stopPropagation();
+			dropdown.classList.toggle("show");
+		});
+		document.addEventListener("click", (e)=>{
+			if (!dropdown.contains(e.target as Node)&&!dropdownBtn.contains(e.target as Node)) {
+				dropdown.classList.remove("show");
+			}
 		});
 	}
 	if (dom.userAnswer&&dom.customContextMenu){

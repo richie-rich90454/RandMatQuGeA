@@ -1,7 +1,6 @@
 import * as dom from "./dom";
 import * as state from "./state";
 import * as settings from "./settings";
-
 export function clearAllTimeouts(): void{
 	if (state.autoTimeout) { clearTimeout(state.autoTimeout); state.setAutoTimeout(null); }
 	if (state.previewTimeout) { clearTimeout(state.previewTimeout); state.setPreviewTimeout(null); }
@@ -155,15 +154,31 @@ export function updatePreviewDebounced(): void{
 		state.setPreviewTimeout(null);
 	},200));
 }
+/**
+ * Inserts a math symbol or template at the current cursor position in the answer input.
+ * Handles simple symbols and templates with placeholders (e.g., \frac{}{}, \int_{}^{}).
+ * For templates, it inserts the full LaTeX and places the cursor at the first placeholder.
+ */
 export function insertSymbol(symbol: string): void{
 	if (!dom.userAnswer) return;
 	const start=dom.userAnswer.selectionStart;
 	const end=dom.userAnswer.selectionEnd;
 	const text=dom.userAnswer.value;
-	if (symbol==="\\sqrt{}"){
-		const newText=text.substring(0,start)+"\\sqrt{"+text.substring(start,end)+"}"+text.substring(end);
+	// Check if it's a template (contains {} or &)
+	if (symbol.includes('{}') || symbol.includes('&')){
+		const newText=text.substring(0,start)+symbol+text.substring(end);
 		dom.userAnswer.value=newText;
-		dom.userAnswer.selectionStart=dom.userAnswer.selectionEnd=start+6;
+		// Find position of first placeholder (inside the first {} or after &)
+		let placeholderPos=symbol.indexOf('{}');
+		if (placeholderPos===-1) placeholderPos=symbol.indexOf('&');
+		if (placeholderPos!==-1){
+			// For {}, cursor goes after the opening brace (placeholderPos+1)
+			// For &, cursor goes after & (placeholderPos+1)
+			dom.userAnswer.selectionStart=dom.userAnswer.selectionEnd=start+placeholderPos+1;
+		}
+		else{
+			dom.userAnswer.selectionStart=dom.userAnswer.selectionEnd=start+symbol.length;
+		}
 	}
 	else{
 		const newText=text.substring(0,start)+symbol+text.substring(end);
