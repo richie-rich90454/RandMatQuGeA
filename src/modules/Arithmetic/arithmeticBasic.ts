@@ -17,8 +17,8 @@ import {getRangeForDifficulty} from "./arithmeticUtils.js";
  *    the second within [0, range.max].
  * 4. Displays the question as `num1 + num2 = ?` using LaTeX math delimiters ($$ ... $$).
  * 5. Sets global variables for answer validation:
- *    - `window.correctAnswer` – an object with `correct` and `alternate` properties
- *      (both set to the sum rounded to 3 decimals).
+ *    - `window.correctAnswer` – an object with `correct`, `alternate`, and `display` properties
+ *      (all set to the sum rounded to 3 decimals).
  *    - `window.expectedFormat` – a string describing the expected input format.
  * 6. Calls `window.MathJax.typeset()` if MathJax is available to render the math.
  *
@@ -37,19 +37,21 @@ import {getRangeForDifficulty} from "./arithmeticUtils.js";
  * ```
  */
 export function generateAddition(difficulty?: string): void{
-    if (!questionArea) return;
-    let range=getRangeForDifficulty(difficulty);
-    let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(3));
-    let num2: number=parseFloat((Math.random()*range.max).toFixed(3));
-    questionArea.innerHTML=`\$${num1}+${num2}=\$`;
-    window.correctAnswer={
-        correct: (num1+num2).toFixed(3),
-        alternate: (num1+num2).toFixed(3)
-    };
-    window.expectedFormat="Enter a number (up to 3 decimals)";
-    if (window.MathJax&&window.MathJax.typeset){
-        window.MathJax.typeset();
-    }
+	if (!questionArea) return;
+	let range=getRangeForDifficulty(difficulty);
+	let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(3));
+	let num2: number=parseFloat((Math.random()*range.max).toFixed(3));
+	questionArea.innerHTML=`\$${num1}+${num2}=\$`;
+	let result=(num1+num2).toFixed(3);
+	window.correctAnswer={
+		correct: result,
+		alternate: result,
+		display: result
+	};
+	window.expectedFormat="Enter a number (up to 3 decimals)";
+	if (window.MathJax&&window.MathJax.typeset){
+		window.MathJax.typeset();
+	}
 }
 
 /**
@@ -68,8 +70,8 @@ export function generateAddition(difficulty?: string): void{
  *    the second within [0, range.max].
  * 4. Displays the question as `num1 - num2 = ?` using LaTeX math delimiters ($$ ... $$).
  * 5. Sets global variables for answer validation:
- *    - `window.correctAnswer` – an object with `correct` and `alternate` properties
- *      (both set to the difference rounded to 3 decimals).
+ *    - `window.correctAnswer` – an object with `correct`, `alternate`, and `display` properties
+ *      (all set to the difference rounded to 3 decimals).
  *    - `window.expectedFormat` – a string describing the expected input format.
  * 6. Calls `window.MathJax.typeset()` if MathJax is available to render the math.
  *
@@ -88,19 +90,21 @@ export function generateAddition(difficulty?: string): void{
  * ```
  */
 export function generateSubtraction(difficulty?: string): void{
-    if (!questionArea) return;
-    let range=getRangeForDifficulty(difficulty);
-    let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(3));
-    let num2: number=parseFloat((Math.random()*range.max).toFixed(3));
-    questionArea.innerHTML=`\$${num1}-${num2}=\$`;
-    window.correctAnswer={
-        correct: (num1-num2).toFixed(3),
-        alternate: (num1-num2).toFixed(3)
-    };
-    window.expectedFormat="Enter a number (up to 3 decimals)";
-    if (window.MathJax&&window.MathJax.typeset){
-        window.MathJax.typeset();
-    }
+	if (!questionArea) return;
+	let range=getRangeForDifficulty(difficulty);
+	let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(3));
+	let num2: number=parseFloat((Math.random()*range.max).toFixed(3));
+	questionArea.innerHTML=`\$${num1}-${num2}=\$`;
+	let result=(num1-num2).toFixed(3);
+	window.correctAnswer={
+		correct: result,
+		alternate: result,
+		display: result
+	};
+	window.expectedFormat="Enter a number (up to 3 decimals)";
+	if (window.MathJax&&window.MathJax.typeset){
+		window.MathJax.typeset();
+	}
 }
 
 /**
@@ -120,8 +124,8 @@ export function generateSubtraction(difficulty?: string): void{
  * 4. Displays the question as `num1 × num2 = ?` using LaTeX math delimiters ($$ ... $$),
  *    and includes an instruction to round the answer to two decimal places.
  * 5. Sets global variables for answer validation:
- *    - `window.correctAnswer` – an object with `correct` (rounded to 2 decimals) and
- *      `alternate` (full precision) properties.
+ *    - `window.correctAnswer` – an object with `correct` (rounded to 2 decimals),
+ *      `alternate` (full precision), and `display` (same as `correct`) properties.
  *    - `window.expectedFormat` – a string describing the expected input format.
  * 6. Calls `window.MathJax.typeset()` if MathJax is available to render the math.
  *
@@ -140,20 +144,22 @@ export function generateSubtraction(difficulty?: string): void{
  * ```
  */
 export function generateMultiplication(difficulty?: string): void{
-    if (!questionArea) return;
-    let range=getRangeForDifficulty(difficulty);
-    let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(2));
-    let num2: number=parseFloat((Math.random()*range.max).toFixed(2));
-    questionArea.innerHTML=`\$${num1} \\times ${num2}=\$<br>Round your answer to two decimal places`;
-    let actualAnswer: number=num1*num2;
-    window.correctAnswer={
-        correct: (Math.round(actualAnswer*100)/100).toFixed(2),
-        alternate: actualAnswer.toFixed(5)
-    };
-    window.expectedFormat="Enter a number rounded to 2 decimal places";
-    if (window.MathJax&&window.MathJax.typeset){
-        window.MathJax.typeset();
-    }
+	if (!questionArea) return;
+	let range=getRangeForDifficulty(difficulty);
+	let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(2));
+	let num2: number=parseFloat((Math.random()*range.max).toFixed(2));
+	questionArea.innerHTML=`\$${num1} \\times ${num2}=\$<br>Round your answer to two decimal places`;
+	let actualAnswer: number=num1*num2;
+	let rounded=(Math.round(actualAnswer*100)/100).toFixed(2);
+	window.correctAnswer={
+		correct: rounded,
+		alternate: actualAnswer.toFixed(5),
+		display: rounded
+	};
+	window.expectedFormat="Enter a number rounded to 2 decimal places";
+	if (window.MathJax&&window.MathJax.typeset){
+		window.MathJax.typeset();
+	}
 }
 
 /**
@@ -173,8 +179,8 @@ export function generateMultiplication(difficulty?: string): void{
  * 4. Displays the question as `num1 ÷ num2 = ?` using LaTeX math delimiters ($$ ... $$),
  *    and includes an instruction to round the answer to two decimal places.
  * 5. Sets global variables for answer validation:
- *    - `window.correctAnswer` – an object with `correct` (rounded to 2 decimals) and
- *      `alternate` (full precision) properties.
+ *    - `window.correctAnswer` – an object with `correct` (rounded to 2 decimals),
+ *      `alternate` (full precision), and `display` (same as `correct`) properties.
  *    - `window.expectedFormat` – a string describing the expected input format.
  * 6. Calls `window.MathJax.typeset()` if MathJax is available to render the math.
  *
@@ -193,18 +199,20 @@ export function generateMultiplication(difficulty?: string): void{
  * ```
  */
 export function generateDivision(difficulty?: string): void{
-    if (!questionArea) return;
-    let range=getRangeForDifficulty(difficulty);
-    let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(2));
-    let num2: number=parseFloat((Math.random()*range.max).toFixed(2));
-    questionArea.innerHTML=`\$${num1} \\div ${num2}=\$<br>Round your answer to two decimal places`;
-    let actualAnswer: number=num1/num2;
-    window.correctAnswer={
-        correct: (Math.round(actualAnswer*100)/100).toFixed(2),
-        alternate: actualAnswer.toFixed(5)
-    };
-    window.expectedFormat="Enter a number rounded to 2 decimal places";
-    if (window.MathJax&&window.MathJax.typeset){
-        window.MathJax.typeset();
-    }
+	if (!questionArea) return;
+	let range=getRangeForDifficulty(difficulty);
+	let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(2));
+	let num2: number=parseFloat((Math.random()*range.max).toFixed(2));
+	questionArea.innerHTML=`\$${num1} \\div ${num2}=\$<br>Round your answer to two decimal places`;
+	let actualAnswer: number=num1/num2;
+	let rounded=(Math.round(actualAnswer*100)/100).toFixed(2);
+	window.correctAnswer={
+		correct: rounded,
+		alternate: actualAnswer.toFixed(5),
+		display: rounded
+	};
+	window.expectedFormat="Enter a number rounded to 2 decimal places";
+	if (window.MathJax&&window.MathJax.typeset){
+		window.MathJax.typeset();
+	}
 }
