@@ -1,3 +1,4 @@
+//generatePolynomialEndBehavior
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -30,7 +31,8 @@ export function generatePolynomialEndBehavior(difficulty?: string): void{
 			}
 			window.correctAnswer={
 				correct:desc,
-				alternate:desc
+				alternate:desc,
+				display:desc
 			};
 			hint="Enter description like 'both ends up'";
 			break;
@@ -40,9 +42,11 @@ export function generatePolynomialEndBehavior(difficulty?: string): void{
 			const mult=Math.floor(Math.random()*2)+1;
 			const poly=`(x - ${root})^${mult}`;
 			questionArea.innerHTML=`For the polynomial \\( ${poly} \\), what is the multiplicity of the root at x=${root}?`;
+			const ans=mult.toString();
 			window.correctAnswer={
-				correct:mult.toString(),
-				alternate:mult.toString()
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter a number";
 			break;
@@ -54,7 +58,8 @@ export function generatePolynomialEndBehavior(difficulty?: string): void{
 			questionArea.innerHTML=`Use the Intermediate Value Theorem to show that \\( ${poly} \\) has a root between ${val1} and ${val2}. (Enter yes/no if it applies)`;
 			window.correctAnswer={
 				correct:"yes",
-				alternate:"yes"
+				alternate:"yes",
+				display:"yes"
 			};
 			hint="Enter 'yes' or 'no'";
 			break;

@@ -1,3 +1,4 @@
+//generateCircleEquations
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -21,9 +22,11 @@ export function generateCircleEquations(difficulty?: string): void{
 			const r=Math.floor(Math.random()*max)+1;
 			questionArea.innerHTML=`Write the equation of a circle with center \\( (${h}, ${k}) \\) and radius \\( ${r} \\).`;
 			const eq=`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 = ${r}^2`;
+			const displayEq=`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 = ${r}^2`;
 			window.correctAnswer={
 				correct:eq,
-				alternate:eq
+				alternate:eq,
+				display:displayEq
 			};
 			hint="Enter as (x-h)^2 + (y-k)^2 = r^2";
 			break;
@@ -34,9 +37,11 @@ export function generateCircleEquations(difficulty?: string): void{
 			const r=Math.floor(Math.random()*max)+1;
 			const eq=`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 = ${r}^2`;
 			questionArea.innerHTML=`Find the center and radius of the circle: \\( ${eq} \\).`;
+			const ans=`center (${h}, ${k}), radius ${r}`;
 			window.correctAnswer={
-				correct:`center (${h}, ${k}), radius ${r}`,
-				alternate:`(${h},${k}), ${r}`
+				correct:ans,
+				alternate:`(${h},${k}), ${r}`,
+				display:ans
 			};
 			hint="Enter as 'center (h,k), radius r'";
 			break;
@@ -50,9 +55,11 @@ export function generateCircleEquations(difficulty?: string): void{
 			const constTerm=h*h+k*k-r*r;
 			const eq=`x^2 + y^2 ${xCoeff>=0?'+':'-'} ${Math.abs(xCoeff)}x ${yCoeff>=0?'+':'-'} ${Math.abs(yCoeff)}y ${constTerm>=0?'+':'-'} ${Math.abs(constTerm)} = 0`;
 			questionArea.innerHTML=`Complete the square to find the center and radius: \\( ${eq} \\).`;
+			const ans=`center (${h}, ${k}), radius ${r}`;
 			window.correctAnswer={
-				correct:`center (${h}, ${k}), radius ${r}`,
-				alternate:`(${h},${k}), ${r}`
+				correct:ans,
+				alternate:`(${h},${k}), ${r}`,
+				display:ans
 			};
 			hint="Enter as 'center (h,k), radius r'";
 			break;

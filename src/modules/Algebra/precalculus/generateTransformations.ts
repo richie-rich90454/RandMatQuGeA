@@ -1,3 +1,4 @@
+//generateTransformations
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -23,7 +24,8 @@ export function generateTransformations(difficulty?: string): void{
 			const eq=`y = (x - ${h})^2 + ${k}`;
 			window.correctAnswer={
 				correct:eq,
-				alternate:eq
+				alternate:eq,
+				display:eq
 			};
 			hint="Enter as y = (x-h)^2 + k";
 			break;
@@ -34,7 +36,8 @@ export function generateTransformations(difficulty?: string): void{
 			let eq=axis==="x-axis"?"y = -√x":"y = √(-x)";
 			window.correctAnswer={
 				correct:eq,
-				alternate:eq
+				alternate:eq,
+				display:eq
 			};
 			hint="Enter equation";
 			break;
@@ -44,7 +47,8 @@ export function generateTransformations(difficulty?: string): void{
 			const eq=`y = ${a}|x|`;
 			window.correctAnswer={
 				correct:eq,
-				alternate:eq
+				alternate:eq,
+				display:eq
 			};
 			hint="Enter equation";
 			break;

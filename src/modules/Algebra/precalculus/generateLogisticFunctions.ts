@@ -1,3 +1,4 @@
+//generateLogisticFunctions
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -24,7 +25,8 @@ export function generateLogisticFunctions(difficulty?: string): void{
 			questionArea.innerHTML=`Identify the type of function: \\( ${expr} \\) (logistic, exponential, logarithmic, etc.)`;
 			window.correctAnswer={
 				correct:"logistic",
-				alternate:"logistic"
+				alternate:"logistic",
+				display:"logistic"
 			};
 			hint="Enter function type";
 			break;
@@ -32,9 +34,11 @@ export function generateLogisticFunctions(difficulty?: string): void{
 		case "limit":{
 			const expr=`f(x)=\\frac{${c}}{1+${a}e^{-${k}x}}`;
 			questionArea.innerHTML=`What is the carrying capacity (limit as x→∞) of \\( ${expr} \\)?`;
+			const ans=c.toString();
 			window.correctAnswer={
-				correct:c.toString(),
-				alternate:c.toString()
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter a number";
 			break;
@@ -45,7 +49,8 @@ export function generateLogisticFunctions(difficulty?: string): void{
 			questionArea.innerHTML=`Evaluate \\( ${expr} \\) at \\( x=${x} \\).`;
 			window.correctAnswer={
 				correct:val,
-				alternate:val
+				alternate:val,
+				display:val
 			};
 			hint="Enter decimal";
 			break;

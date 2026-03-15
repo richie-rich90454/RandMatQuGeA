@@ -1,3 +1,4 @@
+//generateSyntheticDivision
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -34,7 +35,8 @@ export function generateSyntheticDivision(difficulty?: string): void{
 			const quotient=`${result[0]}x^2 + ${result[1]}x + ${result[2]}`;
 			window.correctAnswer={
 				correct:quotient,
-				alternate:quotient
+				alternate:quotient,
+				display:quotient
 			};
 			hint="Enter polynomial";
 			break;
@@ -43,10 +45,12 @@ export function generateSyntheticDivision(difficulty?: string): void{
 			const dividend=`${a}x^2 + ${b}x + ${c}`;
 			const divisor=`x - ${d}`;
 			const remainder=a*d*d+b*d+c;
+			const ans=remainder.toString();
 			questionArea.innerHTML=`Use the Remainder Theorem to find the remainder when \\( ${dividend} \\) is divided by \\( ${divisor} \\).`;
 			window.correctAnswer={
-				correct:remainder.toString(),
-				alternate:remainder.toString()
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter a number";
 			break;
@@ -57,7 +61,8 @@ export function generateSyntheticDivision(difficulty?: string): void{
 			questionArea.innerHTML=`Is \\( x - ${root} \\) a factor of \\( ${poly} \\)? (yes/no)`;
 			window.correctAnswer={
 				correct:"yes",
-				alternate:"yes"
+				alternate:"yes",
+				display:"yes"
 			};
 			hint="Enter 'yes' or 'no'";
 			break;

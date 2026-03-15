@@ -1,3 +1,4 @@
+//generateRealNumberOperations
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -18,9 +19,11 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			const a=Math.floor(Math.random()*max*2)-max;
 			const expr=`|${a}|`;
 			questionArea.innerHTML=`Evaluate: \\( ${expr} \\)`;
+			const ans=Math.abs(a).toString();
 			window.correctAnswer={
-				correct:Math.abs(a).toString(),
-				alternate:Math.abs(a).toString()
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter a number";
 			break;
@@ -29,10 +32,11 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			const a=Math.floor(Math.random()*max);
 			const b=Math.floor(Math.random()*max);
 			questionArea.innerHTML=`Find the distance between \\( ${a} \\) and \\( ${b} \\) on the number line.`;
-			const dist=Math.abs(a-b);
+			const dist=Math.abs(a-b).toString();
 			window.correctAnswer={
-				correct:dist.toString(),
-				alternate:dist.toString()
+				correct:dist,
+				alternate:dist,
+				display:dist
 			};
 			hint="Enter a number";
 			break;
@@ -47,7 +51,8 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			questionArea.innerHTML=`Is the statement \\( ${a} ${op} ${b} \\) true or false?`;
 			window.correctAnswer={
 				correct:correctBool,
-				alternate:correctBool
+				alternate:correctBool,
+				display:correctBool
 			};
 			hint="Enter 'true' or 'false'";
 			break;
@@ -90,7 +95,8 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			questionArea.innerHTML=`Write the interval \\( ${interval} \\) in set-builder notation.`;
 			window.correctAnswer={
 				correct:desc,
-				alternate:desc
+				alternate:desc,
+				display:desc
 			};
 			hint="Enter a description like 'x > 3' or interval";
 			break;

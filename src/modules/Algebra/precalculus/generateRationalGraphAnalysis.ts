@@ -1,3 +1,4 @@
+//generateRationalGraphicalAnalysis
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -21,9 +22,11 @@ export function generateRationalGraphAnalysis(difficulty?: string): void{
 		case "domain":{
 			const expr=`\\frac{x+${a}}{x-${b}}`;
 			questionArea.innerHTML=`Find the domain of \\( ${expr} \\). (Enter interval)`;
+			const ans=`(-∞, ${b}) ∪ (${b}, ∞)`;
 			window.correctAnswer={
-				correct:`(-∞, ${b}) ∪ (${b}, ∞)`,
-				alternate:`(-infinity,${b}) U (${b},infinity)`
+				correct:ans,
+				alternate:`(-infinity,${b}) U (${b},infinity)`,
+				display:ans
 			};
 			hint="Enter intervals";
 			break;
@@ -33,9 +36,11 @@ export function generateRationalGraphAnalysis(difficulty?: string): void{
 			questionArea.innerHTML=`Find the vertical and horizontal asymptotes of \\( ${expr} \\).`;
 			const va=`x=${c}`;
 			const ha=`y=${a}`;
+			const ans=`VA: ${va}, HA: ${ha}`;
 			window.correctAnswer={
-				correct:`VA: ${va}, HA: ${ha}`,
-				alternate:`VA: ${va}, HA: ${ha}`
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter as 'VA: x=..., HA: y=...'";
 			break;
@@ -44,9 +49,11 @@ export function generateRationalGraphAnalysis(difficulty?: string): void{
 			const holeX=a;
 			const expr=`\\frac{(x-${holeX})(x+${b})}{x-${holeX}}`;
 			questionArea.innerHTML=`Does the graph of \\( ${expr} \\) have a hole? If so, at what x-value?`;
+			const ans=`x = ${holeX}`;
 			window.correctAnswer={
-				correct:`x = ${holeX}`,
-				alternate:`${holeX}`
+				correct:ans,
+				alternate:`${holeX}`,
+				display:ans
 			};
 			hint="Enter x = value or 'none'";
 			break;

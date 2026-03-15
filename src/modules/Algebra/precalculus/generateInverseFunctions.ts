@@ -1,3 +1,4 @@
+//generateInverseFunctions
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -22,9 +23,11 @@ export function generateInverseFunctions(difficulty?: string): void{
 			const fExpr=`${a}x + ${b}`;
 			questionArea.innerHTML=`Find the inverse of \\( f(x)=${fExpr} \\).`;
 			const inv=`f^{-1}(x) = \\frac{x - ${b}}{${a}}`;
+			const plain=`(x-${b})/${a}`;
 			window.correctAnswer={
 				correct:inv,
-				alternate:`(x-${b})/${a}`
+				alternate:plain,
+				display:inv
 			};
 			hint="Enter as (x-b)/a";
 			break;
@@ -35,7 +38,8 @@ export function generateInverseFunctions(difficulty?: string): void{
 			questionArea.innerHTML=`Verify that \\( f(x)=${fExpr} \\) and \\( g(x)=${invExpr} \\) are inverses. (Enter true/false)`;
 			window.correctAnswer={
 				correct:"true",
-				alternate:"true"
+				alternate:"true",
+				display:"true"
 			};
 			hint="Enter 'true' or 'false'";
 			break;
@@ -44,7 +48,8 @@ export function generateInverseFunctions(difficulty?: string): void{
 			questionArea.innerHTML=`Is \\( f(x)=x^2 \\) one-to-one on its natural domain? (yes/no)`;
 			window.correctAnswer={
 				correct:"no",
-				alternate:"no"
+				alternate:"no",
+				display:"no"
 			};
 			hint="Enter 'yes' or 'no'";
 			break;

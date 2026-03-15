@@ -1,3 +1,4 @@
+//generateFunctionProperties
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -29,7 +30,8 @@ export function generateFunctionProperties(difficulty?: string): void{
 			else answer="none";
 			window.correctAnswer={
 				correct:answer,
-				alternate:answer
+				alternate:answer,
+				display:answer
 			};
 			hint="Enter x value, interval, or 'none'";
 			break;
@@ -40,7 +42,8 @@ export function generateFunctionProperties(difficulty?: string): void{
 			questionArea.innerHTML=`Does \\( f(x)=x^2 - ${a}x + ${b} \\) have a local minimum or maximum? (Enter 'min' or 'max')`;
 			window.correctAnswer={
 				correct:"min",
-				alternate:"minimum"
+				alternate:"minimum",
+				display:"min"
 			};
 			hint="Enter 'min' or 'max'";
 			break;
@@ -55,7 +58,8 @@ export function generateFunctionProperties(difficulty?: string): void{
 			questionArea.innerHTML=`Is \\( ${chosen.expr} \\) even, odd, or neither?`;
 			window.correctAnswer={
 				correct:chosen.type,
-				alternate:chosen.type
+				alternate:chosen.type,
+				display:chosen.type
 			};
 			hint="Enter 'even', 'odd', or 'neither'";
 			break;
@@ -65,9 +69,11 @@ export function generateFunctionProperties(difficulty?: string): void{
 			const b=Math.floor(Math.random()*max)+1;
 			const expr=`\\frac{${a}x+${b}}{x-${a}}`;
 			questionArea.innerHTML=`Find the vertical asymptote of \\( ${expr} \\). (Enter x=value)`;
+			const ans=`x=${a}`;
 			window.correctAnswer={
-				correct:`x=${a}`,
-				alternate:`x=${a}`
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter x = number";
 			break;
@@ -86,7 +92,8 @@ export function generateFunctionProperties(difficulty?: string): void{
 			questionArea.innerHTML=`Describe the end behavior of a polynomial with leading coefficient ${sign} and degree ${deg}.`;
 			window.correctAnswer={
 				correct:desc,
-				alternate:desc
+				alternate:desc,
+				display:desc
 			};
 			hint="Enter description like 'both ends up'";
 			break;

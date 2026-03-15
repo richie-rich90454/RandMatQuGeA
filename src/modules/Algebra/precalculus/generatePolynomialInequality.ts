@@ -1,3 +1,4 @@
+//generatePolynomialInequality
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -35,7 +36,8 @@ export function generatePolynomialInequality(difficulty?: string): void{
 	const answer=intervals.join(' ∪ ');
 	window.correctAnswer={
 		correct:answer,
-		alternate:answer.replace(/∞/g,'infinity')
+		alternate:answer.replace(/∞/g,'infinity'),
+		display:answer
 	};
 	window.expectedFormat="Enter intervals like (-∞,1) ∪ (3,∞)";
 	if (window.MathJax&&window.MathJax.typeset){

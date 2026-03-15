@@ -1,3 +1,4 @@
+//generateLinearEquationSpecial
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -22,7 +23,8 @@ export function generateLinearEquationSpecial(difficulty?: string): void{
 		questionArea.innerHTML=`Solve: \\( ${eq} \\) (state if identity, contradiction, or conditional)`;
 		window.correctAnswer={
 			correct:"identity",
-			alternate:"identity"
+			alternate:"identity",
+			display:"identity"
 		};
 		hint="Enter 'identity', 'contradiction', or the solution";
 	}else{
@@ -34,7 +36,8 @@ export function generateLinearEquationSpecial(difficulty?: string): void{
 		questionArea.innerHTML=`Solve: \\( ${eq} \\) (state if identity, contradiction, or conditional)`;
 		window.correctAnswer={
 			correct:"contradiction",
-			alternate:"contradiction"
+			alternate:"contradiction",
+			display:"contradiction"
 		};
 		hint="Enter 'identity', 'contradiction', or the solution";
 	}

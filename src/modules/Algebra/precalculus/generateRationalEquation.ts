@@ -1,3 +1,4 @@
+//generateRationalEquation
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -23,10 +24,12 @@ export function generateRationalEquation(difficulty?: string): void{
 		const denC=Math.floor(Math.random()*max)+1;
 		const denD=d;
 		const x=(e*denD-numB)/(numA-e*denC);
+		const ans=x.toFixed(2);
 		questionArea.innerHTML=`Solve: \\( \\frac{${numA}x + ${numB}}{${denC}x + ${denD}} = ${e} \\)`;
 		window.correctAnswer={
-			correct:x.toFixed(2),
-			alternate:x.toString()
+			correct:ans,
+			alternate:x.toString(),
+			display:ans
 		};
 		hint="Enter decimal answer";
 	}else{
@@ -35,7 +38,8 @@ export function generateRationalEquation(difficulty?: string): void{
 		questionArea.innerHTML=`Solve and check for extraneous solutions: \\( ${eq} \\)`;
 		window.correctAnswer={
 			correct:"no solution",
-			alternate:"no solution"
+			alternate:"no solution",
+			display:"no solution"
 		};
 		hint="Enter 'no solution' or the solution";
 	}

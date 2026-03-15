@@ -1,3 +1,4 @@
+//generateBasicFunctions
 import {questionArea} from "../../../script.js";
 /**
  * Generates a question about basic functions: identifying a function by its expression,
@@ -30,14 +31,16 @@ export function generateBasicFunctions(): void{
 		questionArea.innerHTML=`Identify the function: \\( ${chosen.expr} \\). (Enter name)`;
 		window.correctAnswer={
 			correct:chosen.name,
-			alternate:chosen.name
+			alternate:chosen.name,
+			display:chosen.name
 		};
 		hint="Enter the function name";
 	}else{
 		questionArea.innerHTML=`Give one key property of \\( ${chosen.expr} \\).`;
 		window.correctAnswer={
 			correct:chosen.props,
-			alternate:chosen.props
+			alternate:chosen.props,
+			display:chosen.props
 		};
 		hint="Enter a property (e.g., 'even', 'increasing')";
 	}

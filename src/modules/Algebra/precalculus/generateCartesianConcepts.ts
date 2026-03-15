@@ -1,3 +1,4 @@
+//generateCartesianConcepts
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -25,7 +26,8 @@ export function generateCartesianConcepts(difficulty?: string): void{
 			questionArea.innerHTML=`In which quadrant is the point \\( (${x}, ${y}) \\)?`;
 			window.correctAnswer={
 				correct:quadrant,
-				alternate:quadrant
+				alternate:quadrant,
+				display:quadrant
 			};
 			hint="Enter I, II, III, IV, or 'on an axis'";
 			break;
@@ -39,7 +41,8 @@ export function generateCartesianConcepts(difficulty?: string): void{
 			questionArea.innerHTML=`Find the distance between \\( (${x1}, ${y1}) \\) and \\( (${x2}, ${y2}) \\).`;
 			window.correctAnswer={
 				correct:dist,
-				alternate:dist
+				alternate:dist,
+				display:dist
 			};
 			hint="Enter a decimal rounded to two places";
 			break;
@@ -52,9 +55,11 @@ export function generateCartesianConcepts(difficulty?: string): void{
 			const mx=((x1+x2)/2).toFixed(2);
 			const my=((y1+y2)/2).toFixed(2);
 			questionArea.innerHTML=`Find the midpoint of \\( (${x1}, ${y1}) \\) and \\( (${x2}, ${y2}) \\).`;
+			const displayAns=`(${mx}, ${my})`;
 			window.correctAnswer={
-				correct:`(${mx}, ${my})`,
-				alternate:`(${mx},${my})`
+				correct:displayAns,
+				alternate:`(${mx},${my})`,
+				display:displayAns
 			};
 			hint="Enter as (x, y)";
 			break;
@@ -63,9 +68,11 @@ export function generateCartesianConcepts(difficulty?: string): void{
 			const x=Math.floor(Math.random()*max)+1;
 			const y=Math.floor(Math.random()*max)+1;
 			questionArea.innerHTML=`What are the coordinates of the point that is ${x} units right and ${y} units up from the origin?`;
+			const displayAns=`(${x}, ${y})`;
 			window.correctAnswer={
-				correct:`(${x}, ${y})`,
-				alternate:`(${x},${y})`
+				correct:displayAns,
+				alternate:`(${x},${y})`,
+				display:displayAns
 			};
 			hint="Enter as (x, y)";
 			break;

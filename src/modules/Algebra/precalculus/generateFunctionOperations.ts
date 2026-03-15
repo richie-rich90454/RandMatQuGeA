@@ -1,3 +1,4 @@
+//generateFunctionOperations
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -24,9 +25,11 @@ export function generateFunctionOperations(difficulty?: string): void{
 			const xVal=Math.floor(Math.random()*max)+1;
 			questionArea.innerHTML=`Given \\( f(x)=${f} \\) and \\( g(x)=${g} \\), find \\( (f \\circ g)(${xVal}) \\).`;
 			const result=a*(xVal*xVal)+b;
+			const ans=result.toString();
 			window.correctAnswer={
-				correct:result.toString(),
-				alternate:result.toString()
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter a number";
 			break;
@@ -38,7 +41,8 @@ export function generateFunctionOperations(difficulty?: string): void{
 			const sum=`${c}x^2 + ${a}x + ${b}`;
 			window.correctAnswer={
 				correct:sum,
-				alternate:sum.replace(/\s+/g,'')
+				alternate:sum.replace(/\s+/g,''),
+				display:sum
 			};
 			hint="Enter as polynomial";
 			break;
@@ -50,7 +54,8 @@ export function generateFunctionOperations(difficulty?: string): void{
 			const prod=`${a*c}x^2 + ${a*1+b*c}x + ${b*1}`;
 			window.correctAnswer={
 				correct:prod,
-				alternate:prod.replace(/\s+/g,'')
+				alternate:prod.replace(/\s+/g,''),
+				display:prod
 			};
 			hint="Enter as polynomial";
 			break;

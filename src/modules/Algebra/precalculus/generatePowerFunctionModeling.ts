@@ -1,3 +1,4 @@
+//generatePowerFunctionModeling
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -22,9 +23,11 @@ export function generatePowerFunctionModeling(difficulty?: string): void{
 		case "direct":{
 			questionArea.innerHTML=`If y varies directly with x, and y=${y1} when x=${x1}, find y when x=${x2}.`;
 			const y2=k*x2;
+			const ans=y2.toString();
 			window.correctAnswer={
-				correct:y2.toString(),
-				alternate:y2.toString()
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter a number";
 			break;
@@ -33,9 +36,11 @@ export function generatePowerFunctionModeling(difficulty?: string): void{
 			const kInv=x1*y1;
 			questionArea.innerHTML=`If y varies inversely with x, and y=${y1} when x=${x1}, find y when x=${x2}.`;
 			const y2=kInv/x2;
+			const ans=y2.toFixed(2);
 			window.correctAnswer={
-				correct:y2.toFixed(2),
-				alternate:y2.toString()
+				correct:ans,
+				alternate:y2.toString(),
+				display:ans
 			};
 			hint="Enter a number";
 			break;
@@ -45,9 +50,11 @@ export function generatePowerFunctionModeling(difficulty?: string): void{
 			const y1pow=k*Math.pow(x1,exp);
 			questionArea.innerHTML=`If y varies as the ${exp}rd power of x, and y=${y1pow} when x=${x1}, find y when x=${x2}.`;
 			const y2=k*Math.pow(x2,exp);
+			const ans=y2.toString();
 			window.correctAnswer={
-				correct:y2.toString(),
-				alternate:y2.toString()
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter a number";
 			break;

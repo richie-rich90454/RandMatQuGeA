@@ -1,3 +1,4 @@
+//generateComplexZeros
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
@@ -21,9 +22,11 @@ export function generateComplexZeros(difficulty?: string): void{
 		case "fundamental":{
 			const deg=Math.floor(Math.random()*2)+3;
 			questionArea.innerHTML=`According to the Fundamental Theorem of Algebra, how many zeros does a polynomial of degree ${deg} have (counting multiplicity)?`;
+			const ans=deg.toString();
 			window.correctAnswer={
-				correct:deg.toString(),
-				alternate:deg.toString()
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter a number";
 			break;
@@ -33,7 +36,8 @@ export function generateComplexZeros(difficulty?: string): void{
 			const conj=`${a} - ${b}i`;
 			window.correctAnswer={
 				correct:conj,
-				alternate:conj
+				alternate:conj,
+				display:conj
 			};
 			hint="Enter as a+bi";
 			break;
@@ -46,7 +50,8 @@ export function generateComplexZeros(difficulty?: string): void{
 			const factored=`(x - ${root1})(x - ${root2})`;
 			window.correctAnswer={
 				correct:factored,
-				alternate:factored
+				alternate:factored,
+				display:factored
 			};
 			hint="Enter as (x - a)(x - b)";
 			break;

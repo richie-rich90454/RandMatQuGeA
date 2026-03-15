@@ -1,3 +1,4 @@
+//generateFinance
 import {questionArea} from "../../../script.js";
 /**
  * Generates a finance question: compound interest, continuous compounding, APY, or annuity.
@@ -19,9 +20,11 @@ export function generateFinance(): void{
 		case "compound":{
 			questionArea.innerHTML=`Find the amount after ${years} years if $${principal} is invested at ${(parseFloat(rate)*100).toFixed(1)}% compounded ${n} times per year.`;
 			const amount=principal*Math.pow(1+parseFloat(rate)/n,n*years);
+			const ans=amount.toFixed(2);
 			window.correctAnswer={
-				correct:amount.toFixed(2),
-				alternate:amount.toFixed(2)
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter decimal (two decimals)";
 			break;
@@ -29,9 +32,11 @@ export function generateFinance(): void{
 		case "continuous":{
 			questionArea.innerHTML=`Find the amount after ${years} years if $${principal} is invested at ${(parseFloat(rate)*100).toFixed(1)}% compounded continuously.`;
 			const amount=principal*Math.exp(parseFloat(rate)*years);
+			const ans=amount.toFixed(2);
 			window.correctAnswer={
-				correct:amount.toFixed(2),
-				alternate:amount.toFixed(2)
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter decimal";
 			break;
@@ -39,9 +44,11 @@ export function generateFinance(): void{
 		case "apy":{
 			questionArea.innerHTML=`Find the APY for a nominal rate of ${(parseFloat(rate)*100).toFixed(1)}% compounded ${n} times per year. (as a percentage)`;
 			const apy=(Math.pow(1+parseFloat(rate)/n,n)-1)*100;
+			const ans=apy.toFixed(2);
 			window.correctAnswer={
-				correct:apy.toFixed(2),
-				alternate:apy.toFixed(2)
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter percentage (e.g., 5.25)";
 			break;
@@ -50,9 +57,11 @@ export function generateFinance(): void{
 			const payment=Math.floor(Math.random()*500)+100;
 			questionArea.innerHTML=`You deposit $${payment} at the end of each year into an account earning ${(parseFloat(rate)*100).toFixed(1)}% compounded annually. Find the future value after ${years} years.`;
 			const fv=payment*((Math.pow(1+parseFloat(rate),years)-1)/parseFloat(rate));
+			const ans=fv.toFixed(2);
 			window.correctAnswer={
-				correct:fv.toFixed(2),
-				alternate:fv.toFixed(2)
+				correct:ans,
+				alternate:ans,
+				display:ans
 			};
 			hint="Enter decimal";
 			break;
