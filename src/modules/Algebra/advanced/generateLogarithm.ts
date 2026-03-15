@@ -1,14 +1,19 @@
+/**
+ * Logarithm questions: basic, change of base, equations, properties, exponential form.
+ * @fileoverview Generates logarithm questions. Sets window.correctAnswer with correct value and display.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 
 export function generateLogarithm(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let types=["basic", "change_base", "equation", "properties", "exponential_form"];
+	let types=["basic","change_base","equation","properties","exponential_form"];
 	let type=types[Math.floor(Math.random()*types.length)];
-	let maxBase=getMaxForDifficulty(difficulty, 4);
+	let maxBase=getMaxForDifficulty(difficulty,4);
 	let base=Math.floor(Math.random()*maxBase)+2;
-	let arg=Math.pow(base, Math.floor(Math.random()*4)+1);
+	let arg=Math.pow(base,Math.floor(Math.random()*4)+1);
 	let newBase=Math.floor(Math.random()*3)+2;
 	let hint="";
 	switch (type){
@@ -17,7 +22,8 @@ export function generateLogarithm(difficulty?: string): void{
 			questionArea.innerHTML=`Evaluate: \\( \\log_{${base}} ${arg} \\)`;
 			window.correctAnswer={
 				correct: answer,
-				alternate: answer
+				alternate: answer,
+				display: answer
 			};
 			hint="Enter a decimal number, e.g., 2.5";
 			break;
@@ -30,17 +36,19 @@ export function generateLogarithm(difficulty?: string): void{
 			questionArea.innerHTML=`Express \\( \\log_{${base}} ${arg} \\) in base \\( ${newBase} \\)`;
 			window.correctAnswer={
 				correct: numericAnswer,
-				alternate: expr
+				alternate: expr,
+				display: numericAnswer
 			};
 			hint="Enter as fraction (e.g., log3(8)/log3(2)) or decimal";
 			break;
 		}
 		case "equation":{
 			let exponent=Math.floor(Math.random()*3)+2;
-			questionArea.innerHTML=`Solve for \\( x \\): \\( ${base}^{x}=${Math.pow(base, exponent)} \\)`;
+			questionArea.innerHTML=`Solve for \\( x \\): \\( ${base}^{x}=${Math.pow(base,exponent)} \\)`;
 			window.correctAnswer={
 				correct: exponent.toString(),
-				alternate: exponent.toString()
+				alternate: exponent.toString(),
+				display: exponent.toString()
 			};
 			hint="Enter a whole number";
 			break;
@@ -52,17 +60,19 @@ export function generateLogarithm(difficulty?: string): void{
 			questionArea.innerHTML=`Evaluate: \\( \\log_{${base}} (${a} \\times ${b}) \\)`;
 			window.correctAnswer={
 				correct: logSum,
-				alternate: `\\log_{${base}} ${a}+\\log_{${base}} ${b}=${(Math.log(a)/Math.log(base)).toFixed(2)}+${(Math.log(b)/Math.log(base)).toFixed(2)}=${logSum}`
+				alternate: `\\log_{${base}} ${a}+\\log_{${base}} ${b}=${(Math.log(a)/Math.log(base)).toFixed(2)}+${(Math.log(b)/Math.log(base)).toFixed(2)}=${logSum}`,
+				display: logSum
 			};
 			break;
 		}
 		case "exponential_form":{
 			let exponent=Math.floor(Math.random()*3)+2;
-			let result=Math.pow(base, exponent);
+			let result=Math.pow(base,exponent);
 			questionArea.innerHTML=`If \\( \\log_{${base}} x=${exponent} \\), find \\( x \\)`;
 			window.correctAnswer={
 				correct: result.toString(),
-				alternate: `${base}^${exponent}`
+				alternate: `${base}^${exponent}`,
+				display: result.toString()
 			};
 			hint="Enter a number or expression (e.g., 8 or 2^3)";
 			break;

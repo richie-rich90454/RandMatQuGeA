@@ -1,12 +1,17 @@
+/**
+ * Radical simplification: simplify, add, subtract, multiply, divide, rationalize.
+ * @fileoverview Generates radical simplification questions. Sets window.correctAnswer with LaTeX expression and display.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 
 export function generateRadicalSimplify(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let types=["simplify", "add", "subtract", "multiply", "divide", "rationalize"];
+	let types=["simplify","add","subtract","multiply","divide","rationalize"];
 	let type=types[Math.floor(Math.random()*types.length)];
-	let maxVal=getMaxForDifficulty(difficulty, 20);
+	let maxVal=getMaxForDifficulty(difficulty,20);
 	let hint="";
 	let a=Math.floor(Math.random()*maxVal)+1;
 	let b=Math.floor(Math.random()*maxVal)+1;
@@ -15,9 +20,11 @@ export function generateRadicalSimplify(difficulty?: string): void{
 		case "simplify":{
 			let radicand=a*a*b;
 			questionArea.innerHTML=`Simplify: \\( \\sqrt{${radicand}} \\)`;
+			let ans=`${a}\\sqrt{${b}}`;
 			window.correctAnswer={
-				correct: `${a}\\sqrt{${b}}`,
-				alternate: `${a}√${b}`
+				correct: ans,
+				alternate: `${a}√${b}`,
+				display: ans
 			};
 			hint="Enter as a√b";
 			break;
@@ -25,9 +32,11 @@ export function generateRadicalSimplify(difficulty?: string): void{
 		case "add":{
 			questionArea.innerHTML=`Simplify: \\( ${a}\\sqrt{${b}} + ${c}\\sqrt{${b}} \\)`;
 			let coeff=a+c;
+			let ans=`${coeff}\\sqrt{${b}}`;
 			window.correctAnswer={
-				correct: `${coeff}\\sqrt{${b}}`,
-				alternate: `${coeff}√${b}`
+				correct: ans,
+				alternate: `${coeff}√${b}`,
+				display: ans
 			};
 			hint="Enter as a√b";
 			break;
@@ -35,9 +44,11 @@ export function generateRadicalSimplify(difficulty?: string): void{
 		case "subtract":{
 			questionArea.innerHTML=`Simplify: \\( ${a}\\sqrt{${b}} - ${c}\\sqrt{${b}} \\)`;
 			let coeff=a-c;
+			let ans=`${coeff}\\sqrt{${b}}`;
 			window.correctAnswer={
-				correct: `${coeff}\\sqrt{${b}}`,
-				alternate: `${coeff}√${b}`
+				correct: ans,
+				alternate: `${coeff}√${b}`,
+				display: ans
 			};
 			hint="Enter as a√b";
 			break;
@@ -45,9 +56,11 @@ export function generateRadicalSimplify(difficulty?: string): void{
 		case "multiply":{
 			questionArea.innerHTML=`Multiply: \\( \\sqrt{${a}} \\times \\sqrt{${b}} \\)`;
 			let product=a*b;
+			let ans=`\\sqrt{${product}}`;
 			window.correctAnswer={
-				correct: `\\sqrt{${product}}`,
-				alternate: `√${product}`
+				correct: ans,
+				alternate: `√${product}`,
+				display: ans
 			};
 			hint="Enter as √n";
 			break;
@@ -55,18 +68,22 @@ export function generateRadicalSimplify(difficulty?: string): void{
 		case "divide":{
 			questionArea.innerHTML=`Divide: \\( \\frac{\\sqrt{${a}}}{\\sqrt{${b}}} \\)`;
 			let quotient=a/b;
+			let ans=`\\sqrt{${quotient}}`;
 			window.correctAnswer={
-				correct: `\\sqrt{${quotient}}`,
-				alternate: `√${quotient}`
+				correct: ans,
+				alternate: `√${quotient}`,
+				display: ans
 			};
 			hint="Enter as √n";
 			break;
 		}
 		case "rationalize":{
 			questionArea.innerHTML=`Rationalize: \\( \\frac{1}{\\sqrt{${a}}} \\)`;
+			let ans=`\\frac{\\sqrt{${a}}}{${a}}`;
 			window.correctAnswer={
-				correct: `\\frac{\\sqrt{${a}}}{${a}}`,
-				alternate: `√${a}/${a}`
+				correct: ans,
+				alternate: `√${a}/${a}`,
+				display: ans
 			};
 			hint="Enter as √a/a";
 			break;

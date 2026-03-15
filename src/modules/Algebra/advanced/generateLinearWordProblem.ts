@@ -1,12 +1,17 @@
+/**
+ * Linear word problems: consecutive integers, money, distance, age, mixture.
+ * @fileoverview Generates linear word problems. Sets window.correctAnswer with correct result and display.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 
 export function generateLinearWordProblem(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let types=["consecutive_integers", "money", "distance", "age", "mixture"];
+	let types=["consecutive_integers","money","distance","age","mixture"];
 	let type=types[Math.floor(Math.random()*types.length)];
-	let maxVal=getMaxForDifficulty(difficulty, 20);
+	let maxVal=getMaxForDifficulty(difficulty,20);
 	let hint="";
 	switch (type){
 		case "consecutive_integers":{
@@ -15,7 +20,8 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			questionArea.innerHTML=`The sum of two consecutive integers is ${sum}. Find the smaller integer.`;
 			window.correctAnswer={
 				correct: n.toString(),
-				alternate: n.toString()
+				alternate: n.toString(),
+				display: n.toString()
 			};
 			hint="Enter a whole number";
 			break;
@@ -27,7 +33,8 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			questionArea.innerHTML=`You have ${quarters} quarters and ${dimes} dimes. How much money do you have in cents?`;
 			window.correctAnswer={
 				correct: total.toString(),
-				alternate: total.toString()
+				alternate: total.toString(),
+				display: total.toString()
 			};
 			hint="Enter a number (cents)";
 			break;
@@ -39,7 +46,8 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			questionArea.innerHTML=`A car travels at ${rate} mph for ${time} hours. How far does it travel?`;
 			window.correctAnswer={
 				correct: dist.toString(),
-				alternate: dist.toString()
+				alternate: dist.toString(),
+				display: dist.toString()
 			};
 			hint="Enter a number (miles)";
 			break;
@@ -51,7 +59,8 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			questionArea.innerHTML=`A person is ${now} years old. How old were they ${past} years ago?`;
 			window.correctAnswer={
 				correct: ago.toString(),
-				alternate: ago.toString()
+				alternate: ago.toString(),
+				display: ago.toString()
 			};
 			hint="Enter a number";
 			break;
@@ -63,7 +72,8 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			questionArea.innerHTML=`A ${total} gallon mixture contains ${percent}% alcohol. How many gallons of alcohol are in it?`;
 			window.correctAnswer={
 				correct: amount.toString(),
-				alternate: amount.toString()
+				alternate: amount.toString(),
+				display: amount.toString()
 			};
 			hint="Enter a number (gallons)";
 			break;

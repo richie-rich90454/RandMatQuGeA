@@ -1,12 +1,17 @@
+/**
+ * Radical equations: one radical or two radicals.
+ * @fileoverview Generates radical equation questions. Sets window.correctAnswer with correct value and display.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 
 export function generateRadicalEquation(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let types=["one_radical", "two_radicals"];
+	let types=["one_radical","two_radicals"];
 	let type=types[Math.floor(Math.random()*types.length)];
-	let maxVal=getMaxForDifficulty(difficulty, 10);
+	let maxVal=getMaxForDifficulty(difficulty,10);
 	let hint="";
 	let a=Math.floor(Math.random()*maxVal)+1;
 	let b=Math.floor(Math.random()*maxVal)+1;
@@ -16,7 +21,8 @@ export function generateRadicalEquation(difficulty?: string): void{
 			questionArea.innerHTML=`Solve: \\( \\sqrt{x + ${a}}=${b} \\)`;
 			window.correctAnswer={
 				correct: sol.toString(),
-				alternate: sol.toString()
+				alternate: sol.toString(),
+				display: sol.toString()
 			};
 			hint="Enter a number";
 			break;
@@ -27,7 +33,8 @@ export function generateRadicalEquation(difficulty?: string): void{
 			questionArea.innerHTML=`Solve: \\( \\sqrt{x + ${a}} - \\sqrt{x}=${b} \\) (Enter solution)`;
 			window.correctAnswer={
 				correct: sol.toFixed(2),
-				alternate: sol.toString()
+				alternate: sol.toString(),
+				display: sol.toFixed(2)
 			};
 			hint="Enter a decimal";
 			break;

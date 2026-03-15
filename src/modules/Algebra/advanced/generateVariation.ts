@@ -1,12 +1,17 @@
+/**
+ * Variation: direct, inverse, joint.
+ * @fileoverview Generates variation questions. Sets window.correctAnswer with correct result and display.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 
 export function generateVariation(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let types=["direct", "inverse", "joint"];
+	let types=["direct","inverse","joint"];
 	let type=types[Math.floor(Math.random()*types.length)];
-	let maxVal=getMaxForDifficulty(difficulty, 10);
+	let maxVal=getMaxForDifficulty(difficulty,10);
 	let hint="";
 	let a=Math.floor(Math.random()*maxVal)+1;
 	let b=Math.floor(Math.random()*maxVal)+1;
@@ -19,7 +24,8 @@ export function generateVariation(difficulty?: string): void{
 			let result=k*x;
 			window.correctAnswer={
 				correct: result.toFixed(2),
-				alternate: result.toString()
+				alternate: result.toString(),
+				display: result.toFixed(2)
 			};
 			hint="Enter a number";
 			break;
@@ -30,7 +36,8 @@ export function generateVariation(difficulty?: string): void{
 			let result=k/x;
 			window.correctAnswer={
 				correct: result.toFixed(2),
-				alternate: result.toString()
+				alternate: result.toString(),
+				display: result.toFixed(2)
 			};
 			hint="Enter a number";
 			break;
@@ -42,7 +49,8 @@ export function generateVariation(difficulty?: string): void{
 			let result=k*x*y;
 			window.correctAnswer={
 				correct: result.toFixed(2),
-				alternate: result.toString()
+				alternate: result.toString(),
+				display: result.toFixed(2)
 			};
 			hint="Enter a number";
 			break;
