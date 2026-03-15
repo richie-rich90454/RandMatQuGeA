@@ -1,26 +1,21 @@
 /**
  * Discrete mathematics: permutations and combinations generator
- * @fileoverview Provides functions to generate permutation and combination questions of various types (basic, equation, word, circular, identical, with replacement for permutations; basic, equation, word, complement, paths, multiset for combinations). Each question displays LaTeX in the questionArea and sets window.correctAnswer with three properties:
- * - `correct`: the primary correct answer (usually a numeric string) used for exact matching.
- * - `alternate`: an alternative representation (e.g., symbolic expression) for flexible checking.
- * - `display`: a LaTeX-formatted string representing the answer, shown to the user after submission.
+ * @fileoverview Provides functions to generate permutation and combination questions. Each question displays LaTeX in questionArea and sets window.correctAnswer with:
+ * - correct: LaTeX string for display (pure LaTeX, no outer delimiters)
+ * - alternate: plain text representation for tolerant checking
+ * - display: same as correct
  * @date 2026-03-15
  */
 import {questionArea} from "../../script.js";
-import {factorial, nPr, nCr, getMaxN} from "./discreteUtils";
+import {factorial, nPr, nCr, getMaxN} from "./discreteUtils.js";
 /**
- * Generates a random permutation question of a specific type (basic, equation, word, circular, identical, or with replacement).
- * The question is displayed in the questionArea element using LaTeX. The correct answer is stored in window.correctAnswer
- * with three properties:
- * - `correct`: numeric answer (string).
- * - `alternate`: alternative representation (e.g., "P(5,2)") for tolerant checking.
- * - `display`: LaTeX representation of the answer (e.g., "5 \\cdot 4" for 20, or "(n-1)!" for circular).
- * @param difficulty - optional difficulty level ('easy', 'medium', 'hard') that influences the maximum values used.
+ * Generates a random permutation question.
+ * @param difficulty - optional difficulty level
  */
 export function generatePermutation(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let types=["basic", "equation", "word", "circular", "identical", "withReplacement"];
+	let types=["basic","equation","word","circular","identical","withReplacement"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxN=getMaxN(difficulty);
 	let n=Math.floor(Math.random()*maxN)+5;
@@ -28,75 +23,77 @@ export function generatePermutation(difficulty?: string): void{
 	switch (type){
 		case "basic":
 			questionArea.innerHTML=`\\( P(${n}, ${r}) \\)`;
+			let basicAns=nPr(n, r).toString();
 			window.correctAnswer={
-				correct: nPr(n, r).toString(),
-				alternate: `nPr(${n},${r})`,
-				display: nPr(n, r).toString()
+				correct: basicAns,
+				alternate: basicAns,
+				display: basicAns
 			};
 			break;
 		case "equation":{
 			let val=nPr(n, r);
 			questionArea.innerHTML=`Find \\( n \\) if \\( P(n, ${r})=${val} \\)`;
+			let eqAns=n.toString();
 			window.correctAnswer={
-				correct: n.toString(),
-				alternate: `${n}`,
-				display: n.toString()
+				correct: eqAns,
+				alternate: eqAns,
+				display: eqAns
 			};
 			break;
 		}
 		case "word":{
-			let objs=["books", "cars", "students", "colors"];
+			let objs=["books","cars","students","colors"];
 			let obj=objs[Math.floor(Math.random()*objs.length)];
 			questionArea.innerHTML=`In how many ways can you arrange \\( ${r} \\) ${obj} chosen from \\( ${n} \\)?`;
+			let wordAns=nPr(n, r).toString();
 			window.correctAnswer={
-				correct: nPr(n, r).toString(),
-				alternate: `P(${n},${r})`,
-				display: nPr(n, r).toString()
+				correct: wordAns,
+				alternate: wordAns,
+				display: wordAns
 			};
 			break;
 		}
 		case "circular":
 			questionArea.innerHTML=`How many circular arrangements of \\( ${n} \\) distinct objects?`;
+			let circAns=factorial(n-1).toString();
 			window.correctAnswer={
-				correct: factorial(n-1).toString(),
-				alternate: `(${n}-1)!`,
-				display: `(${n}-1)!`
+				correct: circAns,
+				alternate: circAns,
+				display: circAns
 			};
 			break;
 		case "identical":{
 			let k=Math.floor(Math.random()*(n-1))+1;
 			questionArea.innerHTML=`Permutations of \\( ${n} \\) items when \\( ${k} \\) are identical`;
+			let identAns=(factorial(n)/factorial(k)).toString();
+			let displayLaTeX=`\\frac{${n}!}{${k}!}`;
 			window.correctAnswer={
-				correct: (factorial(n)/factorial(k)).toString(),
-				alternate: `${n}!/${k}!`,
-				display: `\\frac{${n}!}{${k}!}`
+				correct: identAns,
+				alternate: identAns,
+				display: displayLaTeX
 			};
 			break;
 		}
 		case "withReplacement":
 			questionArea.innerHTML=`How many ordered selections of \\( ${r} \\) items from \\( ${n} \\) types if repetition is allowed?`;
+			let replAns=Math.pow(n, r).toString();
 			window.correctAnswer={
-				correct: Math.pow(n, r).toString(),
-				alternate: `${n}^${r}`,
-				display: `${n}^{${r}}`
+				correct: replAns,
+				alternate: replAns,
+				display: replAns
 			};
 			break;
 	}
 	window.MathJax?.typeset();
 }
 /**
- * Generates a random combination question of a specific type (basic, equation, word, complement, paths, or multiset).
- * The question is displayed in the questionArea element using LaTeX. The correct answer is stored in window.correctAnswer
- * with three properties:
- * - `correct`: numeric answer (string).
- * - `alternate`: alternative representation (e.g., "C(5,2)") for tolerant checking.
- * - `display`: LaTeX representation of the answer (e.g., "\\binom{5}{2}" for 10, or "\\binom{2g}{g}" for paths).
- * @param difficulty - optional difficulty level ('easy', 'medium', 'hard') that influences the maximum values used.
+ * Generates a random combination question.
+ * @param difficulty - optional difficulty level
  */
 export function generateCombination(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let types=["basic", "equation", "word", "complement", "paths", "multiset"];
+	let types=["basic","equation","word","complement","paths","multiset"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxN=getMaxN(difficulty);
 	let n=Math.floor(Math.random()*maxN)+5;
@@ -104,57 +101,65 @@ export function generateCombination(difficulty?: string): void{
 	switch (type){
 		case "basic":
 			questionArea.innerHTML=`\\( C(${n}, ${r}) \\)`;
+			let basicAns=nCr(n, r).toString();
 			window.correctAnswer={
-				correct: nCr(n, r).toString(),
-				alternate: `nCr(${n},${r})`,
-				display: nCr(n, r).toString()
+				correct: basicAns,
+				alternate: basicAns,
+				display: basicAns
 			};
 			break;
 		case "equation":{
 			let val=nCr(n, r);
 			questionArea.innerHTML=`Find \\( n \\) if \\( C(n, ${r})=${val} \\)`;
+			let eqAns=n.toString();
 			window.correctAnswer={
-				correct: n.toString(),
-				alternate: `${n}`,
-				display: n.toString()
+				correct: eqAns,
+				alternate: eqAns,
+				display: eqAns
 			};
 			break;
 		}
 		case "word":{
-			let items=["fruits", "committee members", "pizzas"];
+			let items=["fruits","committee members","pizzas"];
 			let item=items[Math.floor(Math.random()*items.length)];
 			questionArea.innerHTML=`How many ways to choose \\( ${r} \\) ${item} from \\( ${n} \\)?`;
+			let wordAns=nCr(n, r).toString();
 			window.correctAnswer={
-				correct: nCr(n, r).toString(),
-				alternate: `C(${n},${r})`,
-				display: nCr(n, r).toString()
+				correct: wordAns,
+				alternate: wordAns,
+				display: wordAns
 			};
 			break;
 		}
 		case "complement":
 			questionArea.innerHTML=`Show that \\( C(${n}, ${n-r})=C(${n}, ${r}) \\). What is its value?`;
+			let compAns=nCr(n, r).toString();
 			window.correctAnswer={
-				correct: nCr(n, r).toString(),
-				alternate: `C(${n},${r})`,
-				display: nCr(n, r).toString()
+				correct: compAns,
+				alternate: compAns,
+				display: compAns
 			};
 			break;
 		case "paths":{
 			let g=Math.floor(Math.random()*4)+3;
 			questionArea.innerHTML=`Number of shortest paths in a \\( ${g} \\times ${g} \\) grid (right & up moves)?`;
+			let pathAns=nCr(2*g, g).toString();
+			let displayLaTeX=`\\binom{${2*g}}{${g}}`;
 			window.correctAnswer={
-				correct: nCr(2*g, g).toString(),
-				alternate: `C(${2*g},${g})`,
-				display: `\\binom{${2*g}}{${g}}`
+				correct: pathAns,
+				alternate: pathAns,
+				display: displayLaTeX
 			};
 			break;
 		}
 		case "multiset":
 			questionArea.innerHTML=`Ways to choose \\( ${r} \\) items from \\( ${n} \\) types if repeats allowed?`;
+			let multiAns=nCr(n+r-1, r).toString();
+			let displayLaTeX=`\\binom{${n+r-1}}{${r}}`;
 			window.correctAnswer={
-				correct: nCr(n+r-1, r).toString(),
-				alternate: `C(${n+r-1},${r})`,
-				display: `\\binom{${n+r-1}}{${r}}`
+				correct: multiAns,
+				alternate: multiAns,
+				display: displayLaTeX
 			};
 			break;
 	}

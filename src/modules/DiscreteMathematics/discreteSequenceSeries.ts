@@ -286,17 +286,19 @@ export function generateBinomialTheorem(difficulty?: string): void{
 			if (c===0) continue;
 			const powX=n-k;
 			let term="";
-			if (c===1&&powX>0){
-				term=(powX===1?"x":`x^${powX}`);
-			}
-			else if (c===-1&&powX>0){
-				term="-"+(powX===1?"x":`x^${powX}`);
-			}
-			else if (powX===0){
+			if (powX===0){
 				term=c.toString();
 			}
+			else if (powX===1){
+				if (c===1) term="x";
+				else if (c===-1) term="-x";
+				else term=c+"x";
+			}
 			else{
-				term=c+(powX===1?"x":`x^${powX}`);
+				const powerPart=`x^{${powX}}`;
+				if (c===1) term=powerPart;
+				else if (c===-1) term=`-${powerPart}`;
+				else term=c+powerPart;
 			}
 			signedTerms.push(term);
 		}
