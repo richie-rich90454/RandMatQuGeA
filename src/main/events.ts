@@ -410,33 +410,4 @@ export function setupEventListeners(): void{
 			}
 		});
 	}
-	if (dom.userAnswer&&dom.customContextMenu){
-		dom.userAnswer.addEventListener("contextmenu",(e)=>{
-			e.preventDefault();
-			const x=e.clientX;
-			const y=e.clientY;
-			dom.customContextMenu!.style.display="block";
-			dom.customContextMenu!.style.left=x+"px";
-			dom.customContextMenu!.style.top=y+"px";
-		});
-		document.addEventListener("click",()=>{
-			if (dom.customContextMenu) dom.customContextMenu.style.display="none";
-		});
-		dom.customContextMenu.querySelectorAll(".context-menu-item").forEach(item=>{
-			item.addEventListener("click",(e)=>{
-				const action=(e.target as HTMLElement).dataset.action;
-				if (action==="paste"){
-					navigator.clipboard.readText().then(text=>{
-						if (dom.userAnswer) dom.userAnswer.value=text;
-						ui.updatePreviewDebounced();
-					});
-				}
-				else if (action==="clear"){
-					if (dom.userAnswer) dom.userAnswer.value="";
-					ui.updatePreviewDebounced();
-				}
-				if (dom.customContextMenu) dom.customContextMenu.style.display="none";
-			});
-		});
-	}
 }

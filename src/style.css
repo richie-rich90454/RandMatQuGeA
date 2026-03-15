@@ -1957,3 +1957,62 @@ body.font-opendyslexic *:not(.katex):not(.mjx-chtml){
 		font-size: 0.6rem;
 	}
 }
+.context-menu-section{
+	position: relative;
+}
+.context-menu-item.has-submenu{
+	position: relative;
+	padding-right: 20px;
+}
+.context-menu-item.has-submenu::after{
+	content: "▶";
+	position: absolute;
+	right: 8px;
+	font-size: 10px;
+	opacity: 0.7;
+}
+.context-menu-submenu{
+	position: absolute;
+	left: 100%;
+	top: 0;
+	background: var(--surface-elevated);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-lg), var(--shadow-glass);
+	padding: var(--spacing-xs);
+	min-width: 180px;
+	display: none;
+	z-index: 2100;
+	backdrop-filter: blur(calc(var(--blur-amount) * 2));
+	-webkit-backdrop-filter: blur(calc(var(--blur-amount) * 2));
+}
+.context-menu-section:hover > .context-menu-submenu{
+	display: block;
+}
+hr.context-menu-divider{
+	margin: 4px 0;
+	border: none;
+	border-top: 1px solid var(--border);
+}
+#mental-menu-section, #mental-divider{
+	display: none;
+}
+.mental-active #mental-menu-section,
+.mental-active #mental-divider{
+	display: block;
+}
+.context-menu{
+	transition: opacity 0.15s ease, transform 0.15s ease;
+	opacity: 1;
+	transform: scale(1);
+	transform-origin: top left;
+}
+.context-menu.hidden{
+	opacity: 0;
+	transform: scale(0.95);
+	pointer-events: none;
+	visibility: hidden;
+}
+.context-menu.hidden{
+	display: block;
+}
