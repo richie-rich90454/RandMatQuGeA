@@ -1,12 +1,19 @@
+/**
+ * Analytic geometry: conic sections (parabola, ellipse, hyperbola), polar conics, 3D geometry (distance/midpoint, sphere equations, line/plane).
+ * @fileoverview Generates questions about analytic geometry concepts, displays them in questionArea, and sets window.correctAnswer with answer and alternate representations. Includes 3D visualizations.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../script.js";
 import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
 import {createVisualization} from "./geometryVisualization.js";
-
+/**
+ * Generates a parabola question (upward or rightward). Asks for focus and directrix.
+ * @param difficulty - optional difficulty level.
+ */
 export function generateParabola(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
 	cleanupVisualization();
-
 	const maxA=getMaxForDifficulty(difficulty,5);
 	const a=Math.floor(Math.random()*maxA)+1;
 	const type=Math.random()<0.5?"upward":"rightward";
@@ -18,40 +25,39 @@ export function generateParabola(difficulty?: string): void{
 		focus=`(0, ${p.toFixed(2)})`;
 		directrix=`y = -${p.toFixed(2)}`;
 	}
-    else{
+	else{
 		equation=`x = ${a}y^2`;
 		const p=1/(4*a);
 		focus=`(${p.toFixed(2)}, 0)`;
 		directrix=`x = -${p.toFixed(2)}`;
 	}
-
 	questionArea.innerHTML=`For the parabola \\( ${equation} \\), find its focus and directrix.`;
 	window.correctAnswer={
 		correct: `focus: ${focus}, directrix: ${directrix}`,
-		alternate: `${focus}, ${directrix}`
+		alternate: `${focus}, ${directrix}`,
+		display: `focus: ${focus}, directrix: ${directrix}`
 	};
 	window.expectedFormat="Enter as 'focus: (x,y), directrix: line'";
-
 	createVisualization("parabola",{ a, type });
-
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+/**
+ * Generates an ellipse question (origin-centered or translated). Asks for foci and eccentricity.
+ * @param difficulty - optional difficulty level.
+ */
 export function generateEllipse(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
 	cleanupVisualization();
-
 	const maxAxis=getMaxForDifficulty(difficulty,8);
 	const a=Math.floor(Math.random()*maxAxis)+3;
 	const b=Math.floor(Math.random()*(a-1))+2;
 	const center=Math.random()<0.5?"origin":"translated";
-
 	let h=0, k=0;
 	if (center==="translated"){
 		h=Math.floor(Math.random()*5)-2;
 		k=Math.floor(Math.random()*5)-2;
 	}
-
 	let equation="";
 	let foci: string, eccentricity: number;
 	if (center==="origin"){
@@ -61,55 +67,54 @@ export function generateEllipse(difficulty?: string): void{
 			foci=`(±${c.toFixed(2)}, 0)`;
 			eccentricity=c/a;
 		}
-        else{
+		else{
 			equation=`\\frac{y^2}{${a}^2} + \\frac{x^2}{${b}^2} = 1`;
 			const c=Math.sqrt(a*a-b*b);
 			foci=`(0, ±${c.toFixed(2)})`;
 			eccentricity=c/a;
 		}
 	}
-    else{
+	else{
 		if (Math.random()<0.5){
 			equation=`\\frac{(x ${h>=0?'-':'+'} ${Math.abs(h)})^2}{${a}^2} + \\frac{(y ${k>=0?'-':'+'} ${Math.abs(k)})^2}{${b}^2} = 1`;
 			const c=Math.sqrt(a*a-b*b);
 			foci=`(${h} ± ${c.toFixed(2)}, ${k})`;
 			eccentricity=c/a;
 		}
-        else{
+		else{
 			equation=`\\frac{(y ${k>=0?'-':'+'} ${Math.abs(k)})^2}{${a}^2} + \\frac{(x ${h>=0?'-':'+'} ${Math.abs(h)})^2}{${b}^2} = 1`;
 			const c=Math.sqrt(a*a-b*b);
 			foci=`(${h}, ${k} ± ${c.toFixed(2)})`;
 			eccentricity=c/a;
 		}
 	}
-
 	questionArea.innerHTML=`For the ellipse \\( ${equation} \\), find its foci and eccentricity.`;
 	window.correctAnswer={
 		correct: `foci: ${foci}, e = ${eccentricity.toFixed(2)}`,
-		alternate: `${foci}, ${eccentricity.toFixed(2)}`
+		alternate: `${foci}, ${eccentricity.toFixed(2)}`,
+		display: `foci: ${foci}, e = ${eccentricity.toFixed(2)}`
 	};
 	window.expectedFormat="Enter as 'foci: (x,y) (±), e = number'";
-
 	createVisualization("ellipse",{ a, b, center, h, k });
-
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+/**
+ * Generates a hyperbola question (origin-centered or translated). Asks for foci, asymptotes, and eccentricity.
+ * @param difficulty - optional difficulty level.
+ */
 export function generateHyperbola(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
 	cleanupVisualization();
-
 	const maxAxis=getMaxForDifficulty(difficulty,8);
 	const a=Math.floor(Math.random()*maxAxis)+3;
 	const b=Math.floor(Math.random()*maxAxis)+2;
 	const center=Math.random()<0.5?"origin":"translated";
-
 	let h=0, k=0;
 	if (center==="translated"){
 		h=Math.floor(Math.random()*5)-2;
 		k=Math.floor(Math.random()*5)-2;
 	}
-
 	let equation="";
 	let foci: string, asymptotes: string, eccentricity: number;
 	if (center==="origin"){
@@ -120,7 +125,7 @@ export function generateHyperbola(difficulty?: string): void{
 			asymptotes=`y = ±${(b/a).toFixed(2)}x`;
 			eccentricity=c/a;
 		}
-        else{
+		else{
 			equation=`\\frac{y^2}{${a}^2} - \\frac{x^2}{${b}^2} = 1`;
 			const c=Math.sqrt(a*a+b*b);
 			foci=`(0, ±${c.toFixed(2)})`;
@@ -128,7 +133,7 @@ export function generateHyperbola(difficulty?: string): void{
 			eccentricity=c/a;
 		}
 	}
-    else{
+	else{
 		if (Math.random()<0.5){
 			equation=`\\frac{(x ${h>=0?'-':'+'} ${Math.abs(h)})^2}{${a}^2} - \\frac{(y ${k>=0?'-':'+'} ${Math.abs(k)})^2}{${b}^2} = 1`;
 			const c=Math.sqrt(a*a+b*b);
@@ -136,7 +141,7 @@ export function generateHyperbola(difficulty?: string): void{
 			asymptotes=`y = ${k} ± ${(b/a).toFixed(2)}(x ${h>=0?'-':'+'} ${Math.abs(h)})`;
 			eccentricity=c/a;
 		}
-        else{
+		else{
 			equation=`\\frac{(y ${k>=0?'-':'+'} ${Math.abs(k)})^2}{${a}^2} - \\frac{(x ${h>=0?'-':'+'} ${Math.abs(h)})^2}{${b}^2} = 1`;
 			const c=Math.sqrt(a*a+b*b);
 			foci=`(${h}, ${k} ± ${c.toFixed(2)})`;
@@ -144,18 +149,20 @@ export function generateHyperbola(difficulty?: string): void{
 			eccentricity=c/a;
 		}
 	}
-
 	questionArea.innerHTML=`For the hyperbola \\( ${equation} \\), find its foci, asymptotes, and eccentricity.`;
 	window.correctAnswer={
 		correct: `foci: ${foci}, asymptotes: ${asymptotes}, e = ${eccentricity.toFixed(2)}`,
-		alternate: `${foci}, ${asymptotes}, ${eccentricity.toFixed(2)}`
+		alternate: `${foci}, ${asymptotes}, ${eccentricity.toFixed(2)}`,
+		display: `foci: ${foci}, asymptotes: ${asymptotes}, e = ${eccentricity.toFixed(2)}`
 	};
 	window.expectedFormat="Enter as 'foci: ..., asymptotes: ..., e = ...'";
-
 	createVisualization("hyperbola",{ a, b, center, h, k });
-
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+/**
+ * Generates a polar conic equation question. Asks for conic type and eccentricity.
+ * @param difficulty - optional difficulty level.
+ */
 export function generatePolarConic(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -164,7 +171,6 @@ export function generatePolarConic(difficulty?: string): void{
 	let eMax: number;
 	let kMin=2;
 	let kMax: number;
-
 	switch (difficulty){
 		case "easy":
 			eMax=1.8;
@@ -190,24 +196,25 @@ export function generatePolarConic(difficulty?: string): void{
 	const k=(Math.floor(Math.random()*(kMax-kMin+1))+kMin).toFixed(2);
 	const sinOrCos=Math.random()<0.5?"cos":"sin";
 	const sign=Math.random()<0.5?"+":"-";
-
 	const equation=`r = \\frac{${k} \\cdot ${e}}{1 ${sign} ${e} ${sinOrCos}\\theta}`;
 	questionArea.innerHTML=`Identify the conic and find its eccentricity from the polar equation: \\( ${equation} \\).`;
 	window.correctAnswer={
 		correct: `${conicType}, e = ${e}`,
-		alternate: `${conicType}, ${e}`
+		alternate: `${conicType}, ${e}`,
+		display: `${conicType}, e = ${e}`
 	};
 	window.expectedFormat="Enter as 'type, e = number'";
-
 	createVisualization("polarConic",{ e: eNum, k, sinOrCos, sign });
-
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+/**
+ * Generates a 3D distance and midpoint question.
+ * @param difficulty - optional difficulty level.
+ */
 export function generate3DDistanceMidpoint(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
 	cleanupVisualization();
-
 	const maxCoord=getMaxForDifficulty(difficulty,6);
 	const x1=Math.floor(Math.random()*maxCoord*2)-maxCoord;
 	const y1=Math.floor(Math.random()*maxCoord*2)-maxCoord;
@@ -215,43 +222,41 @@ export function generate3DDistanceMidpoint(difficulty?: string): void{
 	const x2=Math.floor(Math.random()*maxCoord*2)-maxCoord;
 	const y2=Math.floor(Math.random()*maxCoord*2)-maxCoord;
 	const z2=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-
 	const dist=Math.sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2);
 	const mx=(x1+x2)/2;
 	const my=(y1+y2)/2;
 	const mz=(z1+z2)/2;
-
 	questionArea.innerHTML=`Find the distance and midpoint between \\( (${x1}, ${y1}, ${z1}) \\) and \\( (${x2}, ${y2}, ${z2}) \\).`;
 	window.correctAnswer={
 		correct: `distance: ${dist.toFixed(2)}, midpoint: (${mx.toFixed(2)}, ${my.toFixed(2)}, ${mz.toFixed(2)})`,
-		alternate: `${dist.toFixed(2)}, (${mx.toFixed(2)},${my.toFixed(2)},${mz.toFixed(2)})`
+		alternate: `${dist.toFixed(2)}, (${mx.toFixed(2)},${my.toFixed(2)},${mz.toFixed(2)})`,
+		display: `distance: ${dist.toFixed(2)}, midpoint: (${mx.toFixed(2)}, ${my.toFixed(2)}, ${mz.toFixed(2)})`
 	};
 	window.expectedFormat="Enter as 'distance: ..., midpoint: (x,y,z)'";
-
 	createVisualization("points3D",{ points: [{ x: x1, y: y1, z: z1 },{ x: x2, y: y2, z: z2 }] });
-
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+/**
+ * Generates a sphere equation question (center-radius or general form).
+ * @param difficulty - optional difficulty level.
+ */
 export function generateSphereEquation(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
 	cleanupVisualization();
-
 	const maxCoord=getMaxForDifficulty(difficulty,5);
 	const h=Math.floor(Math.random()*maxCoord*2)-maxCoord;
 	const k=Math.floor(Math.random()*maxCoord*2)-maxCoord;
 	const l=Math.floor(Math.random()*maxCoord*2)-maxCoord;
 	const r=Math.floor(Math.random()*maxCoord)+2;
-
 	const type=Math.random()<0.5?"center-radius":"general";
 	let question="";
 	let answer="";
-
 	if (type==="center-radius"){
 		question=`Write the equation of a sphere with center \\( (${h}, ${k}, ${l}) \\) and radius \\( ${r} \\).`;
 		answer=`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 + (z ${l>=0?'-':'+'} ${Math.abs(l)})^2 = ${r}^2`;
 	}
-    else{
+	else{
 		const constTerm=h*h+k*k+l*l-r*r;
 		const signX=-2*h;
 		const signY=-2*k;
@@ -259,23 +264,22 @@ export function generateSphereEquation(difficulty?: string): void{
 		question=`Find the center and radius of the sphere: \\( x^2 + y^2 + z^2 ${signX>=0?'+':'-'} ${Math.abs(signX)}x ${signY>=0?'+':'-'} ${Math.abs(signY)}y ${signZ>=0?'+':'-'} ${Math.abs(signZ)}z ${constTerm>=0?'+':'-'} ${Math.abs(constTerm)} = 0 \\).`;
 		answer=`center (${h}, ${k}, ${l}), radius ${r}`;
 	}
-
 	questionArea.innerHTML=question;
-	window.correctAnswer={ correct: answer, alternate: answer };
+	window.correctAnswer={ correct: answer, alternate: answer, display: answer };
 	window.expectedFormat="Enter the equation or center/radius as appropriate";
-
 	createVisualization("sphere",{ radius: r, center: [h,k,l] });
-
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+/**
+ * Generates a 3D line or plane question (point on line or point lies on plane).
+ * @param difficulty - optional difficulty level.
+ */
 export function generateLinePlane3D(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
 	cleanupVisualization();
-
 	const type=Math.random()<0.5?"line":"plane";
 	const maxCoord=getMaxForDifficulty(difficulty,5);
-
 	if (type==="line"){
 		const x0=Math.floor(Math.random()*maxCoord*2)-maxCoord;
 		const y0=Math.floor(Math.random()*maxCoord*2)-maxCoord;
@@ -283,38 +287,35 @@ export function generateLinePlane3D(difficulty?: string): void{
 		const a=Math.floor(Math.random()*maxCoord)+1;
 		const b=Math.floor(Math.random()*maxCoord)+1;
 		const c=Math.floor(Math.random()*maxCoord)+1;
-
 		const tVal=Math.floor(Math.random()*3)+1;
 		const x=x0+a*tVal;
 		const y=y0+b*tVal;
 		const z=z0+c*tVal;
-
 		questionArea.innerHTML=`A line has parametric equations \\( x = ${x0} + ${a}t, y = ${y0} + ${b}t, z = ${z0} + ${c}t \\). Find the point on the line when \\( t = ${tVal} \\).`;
 		window.correctAnswer={
 			correct: `(${x}, ${y}, ${z})`,
-			alternate: `(${x},${y},${z})`
+			alternate: `(${x},${y},${z})`,
+			display: `(${x}, ${y}, ${z})`
 		};
 		window.expectedFormat="Enter as (x, y, z)";
 		createVisualization("line3D",{ point: [x0,y0,z0], direction: [a,b,c], t: tVal });
 	}
-    else{
+	else{
 		const a=Math.floor(Math.random()*maxCoord)+1;
 		const b=Math.floor(Math.random()*maxCoord)+1;
 		const c=Math.floor(Math.random()*maxCoord)+1;
 		const d=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-
 		const x=Math.floor(Math.random()*5)-2;
 		const y=Math.floor(Math.random()*5)-2;
 		const z=-(a*x+b*y+d)/c;
-
 		questionArea.innerHTML=`Does the point \\( (${x}, ${y}, ${z.toFixed(2)}) \\) lie on the plane \\( ${a}x + ${b}y + ${c}z ${d>=0?'+':'-'} ${Math.abs(d)} = 0 \\)? (yes/no)`;
 		window.correctAnswer={
 			correct: "yes",
-			alternate: "yes"
+			alternate: "yes",
+			display: "yes"
 		};
 		window.expectedFormat="Enter 'yes' or 'no'";
 		createVisualization("plane3D",{ normal: [a,b,c], d, point: [x,y,z] });
 	}
-
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }

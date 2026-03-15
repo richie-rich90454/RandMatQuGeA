@@ -1,3 +1,8 @@
+/**
+ * Geometry visualizations using Canvas 2D and Three.js.
+ * @fileoverview Renders 2D (parabola, ellipse, hyperbola, polar conic, circle, triangle) and 3D (sphere, cube, cylinder, cone, pyramid, torus, points, line, plane) shapes. Cleans up previous visualizations and creates new ones in a dedicated container.
+ * @date 2026-03-15
+ */
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { CSS2DRenderer, CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
@@ -10,6 +15,11 @@ let currentScene: THREE.Scene|null=null;
 let currentCamera: THREE.PerspectiveCamera|null=null;
 let currentControls: OrbitControls|null=null;
 let currentAnimationFrame: number=0;
+/**
+ * Computes a nice step size for axis ticks based on range.
+ * @param range - total range of data
+ * @returns step size
+ */
 function niceStep(range: number): number{
 	const roughStep=range/7;
 	const magnitude=Math.pow(10,Math.floor(Math.log10(roughStep)));
@@ -21,6 +31,12 @@ function niceStep(range: number): number{
 	else step=10*magnitude;
 	return step;
 }
+/**
+ * Creates a 2D canvas visualization for a given shape.
+ * @param shape - shape type (parabola, ellipse, hyperbola, polarConic, circle, triangle)
+ * @param params - parameters (e.g., a, b, type, radius, base, height)
+ * @param container - DOM container element
+ */
 function createCanvas2DVisualization(shape: string, params: any, container: HTMLElement): void{
 	const canvas=document.createElement("canvas");
 	canvas.id="geometry-canvas";
@@ -332,6 +348,11 @@ function createCanvas2DVisualization(shape: string, params: any, container: HTML
 	const resizeObserver=new ResizeObserver(()=>draw());
 	resizeObserver.observe(container);
 }
+/**
+ * Creates a visualization (2D canvas or 3D Three.js) for a given shape.
+ * @param shape - shape type (parabola, ellipse, hyperbola, polarConic, circle, triangle, sphere, cube, cylinder, cone, pyramid, torus, points3D, line3D, plane3D)
+ * @param params - parameters for the shape
+ */
 export function createVisualization(shape: string, params: any): void{
 	cleanupVisualization();
 	const container=document.createElement("div");
@@ -600,6 +621,9 @@ export function createVisualization(shape: string, params: any): void{
 	});
 	resizeObserver.observe(container);
 }
+/**
+ * Cleans up all visualization resources: stops animation, disposes renderers, removes DOM elements.
+ */
 export function cleanupVisualization(): void{
 	if (currentAnimationFrame){
 		cancelAnimationFrame(currentAnimationFrame);
