@@ -22,8 +22,8 @@
  * **Side effects**:
  * - Clears `questionArea.innerHTML`.
  * - Appends a new `<div>` containing the LaTeX question.
- * - Sets `window.correctAnswer` to an object with `correct` and `alternate` properties
- *   (both set to the plain‑text derivative).
+ * - Sets `window.correctAnswer` to an object with `correct`, `alternate`, and `display` properties.
+ *   `correct` and `alternate` hold the plain‑text derivative; `display` holds a LaTeX version for rendering.
  * - Sets `window.expectedFormat` to a string describing the expected answer format
  *   (e.g., `"Enter the derivative as an expression, e.g., 2x+3, cos(x), etc."`).
  * - If MathJax is available, calls `MathJax.typesetPromise` on the new element.
@@ -227,7 +227,8 @@ export function generateDerivative(difficulty?: string): void{
     }
     window.correctAnswer={
         correct: plainCorrectDerivative,
-        alternate: plainCorrectDerivative
+        alternate: plainCorrectDerivative,
+        display: correctDerivative
     };
     window.expectedFormat="Enter the derivative as an expression, e.g., 2x+3, cos(x), etc.";
 }

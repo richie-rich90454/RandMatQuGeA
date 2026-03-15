@@ -49,8 +49,9 @@
  * - Clears `questionArea.innerHTML`.
  * - Appends any generated canvas first, then a `<div>` containing the LaTeX question.
  * - Calls `window.MathJax.typesetPromise` (if available) to render the math.
- * - Sets `window.correctAnswer` to an object with `correct` and `alternate`
- *   properties (both set to the plain‑text answer).
+ * - Sets `window.correctAnswer` to an object with `correct`, `alternate`, and `display`
+ *   properties. `correct` and `alternate` hold the plain‑text answer for validation;
+ *   `display` holds a LaTeX‑formatted version for rendering with KaTeX.
  * - Sets `window.expectedFormat` to a string describing the expected answer format
  *   (e.g., `"Enter a number"`, `"Enter expression"`, `"Enter interval"`, etc.).
  *
@@ -83,6 +84,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
+	let latexAnswer="";
 	let expectedFormat="Enter your answer";
 	let maxCoeff=getMaxCoeff(difficulty);
 	let canvas: HTMLCanvasElement|null=null;
@@ -94,6 +96,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			canvas=drawLimitGraph(coeff, holeX, holeY);
 			mathExpression=`\\[ \\lim_{x\\to ${holeX}} f(x)=? \\]`;
 			plainCorrectAnswer=holeY.toString();
+			latexAnswer=holeY.toString();
 			expectedFormat="Enter a number";
 			break;
 		}
@@ -105,6 +108,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			let table=`\\begin{array}{c|c} x & f(x) \\\\ ${c-0.1} & ${a*(c-0.1)**2+b} \\\\ ${c+0.1} & ${a*(c+0.1)**2+b} \\end{array}`;
 			mathExpression=`\\[ \\text{Graph and table given, find } \\lim_{x\\to ${c}} f(x). \\] ${table}`;
 			plainCorrectAnswer=(a*c*c+b).toString();
+			latexAnswer=(a*c*c+b).toString();
 			expectedFormat="Enter a number";
 			break;
 		}
@@ -122,6 +126,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			mathExpression=`\\[ \\text{Table:} \\begin{array}{c|c} x & f(x) \\\\ ${tableStr} \\end{array} \\text{ Estimate } f'(${x0}). \\]`;
 			let derivEst=(vals[3]-vals[1])/(2*h);
 			plainCorrectAnswer=derivEst.toFixed(4);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a decimal";
 			break;
 		}
@@ -130,6 +135,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			canvas=drawAbsoluteGraph(x0);
 			mathExpression=`\\[ \\text{Is } f(x)=|x-${x0}| \\text{ differentiable at } x=${x0}? \\]`;
 			plainCorrectAnswer="no";
+			latexAnswer="\\text{no}";
 			expectedFormat="Enter yes or no";
 			break;
 		}
@@ -139,6 +145,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			let a=Math.floor(Math.random()*5)+1;
 			mathExpression=`\\[ f(${a})=${fVal}, f'(${a})=${fPrime}. \\text{ Find } (f^{-1})'(${fVal}). \\]`;
 			plainCorrectAnswer=(1/fPrime).toFixed(3);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
@@ -146,6 +153,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\frac{d}{dx}[\\arctan(${a}x)] \\]`;
 			plainCorrectAnswer=`${a}/(1+${a*a}x^2)`;
+			latexAnswer=`\\frac{${a}}{1+${a*a}x^{2}}`;
 			expectedFormat="Enter expression";
 			break;
 		}
@@ -153,6 +161,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			let options=["Product and chain","Chain only","Quotient","Product only"];
 			let correctIdx=Math.floor(Math.random()*options.length);
 			plainCorrectAnswer=options[correctIdx];
+			latexAnswer=`\\text{${options[correctIdx]}}`;
 			mathExpression=`\\[ f(x)=x^2 e^{${maxCoeff}x} \\cos x \\] Which rule(s)? A) ${options[0]} B) ${options[1]} C) ${options[2]} D) ${options[3]}`;
 			expectedFormat="Enter letter";
 			break;
@@ -161,6 +170,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			let rate=Math.floor(Math.random()*10)+5;
 			mathExpression=`\\[ \\text{Volume increasing at } ${rate} \\text{ cm}^3/s. \\text{ What does } V'(t) \\text{ represent?} \\]`;
 			plainCorrectAnswer="rate of change of volume";
+			latexAnswer="\\text{rate of change of volume}";
 			expectedFormat="Enter description";
 			break;
 		}
@@ -177,6 +187,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 				sum+=x*x*delta;
 			}
 			plainCorrectAnswer=sum.toFixed(3);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
@@ -187,6 +198,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
             let delta=(b-a)/n;
             mathExpression=`\\[ \\lim_{n\\to\\infty} \\sum_{i=1}^n \\left(${a}+${delta}i\\right)^2 \\cdot ${delta} \\text{ as definite integral.} \\]`;
             plainCorrectAnswer=`\\int_{${a}}^{${b}} x^2 \\,dx`;
+            latexAnswer=`\\int_{${a}}^{${b}} x^{2}\\,dx`;
             expectedFormat="Enter integral";
             break;
         }
@@ -196,6 +208,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			canvas=drawAccumGraph(a, x0);
 			mathExpression=`\\[ F(x)=\\int_{${a}}^x f(t)\\,dt, \\text{ find } F'(${x0}). \\]`;
 			plainCorrectAnswer=(x0).toString();
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
@@ -204,6 +217,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			canvas=drawAccumGraph2(a);
 			mathExpression=`\\[ g(x)=\\int_0^x f(t)\\,dt, \\text{ where increasing?} \\]`;
 			plainCorrectAnswer=`(${a}, ${a+2})`;
+			latexAnswer=`(${a},${a+2})`;
 			expectedFormat="Enter interval";
 			break;
 		}
@@ -215,6 +229,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			let c=b+Math.floor(Math.random()*3)+1;
 			mathExpression=`\\[ \\int_{${a}}^{${b}} f=${int1}, \\int_{${b}}^{${c}} f=${int2}, \\text{ find } \\int_{${a}}^{${c}} f. \\]`;
 			plainCorrectAnswer=(int1+int2).toString();
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
@@ -222,6 +237,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\int \\frac{x^3}{x^2+${a}} \\,dx \\]`;
 			plainCorrectAnswer=`(1/2)x^2 - ${a}ln|x^2+${a}| + C`;
+			latexAnswer=`\\frac{1}{2}x^{2} - ${a}\\ln|x^{2}+${a}| + C`;
 			expectedFormat="Enter expression";
 			break;
 		}
@@ -231,12 +247,14 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			mathExpression=`\\[ r(t)=${rate}-t \\text{ gal/min. Water from } t=0 \\text{ to } t=${tMax}. \\]`;
 			let accum=rate*tMax - tMax*tMax/2;
 			plainCorrectAnswer=accum.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
 		case "instantChange":{
 			mathExpression=`\\[ \\text{Explain how limits give instantaneous velocity.} \\]`;
 			plainCorrectAnswer="average velocity approaches instantaneous as interval shrinks";
+			latexAnswer="\\text{average velocity approaches instantaneous as interval shrinks}";
 			expectedFormat="Enter explanation";
 			break;
 		}
@@ -245,6 +263,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			let b=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ f(x)=${a}x+${b}, \\text{ use limit definition to find } f'(x). \\]`;
 			plainCorrectAnswer=a.toString();
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter expression";
 			break;
 		}
@@ -262,7 +281,8 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 	}
 	window.correctAnswer={
 		correct: plainCorrectAnswer,
-		alternate: plainCorrectAnswer
+		alternate: plainCorrectAnswer,
+		display: latexAnswer
 	};
 	window.expectedFormat=expectedFormat;
 }

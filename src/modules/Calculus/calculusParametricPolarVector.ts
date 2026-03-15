@@ -13,8 +13,10 @@
  * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type.
  * 4. Appends a `<div>` containing the LaTeX to `questionArea`.
  * 5. Triggers MathJax (if available) to render the math.
- * 6. Sets two global variables for answer validation:
- *    - `window.correctAnswer` – an object with `correct` and `alternate` properties (both equal to the answer).
+ * 6. Sets global variables for answer validation:
+ *    - `window.correctAnswer` – an object with `correct`, `alternate`, and `display` properties.
+ *      `correct` and `alternate` hold the plain‑text answer for validation;
+ *      `display` holds a LaTeX‑formatted version for rendering with KaTeX.
  *    - `window.expectedFormat` – a string describing the expected input format (e.g., "Enter number").
  *
  * **Question types** (each uses random coefficients scaled by `difficulty`):
@@ -51,6 +53,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
+	let latexAnswer="";
 	let expectedFormat="Enter your answer";
 	let maxCoeff=getMaxCoeff(difficulty);
 	switch (questionType){
@@ -63,6 +66,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			let dy=3*t*t - b;
 			let deriv=dy/dx;
 			plainCorrectAnswer=deriv.toFixed(3);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
@@ -76,6 +80,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			let ddy=6*t;
 			let second=(ddy*dx - dy*ddx)/(dx*dx*dx);
 			plainCorrectAnswer=second.toFixed(3);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
@@ -86,6 +91,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			mathExpression=`\\[ x=${a}t,\\ y=${a}t, \\text{ length from } t=${t0} \\text{ to } t=${t1}. \\]`;
 			let len=Math.sqrt(2)*a*(t1-t0);
 			plainCorrectAnswer=len.toFixed(3);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
@@ -93,6 +99,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\mathbf{r}(t)=\\langle t^2, e^{${a}t} \\rangle, \\text{ find } \\mathbf{r}'(t). \\]`;
 			plainCorrectAnswer=`<2t, ${a}e^(${a}t)>`;
+			latexAnswer=`\\langle 2t,\\ ${a}e^{${a}t} \\rangle`;
 			expectedFormat="Enter vector";
 			break;
 		}
@@ -102,6 +109,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			let intX=0.5;
 			let intY=a/3;
 			plainCorrectAnswer=`<${intX.toFixed(3)}, ${intY.toFixed(3)}>`;
+			latexAnswer=`\\langle ${intX.toFixed(3)},\\ ${intY.toFixed(3)} \\rangle`;
 			expectedFormat="Enter vector";
 			break;
 		}
@@ -110,6 +118,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			mathExpression=`\\[ \\mathbf{r}(t)=\\langle \\cos(${a}t), \\sin(${a}t) \\rangle, \\text{ find speed.} \\]`;
 			let speed=a;
 			plainCorrectAnswer=speed.toString();
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
@@ -123,6 +132,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			let dy_dtheta= dr*Math.sin(theta) + r*Math.cos(theta);
 			let deriv=dy_dtheta/dx_dtheta;
 			plainCorrectAnswer=deriv.toFixed(3);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
@@ -131,6 +141,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			mathExpression=`\\[ \\text{Area inside } r=1+${a}\\cos\\theta. \\]`;
 			let area=Math.PI*(1 + a*a/2);
 			plainCorrectAnswer=area.toFixed(3);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
@@ -139,6 +150,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			mathExpression=`\\[ \\text{Area inside } r=${a} \\text{ and outside } r=${a}(1-\\cos\\theta). \\]`;
 			let area=a*a*(2 - Math.PI/2);
 			plainCorrectAnswer=area.toFixed(3);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
@@ -153,7 +165,8 @@ export function generateParametricPolarVector(difficulty?: string): void{
 	}
 	window.correctAnswer={
 		correct: plainCorrectAnswer,
-		alternate: plainCorrectAnswer
+		alternate: plainCorrectAnswer,
+		display: latexAnswer
 	};
 	window.expectedFormat=expectedFormat;
 }

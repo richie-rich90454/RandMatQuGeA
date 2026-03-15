@@ -34,16 +34,15 @@
  * - Indefinite integrals include an integration constant "+C".
  * - Coefficients are often simplified and shown with two decimal places, but
  *   trailing zeros may be removed (e.g., "2.00x^3" becomes "2x^3").
- * - The global `window.correctAnswer` stores both a normalized version (spaces
- *   removed, braces stripped) and the original plain‑text answer for flexible
- *   matching.
+ * - The global `window.correctAnswer` stores a normalized version (spaces
+ *   removed, braces stripped) in `correct`, an alternate plain‑text version in
+ *   `alternate`, and a LaTeX‑formatted version in `display` for rendering with KaTeX.
  *
  * **Side effects**:
  * - Clears `questionArea.innerHTML`.
  * - Appends a new `<div>` containing the LaTeX question.
  * - Calls `window.MathJax.typesetPromise` (if available) to render the math.
- * - Sets `window.correctAnswer` to an object with `correct` (normalized) and
- *   `alternate` (original) properties.
+ * - Sets `window.correctAnswer` to an object with `correct`, `alternate`, and `display`.
  * - Sets `window.expectedFormat` to a string describing the expected input format
  *   (e.g., "Enter the integral as an expression, e.g., 2x^3/3+5x^2/2+C, ...").
  *
@@ -86,6 +85,7 @@ export function generateIntegral(difficulty?: string): void{
 	const maxCoeff=getMaxCoeff(difficulty);
 	let mathExpression="";
 	let plainCorrectIntegral="";
+	let latexAnswer="";
 	let alternateAnswer:string|undefined=undefined;
 	switch (questionType){
 		case "polynomial":{
@@ -125,6 +125,7 @@ export function generateIntegral(difficulty?: string): void{
 			}
 			integralTerms.push("C");
 			plainCorrectIntegral=integralTerms.join("+");
+			latexAnswer=integralTerms.join("+");
 			break;
 		}
 		case "trigonometric":{
@@ -148,6 +149,7 @@ export function generateIntegral(difficulty?: string): void{
 			const fractionStr=formatFraction(coeff,a);
 			const signStr=chosen.sign===1 ? '' : '-';
 			alternateAnswer=`${signStr}${fractionStr} ${chosen.target}(${a}x)+C`;
+			latexAnswer=`${signStr}\\frac{${coeff}}{${a}} ${chosen.target}(${a}x)+C`;
 			break;
 		}
 		case "exponential":{
@@ -157,11 +159,13 @@ export function generateIntegral(difficulty?: string): void{
 			if (base==="e"){
 				mathExpression=`\\[ \\int ${coeff}e^{${a}x} \\,dx=? \\]`;
 				plainCorrectIntegral=`${formatNumber(coeff/a)}e^(${a}x)+C`;
+				latexAnswer=`\\frac{${coeff}}{${a}}e^{${a}x}+C`;
 			}
 			else{
 				mathExpression=`\\[ \\int ${coeff}${base}^{x} \\,dx=? \\]`;
 				const lnBase=Math.log(base as number);
 				plainCorrectIntegral=`${formatNumber(coeff/lnBase)}${base}^x+C`;
+				latexAnswer=`\\frac{${coeff}}{\\ln(${base})}${base}^{x}+C`;
 			}
 			break;
 		}
@@ -169,6 +173,7 @@ export function generateIntegral(difficulty?: string): void{
 			const coeff=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\int \\frac{${coeff}}{x} \\,dx=? \\]`;
 			plainCorrectIntegral=`${coeff}ln|x|+C`;
+			latexAnswer=`${coeff}\\ln|x|+C`;
 			break;
 		}
 		case "substitution":{
@@ -180,6 +185,7 @@ export function generateIntegral(difficulty?: string): void{
 			const newPower=power+1;
 			const factor=coeff/(a*newPower);
 			plainCorrectIntegral=`${formatNumber(factor)}(${a}x+${b})^${newPower}+C`;
+			latexAnswer=`\\frac{${coeff}}{${a}${newPower}}(${a}x+${b})^{${newPower}}+C`;
 			break;
 		}
 		case "definite":{
@@ -199,6 +205,7 @@ export function generateIntegral(difficulty?: string): void{
 				result+=antideriv*(Math.pow(upper,exp+1)-Math.pow(lower,exp+1));
 			}
 			plainCorrectIntegral=formatNumber(result);
+			latexAnswer=plainCorrectIntegral;
 			break;
 		}
 		case "initialValue":{
@@ -211,6 +218,7 @@ export function generateIntegral(difficulty?: string): void{
 			const c=yVal-antiderivCoeff*Math.pow(xVal,exponent+1);
 			mathExpression=`\\[ \\text{Find } f(x) \\text{ where } f(${xVal}) = ${yVal} \\text{ and } f'(x) = ${polynomial} \\]`;
 			plainCorrectIntegral=`${formatNumber(antiderivCoeff)}x^${exponent+1} + ${formatNumber(c)}`;
+			latexAnswer=`\\frac{${coeff}}{${exponent+1}}x^{${exponent+1}} + ${formatNumber(c)}`;
 			break;
 		}
 		case "area":{
@@ -226,6 +234,7 @@ export function generateIntegral(difficulty?: string): void{
 			const area=chosen.antideriv(b)-chosen.antideriv(a);
 			mathExpression=`\\[ \\text{Area under } ${chosen.expr} \\text{ from } ${a} \\text{ to } ${b} = ? \\]`;
 			plainCorrectIntegral=formatNumber(area);
+			latexAnswer=plainCorrectIntegral;
 			break;
 		}
 		case "motion":{
@@ -233,12 +242,14 @@ export function generateIntegral(difficulty?: string): void{
 			mathExpression=`\\[ \\text{Find position from velocity } v(t) = ${coeff}t^2 \\]`;
 			plainCorrectIntegral=`${formatNumber(coeff/3)}t^3 + C`;
 			alternateAnswer=`${coeff}t^3/3 + C`;
+			latexAnswer=`\\frac{${coeff}}{3}t^{3} + C`;
 			break;
 		}
 		default:{
 			const polynomial="x^2";
 			mathExpression=`\\[ \\int ${polynomial} \\,dx=? \\]`;
 			plainCorrectIntegral="x^3/3 + C";
+			latexAnswer="\\frac{x^{3}}{3} + C";
 		}
 	}
 	const mathContainer=document.createElement("div");
@@ -256,7 +267,8 @@ export function generateIntegral(difficulty?: string): void{
 		 .toLowerCase();
 	window.correctAnswer={
 		correct: normalize(plainCorrectIntegral),
-		alternate: alternateAnswer ? normalize(alternateAnswer) : plainCorrectIntegral
+		alternate: alternateAnswer ? normalize(alternateAnswer) : plainCorrectIntegral,
+		display: latexAnswer
 	};
 	window.expectedFormat="Enter the integral as an expression, e.g., 2x^3/3+5x^2/2+C, 1/3 sin(3x)+C, etc.";
 }

@@ -56,8 +56,9 @@
  * - Clears `questionArea.innerHTML`.
  * - Appends a new `<div>` containing the LaTeX question.
  * - Calls `window.MathJax.typesetPromise` (if available) to render the math.
- * - Sets `window.correctAnswer` to an object with `correct` and `alternate`
- *   properties (both set to the plain‑text answer).
+ * - Sets `window.correctAnswer` to an object with `correct`, `alternate`, and `display`
+ *   properties. `correct` and `alternate` hold the plain‑text answer for validation;
+ *   `display` holds a LaTeX‑formatted version for rendering with KaTeX.
  * - Sets `window.expectedFormat` to a string describing the expected answer format
  *   (e.g., `"Enter a number"`, `"Enter expression"`, `"Enter equation"`, etc.).
  *
@@ -80,6 +81,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
+	let latexAnswer="";
 	let expectedFormat="Enter your answer";
 	let maxCoeff=getMaxCoeff(difficulty);
 	switch (questionType){
@@ -87,7 +89,9 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Average value of } f(x)=x^2 \\text{ on } [${b},${a}]. \\]`;
-			plainCorrectAnswer=(((a*a*a - b*b*b)/3) / (a - b)).toFixed(2);
+			let val=(((a*a*a - b*b*b)/3) / (a - b));
+			plainCorrectAnswer=val.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
@@ -95,7 +99,9 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff) + 1;
 			mathExpression=`\\[ \\text{Area between } y=x^2 \\text{ and } y=${a}x. \\]`;
 			let intersect=a;
-			plainCorrectAnswer=((intersect*intersect*intersect) / 6).toFixed(2);
+			let val=(intersect*intersect*intersect) / 6;
+			plainCorrectAnswer=val.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
@@ -106,40 +112,50 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			let intersect2= (1+Math.sqrt(1+4*a))/2;
 			let area= Math.abs((intersect2**3/3 + a*intersect2**2/2) - (intersect1**3/3 + a*intersect1**2/2));
 			plainCorrectAnswer=area.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
 		case "areaMultiple":{
 			mathExpression=`\\[ \\text{Area between } y=\\sin x \\text{ and } y=\\cos x \\text{ from } 0 \\text{ to } 2\\pi. \\]`;
 			plainCorrectAnswer="4";
+			latexAnswer="4";
 			expectedFormat="Enter a number";
 			break;
 		}
 		case "volumeCrossSquare":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Base: } y=x^2, y=${a}. \\text{ Cross sections perpendicular to y-axis are squares. Volume?} \\]`;
-			plainCorrectAnswer=((a**2)/2).toFixed(2);
+			let val=(a**2)/2;
+			plainCorrectAnswer=val.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
 		case "volumeCrossSemi":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Base: } y=x^2, y=${a}. \\text{ Cross sections perpendicular to x-axis are semicircles. Volume?} \\]`;
-			plainCorrectAnswer=(Math.PI/8*a**2).toFixed(2);
+			let val=Math.PI/8*a**2;
+			plainCorrectAnswer=val.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
 		case "volumeDisc":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Volume when } y=\\sqrt{x} \\text{ from } 0 \\text{ to } ${a} \\text{ revolved about x-axis.} \\]`;
-			plainCorrectAnswer=(Math.PI*a*a /2).toFixed(2);
+			let val=Math.PI*a*a /2;
+			plainCorrectAnswer=val.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
 		case "volumeDiscOther":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Volume when } y=x^2, y=0, x=0 \\text{ to } ${a} \\text{ revolved about } y=-1. \\]`;
-			plainCorrectAnswer=(Math.PI*(a**5/5 + 2*a**3/3 + a)).toFixed(2);
+			let val=Math.PI*(a**5/5 + 2*a**3/3 + a);
+			plainCorrectAnswer=val.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
@@ -147,7 +163,9 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff) + 1;
 			mathExpression=`\\[ \\text{Volume when region between } y=x^2 \\text{ and } y=${a}x \\text{ revolved about x-axis.} \\]`;
 			let intersect=a;
-			plainCorrectAnswer=(Math.PI*(intersect**5 / 3 - intersect**5 / 5)).toFixed(2);
+			let val=Math.PI*(intersect**5 / 3 - intersect**5 / 5);
+			plainCorrectAnswer=val.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
@@ -155,7 +173,9 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff) + 1;
 			mathExpression=`\\[ \\text{Volume when same region revolved about } y=-1. \\]`;
 			let intersect=a; 
-			plainCorrectAnswer=(Math.PI*((intersect**5 / 3 + 2*intersect**3 / 3 + intersect) - (intersect**5 / 5 + 2*intersect**3 / 3 + intersect))).toFixed(2);
+			let val=Math.PI*((intersect**5 / 3 + 2*intersect**3 / 3 + intersect) - (intersect**5 / 5 + 2*intersect**3 / 3 + intersect));
+			plainCorrectAnswer=val.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
@@ -164,6 +184,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			mathExpression=`\\[ \\text{Length of } y=x^{3/2} \\text{ from } 0 \\text{ to } ${a}. \\]`;
 			let len=(2/27)*( (9*a/4+1)**(3/2) -1);
 			plainCorrectAnswer=len.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
@@ -171,20 +192,31 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\int x e^{${a}x} \\,dx \\]`;
 			plainCorrectAnswer=`(1/${a})x e^(${a}x) - (1/${a*a}) e^(${a}x) + C`;
+			latexAnswer=`\\frac{1}{${a}}x e^{${a}x} - \\frac{1}{${a*a}} e^{${a}x} + C`;
 			expectedFormat="Enter expression";
 			break;
 		}
 		case "partialFractions":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let sqrtA=Math.sqrt(a).toFixed(2);
 			mathExpression=`\\[ \\int \\frac{1}{x^2-${a}} \\,dx \\]`;
-			plainCorrectAnswer=`(1/(2*${Math.sqrt(a)})) ln| (x-${Math.sqrt(a)})/(x+${Math.sqrt(a)}) | + C`;
+			plainCorrectAnswer=`(1/(2*${sqrtA})) ln| (x-${sqrtA})/(x+${sqrtA}) | + C`;
+			latexAnswer=`\\frac{1}{2\\sqrt{${a}}} \\ln\\left|\\frac{x-\\sqrt{${a}}}{x+\\sqrt{${a}}}\\right| + C`;
 			expectedFormat="Enter expression";
 			break;
 		}
 		case "improper":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\int_1^\\infty \\frac{1}{x^{${a}}} \\,dx \\]`;
-			plainCorrectAnswer= a>1 ? (1/(a-1)).toFixed(2) : "diverges";
+			if (a>1){
+				let val=(1/(a-1)).toFixed(2);
+				plainCorrectAnswer=val;
+				latexAnswer=val;
+			}
+			else{
+				plainCorrectAnswer="diverges";
+				latexAnswer="\\text{diverges}";
+			}
 			expectedFormat="Enter number or 'diverges'";
 			break;
 		}
@@ -192,6 +224,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			let options=["Substitution", "Partial fractions", "Integration by parts", "Trig substitution"];
 			let correctIdx=Math.floor(Math.random()*options.length);
 			plainCorrectAnswer=options[correctIdx];
+			latexAnswer=`\\text{${options[correctIdx]}}`;
 			mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{4-x^2}} \\] Best technique? A) ${options[0]} B) ${options[1]} C) ${options[2]} D) ${options[3]}`;
 			expectedFormat="Enter letter";
 			break;
@@ -200,6 +233,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff) + 1;
 			mathExpression=`\\[ \\text{Rate of growth proportional to population with constant ${a}. Write DE.} \\]`;
 			plainCorrectAnswer=`dP/dt=${a}P`;
+			latexAnswer=`\\frac{dP}{dt}=${a}P`;
 			expectedFormat="Enter equation";
 			break;
 		}
@@ -207,12 +241,14 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Verify } y=e^{${a}x} \\text{ solves } y''-${a*a}y=0. \\]`;
 			plainCorrectAnswer="yes";
+			latexAnswer="\\text{yes}";
 			expectedFormat="Enter yes or no";
 			break;
 		}
 		case "slopeField":{
 			mathExpression=`\\[ \\frac{dy}{dx}=x-y \\text{ at } (0,0). \\]`;
 			plainCorrectAnswer="slope 0";
+			latexAnswer="\\text{slope }0";
 			expectedFormat="Describe slope";
 			break;
 		}
@@ -226,27 +262,34 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 				x += 0.1;
 			}
 			plainCorrectAnswer=y.toFixed(3);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
 		case "separationGeneral":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\frac{dy}{dx}=${a}xy \\]`;
-			plainCorrectAnswer=`y=C e^(${a/2}x^2)`;
+			let halfA=(a/2).toFixed(2);
+			plainCorrectAnswer=`y=C e^(${halfA}x^2)`;
+			latexAnswer=`y=Ce^{\\frac{${a}}{2}x^{2}}`;
 			expectedFormat="Enter expression";
 			break;
 		}
 		case "separationParticular": {
 			let a=Math.floor(Math.random()*maxCoeff) + 1;
 			mathExpression=`\\[ \\frac{dy}{dx}=${a}xy, y(0)=1 \\]`;
-			plainCorrectAnswer=`y=e^(${a/2}x^2)`;
+			let halfA=(a/2).toFixed(2);
+			plainCorrectAnswer=`y=e^(${halfA}x^2)`;
+			latexAnswer=`y=e^{\\frac{${a}}{2}x^{2}}`;
 			expectedFormat="Enter expression";
 			break;
 		}
 		case "exponentialModel":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Half-life } ${a} \\text{ years, find decay constant.} \\]`;
-			plainCorrectAnswer=(Math.LN2/a).toFixed(3);
+			let val=Math.LN2/a;
+			plainCorrectAnswer=val.toFixed(3);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
 			break;
 		}
@@ -254,6 +297,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Carrying capacity } ${a}0, \\text{ growth rate }0.5, \\text{ write logistic DE.} \\]`;
 			plainCorrectAnswer=`dP/dt=0.5P(1 - P/${a}0)`;
+			latexAnswer=`\\frac{dP}{dt}=0.5P\\left(1-\\frac{P}{${a}0}\\right)`;
 			expectedFormat="Enter equation";
 			break;
 		}
@@ -268,7 +312,8 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 	}
 	window.correctAnswer={
 		correct: plainCorrectAnswer,
-		alternate: plainCorrectAnswer
+		alternate: plainCorrectAnswer,
+		display: latexAnswer
 	};
 	window.expectedFormat=expectedFormat;
 }
