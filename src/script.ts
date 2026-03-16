@@ -4,7 +4,6 @@ import * as topicsModule from "./main/topics";
 import * as session from "./main/session";
 import * as events from "./main/events";
 import * as theme from "./main/theme";
-import "./main/contextMenu";
 
 export * from "./main/dom";
 export * from "./main/state";
