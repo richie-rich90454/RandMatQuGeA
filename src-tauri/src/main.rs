@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::fs;
-use tauri::Manager;
+// use tauri::Manager;
 
 #[derive(Serialize, Deserialize, Clone)]
 struct ScoreEntry{
