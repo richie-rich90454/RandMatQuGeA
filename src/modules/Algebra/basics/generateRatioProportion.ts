@@ -60,7 +60,7 @@ export function generateRatioProportion(difficulty?: string): void{
 		case "unit_rate":{
 			let quantity=Math.floor(Math.random()*100)+20;
 			let units=Math.floor(Math.random()*10)+2;
-			let rate=Math.round(quantity/units);
+			let rate=quantity/units;
 			let ans=rate.toFixed(2);
 			questionArea.innerHTML=`If ${quantity} items cost $${units}, what is the unit price? (nearest cent)`;
 			window.correctAnswer={

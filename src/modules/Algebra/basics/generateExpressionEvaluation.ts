@@ -42,9 +42,8 @@ export function generateExpressionEvaluation(difficulty?: string): void{
 			break;
 		}
 		case "with_substitution":{
-			let expr=`${a}x + ${b}y`;
 			let y=Math.floor(Math.random()*maxVal)+1;
-			questionArea.innerHTML=`Evaluate \\( ${expr} \\) when \\( x=${x} \\) and \\( y=${y} \\).`;
+			questionArea.innerHTML=`Evaluate \\( ${a}x + ${b}y \\) when \\( x=${x} \\) and \\( y=${y} \\).`;
 			let result=a*x + b*y;
 			let ans=result.toString();
 			window.correctAnswer={
