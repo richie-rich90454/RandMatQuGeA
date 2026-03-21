@@ -45,6 +45,20 @@ export let topics: Topic[]=[
 	{id: "exp_model", name: "Exp Modeling", icon: "eᵗ", category: "Algebra"},
 	{id: "log_model", name: "Log Modeling", icon: "log(t)", category: "Algebra"},
 	{id: "finance", name: "Finance", icon: "$", category: "Algebra"},
+	// New algebra topics
+	{id: "linear_eq", name: "Linear Equations", icon: "ax+b=c", category: "Algebra"},
+	{id: "quadratic_eq", name: "Quadratic Equations", icon: "ax²+bx+c=0", category: "Algebra"},
+	{id: "linear_ineq", name: "Linear Inequalities", icon: "x>y", category: "Algebra"},
+	{id: "quadratic_ineq", name: "Quadratic Inequalities", icon: "x²>4", category: "Algebra"},
+	{id: "rational_ineq", name: "Rational Inequalities", icon: "(x-1)/(x+2)>0", category: "Algebra"},
+	{id: "system2x2", name: "2×2 Systems", icon: "{ax+by=c}", category: "Algebra"},
+	{id: "poly_ops", name: "Polynomial Operations", icon: "+ - ×", category: "Algebra"},
+	{id: "poly_div", name: "Polynomial Division", icon: "÷", category: "Algebra"},
+	{id: "factoring", name: "Factoring", icon: "(x+a)(x+b)", category: "Algebra"},
+	{id: "func_concepts", name: "Function Concepts", icon: "domain/range", category: "Algebra"},
+	{id: "linear_graph", name: "Linear Graphs", icon: "y=mx+b", category: "Algebra"},
+	{id: "nonlinear_graph", name: "Non‑Linear Graphs", icon: "parabola", category: "Algebra"},
+	// Calculus
 	{id: "lim", name: "Limits", icon: "lim", category: "Calculus"},
 	{id: "deri", name: "Differentiation", icon: "∂", category: "Calculus"},
 	{id: "inte", name: "Integration", icon: "∫", category: "Calculus"},
@@ -55,6 +69,7 @@ export let topics: Topic[]=[
 	{id: "graphical_calculus", name: "Graphical Calculus", icon: "graph", category: "Calculus"},
 	{id: "parametric_polar", name: "Parametric/Polar", icon: "param", category: "Calculus"},
 	{id: "sequences_series", name: "Sequences & Series", icon: "series", category: "Calculus"},
+	// Linear Algebra
 	{id: "mtrx", name: "Matrix Operations", icon: "[ ]", category: "Linear Algebra"},
 	{id: "vctr", name: "Vector Operations", icon: "→", category: "Linear Algebra"},
 	{id: "system3x3", name: "3x3 Systems", icon: "3×3", category: "Linear Algebra"},
@@ -64,6 +79,7 @@ export let topics: Topic[]=[
 	{id: "vector3d", name: "3D Vectors", icon: "⟨x,y,z⟩", category: "Linear Algebra"},
 	{id: "line3d", name: "3D Lines", icon: "L3", category: "Linear Algebra"},
 	{id: "plane3d", name: "3D Planes", icon: "⌂", category: "Linear Algebra"},
+	// Trigonometry
 	{id: "sin", name: "Sine", icon: "sin", category: "Trigonometry"},
 	{id: "cos", name: "Cosine", icon: "cos", category: "Trigonometry"},
 	{id: "tan", name: "Tangent", icon: "tan", category: "Trigonometry"},
@@ -93,6 +109,7 @@ export let topics: Topic[]=[
 	{id: "complex_mult_div", name: "Complex ×/÷", icon: "z1·z2", category: "Trigonometry"},
 	{id: "demoivre", name: "De Moivre", icon: "(r cisθ)ⁿ", category: "Trigonometry"},
 	{id: "complex_roots", name: "Complex Roots", icon: "ⁿ√z", category: "Trigonometry"},
+	// Discrete Math
 	{id: "perm", name: "Permutation", icon: "P", category: "Discrete Math"},
 	{id: "comb", name: "Combination", icon: "C", category: "Discrete Math"},
 	{id: "prob", name: "Probability", icon: "%", category: "Discrete Math"},
@@ -103,6 +120,7 @@ export let topics: Topic[]=[
 	{id: "infinite_series", name: "Infinite Series", icon: "∑∞", category: "Discrete Math"},
 	{id: "induction", name: "Induction", icon: "n→n+1", category: "Discrete Math"},
 	{id: "binomial", name: "Binomial Theorem", icon: "(a+b)ⁿ", category: "Discrete Math"},
+	// Geometry
 	{id: "area_circle", name: "Area of Circle", icon: "◯ A", category: "Geometry"},
 	{id: "pythag", name: "Pythagorean Theorem", icon: "△", category: "Geometry"},
 	{id: "volume_sphere", name: "Volume of Sphere", icon: "○", category: "Geometry"},
@@ -112,14 +130,17 @@ export let topics: Topic[]=[
 	{id: "polar_conics", name: "Polar Conics", icon: "r(θ)", category: "Geometry"},
 	{id: "coord3d", name: "3D Coordinates", icon: "(x,y,z)", category: "Geometry"},
 	{id: "sphere_eq", name: "Sphere Equation", icon: "○ E", category: "Geometry"},
-	{id: "line_plane_3d", name: "Lines & Planes 3D", icon: "L+P", category: "Geometry"}
+	{id: "line_plane_3d", name: "Lines & Planes 3D", icon: "L+P", category: "Geometry"},
 ];
+
 export let scopeTopics = {
 	simple: ["add","subtrt","mult","divid"],
 	algebra: [
 		"add","basic_funcs","cartesian","circle_eq","comb","complex_mult_div","complex_polar","complex_roots","complex_zeros","coord3d","cos","demoivre","divid","elev_dep","exp","exp_model","fact","finance","func_ops","func_props","inverse_funcs","line3d","line_plane_3d","linear_special","log","mult","parabola","perm","plane3d","poly_ineq","polar_to_rect","power_model","prob","pythag","rational_analysis","rational_eq","rect_to_polar","right_triangle_defs","root","ser","sin","special_triangle","sphere_eq","stats","subtrt","tan","transformations","volume_sphere",
 		"fraction","percent","ratio","unit_conv","expr_eval","number_sets","properties","order_ops",
-		"linear_word","radical_simplify","radical_eq","rational_exp","exp_rules","sci_notation","complex_basic","variation"
+		"linear_word","radical_simplify","radical_eq","rational_exp","exp_rules","sci_notation","complex_basic","variation",
+		// New algebra topics
+		"linear_eq","quadratic_eq","linear_ineq","quadratic_ineq","rational_ineq","system2x2","poly_ops","poly_div","factoring","func_concepts","linear_graph","nonlinear_graph"
 	],
 	precalc: [
 		"add","subtrt","mult","divid","root","log","exp","fact","ser",
@@ -140,7 +161,9 @@ export let scopeTopics = {
 		"parametric_motion","complex_polar","complex_mult_div","demoivre",
 		"complex_roots",
 		"fraction","percent","ratio","unit_conv","expr_eval","number_sets","properties","order_ops",
-		"linear_word","radical_simplify","radical_eq","rational_exp","exp_rules","sci_notation","complex_basic","variation"
+		"linear_word","radical_simplify","radical_eq","rational_exp","exp_rules","sci_notation","complex_basic","variation",
+		// New precalc topics
+		"linear_eq","quadratic_eq","linear_ineq","quadratic_ineq","rational_ineq","system2x2","poly_ops","poly_div","factoring","func_concepts","linear_graph","nonlinear_graph"
 	],
 	calc: [
 		"add","subtrt","mult","divid","root","log","exp","fact","ser",

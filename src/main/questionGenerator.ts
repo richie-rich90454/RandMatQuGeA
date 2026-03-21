@@ -6,6 +6,7 @@ import * as LinearAlgebra from "../modules/LinearAlgebra/index";
 import * as Trigonometry from "../modules/Trigonometry/index";
 import * as Geometry from "../modules/Geometry/index";
 import * as dom from "./dom";
+
 const generators: Record<string, (difficulty: string)=>void>={
 	add: Arithmetic.generateAddition,
 	subtrt: Arithmetic.generateSubtraction,
@@ -119,14 +120,28 @@ const generators: Record<string, (difficulty: string)=>void>={
 	polar_conics: Geometry.generatePolarConic,
 	coord3d: Geometry.generate3DDistanceMidpoint,
 	sphere_eq: Geometry.generateSphereEquation,
-	line_plane_3d: Geometry.generateLinePlane3D
+	line_plane_3d: Geometry.generateLinePlane3D,
+	// Newly added generators
+	linear_eq: Algebra.generateLinearEquation,
+	quadratic_eq: Algebra.generateQuadraticEquation,
+	linear_ineq: Algebra.generateLinearInequality,
+	quadratic_ineq: Algebra.generateQuadraticInequality,
+	rational_ineq: Algebra.generateRationalInequality,
+	system2x2: Algebra.generateSystem2x2,
+	poly_ops: Algebra.generatePolynomial,
+	poly_div: Algebra.generatePolynomialDivision,
+	factoring: Algebra.generateFactoring,
+	func_concepts: Algebra.generateFunctionConcepts,
+	linear_graph: Algebra.generateLinearGraphing,
+	nonlinear_graph: Algebra.generateNonLinearGraphing,
 };
+
 export function generateQuestion(topicId: string, difficulty: string): void{
 	const generator=generators[topicId];
 	if (generator){
 		generator(difficulty);
 	}
-    else{
+	else{
 		if (dom.questionArea) dom.questionArea.innerHTML=`<div class="empty-state"><p>Unknown topic</p></div>`;
 	}
 }
