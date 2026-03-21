@@ -1,18 +1,26 @@
 # RandMatQuGeA (Random Math Question Generator App) 🧮 available at [math.richardsblogs.com](https://math.richardsblogs.com)
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/richie-rich90454/random-math-question-generator-app?style=social)](https://github.com/richie-rich90454/random-math-question-generator-app)
-[![Live Demo](https://img.shields.io/badge/demo-live-green.svg)](https://math.richardsblogs.com/)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/typescript-5.9.3-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tauri](https://img.shields.io/badge/tauri-v2-%2324C8DB.svg?style=for-the-badge&logo=tauri&logoColor=%23FFFFFF)](https://tauri.app/)
-[![Rust](https://img.shields.io/badge/rust-1.85.0-%23DEA584.svg?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![Vite](https://img.shields.io/badge/vite-8.0.1-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![MathJax](https://img.shields.io/badge/MathJax-4.1.1-blue)](https://www.mathjax.org/)
-[![KaTeX](https://img.shields.io/badge/KaTeX-0.16.11-blue)](https://katex.org/)
-[![Math.js](https://img.shields.io/badge/math.js-15.1.1-blue)](https://mathjs.org/)
-![Offline First](https://img.shields.io/badge/offline-first-success)
-![Lightweight](https://img.shields.io/badge/binary-lightweight-blue)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/richie-rich90454/random-math-question-generator-app?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/random-math-question-generator-app/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/richie-rich90454/random-math-question-generator-app?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/random-math-question-generator-app/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/richie-rich90454/random-math-question-generator-app?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/random-math-question-generator-app/issues)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/richie-rich90454/random-math-question-generator-app?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/random-math-question-generator-app/releases)
+
+[![Live Demo](https://img.shields.io/badge/demo-live-green?style=for-the-badge&logo=vercel&logoColor=white)](https://math.richardsblogs.com/)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/typescript-5.9.3-%23007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tauri](https://img.shields.io/badge/tauri-v2-%2324C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app/)
+[![Rust](https://img.shields.io/badge/rust-1.85.0-%23DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Vite](https://img.shields.io/badge/vite-8.0.1-%23646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+
+[![MathJax](https://img.shields.io/badge/MathJax-4.1.1-007ACC?style=for-the-badge&logo=mathjax&logoColor=white)](https://www.mathjax.org/)
+[![KaTeX](https://img.shields.io/badge/KaTeX-0.16.11-007ACC?style=for-the-badge&logo=katex&logoColor=white)](https://katex.org/)
+[![Math.js](https://img.shields.io/badge/math.js-15.1.1-007ACC?style=for-the-badge&logo=math.js&logoColor=white)](https://mathjs.org/)
+
+[![Offline First](https://img.shields.io/badge/offline-first-success?style=for-the-badge&logo=offline&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Offline_service_workers)
+[![Lightweight](https://img.shields.io/badge/binary-lightweight-blue?style=for-the-badge&logo=webpack&logoColor=white)](https://tauri.app/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge&logo=github&logoColor=white)](CONTRIBUTING.md)
+[![Cross-Platform](https://img.shields.io/badge/cross--platform-windows%20%7C%20macos%20%7C%20linux-success?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app/)
 
 A comprehensive, free online math question generator built with TypeScript that helps students practice algebra, calculus, trigonometry, and more with instant answer verification. Available as both a web application and cross-platform desktop app. Perfect for students, educators, and anyone looking to improve their math skills!
 
