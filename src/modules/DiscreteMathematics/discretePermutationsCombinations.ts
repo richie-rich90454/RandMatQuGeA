@@ -29,6 +29,7 @@ export function generatePermutation(difficulty?: string): void{
 				alternate: basicAns,
 				display: basicAns
 			};
+			window.expectedFormat="Enter a number";
 			break;
 		case "equation":{
 			let val=nPr(n, r);
@@ -39,6 +40,7 @@ export function generatePermutation(difficulty?: string): void{
 				alternate: eqAns,
 				display: eqAns
 			};
+			window.expectedFormat="Enter a number";
 			break;
 		}
 		case "word":{
@@ -51,6 +53,7 @@ export function generatePermutation(difficulty?: string): void{
 				alternate: wordAns,
 				display: wordAns
 			};
+			window.expectedFormat="Enter a number";
 			break;
 		}
 		case "circular":
@@ -61,6 +64,7 @@ export function generatePermutation(difficulty?: string): void{
 				alternate: circAns,
 				display: circAns
 			};
+			window.expectedFormat="Enter a number";
 			break;
 		case "identical":{
 			let k=Math.floor(Math.random()*(n-1))+1;
@@ -72,6 +76,7 @@ export function generatePermutation(difficulty?: string): void{
 				alternate: identAns,
 				display: displayLaTeX
 			};
+			window.expectedFormat="Enter a number";
 			break;
 		}
 		case "withReplacement":
@@ -82,6 +87,7 @@ export function generatePermutation(difficulty?: string): void{
 				alternate: replAns,
 				display: replAns
 			};
+			window.expectedFormat="Enter a number";
 			break;
 	}
 	window.MathJax?.typeset();
@@ -107,6 +113,7 @@ export function generateCombination(difficulty?: string): void{
 				alternate: basicAns,
 				display: basicAns
 			};
+			window.expectedFormat="Enter a number";
 			break;
 		case "equation":{
 			let val=nCr(n, r);
@@ -117,6 +124,7 @@ export function generateCombination(difficulty?: string): void{
 				alternate: eqAns,
 				display: eqAns
 			};
+			window.expectedFormat="Enter a number";
 			break;
 		}
 		case "word":{
@@ -129,6 +137,7 @@ export function generateCombination(difficulty?: string): void{
 				alternate: wordAns,
 				display: wordAns
 			};
+			window.expectedFormat="Enter a number";
 			break;
 		}
 		case "complement":
@@ -139,6 +148,7 @@ export function generateCombination(difficulty?: string): void{
 				alternate: compAns,
 				display: compAns
 			};
+			window.expectedFormat="Enter a number";
 			break;
 		case "paths":{
 			let g=Math.floor(Math.random()*4)+3;
@@ -150,17 +160,19 @@ export function generateCombination(difficulty?: string): void{
 				alternate: pathAns,
 				display: displayLaTeX
 			};
+			window.expectedFormat="Enter a number";
 			break;
 		}
 		case "multiset":
 			questionArea.innerHTML=`Ways to choose \\( ${r} \\) items from \\( ${n} \\) types if repeats allowed?`;
 			let multiAns=nCr(n+r-1, r).toString();
-			let displayLaTeX=`\\binom{${n+r-1}}{${r}}`;
+			let displayLaTeXMulti=`\\binom{${n+r-1}}{${r}}`;
 			window.correctAnswer={
 				correct: multiAns,
 				alternate: multiAns,
-				display: displayLaTeX
+				display: displayLaTeXMulti
 			};
+			window.expectedFormat="Enter a number";
 			break;
 	}
 	window.MathJax?.typeset();

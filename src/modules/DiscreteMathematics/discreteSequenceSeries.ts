@@ -123,7 +123,7 @@ export function generateSequenceLimit(difficulty?: string): void{
 	let answer="";
 	let hint="";
 	if (type==="rational"){
-		let numCoeff, denCoeff, constNum, constDen;
+		let numCoeff: number, denCoeff: number, constNum: number, constDen: number;
 		if (difficulty==="easy"){
 			numCoeff=Math.floor(Math.random()*2)+1;
 			denCoeff=numCoeff;
