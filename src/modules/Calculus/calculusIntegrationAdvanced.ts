@@ -88,6 +88,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 		case "avgValue": {
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
+			if (a<b){ let t=a; a=b; b=t; }
 			mathExpression=`\\[ \\text{Average value of } f(x)=x^2 \\text{ on } [${b},${a}]. \\]`;
 			let val=(((a*a*a - b*b*b)/3) / (a - b));
 			plainCorrectAnswer=val.toFixed(2);
@@ -110,7 +111,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			mathExpression=`\\[ \\text{Area between } x=y^2 \\text{ and } x=y+${a}. \\]`;
 			let intersect1= (1-Math.sqrt(1+4*a))/2;
 			let intersect2= (1+Math.sqrt(1+4*a))/2;
-			let area= Math.abs((intersect2**3/3 + a*intersect2**2/2) - (intersect1**3/3 + a*intersect1**2/2));
+			let area=Math.abs((intersect2**2/2 + a*intersect2 - intersect2**3/3) - (intersect1**2/2 + a*intersect1 - intersect1**3/3));
 			plainCorrectAnswer=area.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
@@ -118,15 +119,15 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 		}
 		case "areaMultiple":{
 			mathExpression=`\\[ \\text{Area between } y=\\sin x \\text{ and } y=\\cos x \\text{ from } 0 \\text{ to } 2\\pi. \\]`;
-			plainCorrectAnswer="4";
-			latexAnswer="4";
+			plainCorrectAnswer=(4*Math.sqrt(2)).toFixed(2);
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
 			break;
 		}
 		case "volumeCrossSquare":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Base: } y=x^2, y=${a}. \\text{ Cross sections perpendicular to y-axis are squares. Volume?} \\]`;
-			let val=(a**2)/2;
+			let val=2*a*a;
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
@@ -135,7 +136,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 		case "volumeCrossSemi":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Base: } y=x^2, y=${a}. \\text{ Cross sections perpendicular to x-axis are semicircles. Volume?} \\]`;
-			let val=Math.PI/8*a**2;
+			let val=(2*Math.PI/15)*Math.pow(a, 2.5);
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
@@ -182,7 +183,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 		case "arcLength":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Length of } y=x^{3/2} \\text{ from } 0 \\text{ to } ${a}. \\]`;
-			let len=(2/27)*( (9*a/4+1)**(3/2) -1);
+			let len=(8/27)*(Math.pow(1 + 9*a/4, 1.5) - 1);
 			plainCorrectAnswer=len.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";

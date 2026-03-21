@@ -142,10 +142,8 @@ export function generateIntegral(difficulty?: string): void{
 			const coeff=Math.floor(Math.random()*maxCoeff)+1;
 			const funcStr=`${coeff} ${chosen.func}(${a}x)`;
 			mathExpression=`\\[ \\int ${funcStr} \\,dx=? \\]`;
-			// Decimal answer
 			const decimalCoeff=coeff/a;
 			plainCorrectIntegral=`${formatNumber(chosen.sign*decimalCoeff)} ${chosen.target}(${a}x)+C`;
-			// Fractional alternate
 			const fractionStr=formatFraction(coeff,a);
 			const signStr=chosen.sign===1 ? '' : '-';
 			alternateAnswer=`${signStr}${fractionStr} ${chosen.target}(${a}x)+C`;

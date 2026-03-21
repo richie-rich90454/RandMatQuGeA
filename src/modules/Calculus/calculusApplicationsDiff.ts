@@ -64,8 +64,9 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
 			let x0=Math.floor(Math.random()*5)+1;
-			let approx=Math.sqrt(a*x0+b);
-			mathExpression=`\\[ \\text{Use linear approximation to estimate } \\sqrt{${a*x0+b+0.1}}. \\]`;
+			let point=a*x0+b;
+			let approx=Math.sqrt(point)+(0.1)/(2*Math.sqrt(point));
+			mathExpression=`\\[ \\text{Use linear approximation to estimate } \\sqrt{${point+0.1}}. \\]`;
 			plainCorrectAnswer=approx.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a decimal";
@@ -82,7 +83,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 		case "mvt":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ f(x)=x^3-${a}x \\text{ on } [-1,1]. \\text{ Find } c \\text{ satisfying MVT.} \\]`;
-			let c=Math.sqrt((1+a)/3);
+			let c=1/Math.sqrt(3);
 			plainCorrectAnswer=c.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";

@@ -68,14 +68,14 @@ import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
 
 function getAppropriateStep(range: number, targetTicks: number=6): number{
-    if (range<=0) return 1;
-    let rawStep=range/targetTicks;
-    let magnitude=Math.pow(10, Math.floor(Math.log10(rawStep)));
-    let normalized=rawStep/magnitude;
-    if (normalized < 1.5) return magnitude*1;
-    else if (normalized < 3) return magnitude*2;
-    else if (normalized < 7) return magnitude*5;
-    else return magnitude*10;
+	if (range<=0) return 1;
+	let rawStep=range/targetTicks;
+	let magnitude=Math.pow(10, Math.floor(Math.log10(rawStep)));
+	let normalized=rawStep/magnitude;
+	if (normalized < 1.5) return magnitude*1;
+	else if (normalized < 3) return magnitude*2;
+	else if (normalized < 7) return magnitude*5;
+	else return magnitude*10;
 }
 export function generateGraphicalCalculus(difficulty?: string): void{
 	if (!questionArea) return;
@@ -191,17 +191,17 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			expectedFormat="Enter number";
 			break;
 		}
-        case "riemannNotation":{
-            let a=Math.floor(Math.random()*3)+1;
-            let b=a+Math.floor(Math.random()*3)+2;
-            let n=Math.floor(Math.random()*10)+10;
-            let delta=(b-a)/n;
-            mathExpression=`\\[ \\lim_{n\\to\\infty} \\sum_{i=1}^n \\left(${a}+${delta}i\\right)^2 \\cdot ${delta} \\text{ as definite integral.} \\]`;
-            plainCorrectAnswer=`\\int_{${a}}^{${b}} x^2 \\,dx`;
-            latexAnswer=`\\int_{${a}}^{${b}} x^{2}\\,dx`;
-            expectedFormat="Enter integral";
-            break;
-        }
+		case "riemannNotation":{
+			let a=Math.floor(Math.random()*3)+1;
+			let b=a+Math.floor(Math.random()*3)+2;
+			let n=Math.floor(Math.random()*10)+10;
+			let delta=(b-a)/n;
+			mathExpression=`\\[ \\lim_{n\\to\\infty} \\sum_{i=1}^n \\left(${a}+${delta}i\\right)^2 \\cdot ${delta} \\text{ as definite integral.} \\]`;
+			plainCorrectAnswer=`\\int_{${a}}^{${b}} x^2 \\,dx`;
+			latexAnswer=`\\int_{${a}}^{${b}} x^{2}\\,dx`;
+			expectedFormat="Enter integral";
+			break;
+		}
 		case "accumFTC":{
 			let a=Math.floor(Math.random()*3)+1;
 			let x0=Math.floor(Math.random()*3)+2;
