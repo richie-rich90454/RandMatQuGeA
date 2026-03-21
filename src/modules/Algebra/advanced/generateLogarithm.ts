@@ -5,7 +5,6 @@
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-
 export function generateLogarithm(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -32,7 +31,7 @@ export function generateLogarithm(difficulty?: string): void{
 			let numerator=Math.log(arg)/Math.log(newBase);
 			let denominator=Math.log(base)/Math.log(newBase);
 			let numericAnswer=(numerator/denominator).toFixed(2);
-			let expr=`log_${newBase}(${arg})/log_${newBase}(${base})`;
+			let expr=`log${newBase}(${arg})/log${newBase}(${base})`;
 			questionArea.innerHTML=`Express \\( \\log_{${base}} ${arg} \\) in base \\( ${newBase} \\)`;
 			window.correctAnswer={
 				correct: numericAnswer,
@@ -63,6 +62,7 @@ export function generateLogarithm(difficulty?: string): void{
 				alternate: `\\log_{${base}} ${a}+\\log_{${base}} ${b}=${(Math.log(a)/Math.log(base)).toFixed(2)}+${(Math.log(b)/Math.log(base)).toFixed(2)}=${logSum}`,
 				display: logSum
 			};
+			hint="Enter a decimal number, e.g., 3.46";
 			break;
 		}
 		case "exponential_form":{

@@ -84,7 +84,7 @@ describe("generateFactorial", () => {
 			.mockReturnValueOnce(0.5) // n -> 8
 			.mockReturnValueOnce(0.5); // k (unused)
 		generateFactorial();
-		expect(mockDiv.innerHTML).toBe("Estimate \\( 8! \\) using Stirling\"s approximation");
+		expect(mockDiv.innerHTML).toBe("Estimate \\( 8! \\) using Stirling's approximation");
 		// Stirling's approximation may yield 39902 or 39903 due to floating-point rounding.
 		// We accept either value.
 		const result = (window as any).correctAnswer.correct;

@@ -5,7 +5,31 @@
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-
+function isSquareFree(n: number): boolean{
+	if (n<2) return true;
+	for (let i=2;i*i<=n;i++){
+		if (n%(i*i)===0) return false;
+	}
+	return true;
+}
+function simplifyRadical(radicand: number): string{
+	if (radicand<0) return `\\sqrt{${radicand}}`;
+	let s=1;
+	let r=radicand;
+	for (let i=Math.floor(Math.sqrt(radicand));i>=2;i--){
+		if (radicand%(i*i)===0){
+			s=i;
+			r=radicand/(i*i);
+			break;
+		}
+	}
+	if (s===1){
+		if (r===1) return "1";
+		return `\\sqrt{${r}}`;
+	}
+	if (r===1) return `${s}`;
+	return `${s}\\sqrt{${r}}`;
+}
 export function generateRadicalSimplify(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -13,11 +37,11 @@ export function generateRadicalSimplify(difficulty?: string): void{
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,20);
 	let hint="";
-	let a=Math.floor(Math.random()*maxVal)+1;
-	let b=Math.floor(Math.random()*maxVal)+1;
-	let c=Math.floor(Math.random()*maxVal)+1;
 	switch (type){
 		case "simplify":{
+			let a=Math.floor(Math.random()*maxVal)+1;
+			let b=Math.floor(Math.random()*maxVal)+1;
+			while (!isSquareFree(b)) b=Math.floor(Math.random()*maxVal)+1;
 			let radicand=a*a*b;
 			questionArea.innerHTML=`Simplify: \\( \\sqrt{${radicand}} \\)`;
 			let ans=`${a}\\sqrt{${b}}`;
@@ -30,6 +54,10 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			break;
 		}
 		case "add":{
+			let a=Math.floor(Math.random()*maxVal)+1;
+			let c=Math.floor(Math.random()*maxVal)+1;
+			let b=Math.floor(Math.random()*maxVal)+1;
+			while (!isSquareFree(b)) b=Math.floor(Math.random()*maxVal)+1;
 			questionArea.innerHTML=`Simplify: \\( ${a}\\sqrt{${b}} + ${c}\\sqrt{${b}} \\)`;
 			let coeff=a+c;
 			let ans=`${coeff}\\sqrt{${b}}`;
@@ -42,6 +70,10 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			break;
 		}
 		case "subtract":{
+			let a=Math.floor(Math.random()*maxVal)+1;
+			let c=Math.floor(Math.random()*maxVal)+1;
+			let b=Math.floor(Math.random()*maxVal)+1;
+			while (!isSquareFree(b)) b=Math.floor(Math.random()*maxVal)+1;
 			questionArea.innerHTML=`Simplify: \\( ${a}\\sqrt{${b}} - ${c}\\sqrt{${b}} \\)`;
 			let coeff=a-c;
 			let ans=`${coeff}\\sqrt{${b}}`;
@@ -54,30 +86,43 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			break;
 		}
 		case "multiply":{
-			questionArea.innerHTML=`Multiply: \\( \\sqrt{${a}} \\times \\sqrt{${b}} \\)`;
+			let a=Math.floor(Math.random()*maxVal)+1;
+			let b=Math.floor(Math.random()*maxVal)+1;
 			let product=a*b;
-			let ans=`\\sqrt{${product}}`;
+			questionArea.innerHTML=`Multiply: \\( \\sqrt{${a}} \\times \\sqrt{${b}} \\)`;
+			let ans=simplifyRadical(product);
 			window.correctAnswer={
 				correct: ans,
-				alternate: `√${product}`,
+				alternate: ans,
 				display: ans
 			};
-			hint="Enter as √n";
+			hint="Enter simplified radical (e.g., 2√3)";
 			break;
 		}
 		case "divide":{
+			let a=Math.floor(Math.random()*maxVal)+1;
+			let b=Math.floor(Math.random()*maxVal)+1;
 			questionArea.innerHTML=`Divide: \\( \\frac{\\sqrt{${a}}}{\\sqrt{${b}}} \\)`;
-			let quotient=a/b;
-			let ans=`\\sqrt{${quotient}}`;
+			let num=Math.sqrt(a);
+			let den=Math.sqrt(b);
+			let ans: string;
+			if (Number.isInteger(num)&&Number.isInteger(den)){
+				ans=`\\frac{${num}}{${den}}`;
+			}
+			else{
+				let rationalized=`\\frac{\\sqrt{${a*b}}}{${b}}`;
+				ans=rationalized;
+			}
 			window.correctAnswer={
 				correct: ans,
-				alternate: `√${quotient}`,
+				alternate: ans,
 				display: ans
 			};
-			hint="Enter as √n";
+			hint="Enter simplified radical (e.g., √6/2)";
 			break;
 		}
 		case "rationalize":{
+			let a=Math.floor(Math.random()*maxVal)+1;
 			questionArea.innerHTML=`Rationalize: \\( \\frac{1}{\\sqrt{${a}}} \\)`;
 			let ans=`\\frac{\\sqrt{${a}}}{${a}}`;
 			window.correctAnswer={

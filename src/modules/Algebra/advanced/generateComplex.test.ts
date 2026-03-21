@@ -38,7 +38,7 @@ describe("generateComplex", ()=>{
 	it("generates addition question correctly", ()=>{
 		Math.random=vi.fn()
 			.mockReturnValueOnce(0.1) // type index 0=>"add"
-			.mockReturnValueOnce(0.1) // a=floor(0.5)=0 + 1=1
+			.mockReturnValueOnce(0.1) // a=floor(0.5)+1=1
 			.mockReturnValueOnce(0.1) // b=1
 			.mockReturnValueOnce(0.1) // c=1
 			.mockReturnValueOnce(0.1); // d=1
@@ -49,7 +49,7 @@ describe("generateComplex", ()=>{
 			alternate: "2+2i",
 			display: "2 + 2i"
 		});
-		expect((window as any).expectedFormat).toBe("Enter as a+bi");
+		expect((window as any).expectedFormat).toBe("Enter as a+bi (e.g., 3+2i)");
 		expect((window as any).MathJax.typeset).toHaveBeenCalled();
 	});
 	it("generates subtraction question correctly", ()=>{
@@ -62,11 +62,11 @@ describe("generateComplex", ()=>{
 		generateComplex();
 		expect(mockDiv.innerHTML).toBe("Subtract: \\( (2 + 3i) - (4 + 5i) \\)");
 		expect((window as any).correctAnswer).toEqual({
-			correct: "-2 + -2i",
-			alternate: "-2+-2i",
-			display: "-2 + -2i"
+			correct: "-2 - 2i",
+			alternate: "-2-2i",
+			display: "-2 - 2i"
 		});
-		expect((window as any).expectedFormat).toBe("Enter as a+bi");
+		expect((window as any).expectedFormat).toBe("Enter as a+bi (e.g., 3+2i)");
 	});
 	it("generates multiplication question correctly", ()=>{
 		Math.random=vi.fn()
@@ -97,7 +97,7 @@ describe("generateComplex", ()=>{
 			alternate: "0.44+0.08i",
 			display: "0.44 + 0.08i"
 		});
-		expect((window as any).expectedFormat).toBe("Enter as a+bi decimals");
+		expect((window as any).expectedFormat).toBe("Enter as a+bi decimals (e.g., 0.33+0.25i)");
 	});
 	it("generates powers of i question correctly", ()=>{
 		// For powers_i we need 6 random calls: type, a, b, c, d, n.

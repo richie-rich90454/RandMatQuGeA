@@ -5,7 +5,6 @@
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-
 export function generateRadicalEquation(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -13,10 +12,10 @@ export function generateRadicalEquation(difficulty?: string): void{
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,10);
 	let hint="";
-	let a=Math.floor(Math.random()*maxVal)+1;
-	let b=Math.floor(Math.random()*maxVal)+1;
 	switch (type){
 		case "one_radical":{
+			let a=Math.floor(Math.random()*maxVal)+1;
+			let b=Math.floor(Math.random()*maxVal)+1;
 			let sol=b*b-a;
 			questionArea.innerHTML=`Solve: \\( \\sqrt{x + ${a}}=${b} \\)`;
 			window.correctAnswer={
@@ -28,7 +27,9 @@ export function generateRadicalEquation(difficulty?: string): void{
 			break;
 		}
 		case "two_radicals":{
-			let sol=(b*b-a)/(2*b);
+			let b=Math.floor(Math.random()*maxVal)+1;
+			let a=b*b+Math.floor(Math.random()*maxVal)+1;
+			let sol=((a-b*b)/(2*b));
 			sol=sol*sol;
 			questionArea.innerHTML=`Solve: \\( \\sqrt{x + ${a}} - \\sqrt{x}=${b} \\) (Enter solution)`;
 			window.correctAnswer={

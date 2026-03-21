@@ -19,56 +19,70 @@ export function generateComplex(difficulty?: string): void{
 	let d=Math.floor(Math.random()*maxVal)+1;
 	switch (type){
 		case "add":{
-			questionArea.innerHTML=`Add: \\( (${a} + ${b}i) + (${c} + ${d}i) \\)`;
 			let real=a+c;
 			let imag=b+d;
-			let answer=`${real} + ${imag}i`;
+			let displayStr=imag>=0?`${real} + ${imag}i`:`${real} - ${-imag}i`;
+			let alternateStr=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
+			questionArea.innerHTML=`Add: \\( (${a} + ${b}i) + (${c} + ${d}i) \\)`;
 			window.correctAnswer={
-				correct: answer,
-				alternate: `${real}+${imag}i`,
-				display: answer
+				correct: displayStr,
+				alternate: alternateStr,
+				display: displayStr
 			};
-			hint="Enter as a+bi";
+			hint="Enter as a+bi (e.g., 3+2i)";
 			break;
 		}
 		case "subtract":{
-			questionArea.innerHTML=`Subtract: \\( (${a} + ${b}i) - (${c} + ${d}i) \\)`;
 			let real=a-c;
 			let imag=b-d;
-			let answer=`${real} + ${imag}i`;
+			let displayStr=imag>=0?`${real} + ${imag}i`:`${real} - ${-imag}i`;
+			let alternateStr=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
+			questionArea.innerHTML=`Subtract: \\( (${a} + ${b}i) - (${c} + ${d}i) \\)`;
 			window.correctAnswer={
-				correct: answer,
-				alternate: `${real}+${imag}i`,
-				display: answer
+				correct: displayStr,
+				alternate: alternateStr,
+				display: displayStr
 			};
-			hint="Enter as a+bi";
+			hint="Enter as a+bi (e.g., 3+2i)";
 			break;
 		}
 		case "multiply":{
-			questionArea.innerHTML=`Multiply: \\( (${a} + ${b}i)(${c} + ${d}i) \\)`;
 			let real=a*c-b*d;
 			let imag=a*d+b*c;
-			let answer=`${real} + ${imag}i`;
+			let displayStr=imag>=0?`${real} + ${imag}i`:`${real} - ${-imag}i`;
+			let alternateStr=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
+			questionArea.innerHTML=`Multiply: \\( (${a} + ${b}i)(${c} + ${d}i) \\)`;
 			window.correctAnswer={
-				correct: answer,
-				alternate: `${real}+${imag}i`,
-				display: answer
+				correct: displayStr,
+				alternate: alternateStr,
+				display: displayStr
 			};
-			hint="Enter as a+bi";
+			hint="Enter as a+bi (e.g., 3+2i)";
 			break;
 		}
 		case "divide":{
-			questionArea.innerHTML=`Divide: \\( \\frac{${a} + ${b}i}{${c} + ${d}i} \\)`;
 			let denom=c*c+d*d;
 			let real=(a*c+b*d)/denom;
 			let imag=(b*c-a*d)/denom;
-			let answer=`${real.toFixed(2)} + ${imag.toFixed(2)}i`;
+			let realFixed=real.toFixed(2);
+			let imagFixed=imag.toFixed(2);
+			let displayStr=imag>=0?`${realFixed} + ${imagFixed}i`:`${realFixed} - ${-imag}i`.replace(/-([0-9.]+)/, "$1"); // careful
+			// Simplify sign handling
+			let absImag=Math.abs(imag).toFixed(2);
+			if (imag>=0){
+				displayStr=`${realFixed} + ${absImag}i`;
+			}
+			else{
+				displayStr=`${realFixed} - ${absImag}i`;
+			}
+			let alternateStr=imag>=0?`${realFixed}+${absImag}i`:`${realFixed}-${absImag}i`;
+			questionArea.innerHTML=`Divide: \\( \\frac{${a} + ${b}i}{${c} + ${d}i} \\)`;
 			window.correctAnswer={
-				correct: answer,
-				alternate: `${real.toFixed(2)}+${imag.toFixed(2)}i`,
-				display: answer
+				correct: displayStr,
+				alternate: alternateStr,
+				display: displayStr
 			};
-			hint="Enter as a+bi decimals";
+			hint="Enter as a+bi decimals (e.g., 0.33+0.25i)";
 			break;
 		}
 		case "powers_i":{

@@ -6,6 +6,20 @@
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 
+function formatScientific(value: number, precision: number): { mantissa: number; exponent: number }{
+	let exponent=Math.floor(Math.log10(Math.abs(value)));
+	let mantissa=value/Math.pow(10,exponent);
+	mantissa=Number(mantissa.toFixed(precision));
+	if (Math.abs(mantissa)>=10){
+		mantissa/=10;
+		exponent++;
+	}
+	else if (Math.abs(mantissa)<1 && mantissa!==0){
+		mantissa*=10;
+		exponent--;
+	}
+	return { mantissa, exponent };
+}
 export function generateScientificNotation(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -30,28 +44,32 @@ export function generateScientificNotation(difficulty?: string): void{
 		}
 		case "to_scientific":{
 			let std=a*100;
-			let sci=std.toExponential(1).replace('e+','×10^');
+			let sciFormatted=formatScientific(std,1);
+			let displaySci=`${sciFormatted.mantissa} \\times 10^{${sciFormatted.exponent}}`;
+			let correctSci=std.toExponential(1);
 			questionArea.innerHTML=`Write in scientific notation: \\( ${std} \\)`;
 			window.correctAnswer={
-				correct: sci,
-				alternate: sci,
-				display: sci
+				correct: correctSci,
+				alternate: correctSci,
+				display: displaySci
 			};
-			hint="Enter as a×10^b";
+			hint="Enter as a×10^b (e.g., 1.2e3 or 1.2×10^3)";
 			break;
 		}
 		case "multiply":{
 			let sci1=`(${a} \\times 10^{${b}})`;
 			let sci2=`(${a} \\times 10^{${b+1}})`;
 			let product=a*a*Math.pow(10,2*b+1);
+			let sciFormatted=formatScientific(product,2);
+			let displaySci=`${sciFormatted.mantissa} \\times 10^{${sciFormatted.exponent}}`;
+			let correctSci=product.toExponential(2);
 			questionArea.innerHTML=`Multiply: \\( ${sci1} \\times ${sci2} \\)`;
-			let ans=product.toExponential(2).replace('e+','×10^');
 			window.correctAnswer={
-				correct: ans,
+				correct: correctSci,
 				alternate: product.toString(),
-				display: ans
+				display: displaySci
 			};
-			hint="Enter in scientific notation";
+			hint="Enter in scientific notation (e.g., 1.23e4)";
 			break;
 		}
 		case "divide":{

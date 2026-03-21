@@ -5,7 +5,6 @@
  */
 import {questionArea} from "../../../script.js";
 import {factorial, getMaxForDifficulty} from "../algebraUtils.js";
-
 export function generateFactorial(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -16,7 +15,7 @@ export function generateFactorial(difficulty?: string): void{
 	let k=Math.floor(Math.random()*(n-2))+2;
 	let hint="";
 	switch (type){
-		case "basic":
+		case "basic":{
 			questionArea.innerHTML=`Calculate \\( ${n}! \\)`;
 			let ans=factorial(n).toString();
 			window.correctAnswer={
@@ -26,6 +25,7 @@ export function generateFactorial(difficulty?: string): void{
 			};
 			hint="Enter a whole number";
 			break;
+		}
 		case "division":{
 			let result=Array.from({length:n-k},(_,i)=>n-i).reduce((a,b)=>a*b,1);
 			questionArea.innerHTML=`Simplify: \\( \\frac{${n}!}{${k}!} \\)`;
@@ -49,7 +49,7 @@ export function generateFactorial(difficulty?: string): void{
 			break;
 		}
 		case "approximation":{
-			questionArea.innerHTML=`Estimate \\( ${n}! \\) using Stirling"s approximation`;
+			questionArea.innerHTML=`Estimate \\( ${n}! \\) using Stirling's approximation`;
 			let stirling=Math.sqrt(2*Math.PI*n)*Math.pow(n/Math.E,n);
 			window.correctAnswer={
 				correct: stirling.toFixed(0),

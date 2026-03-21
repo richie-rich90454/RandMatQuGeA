@@ -16,7 +16,7 @@ export function generateExponent(difficulty?: string): void{
 	let exponent=Math.floor(Math.random()*5)+2;
 	let hint="";
 	switch (type){
-		case "basic":
+		case "basic":{
 			questionArea.innerHTML=`Evaluate: \\( ${base}^{${exponent}} \\)`;
 			let val=Math.pow(base,exponent).toString();
 			window.correctAnswer={
@@ -26,6 +26,7 @@ export function generateExponent(difficulty?: string): void{
 			};
 			hint="Enter a number";
 			break;
+		}
 		case "solve":{
 			let power=Math.pow(base,exponent);
 			questionArea.innerHTML=`Solve for \\( x \\): \\( ${base}^{x}=${power} \\)`;
