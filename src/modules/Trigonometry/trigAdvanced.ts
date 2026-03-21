@@ -8,6 +8,7 @@ import {formatPiFraction} from "./trigUtils.js";
 
 /**
  * Generates an inverse trigonometric function question (arcsin, arccos, arctan).
+ * Asks for the principal value in radians and degrees.
  * @param difficulty - optional difficulty level.
  */
 export function generateInverseTrig(difficulty?: string): void{
@@ -15,7 +16,7 @@ export function generateInverseTrig(difficulty?: string): void{
 	questionArea.innerHTML="";
 	let types=["arcsin","arccos","arctan"];
 	let type=types[Math.floor(Math.random()*types.length)];
-	let hint="", questionText="", answer="", displayAnswer="";
+	let hint="", questionText="", correctAnswerStr="", alternateAnswerStr="", displayAnswerStr="";
 	let valRange: number;
 	if (difficulty==="easy") valRange=2;
 	else if (difficulty==="hard") valRange=20;
@@ -38,10 +39,33 @@ export function generateInverseTrig(difficulty?: string): void{
 	else if (type==="arccos") principal=Math.acos(val);
 	else principal=Math.atan(val);
 	let deg=(principal*180/Math.PI).toFixed(1);
-	questionText=`Evaluate \\( ${type}(${val.toFixed(2)}) \\) in radians and degrees.`;
-	answer=`${principal.toFixed(2)} rad, ${deg}°`;
-	displayAnswer=answer; // plain text, but KaTeX can render it as normal text
-	hint="Enter as 'x rad, y°' (e.g., 0.52 rad, 30.0°)";
+	questionText=`Evaluate \\( ${type}(${val.toFixed(2)}) \\) in radians and degrees. (Principal value)`;
+	// Try to get exact representation
+	let exact: string|null=null;
+	const exactRadians: Record<string, number> = {
+		"0":0, "\\frac{\\pi}{6}":Math.PI/6, "\\frac{\\pi}{4}":Math.PI/4, "\\frac{\\pi}{3}":Math.PI/3,
+		"\\frac{\\pi}{2}":Math.PI/2, "\\frac{2\\pi}{3}":2*Math.PI/3, "\\frac{3\\pi}{4}":3*Math.PI/4, "\\frac{5\\pi}{6}":5*Math.PI/6,
+		"\\pi":Math.PI, "\\frac{7\\pi}{6}":7*Math.PI/6, "\\frac{5\\pi}{4}":5*Math.PI/4, "\\frac{4\\pi}{3}":4*Math.PI/3,
+		"\\frac{3\\pi}{2}":3*Math.PI/2, "\\frac{5\\pi}{3}":5*Math.PI/3, "\\frac{7\\pi}{4}":7*Math.PI/4, "\\frac{11\\pi}{6}":11*Math.PI/6
+	};
+	for (let [exactStr, rad] of Object.entries(exactRadians)){
+		if (Math.abs(principal-rad)<1e-8){
+			exact=exactStr;
+			break;
+		}
+	}
+	if (exact){
+		correctAnswerStr=`${exact} rad, ${deg}°`;
+		alternateAnswerStr=`${principal.toFixed(2)} rad, ${deg}°`;
+		displayAnswerStr=`\\${exact}\\ \\text{rad},\\ ${deg}^\\circ`;
+		hint=`Enter as "x rad, y°" (e.g., "π/6 rad, 30°" or "0.52 rad, 30.0°")`;
+	}
+	else{
+		correctAnswerStr=`${principal.toFixed(2)} rad, ${deg}°`;
+		alternateAnswerStr=`${principal.toFixed(2)} rad, ${deg}°`;
+		displayAnswerStr=`${principal.toFixed(2)}\\ \\text{rad},\\ ${deg}^\\circ`;
+		hint=`Enter as "x rad, y°" (e.g., "0.52 rad, 30.0°")`;
+	}
 	const container=document.createElement("div");
 	container.style.display="flex";
 	container.style.flexDirection="column";
@@ -52,9 +76,9 @@ export function generateInverseTrig(difficulty?: string): void{
 	textDiv.style.marginBottom="10px";
 	container.appendChild(textDiv);
 	window.correctAnswer={
-		correct: displayAnswer,
-		alternate: answer,
-		display: displayAnswer
+		correct: correctAnswerStr,
+		alternate: alternateAnswerStr,
+		display: displayAnswerStr
 	};
 	window.expectedFormat=hint;
 	if (window.MathJax&&window.MathJax.typeset){
@@ -64,6 +88,7 @@ export function generateInverseTrig(difficulty?: string): void{
 
 /**
  * Generates a trigonometric equation question (basic, multiple-angle, or using identity).
+ * Asks for the smallest positive solution in radians.
  * @param difficulty - optional difficulty level.
  */
 export function generateTrigEquations(difficulty?: string): void{
@@ -71,7 +96,7 @@ export function generateTrigEquations(difficulty?: string): void{
 	questionArea.innerHTML="";
 	let types=["basic","multiple_angle","using_identity"];
 	let type=types[Math.floor(Math.random()*types.length)];
-	let hint="", questionText="", answer="", displayAnswer="";
+	let hint="", questionText="", correctAnswerStr="", alternateAnswerStr="", displayAnswerStr="";
 	let maxCoeff=(difficulty==="easy")?2:(difficulty==="hard"?4:3);
 	let simpleValues=[0,0.5,Math.sqrt(2)/2,Math.sqrt(3)/2,1];
 	let useSimpleValues=(difficulty==="easy");
@@ -86,17 +111,37 @@ export function generateTrigEquations(difficulty?: string): void{
 				val=(Math.floor(Math.random()*10)/10);
 			}
 			val=Math.min(0.99,Math.max(-0.99,val));
-			let angle=Math.asin(val);
-			let sol1=angle;
-			let sol2=func==="sin"? Math.PI-angle : 2*Math.PI-angle;
-			let solutions: string[] = []; // FIXED: added type annotation
-			[sol1,sol2].forEach(sol=>{
-				if (sol>=0&&sol<2*Math.PI) solutions.push(sol.toFixed(2));
-			});
-			answer=solutions.join(", ");
-			displayAnswer=solutions.join(", ");
-			questionText=`Solve \\( ${func}\\theta=${val.toFixed(2)} \\) for \\( 0 \\le \\theta < 2\\pi \\) (in radians).`;
-			hint="Enter angles separated by commas (e.g., 0.52, 2.62) or exact expressions like π/6, 5π/6";
+			let angle=func==="sin"?Math.asin(val):Math.acos(val);
+			// smallest positive solution
+			let sol=angle;
+			if (sol<0) sol+=2*Math.PI;
+			questionText=`Solve \\( ${func}\\theta=${val.toFixed(2)} \\) for \\( \\theta \\) in \\( [0, 2\\pi) \\). Give the smallest positive solution.`;
+			// Try exact
+			let exact=null;
+			const exactRadians: Record<string, number> = {
+				"0":0, "\\frac{\\pi}{6}":Math.PI/6, "\\frac{\\pi}{4}":Math.PI/4, "\\frac{\\pi}{3}":Math.PI/3,
+				"\\frac{\\pi}{2}":Math.PI/2, "\\frac{2\\pi}{3}":2*Math.PI/3, "\\frac{3\\pi}{4}":3*Math.PI/4, "\\frac{5\\pi}{6}":5*Math.PI/6,
+				"\\pi":Math.PI, "\\frac{7\\pi}{6}":7*Math.PI/6, "\\frac{5\\pi}{4}":5*Math.PI/4, "\\frac{4\\pi}{3}":4*Math.PI/3,
+				"\\frac{3\\pi}{2}":3*Math.PI/2, "\\frac{5\\pi}{3}":5*Math.PI/3, "\\frac{7\\pi}{4}":7*Math.PI/4, "\\frac{11\\pi}{6}":11*Math.PI/6
+			};
+			for (let [exactStr, rad] of Object.entries(exactRadians)){
+				if (Math.abs(sol-rad)<1e-8){
+					exact=exactStr;
+					break;
+				}
+			}
+			if (exact){
+				correctAnswerStr=exact;
+				alternateAnswerStr=sol.toFixed(2);
+				displayAnswerStr=`\\${exact}`;
+				hint=`Enter exact value like \\frac{\\pi}{6} or decimal (e.g., 0.52)`;
+			}
+			else{
+				correctAnswerStr=sol.toFixed(2);
+				alternateAnswerStr=sol.toFixed(2);
+				displayAnswerStr=sol.toFixed(2);
+				hint=`Enter a decimal (e.g., 0.52)`;
+			}
 			break;
 		}
 		case "multiple_angle":{
@@ -110,23 +155,38 @@ export function generateTrigEquations(difficulty?: string): void{
 				val=(Math.floor(Math.random()*10)/10);
 			}
 			val=Math.min(0.99,Math.max(-0.99,val));
-			let angle=Math.acos(val);
-			let sols: number[]=[];
-			for (let n=0; n<coeff; n++){
-				let base=(angle + 2*Math.PI*n)/coeff;
-				sols.push(base);
-				if (func==="cos"){
-					sols.push((2*Math.PI-angle + 2*Math.PI*n)/coeff);
-				}
-				else{
-					sols.push((Math.PI-angle + 2*Math.PI*n)/coeff);
+			let angle=func==="sin"?Math.asin(val):Math.acos(val);
+			let base=angle/coeff;
+			// smallest positive solution
+			let sol=base;
+			if (sol<0) sol+=2*Math.PI;
+			questionText=`Solve \\( ${func}(${coeff}\\theta)=${val.toFixed(2)} \\) for \\( 0 \\le \\theta < 2\\pi \\). Give the smallest positive solution.`;
+			// Try exact
+			let exact=null;
+			const exactRadians: Record<string, number> = {
+				"0":0, "\\frac{\\pi}{6}":Math.PI/6, "\\frac{\\pi}{4}":Math.PI/4, "\\frac{\\pi}{3}":Math.PI/3,
+				"\\frac{\\pi}{2}":Math.PI/2, "\\frac{2\\pi}{3}":2*Math.PI/3, "\\frac{3\\pi}{4}":3*Math.PI/4, "\\frac{5\\pi}{6}":5*Math.PI/6,
+				"\\pi":Math.PI, "\\frac{7\\pi}{6}":7*Math.PI/6, "\\frac{5\\pi}{4}":5*Math.PI/4, "\\frac{4\\pi}{3}":4*Math.PI/3,
+				"\\frac{3\\pi}{2}":3*Math.PI/2, "\\frac{5\\pi}{3}":5*Math.PI/3, "\\frac{7\\pi}{4}":7*Math.PI/4, "\\frac{11\\pi}{6}":11*Math.PI/6
+			};
+			for (let [exactStr, rad] of Object.entries(exactRadians)){
+				if (Math.abs(sol-rad)<1e-8){
+					exact=exactStr;
+					break;
 				}
 			}
-			sols=sols.filter(a=>a>=0&&a<2*Math.PI).map(a=>a);
-			answer=sols.map(a=>a.toFixed(2)).join(", ");
-			displayAnswer=answer;
-			questionText=`Solve \\( ${func}(${coeff}\\theta)=${val.toFixed(2)} \\) for \\( 0 \\le \\theta < 2\\pi \\) (in radians).`;
-			hint="Enter angles separated by commas (e.g., 0.52, 2.62, 3.67, 5.76)";
+			if (exact){
+				correctAnswerStr=exact;
+				alternateAnswerStr=sol.toFixed(2);
+				displayAnswerStr=`\\${exact}`;
+				hint=`Enter exact value like \\frac{\\pi}{6} or decimal (e.g., 0.52)`;
+			}
+			else{
+				correctAnswerStr=sol.toFixed(2);
+				alternateAnswerStr=sol.toFixed(2);
+				displayAnswerStr=sol.toFixed(2);
+				hint=`Enter a decimal (e.g., 0.52)`;
+			}
 			break;
 		}
 		case "using_identity":{
@@ -137,12 +197,36 @@ export function generateTrigEquations(difficulty?: string): void{
 			else{
 				c=(Math.floor(Math.random()*8)+1)/16;
 			}
-			questionText=`Solve \\( \\sin^2\\theta=${c.toFixed(2)} \\) for \\( 0 \\le \\theta < 2\\pi \\) (in radians).`;
+			questionText=`Solve \\( \\sin^2\\theta=${c.toFixed(2)} \\) for \\( 0 \\le \\theta < 2\\pi \\). Give the smallest positive solution.`;
 			let baseAngle=Math.asin(Math.sqrt(c));
-			let sols=[baseAngle,Math.PI-baseAngle,Math.PI+baseAngle,2*Math.PI-baseAngle];
-			answer=sols.map(a=>a.toFixed(2)).join(", ");
-			displayAnswer=answer;
-			hint="Enter angles separated by commas (e.g., 0.52, 2.62, 3.67, 5.76)";
+			let sol=baseAngle;
+			if (sol<0) sol+=2*Math.PI;
+			// Try exact
+			let exact=null;
+			const exactRadians: Record<string, number> = {
+				"0":0, "\\frac{\\pi}{6}":Math.PI/6, "\\frac{\\pi}{4}":Math.PI/4, "\\frac{\\pi}{3}":Math.PI/3,
+				"\\frac{\\pi}{2}":Math.PI/2, "\\frac{2\\pi}{3}":2*Math.PI/3, "\\frac{3\\pi}{4}":3*Math.PI/4, "\\frac{5\\pi}{6}":5*Math.PI/6,
+				"\\pi":Math.PI, "\\frac{7\\pi}{6}":7*Math.PI/6, "\\frac{5\\pi}{4}":5*Math.PI/4, "\\frac{4\\pi}{3}":4*Math.PI/3,
+				"\\frac{3\\pi}{2}":3*Math.PI/2, "\\frac{5\\pi}{3}":5*Math.PI/3, "\\frac{7\\pi}{4}":7*Math.PI/4, "\\frac{11\\pi}{6}":11*Math.PI/6
+			};
+			for (let [exactStr, rad] of Object.entries(exactRadians)){
+				if (Math.abs(sol-rad)<1e-8){
+					exact=exactStr;
+					break;
+				}
+			}
+			if (exact){
+				correctAnswerStr=exact;
+				alternateAnswerStr=sol.toFixed(2);
+				displayAnswerStr=`\\${exact}`;
+				hint=`Enter exact value like \\frac{\\pi}{6} or decimal (e.g., 0.52)`;
+			}
+			else{
+				correctAnswerStr=sol.toFixed(2);
+				alternateAnswerStr=sol.toFixed(2);
+				displayAnswerStr=sol.toFixed(2);
+				hint=`Enter a decimal (e.g., 0.52)`;
+			}
 			break;
 		}
 	}
@@ -156,9 +240,9 @@ export function generateTrigEquations(difficulty?: string): void{
 	textDiv.style.marginBottom="10px";
 	container.appendChild(textDiv);
 	window.correctAnswer={
-		correct: displayAnswer,
-		alternate: answer,
-		display: displayAnswer
+		correct: correctAnswerStr,
+		alternate: alternateAnswerStr,
+		display: displayAnswerStr
 	};
 	window.expectedFormat=hint;
 	if (window.MathJax&&window.MathJax.typeset){
@@ -168,6 +252,7 @@ export function generateTrigEquations(difficulty?: string): void{
 
 /**
  * Generates a trigonometric graph interpretation question (sine, cosine, tangent).
+ * Asks for amplitude, period, phase shift, or asymptotes.
  * @param difficulty - optional difficulty level.
  */
 export function generateTrigGraphs(difficulty?: string): void{
@@ -339,32 +424,57 @@ export function generateTrigGraphs(difficulty?: string): void{
 	if (pathStarted){
 		ctx.stroke();
 	}
-	let questionText="", answer="", displayAnswer="", hint="";
+	let questionText="", correctAnswerStr="", alternateAnswerStr="", displayAnswerStr="", hint="";
 	switch (type){
 		case "sine":
 		case "cosine":{
 			const askType=Math.floor(Math.random()*3);
 			if (askType===0){
 				questionText=`What is the amplitude of the graphed ${type} function?`;
-				answer=A.toString();
-				displayAnswer=answer;
+				correctAnswerStr=A.toString();
+				alternateAnswerStr=A.toString();
+				displayAnswerStr=A.toString();
 				hint="Enter a number";
 			}
 			else if (askType===1){
 				const period=2*Math.PI/B;
 				const exactPeriod=formatPiFraction(period);
 				questionText=`What is the period of the graphed ${type} function? (in radians)`;
-				answer=period.toFixed(2)+" rad";
-				displayAnswer=`${exactPeriod} rad`;
-				hint="Enter a number with units (e.g., 3.14 rad) or exact expression (e.g., 2π/3 rad)";
+				// Use exact if possible
+				if (exactPeriod.includes("π")){
+					correctAnswerStr=exactPeriod;
+					alternateAnswerStr=period.toFixed(2);
+					displayAnswerStr=`\\${exactPeriod}`;
+				}
+				else{
+					correctAnswerStr=period.toFixed(2);
+					alternateAnswerStr=period.toFixed(2);
+					displayAnswerStr=period.toFixed(2);
+				}
+				hint="Enter a number or expression like 2π/3";
 			}
 			else{
 				const phaseShift=-C/B;
 				const exactPhase=formatPiFraction(phaseShift);
 				questionText=`What is the phase shift of the graphed ${type} function? (in radians)`;
-				answer=phaseShift.toFixed(2)+" rad";
-				displayAnswer=phaseShift===0?"0":`${exactPhase} rad`;
-				hint="Enter a number with units (e.g., 0.5 rad) or exact expression (e.g., π/6 rad)";
+				if (phaseShift===0){
+					correctAnswerStr="0";
+					alternateAnswerStr="0";
+					displayAnswerStr="0";
+				}
+				else{
+					if (exactPhase.includes("π")){
+						correctAnswerStr=exactPhase;
+						alternateAnswerStr=phaseShift.toFixed(2);
+						displayAnswerStr=`\\${exactPhase}`;
+					}
+					else{
+						correctAnswerStr=phaseShift.toFixed(2);
+						alternateAnswerStr=phaseShift.toFixed(2);
+						displayAnswerStr=phaseShift.toFixed(2);
+					}
+				}
+				hint="Enter a number or expression like π/6";
 			}
 			break;
 		}
@@ -374,16 +484,37 @@ export function generateTrigGraphs(difficulty?: string): void{
 				const period=Math.PI/B;
 				const exactPeriod=formatPiFraction(period);
 				questionText=`What is the period of the graphed tangent function? (in radians)`;
-				answer=period.toFixed(2)+" rad";
-				displayAnswer=`${exactPeriod} rad`;
-				hint="Enter a number with units (e.g., 1.57 rad) or exact expression (e.g., π/2 rad)";
+				if (exactPeriod.includes("π")){
+					correctAnswerStr=exactPeriod;
+					alternateAnswerStr=period.toFixed(2);
+					displayAnswerStr=`\\${exactPeriod}`;
+				}
+				else{
+					correctAnswerStr=period.toFixed(2);
+					alternateAnswerStr=period.toFixed(2);
+					displayAnswerStr=period.toFixed(2);
+				}
+				hint="Enter a number or expression like π/2";
 			}
 			else{
-				questionText=`Give the equation of the vertical asymptotes for the graphed tangent function.`;
-				const asymptoteExpr=`x = \\frac{\\pi}{2\\cdot${B}} + \\frac{\\pi k}{${B}}`;
-				answer=`x=π/(2*${B}) + πk/${B}`;
-				displayAnswer=asymptoteExpr;
-				hint="Enter as 'x=π/(2B) + πk/B'";
+				const period=Math.PI/B;
+				// Ask for the equation of the first positive vertical asymptote.
+				// x = π/(2B) - C/B  (with k=0)
+				let firstAsymp=(Math.PI/2 - C)/B;
+				if (firstAsymp<0) firstAsymp+=period; // adjust to smallest positive
+				const exactAsymp=formatPiFraction(firstAsymp);
+				questionText=`Give the equation of the vertical asymptote that lies between 0 and π/${B.toFixed(2)}.`;
+				if (exactAsymp.includes("π")){
+					correctAnswerStr=`x=${exactAsymp}`;
+					alternateAnswerStr=`x=${firstAsymp.toFixed(2)}`;
+					displayAnswerStr=`x=\\${exactAsymp}`;
+				}
+				else{
+					correctAnswerStr=`x=${firstAsymp.toFixed(2)}`;
+					alternateAnswerStr=`x=${firstAsymp.toFixed(2)}`;
+					displayAnswerStr=`x=${firstAsymp.toFixed(2)}`;
+				}
+				hint="Enter as 'x = ...'";
 			}
 			break;
 		}
@@ -392,7 +523,7 @@ export function generateTrigGraphs(difficulty?: string): void{
 	textDiv.innerHTML=questionText;
 	textDiv.style.marginTop="10px";
 	container.appendChild(textDiv);
-	window.correctAnswer={ correct: displayAnswer, alternate: answer, display: displayAnswer };
+	window.correctAnswer={ correct: correctAnswerStr, alternate: alternateAnswerStr, display: displayAnswerStr };
 	window.expectedFormat=hint;
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }

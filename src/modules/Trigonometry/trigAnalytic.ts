@@ -57,7 +57,7 @@ export function generateRadiansToDegrees(difficulty?: string): void{
 		displayRad=angleRad.toFixed(2)+" rad";
 	}
 	else{
-		angleRad=(Math.random()*Math.PI).toFixed(2) as any as number;
+		angleRad=parseFloat((Math.random()*Math.PI).toFixed(2));
 		displayRad=angleRad.toFixed(2)+" rad";
 	}
 	const angleDeg=(angleRad*180/Math.PI).toFixed(2);
@@ -94,7 +94,8 @@ export function generateArcLength(difficulty?: string): void{
 		angleRad=angle;
 	}
 	const arc=(r*angleRad).toFixed(2);
-	questionArea.innerHTML=`Find the arc length of a circle with radius ${r} and central angle ${angle}${angleType}.`;
+	const angleDisplay=angle.toFixed(2)+(angleType==="°"?"°":" rad");
+	questionArea.innerHTML=`Find the arc length of a circle with radius ${r} and central angle ${angleDisplay}.`;
 	window.correctAnswer={ correct: arc, alternate: arc, display: arc };
 	window.expectedFormat="Enter a number (e.g., 15.71)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
