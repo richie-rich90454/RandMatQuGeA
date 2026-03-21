@@ -1,21 +1,20 @@
-//generateFinance
-import {questionArea} from "../../../script.js";
 /**
- * Generates a finance question: compound interest, continuous compounding, APY, or annuity.
- * @returns void
+ * Finance: compound interest, continuous, APY, annuity.
+ * @fileoverview Generates finance questions.
+ * @date 2026-03-15
  */
+import {questionArea} from "../../../script.js";
+
 export function generateFinance(): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
 	const types=["compound","continuous","apy","annuity"];
 	const type=types[Math.floor(Math.random()*types.length)];
 	let hint="";
-
 	const principal=Math.floor(Math.random()*5000)+1000;
 	const rate=(Math.random()*0.05+0.02).toFixed(3);
 	const years=Math.floor(Math.random()*10)+1;
 	const n=Math.floor(Math.random()*4)+1;
-
 	switch (type){
 		case "compound":{
 			questionArea.innerHTML=`Find the amount after ${years} years if $${principal} is invested at ${(parseFloat(rate)*100).toFixed(1)}% compounded ${n} times per year.`;

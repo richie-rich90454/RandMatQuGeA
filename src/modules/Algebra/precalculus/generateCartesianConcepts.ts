@@ -1,11 +1,11 @@
-//generateCartesianConcepts
+/**
+ * Cartesian concepts: quadrant, distance, midpoint, plot.
+ * @fileoverview Generates Cartesian coordinate questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a question about Cartesian coordinate concepts: quadrant, distance, midpoint, or plotting.
- * @param difficulty - Optional difficulty level to adjust the range of coordinates.
- * @returns void
- */
+
 export function generateCartesianConcepts(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";

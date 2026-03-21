@@ -1,11 +1,11 @@
-//generateTransformations
+/**
+ * Function transformations: translation, reflection, stretch.
+ * @fileoverview Generates function transformation questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a question about function transformations: translation, reflection, or stretch.
- * @param difficulty - Optional difficulty level to adjust shift amounts.
- * @returns void
- */
+
 export function generateTransformations(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -13,11 +13,9 @@ export function generateTransformations(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let hint="";
-
 	const h=Math.floor(Math.random()*max)+1;
 	const k=Math.floor(Math.random()*max)+1;
 	const a=Math.floor(Math.random()*2)+1;
-
 	switch (type){
 		case "translation":{
 			questionArea.innerHTML=`If the graph of \\( y=x^2 \\) is shifted right by ${h} and up by ${k}, what is the new equation?`;

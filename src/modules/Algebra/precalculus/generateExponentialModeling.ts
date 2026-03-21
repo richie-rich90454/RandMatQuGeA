@@ -1,11 +1,11 @@
-//generateExponentialModeling.ts
+/**
+ * Exponential modeling: growth, decay, half-life, Newton's Law of Cooling.
+ * @fileoverview Generates exponential modeling questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a modeling question using exponential functions: growth, decay, half‑life, or Newton's Law of Cooling.
- * @param difficulty - Optional difficulty level to adjust numbers.
- * @returns void
- */
+
 export function generateExponentialModeling(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -16,7 +16,6 @@ export function generateExponentialModeling(difficulty?: string): void{
 	const initial=Math.floor(Math.random()*max*10)+50;
 	const rate=(Math.random()*0.1+0.05).toFixed(3);
 	const time=Math.floor(Math.random()*5)+1;
-
 	switch (type){
 		case "growth":{
 			questionArea.innerHTML=`A population of ${initial} grows continuously at a rate of ${(parseFloat(rate)*100).toFixed(1)}% per year. Find the population after ${time} years. (Use continuous compounding formula)`;

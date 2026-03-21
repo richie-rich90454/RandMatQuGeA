@@ -1,11 +1,11 @@
-//generateRationalGraphicalAnalysis
+/**
+ * Rational graph analysis: domain, asymptotes, holes.
+ * @fileoverview Generates rational graph analysis questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a question about graph analysis of rational functions: domain, asymptotes, or holes.
- * @param difficulty - Optional difficulty level to adjust numbers.
- * @returns void
- */
+
 export function generateRationalGraphAnalysis(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -13,11 +13,9 @@ export function generateRationalGraphAnalysis(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let hint="";
-
 	const a=Math.floor(Math.random()*max)+1;
 	const b=Math.floor(Math.random()*max)+1;
 	const c=Math.floor(Math.random()*max)+1;
-
 	switch (type){
 		case "domain":{
 			const expr=`\\frac{x+${a}}{x-${b}}`;

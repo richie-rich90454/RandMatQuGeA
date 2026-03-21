@@ -1,10 +1,10 @@
-//generateBasicFunctions
-import {questionArea} from "../../../script.js";
 /**
- * Generates a question about basic functions: identifying a function by its expression,
- * or listing a key property.
- * @returns void
+ * Basic functions: identify or give property.
+ * @fileoverview Generates basic function questions.
+ * @date 2026-03-15
  */
+import {questionArea} from "../../../script.js";
+
 export function generateBasicFunctions(): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -26,7 +26,6 @@ export function generateBasicFunctions(): void{
 	const types=["identify","properties"];
 	const type=types[Math.floor(Math.random()*types.length)];
 	let hint="";
-
 	if (type==="identify"){
 		questionArea.innerHTML=`Identify the function: \\( ${chosen.expr} \\). (Enter name)`;
 		window.correctAnswer={
@@ -35,7 +34,8 @@ export function generateBasicFunctions(): void{
 			display:chosen.name
 		};
 		hint="Enter the function name";
-	}else{
+	}
+	else{
 		questionArea.innerHTML=`Give one key property of \\( ${chosen.expr} \\).`;
 		window.correctAnswer={
 			correct:chosen.props,

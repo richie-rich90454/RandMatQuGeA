@@ -1,11 +1,11 @@
-//generateSyntheticDivision
+/**
+ * Synthetic division: divide, remainder, factor.
+ * @fileoverview Generates synthetic division questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a question about synthetic division: dividing polynomials, finding remainder, or checking factors.
- * @param difficulty - Optional difficulty level to adjust coefficients.
- * @returns void
- */
+
 export function generateSyntheticDivision(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -13,12 +13,10 @@ export function generateSyntheticDivision(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let hint="";
-
 	const a=Math.floor(Math.random()*max)+1;
 	const b=Math.floor(Math.random()*max)+1;
 	const c=Math.floor(Math.random()*max)+1;
 	const d=Math.floor(Math.random()*max)+1;
-
 	switch (type){
 		case "divide":{
 			const dividend=`${a}x^3 + ${b}x^2 + ${c}x + ${d}`;

@@ -1,11 +1,11 @@
-//generatePowerFunctionModeling
+/**
+ * Power function modeling: direct, inverse, power variation.
+ * @fileoverview Generates power function modeling questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a modeling question using power functions: direct, inverse, or power variation.
- * @param difficulty - Optional difficulty level to adjust constants.
- * @returns void
- */
+
 export function generatePowerFunctionModeling(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -13,12 +13,10 @@ export function generatePowerFunctionModeling(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,10);
 	let hint="";
-
 	const k=Math.floor(Math.random()*max)+1;
 	const x1=Math.floor(Math.random()*max)+1;
 	const y1=k*x1;
 	const x2=Math.floor(Math.random()*max)+1;
-
 	switch (type){
 		case "direct":{
 			questionArea.innerHTML=`If y varies directly with x, and y=${y1} when x=${x1}, find y when x=${x2}.`;

@@ -1,11 +1,11 @@
-//generatePolynomialInequality
+/**
+ * Polynomial inequality: solve >0 with factoring.
+ * @fileoverview Generates polynomial inequality questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a polynomial inequality question (solve by factoring, answer in interval notation).
- * @param difficulty - Optional difficulty level to adjust root ranges.
- * @returns void
- */
+
 export function generatePolynomialInequality(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";

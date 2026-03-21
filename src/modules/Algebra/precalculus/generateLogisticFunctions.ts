@@ -1,11 +1,11 @@
-//generateLogisticFunctions
+/**
+ * Logistic functions: identify, carrying capacity, evaluation.
+ * @fileoverview Generates logistic function questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a question about logistic functions: identification, carrying capacity, or evaluation.
- * @param difficulty - Optional difficulty level to adjust parameters.
- * @returns void
- */
+
 export function generateLogisticFunctions(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -13,12 +13,10 @@ export function generateLogisticFunctions(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,10);
 	let hint="";
-
 	const c=Math.floor(Math.random()*max)+5;
 	const a=Math.floor(Math.random()*5)+1;
 	const k=(Math.random()*0.5+0.2).toFixed(2);
 	const x=Math.floor(Math.random()*5)+1;
-
 	switch (type){
 		case "identify":{
 			const expr=`f(x)=\\frac{${c}}{1+${a}e^{-${k}x}}`;

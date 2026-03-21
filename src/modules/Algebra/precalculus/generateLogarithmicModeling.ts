@@ -1,18 +1,17 @@
-//generateLogarithmicModeling
-import {questionArea} from "../../../script.js";
 /**
- * Generates a modeling question using logarithmic scales: Richter scale, pH, or decibels.
- * @returns void
+ * Logarithmic modeling: Richter scale, pH, decibels.
+ * @fileoverview Generates logarithmic modeling questions.
+ * @date 2026-03-15
  */
+import {questionArea} from "../../../script.js";
+
 export function generateLogarithmicModeling(): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
 	const types=["richter","ph","decibel"];
 	const type=types[Math.floor(Math.random()*types.length)];
 	let hint="";
-
 	const intensity=Math.floor(Math.random()*1000)+100;
-
 	switch (type){
 		case "richter":{
 			questionArea.innerHTML=`An earthquake has intensity ${intensity} times the reference intensity. Find its magnitude on the Richter scale (M = log(I/I0)).`;

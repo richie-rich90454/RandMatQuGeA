@@ -1,12 +1,11 @@
-//generateRealNumberOperations
+/**
+ * Real number operations: absolute, distance, order, interval.
+ * @fileoverview Generates real number operation questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a question about real number operations: absolute value, distance on number line,
- * ordering with inequalities, or interval notation.
- * @param difficulty - Optional difficulty level to adjust the range of numbers.
- * @returns void
- */
+
 export function generateRealNumberOperations(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";

@@ -1,12 +1,11 @@
-//generateComplexZeros
+/**
+ * Complex zeros: Fundamental Theorem, conjugate pairs, factoring.
+ * @fileoverview Generates complex zero questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a question about complex zeros: Fundamental Theorem of Algebra,
- * conjugate pairs, or factoring over complex numbers.
- * @param difficulty - Optional difficulty level to adjust numbers.
- * @returns void
- */
+
 export function generateComplexZeros(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -14,10 +13,8 @@ export function generateComplexZeros(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,3);
 	let hint="";
-
 	const a=Math.floor(Math.random()*max)+1;
 	const b=Math.floor(Math.random()*max)+1;
-
 	switch (type){
 		case "fundamental":{
 			const deg=Math.floor(Math.random()*2)+3;

@@ -1,12 +1,11 @@
-//generateCircleEquations
+/**
+ * Circle equations: standard form, center/radius, complete the square.
+ * @fileoverview Generates circle equation questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a question about circle equations: writing standard form,
- * finding center and radius, or completing the square.
- * @param difficulty - Optional difficulty level to adjust the range of numbers.
- * @returns void
- */
+
 export function generateCircleEquations(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -14,7 +13,6 @@ export function generateCircleEquations(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let hint="";
-
 	switch (type){
 		case "standard":{
 			const h=Math.floor(Math.random()*max*2)-max;

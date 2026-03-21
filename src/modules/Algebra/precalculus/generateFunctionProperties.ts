@@ -1,11 +1,11 @@
-//generateFunctionProperties
+/**
+ * Function properties: continuity, extrema, symmetry, asymptotes, end behavior.
+ * @fileoverview Generates function property questions.
+ * @date 2026-03-15
+ */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-/**
- * Generates a question about function properties: continuity, extrema, symmetry, asymptotes, or end behavior.
- * @param difficulty - Optional difficulty level to adjust numbers.
- * @returns void
- */
+
 export function generateFunctionProperties(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -13,7 +13,6 @@ export function generateFunctionProperties(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let hint="";
-
 	switch (type){
 		case "continuity":{
 			const a=Math.floor(Math.random()*max)+1;
