@@ -11,6 +11,7 @@ import { questionArea } from "../../script.js";
 let currentRenderer: THREE.WebGLRenderer|null=null;
 let currentLabelRenderer: CSS2DRenderer|null=null;
 let currentScene: THREE.Scene|null=null;
+//@ts-ignore
 let currentCamera: THREE.PerspectiveCamera|null=null;
 let currentControls: OrbitControls|null=null;
 let currentAnimationFrame: number=0;

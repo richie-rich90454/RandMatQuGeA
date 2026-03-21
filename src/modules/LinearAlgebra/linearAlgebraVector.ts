@@ -5,6 +5,11 @@
  */
 import {questionArea} from "../../script.js";
 import {Vector2D, getRange} from "./linearAlgebraUtils.js";
+
+/**
+ * Generates a random 2D vector or polar coordinate question.
+ * @param difficulty - optional difficulty level.
+ */
 export function generateVector(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -86,7 +91,11 @@ export function generateVector(difficulty?: string): void{
 			let dot=v1.x*v2.x+v1.y*v2.y;
 			let mag1=Math.sqrt(v1.x**2+v1.y**2);
 			let mag2=Math.sqrt(v2.x**2+v2.y**2);
-			let angle=(Math.acos(dot/(mag1*mag2))*180/Math.PI).toFixed(1);
+			let cosTheta=dot/(mag1*mag2);
+			// Clamp to avoid floating point errors outside [-1,1]
+			if (cosTheta>1) cosTheta=1;
+			if (cosTheta<-1) cosTheta=-1;
+			let angle=(Math.acos(cosTheta)*180/Math.PI).toFixed(1);
 			questionArea.innerHTML=`Find the angle (in degrees) between \\(\\langle ${v1.x.toFixed(1)}, ${v1.y.toFixed(1)} \\rangle\\) and \\(\\langle ${v2.x.toFixed(1)}, ${v2.y.toFixed(1)} \\rangle\\).`;
 			let correctLaTeX=`${angle}^{\\circ}`;
 			window.correctAnswer={
@@ -204,7 +213,7 @@ export function generateVector(difficulty?: string): void{
 			let n=Math.floor(Math.random()*3+2);
 			let newR=(Math.pow(parseFloat(r), n)).toFixed(2);
 			let newTheta=(theta*n) % 360;
-			questionArea.innerHTML=`Compute \\((${r}(\\cos ${theta}^{\\circ}+i\\sin ${theta}^{\\circ}))^{${n}}\\) using De Moivre"s Theorem. Answer with degrees (no need to add deg).`;
+			questionArea.innerHTML=`Compute \\((${r}(\\cos ${theta}^{\\circ}+i\\sin ${theta}^{\\circ}))^{${n}}\\) using De Moivre's Theorem. Answer with degrees (no need to add deg).`;
 			let correctLaTeX=`${newR} \\operatorname{cis} ${newTheta}^{\\circ}`;
 			window.correctAnswer={
 				correct: correctLaTeX,
@@ -248,20 +257,28 @@ export function generateVector(difficulty?: string): void{
 			let x0=(Math.random()*range*2-range).toFixed(1);
 			let y0=(Math.random()*range*2-range).toFixed(1);
 			let dir=generateNonZeroXVector();
-			let slope=(dir.y/dir.x).toFixed(2);
+			let slopeNum=dir.y;
+			let slopeDen=dir.x;
+			let slope=slopeNum/slopeDen;
+			let slopeStr=slope.toFixed(2);
+			let intercept=parseFloat(y0)-slope*parseFloat(x0);
+			let interceptStr=intercept.toFixed(2);
+			// Build the equation with proper sign handling
+			let interceptDisplay=intercept>=0?`+ ${interceptStr}`:`- ${Math.abs(intercept).toFixed(2)}`;
 			questionArea.innerHTML=`The line is given by the parametric equations \\(x=${x0}+${dir.x.toFixed(1)}t\\) and \\(y=${y0}+${dir.y.toFixed(1)}t\\). Convert these into a single Cartesian equation.`;
-			let yIntercept=(parseFloat(y0)-parseFloat(slope)*parseFloat(x0)).toFixed(2);
-			let correctLaTeX=`y=${slope}x+${yIntercept}`;
+			let correctLaTeX=`y = ${slopeStr}x ${interceptDisplay}`;
 			window.correctAnswer={
 				correct: correctLaTeX,
-				alternate: `y=${slope}x+${yIntercept}`,
+				alternate: `y = ${slopeStr}x ${interceptDisplay}`,
 				display: correctLaTeX
 			};
-			window.expectedFormat="Enter as \"y=mx+b\"";
+			window.expectedFormat="Enter as \"y = mx + b\"";
 			break;
 		}
 		default:
 			questionArea.innerHTML="Unknown question type.";
+			window.correctAnswer={ correct: "", alternate: "", display: "" };
+			window.expectedFormat="";
 	}
 	if (window.MathJax&&window.MathJax.typeset){
 		window.MathJax.typeset();

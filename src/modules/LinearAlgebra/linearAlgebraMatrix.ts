@@ -5,6 +5,11 @@
  */
 import {questionArea} from "../../script.js";
 import {Matrix2x2, getRange, matrixToString} from "./linearAlgebraUtils.js";
+
+/**
+ * Generates a random 2×2 matrix question of a specified type.
+ * @param difficulty - optional difficulty level.
+ */
 export function generateMatrix(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";

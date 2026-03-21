@@ -5,6 +5,7 @@
  */
 import {questionArea} from "../../script.js";
 import {getRange} from "./linearAlgebraUtils.js";
+
 function generate3x3Matrix(range: number): number[][]{
 	let mat: number[][]=[];
 	for (let i=0; i<3; i++){
@@ -16,6 +17,7 @@ function generate3x3Matrix(range: number): number[][]{
 	}
 	return mat;
 }
+
 function generateRandomVector3D(range: number): { x: number; y: number; z: number }{
 	let x: number, y: number, z: number;
 	do{
@@ -25,6 +27,11 @@ function generateRandomVector3D(range: number): { x: number; y: number; z: numbe
 	}while (Math.abs(x)<0.01&&Math.abs(y)<0.01&&Math.abs(z)<0.01);
 	return { x, y, z };
 }
+
+/**
+ * Generates a 3x3 linear system question.
+ * @param difficulty - optional difficulty level.
+ */
 export function generateSystem3x3(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -53,6 +60,11 @@ export function generateSystem3x3(difficulty?: string): void{
 	window.expectedFormat="Enter as x=..., y=..., z=... or (x,y,z)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
+/**
+ * Generates a row echelon form of a 3x3 matrix question.
+ * @param difficulty - optional difficulty level.
+ */
 export function generateRowEchelon3x3(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -82,6 +94,11 @@ export function generateRowEchelon3x3(difficulty?: string): void{
 	window.expectedFormat="Enter as [a,b,c;d,e,f;g,h,i]";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
+/**
+ * Generates a partial fractions decomposition question.
+ * @param difficulty - optional difficulty level.
+ */
 export function generatePartialFractions(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -93,6 +110,12 @@ export function generatePartialFractions(difficulty?: string): void{
 	let numerator=Math.floor(Math.random()*5)+1;
 	let a=Math.floor(Math.random()*3)+1;
 	let b=Math.floor(Math.random()*3)+1;
+	// Ensure a and b are different for distinct case
+	if (type==="distinct"){
+		while (b===a){
+			b=Math.floor(Math.random()*3)+1;
+		}
+	}
 	let c=Math.floor(Math.random()*3)+1;
 	let question="";
 	let answer="";
@@ -119,6 +142,11 @@ export function generatePartialFractions(difficulty?: string): void{
 	window.expectedFormat="Enter the partial fractions expression";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
+/**
+ * Generates a linear programming problem (two variables) question.
+ * @param difficulty - optional difficulty level.
+ */
 export function generateLinearProgramming(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -137,7 +165,7 @@ export function generateLinearProgramming(difficulty?: string): void{
 	if (Math.abs(det)>0.001){
 		let x1=(c1*b2-c2*b1)/det;
 		let y1=(a1*c2-a2*c1)/det;
-		if (x1>=0&&y1>=0) corners.push({ x: x1, y: y1 });
+		if (x1>=0 && y1>=0) corners.push({ x: x1, y: y1 });
 	}
 	if (a1!==0){
 		let x=c1/a1;
@@ -165,13 +193,13 @@ export function generateLinearProgramming(difficulty?: string): void{
 	let bestVal=opt==="maximize"?-Infinity:Infinity;
 	let bestPoint: { x: number; y: number }|null=null;
 	for (let pt of uniqueCorners){
-		if (a1*pt.x+b1*pt.y<=c1+0.001&&a2*pt.x+b2*pt.y<=c2+0.001){
+		if (a1*pt.x+b1*pt.y<=c1+0.001 && a2*pt.x+b2*pt.y<=c2+0.001 && pt.x>=-0.001 && pt.y>=-0.001){
 			let val=p*pt.x+q*pt.y;
-			if (opt==="maximize"&&val>bestVal){
+			if (opt==="maximize" && val>bestVal){
 				bestVal=val;
 				bestPoint=pt;
 			}
-			else if (opt==="minimize"&&val<bestVal){
+			else if (opt==="minimize" && val<bestVal){
 				bestVal=val;
 				bestPoint=pt;
 			}
@@ -188,6 +216,11 @@ export function generateLinearProgramming(difficulty?: string): void{
 	window.expectedFormat="Enter as 'z = value at (x,y)'";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
+/**
+ * Generates a 3D vector question (magnitude, unit, dot, angle, projection).
+ * @param difficulty - optional difficulty level.
+ */
 export function generateVector3D(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -229,7 +262,11 @@ export function generateVector3D(difficulty?: string): void{
 		let dot=v.x*w.x+v.y*w.y+v.z*w.z;
 		let magV=Math.sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
 		let magW=Math.sqrt(w.x*w.x+w.y*w.y+w.z*w.z);
-		let angle=(Math.acos(dot/(magV*magW))*180/Math.PI).toFixed(1);
+		let cosTheta=dot/(magV*magW);
+		// Clamp to [-1,1] to avoid floating point errors
+		if (cosTheta>1) cosTheta=1;
+		if (cosTheta<-1) cosTheta=-1;
+		let angle=(Math.acos(cosTheta)*180/Math.PI).toFixed(1);
 		question=`Find the angle (in degrees) between \\( \\langle ${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)} \\rangle \\) and \\( \\langle ${w.x.toFixed(2)}, ${w.y.toFixed(2)}, ${w.z.toFixed(2)} \\rangle \\).`;
 		answer=`${angle}^{\\circ}`;
 		alternate=angle;
@@ -252,6 +289,11 @@ export function generateVector3D(difficulty?: string): void{
 	window.expectedFormat=hint;
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
+/**
+ * Generates a 3D line parametric equation question (point at given t).
+ * @param difficulty - optional difficulty level.
+ */
 export function generateLine3D(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -270,6 +312,11 @@ export function generateLine3D(difficulty?: string): void{
 	window.expectedFormat="Enter as (x, y, z)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
+/**
+ * Generates a 3D plane question (distance from point or equation).
+ * @param difficulty - optional difficulty level.
+ */
 export function generatePlane3D(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
