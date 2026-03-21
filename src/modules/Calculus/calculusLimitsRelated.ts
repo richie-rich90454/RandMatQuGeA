@@ -1,3 +1,6 @@
+import {questionArea} from "../../script.js";
+import {getMaxCoeff} from "./calculusUtils.js";
+
 /**
  * Generates and displays a random limit question in the global `questionArea`.
  *
@@ -39,8 +42,6 @@
  * generateLimit("hard");
  * ```
  */
-import {questionArea} from "../../script.js";
-import {getMaxCoeff} from "./calculusUtils.js";
 export function generateLimit(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -59,16 +60,30 @@ export function generateLimit(difficulty?: string): void{
 			mathExpression=`\\[ \\lim_{x \\to ${x0}} (${a}x^2+${c}) \\]`;
 			plainCorrectAnswer=limit.toString();
 			latexAnswer=plainCorrectAnswer;
+			window.correctAnswer={
+				correct: plainCorrectAnswer,
+				alternate: plainCorrectAnswer,
+				display: latexAnswer
+			};
+			window.expectedFormat="Enter a number";
 			break;
 		}
 		case "rational":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
+			let b=Math.floor(Math.random()*maxCoeff)+2; // ensure denominator nonzero at x0
 			let x0=Math.floor(Math.random()*5)+1;
 			let limit=(a*x0+1)/(b*x0-1);
 			mathExpression=`\\[ \\lim_{x \\to ${x0}} \\frac{${a}x+1}{${b}x-1} \\]`;
 			plainCorrectAnswer=limit.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
+			let num=a*x0+1;
+			let den=b*x0-1;
+			window.correctAnswer={
+				correct: plainCorrectAnswer,
+				alternate: `${num}/${den}`,
+				display: latexAnswer
+			};
+			window.expectedFormat="Enter a decimal number (e.g., 2.5) or a fraction (e.g., 7/3)";
 			break;
 		}
 		case "infinity":{
@@ -76,12 +91,24 @@ export function generateLimit(difficulty?: string): void{
 			mathExpression=`\\[ \\lim_{x \\to \\infty} \\frac{${a}x^2+x}{x^2-1} \\]`;
 			plainCorrectAnswer=a.toString();
 			latexAnswer=plainCorrectAnswer;
+			window.correctAnswer={
+				correct: plainCorrectAnswer,
+				alternate: plainCorrectAnswer,
+				display: latexAnswer
+			};
+			window.expectedFormat="Enter a number";
 			break;
 		}
 		case "trig":{
 			mathExpression=`\\[ \\lim_{x \\to 0} \\frac{\\sin(x)}{x} \\]`;
 			plainCorrectAnswer="1";
 			latexAnswer="1";
+			window.correctAnswer={
+				correct: plainCorrectAnswer,
+				alternate: plainCorrectAnswer,
+				display: latexAnswer
+			};
+			window.expectedFormat="Enter a number";
 			break;
 		}
 	}
@@ -92,25 +119,6 @@ export function generateLimit(difficulty?: string): void{
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
 			console.log("MathJax typeset error:", err)
 		);
-	}
-	if (type==="rational"){
-		let a=Math.floor(Math.random()*maxCoeff)+1;
-		let b=Math.floor(Math.random()*maxCoeff)+1;
-		let x0=Math.floor(Math.random()*5)+1;
-		window.correctAnswer={
-			correct: plainCorrectAnswer,
-			alternate: `${a*x0+1}/${b*x0-1}`,
-			display: latexAnswer
-		};
-		window.expectedFormat="Enter a decimal number (e.g., 2.5) or a fraction (e.g., 7/3)";
-	}
-	else{
-		window.correctAnswer={
-			correct: plainCorrectAnswer,
-			alternate: plainCorrectAnswer,
-			display: latexAnswer
-		};
-		window.expectedFormat="Enter a number";
 	}
 }
 
@@ -176,17 +184,30 @@ export function generateRelatedRates(difficulty?: string): void{
 			mathExpression=`\\[ \\frac{dy}{dt}=? \\]`;
 			plainCorrectAnswer=dy_dt.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
+			window.correctAnswer={
+				correct: plainCorrectAnswer,
+				alternate: plainCorrectAnswer,
+				display: latexAnswer
+			};
+			window.expectedFormat="Enter a number (ft/s, e.g., -1.5)";
 			break;
 		}
 		case "cone":{
 			let r=3*scale/5;
 			let h=9*scale/5;
 			let dr_dt=0.5*scale/5;
-			let dV_dt=Math.PI*r*h*dr_dt;
-			problemText=`A conical tank has radius ${r.toFixed(1)} ft and height ${h.toFixed(1)} ft. The radius increases at ${dr_dt.toFixed(2)} ft/s. Find the rate of change of volume.`;
+			// V = (1/3)π r² h, h constant → dV/dt = (2/3)π r h dr/dt
+			let dV_dt=(2/3)*Math.PI*r*h*dr_dt;
+			problemText=`A conical tank has radius ${r.toFixed(1)} ft and height ${h.toFixed(1)} ft. The radius increases at ${dr_dt.toFixed(2)} ft/s while the height remains constant. Find the rate of change of volume.`;
 			mathExpression=`\\[ \\frac{dV}{dt}=? \\]`;
 			plainCorrectAnswer=dV_dt.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
+			window.correctAnswer={
+				correct: plainCorrectAnswer,
+				alternate: plainCorrectAnswer,
+				display: latexAnswer
+			};
+			window.expectedFormat="Enter a number (ft³/s, e.g., 42.41)";
 			break;
 		}
 	}
@@ -201,16 +222,5 @@ export function generateRelatedRates(difficulty?: string): void{
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
 			console.log("MathJax typeset error:", err)
 		);
-	}
-	window.correctAnswer={
-		correct: plainCorrectAnswer,
-		alternate: plainCorrectAnswer,
-		display: latexAnswer
-	};
-	if (type==="ladder"){
-		window.expectedFormat="Enter a number (ft/s, e.g., -1.5)";
-	}
-	else{
-		window.expectedFormat="Enter a number (ft³/s, e.g., 42.41)";
 	}
 }

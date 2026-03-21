@@ -71,10 +71,10 @@ export function generateLimitsContinuity(difficulty?: string): void{
 	switch (questionType){
 		case "limitNotation":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
-			let c=Math.floor(Math.random()*5);
+			let c=Math.floor(Math.random()*5)+1;
+			let b=a*c*c; // ensure numerator factors to give finite limit
 			mathExpression=`\\[ \\text{Use limit notation to describe the behavior of } f(x)=\\frac{${a}x^2-${b}}{x-${c}} \\text{ as } x \\to ${c}. \\]`;
-			let val=a*c+b;
+			let val=2*a*c; // limit after factoring: a(x-c)(x+c)/(x-c) = a(x+c) → 2ac
 			plainCorrectAnswer=`\\lim_{x\\to ${c}} f(x)=${val}`;
 			latexAnswer=`\\lim_{x\\to ${c}} f(x)=${val}`;
 			expectedFormat="Enter the limit statement, e.g., \\lim_{x\\to 2} f(x)=5";
@@ -88,9 +88,9 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			}
 			let tableStr="";
 			for (let i=0; i<5; i++){
-				tableStr+=`x=${x0-2+i} & f(x)=${values[i].toFixed(2)}\\\\`;
+				tableStr+=`${x0-2+i} & ${values[i].toFixed(2)}\\\\`;
 			}
-			mathExpression=`\\[ \\text{Given the table:} \\begin{array}{c|c} ${tableStr} \\end{array} \\text{ estimate } \\lim_{x\\to ${x0}} f(x). \\]`;
+			mathExpression=`\\[ \\text{Given the table:} \\begin{array}{c|c} x & f(x) \\\\ ${tableStr} \\end{array} \\text{ estimate } \\lim_{x\\to ${x0}} f(x). \\]`;
 			plainCorrectAnswer=values[2].toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a decimal number";
@@ -112,9 +112,9 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
 			let c=Math.floor(Math.random()*5)+1;
-			let result=(a*2*Math.sqrt(c))/b;
+			let result=(2*a*Math.sqrt(c))/b;
 			mathExpression=`\\[ \\lim_{x\\to ${c}} \\frac{${a}x-${a*c}}{${b}\\sqrt{x}-${b}\\sqrt{${c}}} \\]`;
-			plainCorrectAnswer=result.toString();
+			plainCorrectAnswer=result.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number (e.g., 4)";
 			break;
@@ -130,7 +130,8 @@ export function generateLimitsContinuity(difficulty?: string): void{
 		case "discontinuityType":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
-			mathExpression=`\\[ f(x)=\\frac{${a}x^2-${b}}{x-${Math.sqrt(b/a)}} \\]`;
+			let root=Math.sqrt(b/a);
+			mathExpression=`\\[ f(x)=\\frac{${a}x^2-${b}}{x-${root.toFixed(2)}} \\]`;
 			plainCorrectAnswer="removable";
 			latexAnswer="\\text{removable}";
 			expectedFormat="Enter removable, jump, or infinite";
@@ -192,7 +193,7 @@ export function generateLimitsContinuity(difficulty?: string): void{
 		}
 		case "selectProcedure":{
 			let options=["Factoring", "Rationalizing", "Squeeze theorem", "Direct substitution"];
-			let correctIdx=Math.floor(Math.random()*options.length);
+			let correctIdx=2; // Squeeze theorem is appropriate for sin(kx)/x
 			plainCorrectAnswer=options[correctIdx];
 			latexAnswer=`\\text{${options[correctIdx]}}`;
 			mathExpression=`\\[ \\lim_{x\\to 0} \\frac{\\sin ${maxCoeff}x}{x} \\] Which procedure is most efficient? A) ${options[0]} B) ${options[1]} C) ${options[2]} D) ${options[3]}`;

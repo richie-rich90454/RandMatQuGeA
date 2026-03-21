@@ -1,3 +1,6 @@
+import {questionArea} from "../../script.js";
+import {getMaxCoeff} from "./calculusUtils.js";
+
 /**
  * Generates and displays a random sequences and series question in the global `questionArea`.
  *
@@ -47,8 +50,6 @@
  * generateSequencesSeries("hard");
  * ```
  */
-import {questionArea} from "../../script.js";
-import {getMaxCoeff} from "./calculusUtils.js";
 export function generateSequencesSeries(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
