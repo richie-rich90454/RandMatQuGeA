@@ -6,6 +6,7 @@
 import {questionArea} from "../../script.js";
 import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
 import {createVisualization} from "./geometryVisualization.js";
+
 /**
  * Generates a circle area question.
  * @param difficulty - optional difficulty level.
@@ -28,6 +29,7 @@ export function generateAreaCircle(difficulty?: string): void{
 	createVisualization("circle",{radius});
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a rectangle area question.
  * @param difficulty - optional difficulty level.
@@ -46,6 +48,7 @@ export function generateAreaRectangle(difficulty?: string): void{
 	createVisualization("cube",{size:Math.min(length,width,5)});
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a triangle area question.
  * @param difficulty - optional difficulty level.
@@ -70,6 +73,7 @@ export function generateAreaTriangle(difficulty?: string): void{
 	createVisualization("triangle",{base,height});
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a sector area question.
  * @param difficulty - optional difficulty level.
@@ -93,6 +97,7 @@ export function generateSectorArea(difficulty?: string): void{
 	createVisualization("circle",{radius:r});
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a cube surface area question.
  * @param difficulty - optional difficulty level.

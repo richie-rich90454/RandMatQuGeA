@@ -6,6 +6,7 @@
 import {questionArea} from "../../script.js";
 import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
 import {createVisualization} from "./geometryVisualization.js";
+
 /**
  * Generates a sphere volume question.
  * @param difficulty - optional difficulty level.
@@ -28,6 +29,7 @@ export function generateVolumeSphere(difficulty?: string): void{
 	createVisualization("sphere",{radius});
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a cylinder volume question.
  * @param difficulty - optional difficulty level.
@@ -52,6 +54,7 @@ export function generateVolumeCylinder(difficulty?: string): void{
 	createVisualization("cylinder",{radius:r,height:h});
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a cone volume question.
  * @param difficulty - optional difficulty level.
@@ -76,6 +79,7 @@ export function generateVolumeCone(difficulty?: string): void{
 	createVisualization("cone",{radius:r,height:h});
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a square pyramid volume question.
  * @param difficulty - optional difficulty level.

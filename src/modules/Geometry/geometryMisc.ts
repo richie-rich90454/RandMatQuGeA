@@ -6,6 +6,7 @@
 import {questionArea} from "../../script.js";
 import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
 import {createVisualization} from "./geometryVisualization.js";
+
 /**
  * Generates a perimeter question (rectangle or triangle).
  * @param difficulty - optional difficulty level.
@@ -22,6 +23,7 @@ export function generatePerimeter(difficulty?: string): void{
 		const perimeter=2*(l+w);
 		questionArea.innerHTML=`Find the perimeter of a rectangle with length \\( ${l} \\) and width \\( ${w} \\).`;
 		window.correctAnswer={correct:perimeter.toString(),alternate:perimeter.toString(),display:perimeter.toString()};
+		window.expectedFormat="Enter a whole number";
 		createVisualization("cube",{size:Math.min(l,w,4)});
 	}
 	else{
@@ -32,11 +34,12 @@ export function generatePerimeter(difficulty?: string): void{
 		const perimeter=a+b+c;
 		questionArea.innerHTML=`Find the perimeter of a triangle with sides \\( ${a}, ${b}, ${c} \\).`;
 		window.correctAnswer={correct:perimeter.toString(),alternate:perimeter.toString(),display:perimeter.toString()};
+		window.expectedFormat="Enter a whole number";
 		createVisualization("triangle",{base:a,height:b});
 	}
-	window.expectedFormat="Enter a whole number";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates an arc length question.
  * @param difficulty - optional difficulty level.
@@ -60,6 +63,7 @@ export function generateArcLength(difficulty?: string): void{
 	createVisualization("torus",{radius:r,tube:0.2});
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a distance between two points question.
  * @param difficulty - optional difficulty level.
@@ -84,6 +88,7 @@ export function generateDistanceFormula(difficulty?: string): void{
 	window.expectedFormat="Enter a decimal";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates complementary and supplementary angles question.
  * @param _difficulty - unused, kept for consistency.

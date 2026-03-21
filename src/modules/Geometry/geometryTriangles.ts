@@ -6,6 +6,7 @@
 import {questionArea} from "../../script.js";
 import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
 import {createVisualization} from "./geometryVisualization.js";
+
 /**
  * Generates a Pythagorean theorem question (find hypotenuse).
  * @param difficulty - optional difficulty level.
@@ -29,6 +30,7 @@ export function generatePythagorean(difficulty?: string): void{
 	createVisualization("triangle",{base:a,height:b});
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a similar triangles question (scale factor).
  * @param difficulty - optional difficulty level.
@@ -47,6 +49,7 @@ export function generateSimilarTriangles(difficulty?: string): void{
 	createVisualization("triangle",{base:side1,height:side1});
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a triangle classification question (equilateral/isosceles/scalene).
  * @param _difficulty - unused, kept for consistency.

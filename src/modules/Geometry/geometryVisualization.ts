@@ -11,10 +11,10 @@ import { questionArea } from "../../script.js";
 let currentRenderer: THREE.WebGLRenderer|null=null;
 let currentLabelRenderer: CSS2DRenderer|null=null;
 let currentScene: THREE.Scene|null=null;
-// @ts-ignore
 let currentCamera: THREE.PerspectiveCamera|null=null;
 let currentControls: OrbitControls|null=null;
 let currentAnimationFrame: number=0;
+
 /**
  * Computes a nice step size for axis ticks based on range.
  * @param range - total range of data
@@ -31,6 +31,7 @@ function niceStep(range: number): number{
 	else step=10*magnitude;
 	return step;
 }
+
 /**
  * Creates a 2D canvas visualization for a given shape.
  * @param shape - shape type (parabola, ellipse, hyperbola, polarConic, circle, triangle)
@@ -348,6 +349,7 @@ function createCanvas2DVisualization(shape: string, params: any, container: HTML
 	const resizeObserver=new ResizeObserver(()=>draw());
 	resizeObserver.observe(container);
 }
+
 /**
  * Creates a visualization (2D canvas or 3D Three.js) for a given shape.
  * @param shape - shape type (parabola, ellipse, hyperbola, polarConic, circle, triangle, sphere, cube, cylinder, cone, pyramid, torus, points3D, line3D, plane3D)
@@ -621,6 +623,7 @@ export function createVisualization(shape: string, params: any): void{
 	});
 	resizeObserver.observe(container);
 }
+
 /**
  * Cleans up all visualization resources: stops animation, disposes renderers, removes DOM elements.
  */

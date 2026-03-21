@@ -6,6 +6,7 @@
 import {questionArea} from "../../script.js";
 import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
 import {createVisualization} from "./geometryVisualization.js";
+
 /**
  * Generates a parabola question (upward or rightward). Asks for focus and directrix.
  * @param difficulty - optional difficulty level.
@@ -18,7 +19,8 @@ export function generateParabola(difficulty?: string): void{
 	const a=Math.floor(Math.random()*maxA)+1;
 	const type=Math.random()<0.5?"upward":"rightward";
 	let equation="";
-	let focus: string, directrix: string;
+	let focus="";
+	let directrix="";
 	if (type==="upward"){
 		equation=`y = ${a}x^2`;
 		const p=1/(4*a);
@@ -41,6 +43,7 @@ export function generateParabola(difficulty?: string): void{
 	createVisualization("parabola",{ a, type });
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates an ellipse question (origin-centered or translated). Asks for foci and eccentricity.
  * @param difficulty - optional difficulty level.
@@ -53,13 +56,15 @@ export function generateEllipse(difficulty?: string): void{
 	const a=Math.floor(Math.random()*maxAxis)+3;
 	const b=Math.floor(Math.random()*(a-1))+2;
 	const center=Math.random()<0.5?"origin":"translated";
-	let h=0, k=0;
+	let h=0;
+	let k=0;
 	if (center==="translated"){
 		h=Math.floor(Math.random()*5)-2;
 		k=Math.floor(Math.random()*5)-2;
 	}
 	let equation="";
-	let foci: string, eccentricity: number;
+	let foci="";
+	let eccentricity=0;
 	if (center==="origin"){
 		if (Math.random()<0.5){
 			equation=`\\frac{x^2}{${a}^2} + \\frac{y^2}{${b}^2} = 1`;
@@ -98,6 +103,7 @@ export function generateEllipse(difficulty?: string): void{
 	createVisualization("ellipse",{ a, b, center, h, k });
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a hyperbola question (origin-centered or translated). Asks for foci, asymptotes, and eccentricity.
  * @param difficulty - optional difficulty level.
@@ -110,13 +116,16 @@ export function generateHyperbola(difficulty?: string): void{
 	const a=Math.floor(Math.random()*maxAxis)+3;
 	const b=Math.floor(Math.random()*maxAxis)+2;
 	const center=Math.random()<0.5?"origin":"translated";
-	let h=0, k=0;
+	let h=0;
+	let k=0;
 	if (center==="translated"){
 		h=Math.floor(Math.random()*5)-2;
 		k=Math.floor(Math.random()*5)-2;
 	}
 	let equation="";
-	let foci: string, asymptotes: string, eccentricity: number;
+	let foci="";
+	let asymptotes="";
+	let eccentricity=0;
 	if (center==="origin"){
 		if (Math.random()<0.5){
 			equation=`\\frac{x^2}{${a}^2} - \\frac{y^2}{${b}^2} = 1`;
@@ -159,6 +168,7 @@ export function generateHyperbola(difficulty?: string): void{
 	createVisualization("hyperbola",{ a, b, center, h, k });
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a polar conic equation question. Asks for conic type and eccentricity.
  * @param difficulty - optional difficulty level.
@@ -168,9 +178,9 @@ export function generatePolarConic(difficulty?: string): void{
 	questionArea.innerHTML="";
 	cleanupVisualization();
 	let eMin=0.2;
-	let eMax: number;
+	let eMax=2.2;
 	let kMin=2;
-	let kMax: number;
+	let kMax=6;
 	switch (difficulty){
 		case "easy":
 			eMax=1.8;
@@ -180,10 +190,8 @@ export function generatePolarConic(difficulty?: string): void{
 			eMax=2.5;
 			kMax=8;
 			break;
-		case "medium":
 		default:
-			eMax=2.2;
-			kMax=6;
+			// medium is default
 			break;
 	}
 	const eRaw=eMin+Math.random()*(eMax-eMin);
@@ -207,6 +215,7 @@ export function generatePolarConic(difficulty?: string): void{
 	createVisualization("polarConic",{ e: eNum, k, sinOrCos, sign });
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a 3D distance and midpoint question.
  * @param difficulty - optional difficulty level.
@@ -236,6 +245,7 @@ export function generate3DDistanceMidpoint(difficulty?: string): void{
 	createVisualization("points3D",{ points: [{ x: x1, y: y1, z: z1 },{ x: x2, y: y2, z: z2 }] });
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a sphere equation question (center-radius or general form).
  * @param difficulty - optional difficulty level.
@@ -270,6 +280,7 @@ export function generateSphereEquation(difficulty?: string): void{
 	createVisualization("sphere",{ radius: r, center: [h,k,l] });
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
+
 /**
  * Generates a 3D line or plane question (point on line or point lies on plane).
  * @param difficulty - optional difficulty level.
