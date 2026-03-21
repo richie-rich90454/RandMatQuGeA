@@ -3,7 +3,7 @@ import * as state from "./state";
 import * as settings from "./settings";
 import * as ui from "./ui";
 import * as generation from "./generation";
-import * as math from "mathjs";
+import {evaluate, simplify, parse} from "mathjs";
 /**
  * Validates the user's answer against the expected correct answer.
  *
@@ -187,7 +187,7 @@ export function checkAnswer(): void{
 			let normalized=expr.replace(/<([^>]*)>/g,'[$1]');
 			normalized=normalized.replace(/−/g,'-');
 			try{
-				return math.evaluate(normalized);
+				return evaluate(normalized);
 			}catch{
 				return null;
 			}
@@ -214,10 +214,10 @@ export function checkAnswer(): void{
 		// Math.js if available
 		if (useFullPipeline){
 			try{
-				let simpA=math.simplify(funcA).toString().replace(/\s+/g,'');
-				let simpB=math.simplify(funcB).toString().replace(/\s+/g,'');
+				let simpA=simplify(funcA).toString().replace(/\s+/g,'');
+				let simpB=simplify(funcB).toString().replace(/\s+/g,'');
 				if (simpA===simpB) return true;
-				let vars=math.parse(funcA).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
+				let vars=parse(funcA).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
 				if (vars.length===1){
 					let varName=vars[0];
 					let points=[0.5,1,2,3,Math.PI/4,Math.E];
@@ -227,8 +227,8 @@ export function checkAnswer(): void{
 					for (let x of points){
 						try{
 							let scope={[varName]:x};
-							let valA=math.evaluate(funcA,scope);
-							let valB=math.evaluate(funcB,scope);
+							let valA=evaluate(funcA,scope);
+							let valB=evaluate(funcB,scope);
 							valuesA.push(valA);
 							valuesB.push(valB);
 						}catch(e){
@@ -247,8 +247,8 @@ export function checkAnswer(): void{
 				}
 				else if (vars.length===0){
 					try{
-						let numA=math.evaluate(funcA);
-						let numB=math.evaluate(funcB);
+						let numA=evaluate(funcA);
+						let numB=evaluate(funcB);
 						if (Math.abs(numA-numB)<1e-8) return true;
 					}catch(e){}
 				}
@@ -272,12 +272,11 @@ export function checkAnswer(): void{
 		if (leftOk){
 			// Try numeric evaluation first
 			try{
-				let varsRightUser=math.parse(userRight).filter((node:any)=>node.isSymbolNode).length;
-				let varsRightCorrect=math.parse(correctRight).filter((node:any)=>node.isSymbolNode).length;
+				let varsRightUser=parse(userRight).filter((node:any)=>node.isSymbolNode).length;
+				let varsRightCorrect=parse(correctRight).filter((node:any)=>node.isSymbolNode).length;
 				if (varsRightUser===0 && varsRightCorrect===0){
-					// Both are constant expressions, evaluate numerically
-					let valUser=math.evaluate(userRight);
-					let valCorrect=math.evaluate(correctRight);
+					let valUser=evaluate(userRight);
+					let valCorrect=evaluate(correctRight);
 					if (Math.abs(valUser-valCorrect)<1e-8){
 						rightOk=true;
 					}
@@ -304,7 +303,7 @@ export function checkAnswer(): void{
 		let convertedAlternate=alternate?convertLatex(alternate):'';
 		const sanitize=(s: string): string=>{
 			s=s.toLowerCase().replace(/\s+/g,'');
-			s=s.replace(/−/g,'-'); // replace fancy minus
+			s=s.replace(/−/g,'-');
 			s=s.replace(/\^{/g,'^').replace(/[{}]/g,'');
 			s=s.replace(/\*\*/g,'^');
 			s=s.replace(/√/g,'sqrt').replace(/π/g,'pi').replace(/∞/g,'inf');
@@ -380,7 +379,7 @@ export function checkAnswer(): void{
 						let normalized=expr.replace(/<([^>]*)>/g,'[$1]');
 						normalized=normalized.replace(/−/g,'-');
 						try{
-							return math.evaluate(normalized);
+							return evaluate(normalized);
 						}catch{
 							return null;
 						}
@@ -410,13 +409,13 @@ export function checkAnswer(): void{
 					}
 					if (!isCorrect){
 						try{
-							let simpUser=math.simplify(funcUser).toString().replace(/\s+/g,'');
-							let simpCorrect=math.simplify(funcCorrect).toString().replace(/\s+/g,'');
+							let simpUser=simplify(funcUser).toString().replace(/\s+/g,'');
+							let simpCorrect=simplify(funcCorrect).toString().replace(/\s+/g,'');
 							if (simpUser===simpCorrect){
 								isCorrect=true;
 							}
 							else{
-								let vars=math.parse(funcCorrect).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
+								let vars=parse(funcCorrect).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
 								if (vars.length===1){
 									let varName=vars[0];
 									let points=[0.5,1,2,3,Math.PI/4,Math.E];
@@ -426,8 +425,8 @@ export function checkAnswer(): void{
 									for (let x of points){
 										try{
 											let scope={[varName]:x};
-											let valUser=math.evaluate(funcUser,scope);
-											let valCorrect=math.evaluate(funcCorrect,scope);
+											let valUser=evaluate(funcUser,scope);
+											let valCorrect=evaluate(funcCorrect,scope);
 											valuesUser.push(valUser);
 											valuesCorrect.push(valCorrect);
 										}catch(e){
@@ -452,8 +451,8 @@ export function checkAnswer(): void{
 								}
 								else if (vars.length===0){
 									try{
-										let numUser=math.evaluate(funcUser);
-										let numCorrect=math.evaluate(funcCorrect);
+										let numUser=evaluate(funcUser);
+										let numCorrect=evaluate(funcCorrect);
 										if (Math.abs(numUser-numCorrect)<1e-8){
 											isCorrect=true;
 										}
@@ -471,7 +470,6 @@ export function checkAnswer(): void{
 			}
 		}
 	}
-
 	if (settings.settings.sound){
 		const audioCtx=new (window.AudioContext||(window as any).webkitAudioContext)();
 		const oscillator=audioCtx.createOscillator();
