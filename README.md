@@ -4,7 +4,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/richie-rich90454/random-math-question-generator-app?style=social)](https://github.com/richie-rich90454/random-math-question-generator-app)
 [![Live Demo](https://img.shields.io/badge/demo-live-green.svg)](https://math.richardsblogs.com/)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/typescript-5.9.3-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tauri](https://img.shields.io/badge/tauri-v2-%2324C8DB.svg?style=for-the-badge&logo=tauri&logoColor=%23FFFFFF)](https://tauri.app/)
 [![Rust](https://img.shields.io/badge/rust-1.85.0-%23DEA584.svg?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![Vite](https://img.shields.io/badge/vite-8.0.1-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
@@ -18,7 +18,7 @@ A comprehensive, free online math question generator built with TypeScript that 
 
 ## ✨ Key Features
 
-- **📚 100+ Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus, discrete math, linear algebra, and geometry
+- **📚 125+ Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus, discrete math, linear algebra, and geometry
 - **⚡ Instant Feedback**: Real-time answer checking with detailed explanations and LaTeX rendering
 - **📱 Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 - **🎯 Progressive Difficulty**: Questions adapt to different skill levels (easy, medium, hard)
@@ -56,13 +56,13 @@ Download the latest installer from **GitHub Releases**:
 
 ➡️ [https://github.com/richie-rich90454/random-math-question-generator-app/releases](https://github.com/richie-rich90454/random-math-question-generator-app/releases)
 
-### Supported Math Topics (140+ Topics)
+### Supported Math Topics (125+ Topics)
 
 | Category | Topics |
 |----------|--------|
 | **Arithmetic** | Addition, Subtraction, Multiplication, Division |
 | **Algebra (Basics)** | Fractions, Percentages, Ratios & Proportions, Unit Conversion, Expression Evaluation, Number Sets, Algebraic Properties, Order of Operations, Linear Word Problems, Radical Simplification, Radical Equations, Rational Exponents, Exponent Rules, Scientific Notation, Complex Numbers, Direct/Inverse Variation, Real Number Operations, Cartesian Plane, Special Linear Equations, Rational Equations, Roots, Logarithms, Exponentials, Factorials, Series, Function Properties, Basic Functions, Function Operations, Inverse Functions, Transformations, Power Function Modeling, Polynomial Inequalities, Polynomial End Behavior, Synthetic Division, Complex Zeros, Rational Graph Analysis, Circle Equations, Logistic Functions, Exponential Modeling, Logarithmic Modeling, Finance |
-| **Algebra (Advanced)** | Linear Equations (one‑step, two‑step, both sides, parentheses, literal), Quadratic Equations (factoring, complete square, quadratic formula, discriminant), Linear Inequalities, Quadratic Inequalities, Rational Inequalities, Systems of 2×2 Equations, Polynomial Operations (add, subtract, multiply), Polynomial Division, Factoring (GCF, trinomials, difference of squares, sum/difference of cubes), Function Concepts (domain, range, notation, evaluate), Linear Graphing (slope, intercepts, equation from points, parallel/perpendicular), Non‑Linear Graphing (parabolas, absolute value, square root, transformations) |
+| **Algebra (Advanced)** | Linear Equations, Quadratic Equations, Linear Inequalities, Quadratic Inequalities, Rational Inequalities, 2×2 Systems, Polynomial Operations, Polynomial Division, Factoring, Function Concepts, Linear Graphs, Non‑Linear Graphs |
 | **Calculus** | Limits, Derivatives (polynomial, trigonometric, exponential, logarithmic, product, quotient, chain, implicit, higher order, motion), Integrals (polynomial, trigonometric, exponential, logarithmic, substitution, definite, initial value, area, motion), Related Rates (ladder, cone), Limits & Continuity, Applications of Differentiation, Advanced Integration, Graphical Calculus, Parametric/Polar/Vector Calculus, Sequences & Series |
 | **Linear Algebra** | Matrix Operations (add, subtract, multiply, inverse, transpose, scalar multiplication, power, row echelon), 3×3 Systems, Row Echelon Form, Partial Fractions, Linear Programming, 3D Vectors (magnitude, unit, dot, angle, projection), 3D Lines (parametric, point at given t), 3D Planes (distance, equation) |
 | **Trigonometry** | Sine, Cosine, Tangent, Cosecant, Secant, Cotangent, Inverse Trig, Trig Equations, Trig Graphs, Degrees/Radians Conversion, Arc Length, Angular/Linear Speed, Right Triangle Definitions, Special Triangles, Elevation/Depression, Reference Angle, ASTC Signs, Sum/Difference Formulas, Double‑Angle Formulas, Half‑Angle Formulas, Polar/Rectangular Conversion, Polar Distance, Polar Graph Equations, Parametric → Cartesian, Parametric Motion, Complex Polar Form, Complex Multiply/Divide, De Moivre's Theorem, Complex Roots |
@@ -105,7 +105,7 @@ npm run tauri build
 
 ## 🎯 How to Use
 
-1. **Select a Topic**: Choose from 140+ math categories organized by subject
+1. **Select a Topic**: Choose from 125+ math categories organized by subject
 2. **Generate Question**: Click "Generate Question" to get a new problem
 3. **Enter Answer**: Type your solution in the answer box
 4. **Check Answer**: Click "Check Answer" or press `Shift+Enter` for instant feedback
@@ -115,11 +115,11 @@ npm run tauri build
 
 - **Frontend**: HTML5, CSS3 (Custom Properties), TypeScript (ES2020)
 - **Math Rendering**: [MathJax](https://www.mathjax.org/) 4.1.1 and [KaTeX](https://katex.org/) 0.16.11 for beautiful mathematical notation
-- **Build Tool**: [Vite](https://vitejs.dev/) 8.0.0 with TypeScript support for fast development and optimized builds
+- **Build Tool**: [Vite](https://vitejs.dev/) 8.0.1 with TypeScript support for fast development and optimized builds
 - **Math Engine**: [Math.js](https://mathjs.org/) 15.1.1 for complex calculations and equivalence checking
-- **Desktop Framework**: [Tauri](https://tauri.app/) v2 with Rust 1.85.0 for secure, lightweight native applications
-- **Type Safety**: TypeScript with strict configuration and comprehensive type definitions
-- **Build Tools**: Terser for minification, CSSNano for CSS optimization
+- **Desktop Framework**: [Tauri](https://tauri.app/) v2 (Rust 1.85.0) for secure, lightweight native applications
+- **Type Safety**: TypeScript 5.9.3 with strict configuration and comprehensive type definitions
+- **Build Tools**: Terser 5.39.0 for minification, CSSNano 7.1.2 for CSS optimization
 - **Package Manager**: npm with Node.js 18+
 
 ## 📁 Project Structure (Simplified)
@@ -213,8 +213,8 @@ npm run tauri build -- --target x86_64-unknown-linux-gnu
 
 ### TypeScript Development
 ```bash
-# Type checking
-npm run typecheck
+# Type checking (via tsc --noEmit)
+npm run build:typescript
 
 # Development with hot reload
 npm run dev
@@ -229,11 +229,11 @@ The project includes a GitHub Actions workflow that automatically builds and pac
 **Supported Platforms:**
 - **Windows**: 64-bit (.exe installers)
 - **macOS**: Intel x64 & Apple Silicon (.dmg bundles)
-- **Linux**: 64-bit & ARM64 (.AppImage & .deb packages) eventually comming
+- **Linux**: 64-bit & ARM64 (.AppImage & .deb packages) eventually coming
 
 **How to create a release:**
 1. Go to GitHub repository → Releases → Create a new release
-2. Create a tag (e.g., `v3.0.1`)
+2. Create a tag (e.g., `v1.8.0`)
 3. Add release title and description
 4. Click "Publish release"
 
@@ -267,12 +267,12 @@ npm run dev
 npm run tauri dev
 
 # For TypeScript type checking
-npm run typecheck
+npm run build:typescript
 ```
 
 ## 📊 Project Stats
 
-- **100+** Math topics supported
+- **125+** Math topics supported
 - **10,000+** Lines of educational TypeScript code
 - **7** Major math categories
 - **100+** Module files organized by subject
