@@ -48,10 +48,12 @@ export default defineConfig({
 		})
 	],
 	server: {
+		host: "::",
 		port: 1331,
 		open: false
 	},
 	preview: {
+		host: "::",
 		port: 1331,
 		open: false
 	}

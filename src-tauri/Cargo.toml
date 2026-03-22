@@ -14,8 +14,17 @@ serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "^2", features = [] }
 tauri-plugin-shell = "^2"
-tauri-plugin-updater = "2.10.0"
+tauri-plugin-updater = { version = "2.10.0", features = ["rustls-tls"] }
 tauri-plugin-process = "2.3.1"
+rustls-platform-verifier = "0.6"
+
+[lib]
+crate-type = ["rlib", "staticlib", "cdylib"]
+name = "random_math_question_generator"
+
+[[bin]]
+name = "random_math_question_generator"
+path = "src/main.rs"
 
 [features]
 default = ["custom-protocol"]
