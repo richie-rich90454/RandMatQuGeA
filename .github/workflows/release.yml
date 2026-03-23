@@ -115,30 +115,54 @@ jobs:
         run: |
           if [ "${{ runner.os }}" == "macOS" ]; then
             found=$(find target -path "*/bundle/*" \( -type d -name "*.app" -o -type f -name "*.dmg" \) 2>/dev/null)
+
+            if [ -z "$found" ]; then
+              echo "Error: No macOS bundle files found"
+              exit 1
+            fi
+
+            echo "Found macOS bundle files:"
+            echo "$found"
+            echo "Skipping .sig check for macOS"
+
           elif [ "${{ runner.os }}" == "Linux" ]; then
             found=$(find target -path "*/bundle/*" -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \) 2>/dev/null)
+            sigs=$(find target -path "*/bundle/*" -type f -name "*.sig" 2>/dev/null)
+
+            if [ -z "$found" ]; then
+              echo "Error: No Linux bundle files found"
+              exit 1
+            fi
+
+            if [ -z "$sigs" ]; then
+              echo "Error: No .sig files found (signing failed)"
+              exit 1
+            fi
+
+            echo "Found Linux bundle files:"
+            echo "$found"
+            echo "Found signature files:"
+            echo "$sigs"
+
           else
             found=$(find target -path "*/bundle/*" -type f \( -name "*.exe" -o -name "*.msi" \) 2>/dev/null)
-          fi
+            sigs=$(find target -path "*/bundle/*" -type f -name "*.sig" 2>/dev/null)
 
-          if [ -z "$found" ]; then
-            echo "Error: No bundle files found in target/bundle/"
-            exit 1
-          fi
+            if [ -z "$found" ]; then
+              echo "Error: No Windows bundle files found"
+              exit 1
+            fi
 
-          echo "Found bundle files:"
-          echo "$found"
+            if [ -z "$sigs" ]; then
+              echo "Error: No .sig files found (signing failed)"
+              exit 1
+            fi
 
-          echo "Checking for signature files..."
-          sigs=$(find target -path "*/bundle/*" -type f -name "*.sig" 2>/dev/null)
+            echo "Found Windows bundle files:"
+            echo "$found"
+            echo "Found signature files:"
+            echo "$sigs"
 
-          if [ -z "$sigs" ]; then
-            echo "Error: No .sig files found (signing failed)"
-            exit 1
-          fi
-
-          echo "Found signature files:"
-          echo "$sigs"
       - name: Upload desktop artifacts
         uses: actions/upload-artifact@v6
         with:
