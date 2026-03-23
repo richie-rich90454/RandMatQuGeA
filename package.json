@@ -1,6 +1,6 @@
 {
   "name": "randmatqugea",
-  "version": "1.8.0",
+  "version": "1.8.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
