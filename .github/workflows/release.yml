@@ -187,7 +187,6 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             artifacts/**/*.exe
-            artifacts/**/*.msi
             artifacts/**/*.dmg
             artifacts/**/*.AppImage
             artifacts/**/*.deb
