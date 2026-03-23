@@ -8,6 +8,7 @@ env:
   CARGO_TERM_COLOR: always
   TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
   TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-web:
@@ -95,7 +96,8 @@ jobs:
             libssl-dev \
             librsvg2-dev \
             patchelf \
-            libayatana-appindicator3-dev
+            gpg \
+            libappindicator3-dev || sudo apt --fix-broken install -y
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
@@ -115,12 +117,10 @@ jobs:
         run: |
           if [ "${{ runner.os }}" == "macOS" ]; then
             found=$(find target -path "*/bundle/*" \( -type d -name "*.app" -o -type f -name "*.dmg" \) 2>/dev/null)
-
             if [ -z "$found" ]; then
               echo "Error: No macOS bundle files found"
               exit 1
             fi
-
             echo "Found macOS bundle files:"
             echo "$found"
             echo "Skipping .sig check for macOS"
@@ -128,17 +128,14 @@ jobs:
           elif [ "${{ runner.os }}" == "Linux" ]; then
             found=$(find target -path "*/bundle/*" -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \) 2>/dev/null)
             sigs=$(find target -path "*/bundle/*" -type f -name "*.sig" 2>/dev/null)
-
             if [ -z "$found" ]; then
               echo "Error: No Linux bundle files found"
               exit 1
             fi
-
             if [ -z "$sigs" ]; then
               echo "Error: No .sig files found (signing failed)"
               exit 1
             fi
-
             echo "Found Linux bundle files:"
             echo "$found"
             echo "Found signature files:"
@@ -147,21 +144,19 @@ jobs:
           else
             found=$(find target -path "*/bundle/*" -type f \( -name "*.exe" -o -name "*.msi" \) 2>/dev/null)
             sigs=$(find target -path "*/bundle/*" -type f -name "*.sig" 2>/dev/null)
-
             if [ -z "$found" ]; then
               echo "Error: No Windows bundle files found"
               exit 1
             fi
-
             if [ -z "$sigs" ]; then
               echo "Error: No .sig files found (signing failed)"
               exit 1
             fi
-
             echo "Found Windows bundle files:"
             echo "$found"
             echo "Found signature files:"
             echo "$sigs"
+          fi
 
       - name: Upload desktop artifacts
         uses: actions/upload-artifact@v6
@@ -176,7 +171,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
       - name: Download all built artifacts
         uses: actions/download-artifact@v6
@@ -184,11 +178,9 @@ jobs:
           path: artifacts/
           pattern: desktop-*
           merge-multiple: true
-
       - name: Show downloaded files
         run: |
           find artifacts -type f -print | sort
-
       - name: Publish artifacts
         uses: softprops/action-gh-release@v2
         with:
