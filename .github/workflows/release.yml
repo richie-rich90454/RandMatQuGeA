@@ -45,7 +45,9 @@ jobs:
           - name: macos-arm
             os: macos-latest
             target: aarch64-apple-darwin
-
+          - name: linux-x64
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -81,6 +83,20 @@ jobs:
             echo "Error: Failed to update version in tauri.conf.json"
             exit 1
           fi
+          
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libgtk-3-dev \
+            libglib2.0-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
@@ -100,16 +116,30 @@ jobs:
         run: |
           if [ "${{ runner.os }}" == "macOS" ]; then
             found=$(find target -path "*/bundle/*" \( -type d -name "*.app" -o -type f -name "*.dmg" \) 2>/dev/null)
+          elif [ "${{ runner.os }}" == "Linux" ]; then
+            found=$(find target -path "*/bundle/*" -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \) 2>/dev/null)
           else
             found=$(find target -path "*/bundle/*" -type f \( -name "*.exe" -o -name "*.msi" \) 2>/dev/null)
           fi
+
           if [ -z "$found" ]; then
             echo "Error: No bundle files found in target/bundle/"
             exit 1
           fi
+
           echo "Found bundle files:"
           echo "$found"
 
+          echo "Checking for signature files..."
+          sigs=$(find target -path "*/bundle/*" -type f -name "*.sig" 2>/dev/null)
+
+          if [ -z "$sigs" ]; then
+            echo "Error: No .sig files found (signing failed)"
+            exit 1
+          fi
+
+          echo "Found signature files:"
+          echo "$sigs"
       - name: Upload desktop artifacts
         uses: actions/upload-artifact@v6
         with:
@@ -142,6 +172,10 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             artifacts/**/*.exe
+            artifacts/**/*.msi
             artifacts/**/*.dmg
+            artifacts/**/*.AppImage
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
             artifacts/**/*.sig
           overwrite_files: true
