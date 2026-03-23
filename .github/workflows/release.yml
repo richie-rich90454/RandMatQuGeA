@@ -190,6 +190,5 @@ jobs:
             artifacts/**/*.dmg
             artifacts/**/*.AppImage
             artifacts/**/*.deb
-            artifacts/**/*.rpm
             artifacts/**/*.sig
           overwrite_files: true
