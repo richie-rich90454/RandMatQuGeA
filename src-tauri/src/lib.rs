@@ -93,6 +93,7 @@ pub fn run() {
                     .icon(icon)
                     .menu(&menu)
                     .show_menu_on_left_click(false)
+                    .tooltip("RandMatQuGeA (Random Math Question Generator)")
                     .on_menu_event(move |app, event| match event.id.as_ref() {
                         "quit" => {
                             ALLOW_CLOSE.store(true, Ordering::SeqCst);
