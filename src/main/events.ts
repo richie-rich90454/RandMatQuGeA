@@ -10,14 +10,11 @@ import {check} from "@tauri-apps/plugin-updater";
 import {relaunch} from "@tauri-apps/plugin-process";
 import {listen} from "@tauri-apps/api/event";
 import packageJson from "../../package.json";
+import semver from "semver";
 function isVersionGreater(v1: string, v2: string): boolean{
-	const p1=v1.split(".").map(Number);
-	const p2=v2.split(".").map(Number);
-	for (let i=0; i<3; i++){
-		if (p1[i] > p2[i]) return true;
-		if (p1[i] < p2[i]) return false;
-	}
-	return false;
+    const cleanV1=v1.replace(/^v/, "");
+    const cleanV2=v2.replace(/^v/, "");
+    return semver.gt(cleanV1, cleanV2);
 }
 export function switchToSingle(): void{
 	if (dom.modeSingleBtn?.classList.contains("disabled")) return;
