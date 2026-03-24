@@ -300,7 +300,7 @@ export function skipMentalQuestion(): void{
 export function stopMentalSession(): void{
 	endMentalSession();
 }
-export function endMentalSession(): void{
+export async function endMentalSession(): Promise<void>{
 	ui.clearAllTimeouts();
 	state.setSessionActive(false);
 	state.setSessionPaused(false);
@@ -327,24 +327,12 @@ export function endMentalSession(): void{
 	if (dom.copyAnswerBtn) dom.copyAnswerBtn.style.display="none";
 	if (dom.expectedFormatDiv) dom.expectedFormatDiv.textContent="";
 	ui.showNotification(`Session finished! Score: ${state.sessionScore.correct}/${state.sessionScore.total}`,"info");
-	promptSaveScore();
-	updateLeaderboard();
+	await promptSaveScore();
+	await updateLeaderboard();
 }
-export function promptSaveScore(): void{
-	if (!window.__TAURI__){
-		let scores=JSON.parse(localStorage.getItem("leaderboard")||"[]");
-		scores.push({
-			topic:state.selectedTopic,
-			score:state.sessionScore.correct,
-			total:state.sessionScore.total,
-			difficulty:state.currentDifficulty,
-			date:new Date().toISOString()
-		});
-		localStorage.setItem("leaderboard",JSON.stringify(scores));
-		ui.showNotification("Score saved locally!","info");
-	}
-	else{
-		invoke("save_score",{
+export async function promptSaveScore(): Promise<void>{
+	try{
+		await invoke("save_score",{
 			entry:{
 				topic:state.selectedTopic,
 				score:state.sessionScore.correct,
@@ -352,25 +340,33 @@ export function promptSaveScore(): void{
 				difficulty:state.currentDifficulty,
 				date:new Date().toISOString()
 			}
-		}).then(()=>ui.showNotification("Score saved!","info"))
-			.catch(_err=>ui.showNotification("Failed to save score","warning"));
+		});
+		ui.showNotification("Score saved!","info");
+	} catch (err){
+		console.error("Failed to save score:",err);
+		ui.showNotification("Failed to save score","warning");
 	}
 }
-export function updateLeaderboard(): void{
+export async function updateLeaderboard(): Promise<void>{
 	if (!dom.leaderboardContent) return;
-	let scores=JSON.parse(localStorage.getItem("leaderboard")||"[]");
-	if (scores.length===0){
-		dom.leaderboardContent.innerHTML=`<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/></svg><p>No scores yet. Complete a mental session to see your results.</p></div>`;
-		if (dom.leaderboardCard) dom.leaderboardCard.style.display="none";
-		return;
+	try{
+		const scores: any[] = await invoke("load_scores");
+		if (!scores || scores.length===0){
+			dom.leaderboardContent.innerHTML=`<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/></svg><p>No scores yet. Complete a mental session to see your results.</p></div>`;
+			if (dom.leaderboardCard) dom.leaderboardCard.style.display="none";
+			return;
+		}
+		let recent=scores.slice(-10).reverse();
+		let html='<div style="display:flex; flex-direction:column; gap:var(--spacing-xs);">';
+		recent.forEach((s: any)=>{
+			let topicName=topicList.find(t=>t.id===s.topic)?.name||s.topic;
+			html+=`<div class="leaderboard-item"><span>${topicName} (${s.difficulty})</span><span class="leaderboard-score">${s.score}/${s.total}</span></div>`;
+		});
+		html+='</div>';
+		dom.leaderboardContent.innerHTML=html;
+		if (dom.leaderboardCard) dom.leaderboardCard.style.display="block";
+	} catch (err){
+		console.error("Failed to load leaderboard:",err);
+		dom.leaderboardContent.innerHTML=`<div class="empty-state"><p>Failed to load scores</p></div>`;
 	}
-	let recent=scores.slice(-10).reverse();
-	let html='<div style="display:flex; flex-direction:column; gap:var(--spacing-xs);">';
-	recent.forEach((s:any)=>{
-		let topicName=topicList.find(t=>t.id===s.topic)?.name||s.topic;
-		html+=`<div class="leaderboard-item"><span>${topicName} (${s.difficulty})</span><span class="leaderboard-score">${s.score}/${s.total}</span></div>`;
-	});
-	html+='</div>';
-	dom.leaderboardContent.innerHTML=html;
-	if (dom.leaderboardCard) dom.leaderboardCard.style.display="block";
 }
