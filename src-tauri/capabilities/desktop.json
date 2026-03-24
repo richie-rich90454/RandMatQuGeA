@@ -9,6 +9,12 @@
     "main"
   ],
   "permissions": [
-    "global-shortcut:default"
+    "global-shortcut:default",
+    "core:window:allow-show",
+    "core:window:allow-is-visible",
+    "core:window:allow-unminimize",
+    "core:window:allow-is-minimized",
+    "core:window:allow-set-focus",
+    "core:tray:default"
   ]
 }

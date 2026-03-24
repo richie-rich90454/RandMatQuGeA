@@ -2,6 +2,14 @@
 
 use serde::{Deserialize, Serialize};
 use std::fs;
+use tauri::Emitter;
+
+use tauri::{
+    async_runtime,
+    menu::{Menu, MenuItem},
+    tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
+    Manager,
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 struct ScoreEntry {
@@ -31,7 +39,11 @@ fn save_score(entry: ScoreEntry) -> Result<(), String> {
         Vec::new()
     };
     scores.push(entry);
-    fs::write(path, serde_json::to_string(&scores).unwrap()).map_err(|e| e.to_string())?;
+    fs::write(
+        path,
+        serde_json::to_string(&scores).map_err(|e| e.to_string())?,
+    )
+    .map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -42,10 +54,20 @@ fn load_scores() -> Result<Vec<ScoreEntry>, String> {
     serde_json::from_str(&data).map_err(|e| e.to_string())
 }
 
+fn spawn_show_window(app_handle: tauri::AppHandle) {
+    async_runtime::spawn(async move {
+        if let Some(window) = app_handle.get_webview_window("main") {
+            let _ = window.show();
+            let _ = window.set_focus();
+        }
+    });
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(target_os = "android")]
     rustls_platform_verifier::init();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
@@ -56,6 +78,60 @@ pub fn run() {
             save_score,
             load_scores
         ])
+        .setup(|app| {
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            {
+                let icon = tauri::image::Image::from_path("icons/32x32.png")?;
+
+                let new_question =
+                    MenuItem::with_id(app, "new", "New Question", true, None::<&str>)?;
+                let toggle_mental = MenuItem::with_id(
+                    app,
+                    "toggle_mental",
+                    "Toggle Mental Mode",
+                    true,
+                    None::<&str>,
+                )?;
+                let leaderboard =
+                    MenuItem::with_id(app, "leaderboard", "Show Leaderboard", true, None::<&str>)?;
+                let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+
+                let menu =
+                    Menu::with_items(app, &[&new_question, &toggle_mental, &leaderboard, &quit])?;
+
+                let _tray = TrayIconBuilder::with_id("main")
+                    .icon(icon)
+                    .menu(&menu)
+                    .show_menu_on_left_click(false)
+                    .on_menu_event(|app, event| match event.id.as_ref() {
+                        "quit" => {
+                            app.exit(0);
+                        }
+                        "new" => {
+                            let _ = app.emit("generate-question", ());
+                            spawn_show_window(app.clone());
+                        }
+                        "toggle_mental" => {
+                            let _ = app.emit("toggle-mental", ());
+                            spawn_show_window(app.clone());
+                        }
+                        "leaderboard" => {
+                            let _ = app.emit("show-leaderboard", ());
+                            spawn_show_window(app.clone());
+                        }
+                        _ => {}
+                    })
+                    .on_tray_icon_event(|tray, event| {
+                        if let TrayIconEvent::Click { button, .. } = event {
+                            if button == MouseButton::Left {
+                                spawn_show_window(tray.app_handle().clone());
+                            }
+                        }
+                    })
+                    .build(app)?;
+            }
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
