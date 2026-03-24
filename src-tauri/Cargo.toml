@@ -23,7 +23,7 @@ crate-type = ["rlib", "staticlib", "cdylib"]
 name = "random_math_question_generator"
 
 [[bin]]
-name = "random_math_question_generator"
+name = "randmatqugea"
 path = "src/main.rs"
 
 [features]
