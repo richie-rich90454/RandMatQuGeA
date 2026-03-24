@@ -8,18 +8,17 @@ import * as answer from "./answer";
 import * as session from "./session";
 import {check} from "@tauri-apps/plugin-updater";
 import {relaunch} from "@tauri-apps/plugin-process";
+import {listen} from "@tauri-apps/api/event";
 import packageJson from "../../package.json";
-
-function isVersionGreater(v1: string, v2: string): boolean {
+function isVersionGreater(v1: string, v2: string): boolean{
 	const p1=v1.split(".").map(Number);
 	const p2=v2.split(".").map(Number);
-	for (let i=0; i < 3; i++) {
+	for (let i=0; i<3; i++){
 		if (p1[i] > p2[i]) return true;
 		if (p1[i] < p2[i]) return false;
 	}
 	return false;
 }
-
 export function switchToSingle(): void{
 	if (dom.modeSingleBtn?.classList.contains("disabled")) return;
 	ui.clearAllTimeouts();
@@ -62,7 +61,6 @@ export function switchToMental(): void{
 	topics.renderTopicGrid();
 	ui.updateUIState();
 }
-// Keyboard shortcut handler for math input
 function handleMathShortcuts(e: KeyboardEvent): void{
 	if (!dom.userAnswer) return;
 	if (document.activeElement !== dom.userAnswer) return;
@@ -81,6 +79,18 @@ function handleMathShortcuts(e: KeyboardEvent): void{
 			ui.insertSymbol("_{}");
 			break;
 	}
+}
+export function setupTauriEvents(): void{
+	listen("generate-question", ()=>{
+		generation.debounceGenerate();
+	}).catch(console.error);
+	listen("toggle-mental", ()=>{
+		if (state.currentMode==="single") switchToMental();
+		else switchToSingle();
+	}).catch(console.error);
+	listen("show-leaderboard", ()=>{
+		if (dom.leaderboardCard) dom.leaderboardCard.style.display = "block";
+	}).catch(console.error);
 }
 export function setupEventListeners(): void{
 	if (!dom.generateQuestionButton||!dom.checkAnswerButton||!dom.userAnswer||!dom.themeToggle||!dom.helpButton||!dom.settingsButton||!dom.modeSingleBtn||!dom.modeMentalBtn||!dom.mentalControls||!dom.singleControls||!dom.difficultySelect||!dom.timerDisplay||!dom.scoreDisplay||!dom.startSessionBtn) return;
@@ -131,14 +141,14 @@ export function setupEventListeners(): void{
 		}
 	});
 	document.addEventListener("keydown", (e: KeyboardEvent)=>{
-		if (e.key === "Escape") {
+		if (e.key==="Escape") {
 			const openModals=[dom.settingsModal, dom.shortcutsModal, dom.onboardingOverlay];
 			openModals.forEach(modal=>{
 				if (modal && modal.classList.contains("show")) {
 					modal.classList.remove("show");
-					if (modal === dom.settingsModal) settings.closeSettings();
-					else if (modal === dom.shortcutsModal) ui.hideShortcutsModal();
-					else if (modal === dom.onboardingOverlay) ui.hideOnboarding();
+					if (modal===dom.settingsModal) settings.closeSettings();
+					else if (modal===dom.shortcutsModal) ui.hideShortcutsModal();
+					else if (modal===dom.onboardingOverlay) ui.hideOnboarding();
 				}
 			});
 		}
@@ -257,7 +267,7 @@ export function setupEventListeners(): void{
 					if (confirm(`Version ${update.version} is available!\n\nRelease notes:\n${update.body || "No release notes available"}\n\nDownload and install now?`)) {
 						dom.checkUpdatesBtn!.textContent="Downloading...";
 						await update.downloadAndInstall((progress)=>{
-							if (progress.event === "Progress") {
+							if (progress.event==="Progress") {
 								const data=progress.data as { chunkLength: number; contentLength: number };
 								const percent=Math.round((data.chunkLength / data.contentLength) * 100);
 								console.log(`Download progress: ${percent}%`);
@@ -283,8 +293,6 @@ export function setupEventListeners(): void{
 	dom.difficultySelect.addEventListener("change",function (e: Event){
 		state.setCurrentDifficulty((e.target as HTMLSelectElement).value);
 	});
-
-	// Centralized start/stop session button handler
 	dom.startSessionBtn.addEventListener("click",()=>{
 		if (state.sessionActive){
 			session.stopMentalSession();
@@ -293,7 +301,6 @@ export function setupEventListeners(): void{
 			session.startMentalSession();
 		}
 	});
-
 	if (dom.pauseSessionBtn){
 		dom.pauseSessionBtn.addEventListener("click",session.pauseMentalSession);
 	}
