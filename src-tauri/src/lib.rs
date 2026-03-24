@@ -2,12 +2,14 @@
 use serde::{Deserialize, Serialize};
 use sqlx::{Row, SqlitePool};
 use std::sync::atomic::{AtomicBool, Ordering};
+use tauri::window::Effect;
 use tauri::{
     async_runtime,
     menu::{Menu, MenuItem},
     tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
     Manager,
 };
+use tauri_utils::config::WindowEffectsConfig;
 
 #[derive(Serialize, Deserialize, Clone)]
 struct ScoreEntry {
@@ -99,7 +101,6 @@ static ALLOW_CLOSE: AtomicBool = AtomicBool::new(false);
 pub fn run() {
     #[cfg(target_os = "android")]
     rustls_platform_verifier::init();
-
     tauri::Builder::default()
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
@@ -244,6 +245,23 @@ pub fn run() {
                         }
                     }
                 });
+
+                #[cfg(target_os = "windows")]
+                {
+                    let config = WindowEffectsConfig {
+                        effects: vec![Effect::Mica],
+                        ..Default::default()
+                    };
+                    let _ = window.set_effects(Some(config));
+                }
+                #[cfg(target_os = "macos")]
+                {
+                    let config = WindowEffectsConfig {
+                        effects: vec![Effect::HudWindow],
+                        ..Default::default()
+                    };
+                    let _ = window.set_effects(Some(config));
+                }
             }
 
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
