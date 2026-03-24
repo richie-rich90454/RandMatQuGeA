@@ -8,7 +8,6 @@ import * as answer from "./answer";
 import * as session from "./session";
 import {check} from "@tauri-apps/plugin-updater";
 import {relaunch} from "@tauri-apps/plugin-process";
-import {listen} from "@tauri-apps/api/event";
 import packageJson from "../../package.json";
 import semver from "semver";
 function isVersionGreater(v1: string, v2: string): boolean{
@@ -76,18 +75,6 @@ function handleMathShortcuts(e: KeyboardEvent): void{
 			ui.insertSymbol("_{}");
 			break;
 	}
-}
-export function setupTauriEvents(): void{
-	listen("generate-question", ()=>{
-		generation.debounceGenerate();
-	}).catch(console.error);
-	listen("toggle-mental", ()=>{
-		if (state.currentMode==="single") switchToMental();
-		else switchToSingle();
-	}).catch(console.error);
-	listen("show-leaderboard", ()=>{
-		if (dom.leaderboardCard) dom.leaderboardCard.style.display = "block";
-	}).catch(console.error);
 }
 export function setupEventListeners(): void{
 	if (!dom.generateQuestionButton||!dom.checkAnswerButton||!dom.userAnswer||!dom.themeToggle||!dom.helpButton||!dom.settingsButton||!dom.modeSingleBtn||!dom.modeMentalBtn||!dom.mentalControls||!dom.singleControls||!dom.difficultySelect||!dom.timerDisplay||!dom.scoreDisplay||!dom.startSessionBtn) return;

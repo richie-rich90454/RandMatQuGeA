@@ -1,16 +1,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
 use serde::{Deserialize, Serialize};
 use std::fs;
-use tauri::Emitter;
-
 use tauri::{
     async_runtime,
     menu::{Menu, MenuItem},
     tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
     Manager,
 };
-
 #[derive(Serialize, Deserialize, Clone)]
 struct ScoreEntry {
     topic: String,
@@ -19,7 +15,6 @@ struct ScoreEntry {
     difficulty: String,
     date: String,
 }
-
 #[tauri::command]
 fn check_math(user_expr: String, correct_expr: String) -> bool {
     let user_num = user_expr.trim().parse::<f64>();
@@ -29,7 +24,6 @@ fn check_math(user_expr: String, correct_expr: String) -> bool {
     }
     user_expr.replace(" ", "").to_lowercase() == correct_expr.replace(" ", "").to_lowercase()
 }
-
 #[tauri::command]
 fn save_score(entry: ScoreEntry) -> Result<(), String> {
     let path = "scores.json";
@@ -46,14 +40,12 @@ fn save_score(entry: ScoreEntry) -> Result<(), String> {
     .map_err(|e| e.to_string())?;
     Ok(())
 }
-
 #[tauri::command]
 fn load_scores() -> Result<Vec<ScoreEntry>, String> {
     let path = "scores.json";
     let data = fs::read_to_string(path).map_err(|e| e.to_string())?;
     serde_json::from_str(&data).map_err(|e| e.to_string())
 }
-
 fn spawn_show_window(app_handle: tauri::AppHandle) {
     async_runtime::spawn(async move {
         if let Some(window) = app_handle.get_webview_window("main") {
@@ -62,12 +54,10 @@ fn spawn_show_window(app_handle: tauri::AppHandle) {
         }
     });
 }
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(target_os = "android")]
     rustls_platform_verifier::init();
-
     tauri::Builder::default()
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
@@ -79,26 +69,21 @@ pub fn run() {
             load_scores
         ])
         .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                let window_clone = window.clone();
+                window.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                        api.prevent_close();
+                        let _ = window_clone.hide();
+                    }
+                });
+            }
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             {
                 let icon = tauri::image::Image::from_path("icons/32x32.png")?;
-
-                let new_question =
-                    MenuItem::with_id(app, "new", "New Question", true, None::<&str>)?;
-                let toggle_mental = MenuItem::with_id(
-                    app,
-                    "toggle_mental",
-                    "Toggle Mental Mode",
-                    true,
-                    None::<&str>,
-                )?;
-                let leaderboard =
-                    MenuItem::with_id(app, "leaderboard", "Show Leaderboard", true, None::<&str>)?;
-                let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-
-                let menu =
-                    Menu::with_items(app, &[&new_question, &toggle_mental, &leaderboard, &quit])?;
-
+                let show_item = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
+                let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+                let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
                 let _tray = TrayIconBuilder::with_id("main")
                     .icon(icon)
                     .menu(&menu)
@@ -107,16 +92,7 @@ pub fn run() {
                         "quit" => {
                             app.exit(0);
                         }
-                        "new" => {
-                            let _ = app.emit("generate-question", ());
-                            spawn_show_window(app.clone());
-                        }
-                        "toggle_mental" => {
-                            let _ = app.emit("toggle-mental", ());
-                            spawn_show_window(app.clone());
-                        }
-                        "leaderboard" => {
-                            let _ = app.emit("show-leaderboard", ());
+                        "show" => {
                             spawn_show_window(app.clone());
                         }
                         _ => {}
