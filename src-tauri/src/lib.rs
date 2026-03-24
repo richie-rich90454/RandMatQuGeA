@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{
     async_runtime,
     menu::{Menu, MenuItem},
@@ -54,6 +55,7 @@ fn spawn_show_window(app_handle: tauri::AppHandle) {
         }
     });
 }
+static ALLOW_CLOSE: AtomicBool = AtomicBool::new(false);
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(target_os = "android")]
@@ -73,8 +75,11 @@ pub fn run() {
                 let window_clone = window.clone();
                 window.on_window_event(move |event| {
                     if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                        api.prevent_close();
-                        let _ = window_clone.hide();
+                        if ALLOW_CLOSE.load(Ordering::SeqCst) {
+                        } else {
+                            api.prevent_close();
+                            let _ = window_clone.hide();
+                        }
                     }
                 });
             }
@@ -88,9 +93,17 @@ pub fn run() {
                     .icon(icon)
                     .menu(&menu)
                     .show_menu_on_left_click(false)
-                    .on_menu_event(|app, event| match event.id.as_ref() {
+                    .on_menu_event(move |app, event| match event.id.as_ref() {
                         "quit" => {
-                            app.exit(0);
+                            ALLOW_CLOSE.store(true, Ordering::SeqCst);
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.close();
+                            }
+                            let app_handle = app.clone();
+                            async_runtime::spawn(async move {
+                                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                                app_handle.exit(0);
+                            });
                         }
                         "show" => {
                             spawn_show_window(app.clone());
