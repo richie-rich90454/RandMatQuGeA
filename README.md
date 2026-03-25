@@ -14,6 +14,7 @@
 [![MathJax](https://img.shields.io/badge/MathJax-4.1.1-007ACC?style=for-the-badge&logo=mathjax&logoColor=white)](https://www.mathjax.org/)
 [![KaTeX](https://img.shields.io/badge/KaTeX-0.16.11-007ACC?style=for-the-badge&logo=katex&logoColor=white)](https://katex.org/)
 [![Math.js](https://img.shields.io/badge/math.js-15.1.1-007ACC?style=for-the-badge&logo=math.js&logoColor=white)](https://mathjs.org/)
+[![SQLite](https://img.shields.io/badge/sqlite-embedded-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
 [![Offline First](https://img.shields.io/badge/offline-first-success?style=for-the-badge&logo=offline&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Offline_service_workers)
 [![Lightweight](https://img.shields.io/badge/binary-lightweight-blue?style=for-the-badge&logo=webpack&logoColor=white)](https://tauri.app/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge&logo=github&logoColor=white)](CONTRIBUTING.md)
@@ -25,6 +26,10 @@ A comprehensive, free online math question generator built with TypeScript that 
 
 - **📚 125+ Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus, discrete math, linear algebra, and geometry
 - **⚡ Instant Feedback**: Real-time answer checking with detailed explanations and LaTeX rendering
+- **🖥️ Native Desktop Experience**: Tauri-based desktop app with system tray, global shortcuts, and modern window effects (Mica on Windows, HUD on macOS)
+- **💾 Persistent Storage**: Built-in SQLite database for storing scores and progress (migrated from JSON)
+- **🔘 System Tray & Global Shortcuts**: Quick access and keyboard shortcuts for efficient workflow
+- **🎨 Modern Window Effects**: Transparent window backgrounds and platform-specific visual enhancements
 - **📱 Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 - **🎯 Progressive Difficulty**: Questions adapt to different skill levels (easy, medium, hard)
 - **🔢 Math Notation Support**: Beautiful mathematical rendering with MathJax and KaTeX
@@ -34,6 +39,7 @@ A comprehensive, free online math question generator built with TypeScript that 
 - **🔒 Type Safety**: Fully migrated to TypeScript for robust, maintainable code
 - **🧩 Modular Architecture**: Organized into focused modules, each with many topic‑specific generator files
 - **✅ Smart Answer Checking**: Uses math.js to handle equivalent expressions, fractions, and LaTeX input
+- **🔄 Graceful Exit**: Clean application shutdown with resource cleanup
 
 ### ❓ Why Not Just Use AI Generated Questions/Answers?
 
@@ -49,6 +55,9 @@ A comprehensive, free online math question generator built with TypeScript that 
 - No browser distractions
 - Faster startup and lower memory usage than Electron apps
 - Secure sandboxing with Rust + Tauri
+- Modern window effects and system tray integration
+- Global keyboard shortcuts for power users
+- Persistent local database for progress tracking
 - Ideal for focused study sessions
 
 ## 📦 Install (No Node.js/Rust environment Required)
@@ -116,15 +125,23 @@ npm run tauri build
 4. **Check Answer**: Click "Check Answer" or press `Shift+Enter` for instant feedback
 5. **Learn**: Review the correct answer rendered with KaTeX and a plain‑text alternate
 
+### Desktop‑Specific Features
+
+- **System Tray**: Right‑click the tray icon to show the window or quit
+- **Global Shortcuts**: Assign custom shortcuts via the Tauri configuration
+- **Window Effects**: Mica on Windows 11, HUD on macOS, transparent background
+- **Graceful Exit**: Closing the window hides it; use the tray "Quit" option to exit cleanly
+
 ## 🛠️ Technology Stack
 
 - **Frontend**: HTML5, CSS3 (Custom Properties), TypeScript (ES2020)
 - **Math Rendering**: [MathJax](https://www.mathjax.org/) 4.1.1 and [KaTeX](https://katex.org/) 0.16.11 for beautiful mathematical notation
 - **Build Tool**: [Vite](https://vitejs.dev/) 8.0.1 with TypeScript support for fast development and optimized builds
 - **Math Engine**: [Math.js](https://mathjs.org/) 15.1.1 for complex calculations and equivalence checking
-- **Desktop Framework**: [Tauri](https://tauri.app/) v2 (Rust 1.85.0) for secure, lightweight native applications
+- **Desktop Framework**: [Tauri](https://tauri.app/) v2 (Rust 1.85.0) with plugins for system tray, global shortcuts, and SQLite
+- **Database**: [SQLite](https://sqlite.org/) via `sqlx` for persistent score storage
 - **Type Safety**: TypeScript 5.9.3 with strict configuration and comprehensive type definitions
-- **Build Tools**: Terser 5.39.0 for minification, CSSNano 7.1.2 for CSS optimization
+- **Build Tools**: Vite 8.0.1 with oxc minification and LightningCSS
 - **Package Manager**: npm with Node.js 18+
 
 ## 📁 Project Structure (Simplified)
@@ -145,16 +162,20 @@ random_math_question_generator/
 │   │   ├── DiscreteMathematics/ # Combinatorics & probability
 │   │   └── Geometry/            # Area, volume, triangle generators
 │   ├── components/              # UI components
-│   ├── utils/                   # Utility functions
+│   ├── utils/                   # Utility functions (answer checking, formatting)
 │   └── assets/                  # Static assets
 ├── src-tauri/                   # Tauri desktop application
-│   ├── src/                     # Rust source code
-│   ├── Cargo.toml               # Rust dependencies
-│   └── tauri.conf.json          # Tauri configuration
+│   ├── src/
+│   │   ├── lib.rs               # Main application logic
+│   │   └── main.rs              # Entry point (calls lib)
+│   ├── Cargo.toml               # Rust dependencies (sqlx, tauri‑utils, etc.)
+│   └── tauri.conf.json          # Tauri configuration (window effects, tray, etc.)
 ├── public/                      # Public assets (fonts, MathJax)
 ├── dist/                        # Build output
 ├── vite.config.ts               # Vite build configuration
 ├── tsconfig.json                # TypeScript configuration
+├── CONTRIBUTING.md              # Contribution guidelines
+├── SECURITY.md                  # Security policy
 └── README.md                    # This file
 ```
 
@@ -165,6 +186,7 @@ random_math_question_generator/
 - Handles mathematical equivalences using Math.js (e.g., `2x` ↔ `2*x`, `(x+1)^2` ↔ `x^2+2x+1`)
 - Provides detailed feedback with TypeScript‑safe structures
 - Includes a `display` field for rendering answers in KaTeX, separate from the `alternate` plain‑text representation
+- Vector notation support (angle brackets) and fallback numeric evaluation
 
 ### Educational Design
 - Progressive difficulty levels (easy, medium, hard)
@@ -183,6 +205,10 @@ random_math_question_generator/
 - Small bundle sizes (10-20 MB)
 - Secure sandboxing (Rust backend)
 - Windows, macOS, and Linux support
+- System tray integration with simple menu
+- Global keyboard shortcuts for quick actions
+- SQLite database for offline persistence
+- Platform-specific window effects (Mica, HUD) and transparency
 
 ### TypeScript Benefits
 - **Type Safety**: Catch errors at compile time rather than runtime
@@ -234,17 +260,17 @@ The project includes a GitHub Actions workflow that automatically builds and pac
 **Supported Platforms:**
 - **Windows**: 64-bit (.exe installers)
 - **macOS**: Intel x64 & Apple Silicon (.dmg bundles)
-- **Linux**: 64-bit & ARM64 (.AppImage & .deb packages) eventually coming
+- **Linux**: 64-bit (.AppImage & .deb packages)
 
 **How to create a release:**
 1. Go to GitHub repository → Releases → Create a new release
-2. Create a tag (e.g., `v1.8.0`)
+2. Create a tag (e.g., `v1.9.0`)
 3. Add release title and description
 4. Click "Publish release"
 
 The workflow will automatically:
 - Build the web application
-- Build desktop apps for all 7 platforms
+- Build desktop apps for all platforms
 - Generate release notes with download links
 - Upload all artifacts to the release
 
@@ -252,12 +278,13 @@ The workflow will automatically:
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
-1. **Report Bugs**: Open an issue with detailed descriptions
-2. **Suggest Features**: Share your ideas for new math topics or features
-3. **Improve Documentation**: Help make the project more accessible
-4. **Submit Code**: Fork the repo and create pull requests
+Here's how you can help:
+- **Report Bugs**: Open an issue with detailed descriptions
+- **Suggest Features**: Share your ideas for new math topics or features
+- **Improve Documentation**: Help make the project more accessible
+- **Submit Code**: Fork the repo and create pull requests
 
 ### Development Setup
 ```bash
@@ -274,6 +301,10 @@ npm run tauri dev
 # For TypeScript type checking
 npm run build:typescript
 ```
+
+## 🔒 Security
+
+We take security seriously. Please see our [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
 
 ## 📊 Project Stats
 
