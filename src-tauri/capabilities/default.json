@@ -5,7 +5,9 @@
         "main"
     ],
     "permissions": [
+        "core:path:default",
         "core:window:allow-set-theme",
+        "core:window:allow-set-effects",
         "updater:default",
         "updater:allow-check",
         "process:default"
