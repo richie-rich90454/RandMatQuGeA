@@ -1,5 +1,4 @@
 import {defineConfig} from "vite";
-import {createHtmlPlugin} from "vite-plugin-html";
 import {readFileSync} from "fs";
 import {join} from "path";
 
@@ -42,10 +41,12 @@ export default defineConfig({
 		}
 	},
 	plugins: [
-		createHtmlPlugin({
-			minify: true,
-			inject: { data: { version } }
-		})
+		{
+			name: "inject-version",
+			transformIndexHtml(html){
+				return html.replace(/__APP_VERSION__/g, version);
+			}
+		}
 	],
 	server: {
 		host: "::",
