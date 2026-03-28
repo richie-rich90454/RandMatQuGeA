@@ -4,13 +4,16 @@ use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::window::Effect;
+use tauri::Manager;
+use tauri_utils::config::WindowEffectsConfig;
+
+#[cfg(desktop)]
 use tauri::{
     async_runtime,
     menu::{Menu, MenuItem},
     tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
-    Manager, Runtime,
+    Runtime,
 };
-use tauri_utils::config::WindowEffectsConfig;
 
 #[derive(Serialize, Deserialize, Clone, sqlx::FromRow)]
 struct ScoreEntry {
@@ -63,6 +66,7 @@ async fn load_scores(db_state: tauri::State<'_, DbState>) -> Result<Vec<ScoreEnt
     .map_err(|e| e.to_string())
 }
 
+#[cfg(desktop)]
 fn spawn_show_window<R: Runtime>(handle: tauri::AppHandle<R>) {
     async_runtime::spawn(async move {
         if let Some(window) = handle.get_webview_window("main") {
@@ -74,83 +78,111 @@ fn spawn_show_window<R: Runtime>(handle: tauri::AppHandle<R>) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    #[cfg(target_os = "android")]
-    rustls_platform_verifier::init();
-
     tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![check_math, save_score, load_scores])
-        .setup(|app| {
-            let handle = app.handle().clone();
-            let pool = async_runtime::block_on(async move {
-                let data_dir = handle.path().app_data_dir().unwrap_or_else(|_| std::env::temp_dir());
-                let _ = std::fs::create_dir_all(&data_dir);
-                let db_path = data_dir.join("scores.db");
-                let db_url = format!("sqlite://{}", db_path.to_string_lossy().replace('\\', "/"));
-                let p = SqlitePool::connect(&db_url).await.map_err(|e| e.to_string())?;
-                sqlx::query("CREATE TABLE IF NOT EXISTS scores (id INTEGER PRIMARY KEY AUTOINCREMENT, topic TEXT, score INTEGER, total INTEGER, difficulty TEXT, date TEXT);")
-                    .execute(&p).await.map_err(|e| e.to_string())?;
-                Ok::<SqlitePool, String>(p)
-            }).expect("Database initialization failed");
+		.plugin(tauri_plugin_shell::init())
+		.plugin(tauri_plugin_process::init())
+		.plugin(tauri_plugin_updater::Builder::new().build())
+		.invoke_handler(tauri::generate_handler![
+			check_math,
+			save_score,
+			load_scores
+		])
+		.setup(|app| {
+			let handle = app.handle().clone();
 
-            app.manage(DbState { pool });
+			let pool = tauri::async_runtime::block_on(async move {
+				let data_dir = handle
+					.path()
+					.app_data_dir()
+					.unwrap_or_else(|_| std::env::temp_dir());
 
-            if let Some(window) = app.get_webview_window("main") {
-                let w_clone = window.clone();
-                window.on_window_event(move |event| {
-                    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                        if !ALLOW_CLOSE.load(Ordering::SeqCst) {
-                            api.prevent_close();
-                            let _ = w_clone.hide();
-                        }
-                    }
-                });
+				let _ = std::fs::create_dir_all(&data_dir);
 
-                #[cfg(target_os = "windows")]
-                {
-                    let _ = window.set_effects(WindowEffectsConfig {
-                        effects: vec![Effect::Mica],
-                        ..Default::default()
-                    });
-                }
-            }
+				let db_path = data_dir.join("scores.db");
+				let db_url = format!(
+					"sqlite://{}",
+					db_path.to_string_lossy().replace('\\', "/")
+				);
 
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            {
-                let show_item = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
-                let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-                let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
+				let p = SqlitePool::connect(&db_url)
+					.await
+					.map_err(|e| e.to_string())?;
 
-                let _tray = TrayIconBuilder::with_id("main")
-                    .icon(app.default_window_icon().unwrap().clone())
-                    .menu(&menu)
-                    .on_menu_event(move |app, event| match event.id.as_ref() {
-                        "quit" => {
-                            ALLOW_CLOSE.store(true, Ordering::SeqCst);
-                            if let Some(window) = app.get_webview_window("main") {
-                                let _ = window.close();
-                            }
-                            let app_handle = app.clone();
-                            async_runtime::spawn(async move {
-                                tokio::time::sleep(std::time::Duration::from_millis(150)).await;
-                                app_handle.exit(0);
-                            });
-                        }
-                        "show" => spawn_show_window(app.clone()),
-                        _ => {}
-                    })
-                    .on_tray_icon_event(|tray, event| {
-                        if let TrayIconEvent::Click { button: MouseButton::Left, .. } = event {
-                            spawn_show_window(tray.app_handle().clone());
-                        }
-                    })
-                    .build(app)?;
-            }
+				sqlx::query("CREATE TABLE IF NOT EXISTS scores (id INTEGER PRIMARY KEY AUTOINCREMENT, topic TEXT, score INTEGER, total INTEGER, difficulty TEXT, date TEXT);")
+					.execute(&p)
+					.await
+					.map_err(|e| e.to_string())?;
 
-            Ok(())
-        })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+				Ok::<SqlitePool, String>(p)
+			})
+			.expect("Database initialization failed");
+
+			app.manage(DbState { pool });
+
+			if let Some(window) = app.get_webview_window("main") {
+				#[cfg(desktop)]
+				{
+					let w_clone = window.clone();
+					window.on_window_event(move |event| {
+						if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+							if !ALLOW_CLOSE.load(Ordering::SeqCst) {
+								api.prevent_close();
+								let _ = w_clone.hide();
+							}
+						}
+					});
+				}
+
+				#[cfg(target_os = "windows")]
+				{
+					let _ = window.set_effects(WindowEffectsConfig {
+						effects: vec![Effect::Mica],
+						..Default::default()
+					});
+				}
+			}
+
+			#[cfg(not(any(target_os = "android", target_os = "ios")))]
+			{
+				let show_item =
+					MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
+				let quit_item =
+					MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+
+				let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
+
+				let _tray = TrayIconBuilder::with_id("main")
+					.icon(app.default_window_icon().unwrap().clone())
+					.menu(&menu)
+					.on_menu_event(move |app, event| match event.id.as_ref() {
+						"quit" => {
+							ALLOW_CLOSE.store(true, Ordering::SeqCst);
+							if let Some(window) = app.get_webview_window("main") {
+								let _ = window.close();
+							}
+							let app_handle = app.clone();
+							async_runtime::spawn(async move {
+								tokio::time::sleep(std::time::Duration::from_millis(150)).await;
+								app_handle.exit(0);
+							});
+						}
+						"show" => spawn_show_window(app.clone()),
+						_ => {}
+					})
+					.on_tray_icon_event(|tray, event| {
+						if let TrayIconEvent::Click {
+							button: MouseButton::Left,
+							..
+						} = event
+						{
+							spawn_show_window(tray.app_handle().clone());
+						}
+					})
+					.build(app)?;
+			}
+
+			Ok(())
+		})
+		.run(tauri::generate_context!())
+		.expect("error while running tauri application");
 }
