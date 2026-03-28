@@ -272,7 +272,7 @@ export function skipMentalQuestion(): void{
 		state.setMentalNextQuestionTimeout(null);
 	}
 	if (dom.answerResults){
-		dom.answerResults.innerHTML=`<div class="result-info">⏩ Skipped</div>`;
+		dom.answerResults.innerHTML=`<div class="result-info">Skipped</div>`;
 		dom.answerResults.className="results-display";
 	}
 	let newTotal=state.sessionScore.total+1;
@@ -341,6 +341,7 @@ export async function promptSaveScore(): Promise<void>{
 				date:new Date().toISOString()
 			}
 		});
+		await updateLeaderboard();
 		ui.showNotification("Score saved!","info");
 	} catch (err){
 		console.error("Failed to save score:",err);
@@ -353,7 +354,7 @@ export async function updateLeaderboard(): Promise<void>{
 		const scores: any[] = await invoke("load_scores");
 		if (!scores || scores.length===0){
 			dom.leaderboardContent.innerHTML=`<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/></svg><p>No scores yet. Complete a mental session to see your results.</p></div>`;
-			if (dom.leaderboardCard) dom.leaderboardCard.style.display="none";
+			if (dom.leaderboardCard) dom.leaderboardCard.classList.add("hidden");
 			return;
 		}
 		let recent=scores.slice(-10).reverse();
@@ -364,7 +365,10 @@ export async function updateLeaderboard(): Promise<void>{
 		});
 		html+='</div>';
 		dom.leaderboardContent.innerHTML=html;
-		if (dom.leaderboardCard) dom.leaderboardCard.style.display="block";
+		if (dom.leaderboardCard) {
+			dom.leaderboardCard.classList.remove("hidden");
+			dom.leaderboardCard.style.display="block";
+		}
 	} catch (err){
 		console.error("Failed to load leaderboard:",err);
 		dom.leaderboardContent.innerHTML=`<div class="empty-state"><p>Failed to load scores</p></div>`;
