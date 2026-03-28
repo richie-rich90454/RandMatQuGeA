@@ -15,10 +15,10 @@ serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "^2", features = ["tray-icon", "image-png"] }
 tauri-utils = { version = "^2", features = [] }
 tauri-plugin-shell = "^2"
-tauri-plugin-updater = { version = "2.10.0", features = ["rustls-tls"] }
+tauri-plugin-updater = { version = "2.10.0" }
 tauri-plugin-process = "2.3.1"
-rustls-platform-verifier = "0.6"
-tokio = "1.50.0"
+tokio = { version = "1.50.0", features = ["macros", "rt-multi-thread"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "json"] }
 sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio", "macros"] }
 
 [lib]
