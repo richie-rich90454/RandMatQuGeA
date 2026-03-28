@@ -56,6 +56,7 @@ export function restoreSessionSnapshot(): void{
 	}
 }
 export function startTimer(): void{
+	if (state.unlimitedMode) return;
 	if (state.sessionTimer) clearInterval(state.sessionTimer);
 	state.setSessionTimer(setInterval(()=>{
 		if (!state.sessionActive||state.sessionPaused) return;
@@ -71,7 +72,7 @@ export function startTimer(): void{
 				let percent=(state.sessionScore.total/state.maxQuestions)*100;
 				dom.mentalProgressBar.style.width=percent+"%";
 			}
-			if (state.sessionScore.total>=state.maxQuestions&&!state.unlimitedMode){
+			if (state.sessionScore.total>=state.maxQuestions && !state.unlimitedMode){
 				endMentalSession();
 				return;
 			}
@@ -220,7 +221,7 @@ export async function handleMentalAnswer(): Promise<void>{
 	if (dom.userAnswer) dom.userAnswer.value="";
 	ui.updatePreview();
 	saveSessionSnapshot();
-	if (newTotal>=state.maxQuestions&&!state.unlimitedMode){
+	if (newTotal>=state.maxQuestions && !state.unlimitedMode){
 		endMentalSession();
 		return;
 	}
@@ -261,6 +262,14 @@ export function startMentalSession(): void{
 	ui.updateTimerDisplay();
 	if (dom.mentalProgressBar) dom.mentalProgressBar.style.width="0%";
 	ui.updateProgressBar();
+	if (state.unlimitedMode){
+		if (dom.mentalProgressBar) dom.mentalProgressBar.style.display="none";
+		if (dom.timerDisplay) dom.timerDisplay.style.display="none";
+	}
+	else{
+		if (dom.mentalProgressBar) dom.mentalProgressBar.style.display="block";
+		if (dom.timerDisplay) dom.timerDisplay.style.display="inline-flex";
+	}
 	startTimer();
 	ui.disableTopicSelection(true);
 	ui.disableModeButtons(true);
@@ -298,7 +307,7 @@ export function skipMentalQuestion(): void{
 		let percent=(newTotal/state.maxQuestions)*100;
 		dom.mentalProgressBar.style.width=percent+"%";
 	}
-	if (newTotal>=state.maxQuestions&&!state.unlimitedMode){
+	if (newTotal>=state.maxQuestions && !state.unlimitedMode){
 		endMentalSession();
 		return;
 	}
