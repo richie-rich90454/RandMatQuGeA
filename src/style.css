@@ -1374,7 +1374,7 @@ input[type="checkbox"]:hover{
 	font-size: 0.75rem;
 }
 #onboarding-overlay .modal-body{
-	text-align: center;
+	text-align: left;
 }
 #onboarding-overlay .modal-body > div{
 	display: flex;
@@ -1720,4 +1720,10 @@ hr.context-menu-divider{
 .setting-item input[type="number"]:hover::-webkit-inner-spin-button,
 .setting-item input[type="number"]:hover::-webkit-outer-spin-button{
 	opacity: 1;
+}
+.statistics-panel{
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-sm);
 }

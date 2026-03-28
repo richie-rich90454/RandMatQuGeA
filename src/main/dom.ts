@@ -73,6 +73,10 @@ export let settingsAdvancedPanel: HTMLElement|null=document.getElementById("sett
 export let answerCard: HTMLElement|null=document.querySelector(".answer-card");
 export let appWindow: Window|null=null;
 export let checkUpdatesBtn: HTMLButtonElement|null=document.getElementById("check-updates") as HTMLButtonElement|null;
+export let unlimitedToggle: HTMLInputElement|null=document.getElementById("unlimited-toggle") as HTMLInputElement|null;
+export let statisticsPanel: HTMLElement|null=document.getElementById("statistics-panel");
+export let accuracyStat: HTMLElement|null=document.getElementById("accuracy-stat");
+export let avgTimeStat: HTMLElement|null=document.getElementById("avg-time-stat");
 try{
 	appWindow=getCurrentWindow();
 }

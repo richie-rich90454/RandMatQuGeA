@@ -175,6 +175,13 @@
                                 <label class="shuffle-toggle" id="mental-shuffle-label" title="Randomly pick topics in mental mode">
                                     <input type="checkbox" id="mental-shuffle-toggle" aria-checked="false"> Shuffle
                                 </label>
+                                <label class="shuffle-toggle" id="unlimited-label" title="Unlimited practice (no question limit)">
+                                    <input type="checkbox" id="unlimited-toggle"> Unlimited
+                                </label>
+                                <div id="statistics-panel" class="statistics-panel" style="display: none;">
+                                    <span class="stat-with-icon" id="accuracy-stat" title="Accuracy">Accuracy: 0%</span>
+                                    <span class="stat-with-icon" id="avg-time-stat" title="Average time per question">Avg: 0.0s</span>
+                                </div>
                                 <button id="start-session" class="primary-button" title="Start a mental math session">Start Session</button>
                             </div>
                             <div class="mental-progress">

@@ -33,7 +33,7 @@ export function updateCheckboxAria(checkbox: HTMLInputElement|null): void{
 }
 export function updateProgressBar(): void{
 	if (dom.mentalProgressBar){
-		const now=(state.sessionScore.total/state.maxQuestions)*100;
+		let now=(state.sessionScore.total/state.maxQuestions)*100;
 		dom.mentalProgressBar.setAttribute("aria-valuenow",String(now));
 	}
 }
@@ -87,7 +87,7 @@ export function setSessionButton(isActive: boolean): void{
 export function updateUIState(): void{
 	if (!dom.generateQuestionButton||!dom.checkAnswerButton||!dom.questionArea) return;
 	let hasTopic=state.selectedTopic!==null;
-	let hasQuestion=window.hasQuestion || !!window.correctAnswer.correct;
+	let hasQuestion=window.hasQuestion||!!window.correctAnswer.correct;
 	dom.generateQuestionButton.disabled=!hasTopic;
 	dom.generateQuestionButton.setAttribute("aria-disabled",String(!hasTopic));
 	dom.checkAnswerButton.disabled=!hasTopic||!hasQuestion;
@@ -129,7 +129,7 @@ export function showNotification(message: string, type: "info"|"warning"="info")
 }
 export function updatePreview(): void{
 	if (!dom.previewDiv||!dom.userAnswer) return;
-	const input=dom.userAnswer.value.trim();
+	let input=dom.userAnswer.value.trim();
 	if (!input){
 		dom.previewDiv.innerHTML="";
 		dom.previewDiv.classList.remove("has-content");
@@ -142,7 +142,7 @@ export function updatePreview(): void{
 		});
 		dom.previewDiv.classList.add("has-content");
 	} catch (e){
-		const errorMessage=e instanceof Error?e.message:String(e);
+		let errorMessage=e instanceof Error?e.message:String(e);
 		dom.previewDiv.innerHTML=`<span style="color: var(--error);">${errorMessage}</span>`;
 		dom.previewDiv.classList.add("has-content");
 	}
@@ -161,12 +161,12 @@ export function updatePreviewDebounced(): void{
  */
 export function insertSymbol(symbol: string): void{
 	if (!dom.userAnswer) return;
-	const start=dom.userAnswer.selectionStart;
-	const end=dom.userAnswer.selectionEnd;
-	const text=dom.userAnswer.value;
+	let start=dom.userAnswer.selectionStart;
+	let end=dom.userAnswer.selectionEnd;
+	let text=dom.userAnswer.value;
 	// Check if it's a template (contains {} or &)
-	if (symbol.includes('{}') || symbol.includes('&')){
-		const newText=text.substring(0,start)+symbol+text.substring(end);
+	if (symbol.includes('{}')||symbol.includes('&')){
+		let newText=text.substring(0,start)+symbol+text.substring(end);
 		dom.userAnswer.value=newText;
 		// Find position of first placeholder (inside the first {} or after &)
 		let placeholderPos=symbol.indexOf('{}');
@@ -181,7 +181,7 @@ export function insertSymbol(symbol: string): void{
 		}
 	}
 	else{
-		const newText=text.substring(0,start)+symbol+text.substring(end);
+		let newText=text.substring(0,start)+symbol+text.substring(end);
 		dom.userAnswer.value=newText;
 		dom.userAnswer.selectionStart=dom.userAnswer.selectionEnd=start+symbol.length;
 	}
@@ -217,4 +217,16 @@ export function showOnboarding(): void{
 }
 export function hideOnboarding(): void{
 	if (dom.onboardingOverlay) dom.onboardingOverlay.classList.remove("show");
+}
+export function updateStatistics(): void{
+    if (!dom.accuracyStat||!dom.avgTimeStat) return;
+    let accuracy=state.sessionScore.total>0?(state.sessionScore.correct/state.sessionScore.total)*100:0;
+    dom.accuracyStat.textContent=`Accuracy: ${accuracy.toFixed(1)}%`;
+    if (state.answeredQuestionsCount > 0){
+        let avg=state.totalTimeSpent/state.answeredQuestionsCount/1000;
+        dom.avgTimeStat.textContent=`Avg: ${avg.toFixed(1)}s`;
+	}
+	else{
+        dom.avgTimeStat.textContent=`Avg: 0.0s`;
+    }
 }

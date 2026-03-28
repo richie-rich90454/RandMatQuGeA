@@ -21,7 +21,8 @@ export let settings={
 	autoCheckDelay:800,
 	decimalPlaces:2,
 	sound:false,
-	vibration:false
+	vibration:false,
+	unlimitedMode:false
 };
 export function loadSettings():void{
 	const saved=localStorage.getItem("appSettings");
@@ -54,6 +55,7 @@ export function loadSettings():void{
 	if (dom.settingsDecimalPlaces) dom.settingsDecimalPlaces.value=settings.decimalPlaces.toString();
 	if (dom.settingsSound) dom.settingsSound.checked=settings.sound;
 	if (dom.settingsVibration) dom.settingsVibration.checked=settings.vibration;
+	if (dom.unlimitedToggle) dom.unlimitedToggle.checked=settings.unlimitedMode;
 	applySettingsToApp();
 }
 export function saveSettings():void{
@@ -77,6 +79,7 @@ export function saveSettings():void{
 	if (dom.settingsDecimalPlaces) settings.decimalPlaces=parseInt(dom.settingsDecimalPlaces.value)||2;
 	if (dom.settingsSound) settings.sound=dom.settingsSound.checked;
 	if (dom.settingsVibration) settings.vibration=dom.settingsVibration.checked;
+	if (dom.unlimitedToggle) settings.unlimitedMode=dom.unlimitedToggle.checked;
 	localStorage.setItem("appSettings",JSON.stringify(settings));
 	applySettingsToApp();
 }
@@ -153,6 +156,9 @@ export function previewSetting(field:string,value:any):void{
 		case "vibration":
 			settings.vibration=value;
 			break;
+		case "unlimitedMode":
+			if (dom.unlimitedToggle) dom.unlimitedToggle.checked=value;
+			break;
 	}
 }
 export function applySettingsToApp():void{
@@ -170,6 +176,7 @@ export function applySettingsToApp():void{
 	if (dom.scopeSelect) dom.scopeSelect.value=settings.scope;
 	if (dom.mentalScopeSelect) dom.mentalScopeSelect.value=settings.scope;
 	if (dom.difficultySelect) dom.difficultySelect.value=settings.difficulty;
+	if (dom.unlimitedToggle) dom.unlimitedToggle.checked=settings.unlimitedMode;
 	if (settings.perfMaster){
 		applyPerformanceMaster(true);
 	}
@@ -202,6 +209,7 @@ export function resetSettings():void{
 	if (dom.settingsDecimalPlaces) dom.settingsDecimalPlaces.value="2";
 	if (dom.settingsSound) dom.settingsSound.checked=false;
 	if (dom.settingsVibration) dom.settingsVibration.checked=false;
+	if (dom.unlimitedToggle) dom.unlimitedToggle.checked=false;
 	saveSettings();
 }
 export function openSettings():void{

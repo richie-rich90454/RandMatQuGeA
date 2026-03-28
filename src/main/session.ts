@@ -71,7 +71,7 @@ export function startTimer(): void{
 				let percent=(state.sessionScore.total/state.maxQuestions)*100;
 				dom.mentalProgressBar.style.width=percent+"%";
 			}
-			if (state.sessionScore.total>=state.maxQuestions){
+			if (state.sessionScore.total>=state.maxQuestions&&!state.unlimitedMode){
 				endMentalSession();
 				return;
 			}
@@ -131,6 +131,8 @@ export function generateNextMentalQuestion(): void{
 	try {
 		callGenerator(state.selectedTopic,state.currentDifficulty);
 		window.hasQuestion=true;
+		ui.updateUIState();
+		state.setCurrentQuestionStartTime(Date.now());
 	} catch (error) {
 		console.error("Mental question generation failed:", error);
 		dom.questionArea.innerHTML=`<div class="empty-state">Generation failed</div>`;
@@ -163,8 +165,7 @@ export async function handleMentalAnswer(): Promise<void>{
 	}
 	let correct=window.correctAnswer.correct;
 	let alternate=window.correctAnswer.alternate;
-	let normalizedCorrect=correct.replace(/\s+/g,'').toLowerCase();
-	let isCorrect=await settings.checkAnswerFast(userInput,normalizedCorrect,alternate);
+	let isCorrect=await settings.checkAnswerFast(userInput,correct,alternate);
 	if (!state.sessionActive) return;
 	if (settings.settings.sound){
 		const audioCtx=new (window.AudioContext||(window as any).webkitAudioContext)();
@@ -179,6 +180,13 @@ export async function handleMentalAnswer(): Promise<void>{
 	}
 	if (settings.settings.vibration&&navigator.vibrate){
 		navigator.vibrate(isCorrect?50:100);
+	}
+	if (state.currentQuestionStartTime){
+		const elapsed=Date.now()-state.currentQuestionStartTime;
+		state.setTotalTimeSpent(state.totalTimeSpent+elapsed);
+		state.setAnsweredQuestionsCount(state.answeredQuestionsCount+1);
+		ui.updateStatistics();
+		state.setCurrentQuestionStartTime(null);
 	}
 	let newCorrect=state.sessionScore.correct+(isCorrect?1:0);
 	let newTotal=state.sessionScore.total+1;
@@ -212,7 +220,7 @@ export async function handleMentalAnswer(): Promise<void>{
 	if (dom.userAnswer) dom.userAnswer.value="";
 	ui.updatePreview();
 	saveSessionSnapshot();
-	if (newTotal>=state.maxQuestions){
+	if (newTotal>=state.maxQuestions&&!state.unlimitedMode){
 		endMentalSession();
 		return;
 	}
@@ -238,6 +246,12 @@ export function startMentalSession(): void{
 		clearTimeout(state.mentalNextQuestionTimeout);
 		state.setMentalNextQuestionTimeout(null);
 	}
+	state.setUnlimitedMode(dom.unlimitedToggle?.checked??false);
+	if (dom.statisticsPanel) dom.statisticsPanel.style.display="flex";
+	state.setTotalTimeSpent(0);
+	state.setAnsweredQuestionsCount(0);
+	state.setCurrentQuestionStartTime(null);
+	ui.updateStatistics();
 	state.setSessionActive(true);
 	state.setSessionPaused(false);
 	state.setSessionScore({correct:0,total:0});
@@ -275,6 +289,7 @@ export function skipMentalQuestion(): void{
 		dom.answerResults.innerHTML=`<div class="result-info">Skipped</div>`;
 		dom.answerResults.className="results-display";
 	}
+	state.setCurrentQuestionStartTime(null);
 	let newTotal=state.sessionScore.total+1;
 	state.setSessionScore({correct:state.sessionScore.correct,total:newTotal});
 	ui.updateScoreDisplay();
@@ -283,7 +298,7 @@ export function skipMentalQuestion(): void{
 		let percent=(newTotal/state.maxQuestions)*100;
 		dom.mentalProgressBar.style.width=percent+"%";
 	}
-	if (newTotal>=state.maxQuestions){
+	if (newTotal>=state.maxQuestions&&!state.unlimitedMode){
 		endMentalSession();
 		return;
 	}
@@ -307,6 +322,7 @@ export async function endMentalSession(): Promise<void>{
 	localStorage.removeItem(SESSION_STORAGE_KEY);
 	if (dom.mentalProgressBar) dom.mentalProgressBar.style.width="0%";
 	ui.updateProgressBar();
+	if (dom.statisticsPanel) dom.statisticsPanel.style.display="none";
 	ui.disableTopicSelection(false);
 	ui.disableModeButtons(false);
 	ui.disableDifficulty(false);

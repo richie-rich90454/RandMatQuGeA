@@ -18,6 +18,10 @@ export let autoTimeout: ReturnType<typeof setTimeout>|null=null;
 export let generateDebounceTimeout: ReturnType<typeof setTimeout>|null=null;
 export let previewTimeout: ReturnType<typeof setTimeout>|null=null;
 export let modeButtons=[dom.modeSingleBtn,dom.modeMentalBtn];
+export let unlimitedMode: boolean=false;
+export let totalTimeSpent: number=0;
+export let answeredQuestionsCount: number=0;
+export let currentQuestionStartTime: number | null=null;
 
 export function setSelectedTopic(topicId: string|null): void{
 	selectedTopic=topicId;
@@ -72,4 +76,16 @@ export function setGenerateDebounceTimeout(timeout: ReturnType<typeof setTimeout
 }
 export function setPreviewTimeout(timeout: ReturnType<typeof setTimeout>|null): void{
 	previewTimeout=timeout;
+}
+export function setUnlimitedMode(value: boolean): void{
+	unlimitedMode=value;
+}
+export function setTotalTimeSpent(value: number): void{
+	totalTimeSpent=value;
+}
+export function setAnsweredQuestionsCount(value: number): void{
+	answeredQuestionsCount=value;
+}
+export function setCurrentQuestionStartTime(value: number | null): void{
+	currentQuestionStartTime=value;
 }
