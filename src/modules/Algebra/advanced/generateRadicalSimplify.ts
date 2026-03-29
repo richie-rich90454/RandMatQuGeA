@@ -1,7 +1,7 @@
 /**
  * Radical simplification: simplify, add, subtract, multiply, divide, rationalize.
- * @fileoverview Generates radical simplification questions. Sets window.correctAnswer with LaTeX expression and display.
- * @date 2026-03-15
+ * @fileoverview Generates radical simplification questions with MCQ distractors. Sets window.correctAnswer with LaTeX expression and display.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
@@ -37,20 +37,25 @@ export function generateRadicalSimplify(difficulty?: string): void{
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,20);
 	let hint="";
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	switch (type){
 		case "simplify":{
 			let a=Math.floor(Math.random()*maxVal)+1;
 			let b=Math.floor(Math.random()*maxVal)+1;
 			while (!isSquareFree(b)) b=Math.floor(Math.random()*maxVal)+1;
 			let radicand=a*a*b;
+			correct=`${a}\\sqrt{${b}}`;
+			alternate=`${a}√${b}`;
+			display=correct;
 			questionArea.innerHTML=`Simplify: \\( \\sqrt{${radicand}} \\)`;
-			let ans=`${a}\\sqrt{${b}}`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: `${a}√${b}`,
-				display: ans
-			};
-			hint="Enter as a√b";
+			choices=[correct];
+			choices.push(`${a+1}\\sqrt{${b}}`);
+			choices.push(`${a-1}\\sqrt{${b}}`);
+			choices.push(`\\sqrt{${a*b}}`);
+			choices.push(`${a}\\sqrt{${b+1}}`);
 			break;
 		}
 		case "add":{
@@ -58,15 +63,16 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			let c=Math.floor(Math.random()*maxVal)+1;
 			let b=Math.floor(Math.random()*maxVal)+1;
 			while (!isSquareFree(b)) b=Math.floor(Math.random()*maxVal)+1;
-			questionArea.innerHTML=`Simplify: \\( ${a}\\sqrt{${b}} + ${c}\\sqrt{${b}} \\)`;
 			let coeff=a+c;
-			let ans=`${coeff}\\sqrt{${b}}`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: `${coeff}√${b}`,
-				display: ans
-			};
-			hint="Enter as a√b";
+			correct=`${coeff}\\sqrt{${b}}`;
+			alternate=`${coeff}√${b}`;
+			display=correct;
+			questionArea.innerHTML=`Simplify: \\( ${a}\\sqrt{${b}} + ${c}\\sqrt{${b}} \\)`;
+			choices=[correct];
+			choices.push(`${coeff+1}\\sqrt{${b}}`);
+			choices.push(`${coeff-1}\\sqrt{${b}}`);
+			choices.push(`${a}\\sqrt{${b}}`);
+			choices.push(`${c}\\sqrt{${b}}`);
 			break;
 		}
 		case "subtract":{
@@ -74,35 +80,39 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			let c=Math.floor(Math.random()*maxVal)+1;
 			let b=Math.floor(Math.random()*maxVal)+1;
 			while (!isSquareFree(b)) b=Math.floor(Math.random()*maxVal)+1;
-			questionArea.innerHTML=`Simplify: \\( ${a}\\sqrt{${b}} - ${c}\\sqrt{${b}} \\)`;
 			let coeff=a-c;
-			let ans=`${coeff}\\sqrt{${b}}`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: `${coeff}√${b}`,
-				display: ans
-			};
-			hint="Enter as a√b";
+			correct=`${coeff}\\sqrt{${b}}`;
+			alternate=`${coeff}√${b}`;
+			display=correct;
+			questionArea.innerHTML=`Simplify: \\( ${a}\\sqrt{${b}} - ${c}\\sqrt{${b}} \\)`;
+			choices=[correct];
+			choices.push(`${coeff+1}\\sqrt{${b}}`);
+			choices.push(`${coeff-1}\\sqrt{${b}}`);
+			choices.push(`${a}\\sqrt{${b}}`);
+			choices.push(`-${c}\\sqrt{${b}}`);
 			break;
 		}
 		case "multiply":{
 			let a=Math.floor(Math.random()*maxVal)+1;
 			let b=Math.floor(Math.random()*maxVal)+1;
 			let product=a*b;
-			questionArea.innerHTML=`Multiply: \\( \\sqrt{${a}} \\times \\sqrt{${b}} \\)`;
 			let ans=simplifyRadical(product);
-			window.correctAnswer={
-				correct: ans,
-				alternate: ans,
-				display: ans
-			};
-			hint="Enter simplified radical (e.g., 2√3)";
+			correct=ans;
+			alternate=ans;
+			display=ans;
+			questionArea.innerHTML=`Multiply: \\( \\sqrt{${a}} \\times \\sqrt{${b}} \\)`;
+			choices=[correct];
+			let wrongAns=simplifyRadical(product+1);
+			choices.push(wrongAns);
+			wrongAns=simplifyRadical(product-1);
+			choices.push(wrongAns);
+			choices.push(`\\sqrt{${a*b}}`);
+			choices.push(`${Math.sqrt(a*b).toFixed(2)}`);
 			break;
 		}
 		case "divide":{
 			let a=Math.floor(Math.random()*maxVal)+1;
 			let b=Math.floor(Math.random()*maxVal)+1;
-			questionArea.innerHTML=`Divide: \\( \\frac{\\sqrt{${a}}}{\\sqrt{${b}}} \\)`;
 			let num=Math.sqrt(a);
 			let den=Math.sqrt(b);
 			let ans: string;
@@ -110,32 +120,49 @@ export function generateRadicalSimplify(difficulty?: string): void{
 				ans=`\\frac{${num}}{${den}}`;
 			}
 			else{
-				let rationalized=`\\frac{\\sqrt{${a*b}}}{${b}}`;
-				ans=rationalized;
+				ans=`\\frac{\\sqrt{${a*b}}}{${b}}`;
 			}
-			window.correctAnswer={
-				correct: ans,
-				alternate: ans,
-				display: ans
-			};
-			hint="Enter simplified radical (e.g., √6/2)";
+			correct=ans;
+			alternate=ans;
+			display=ans;
+			questionArea.innerHTML=`Divide: \\( \\frac{\\sqrt{${a}}}{\\sqrt{${b}}} \\)`;
+			choices=[correct];
+			let wrongAns1=`\\frac{\\sqrt{${a}}}{${b}}`;
+			let wrongAns2=`\\frac{\\sqrt{${a*b}}}{${a}}`;
+			choices.push(wrongAns1);
+			choices.push(wrongAns2);
+			choices.push(`\\frac{${Math.sqrt(a).toFixed(2)}}{${Math.sqrt(b).toFixed(2)}}`);
+			choices.push(`\\sqrt{${a/b}}`);
 			break;
 		}
 		case "rationalize":{
 			let a=Math.floor(Math.random()*maxVal)+1;
+			correct=`\\frac{\\sqrt{${a}}}{${a}}`;
+			alternate=`√${a}/${a}`;
+			display=correct;
 			questionArea.innerHTML=`Rationalize: \\( \\frac{1}{\\sqrt{${a}}} \\)`;
-			let ans=`\\frac{\\sqrt{${a}}}{${a}}`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: `√${a}/${a}`,
-				display: ans
-			};
-			hint="Enter as √a/a";
+			choices=[correct];
+			choices.push(`\\frac{${a}}{\\sqrt{${a}}}`);
+			choices.push(`\\frac{1}{${a}}`);
+			choices.push(`\\sqrt{${a}}`);
+			choices.push(`\\frac{1}{\\sqrt{${a+1}}}`);
 			break;
 		}
+		default:
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
-	}
+	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
 }
