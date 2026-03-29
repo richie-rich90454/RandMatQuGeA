@@ -1,11 +1,10 @@
 /**
  * Roots: simplify nth roots.
- * @fileoverview Generates root simplification questions. Sets window.correctAnswer with correct value and display.
- * @date 2026-03-15
+ * @fileoverview Generates root simplification questions with MCQ distractors. Sets window.correctAnswer with correct value and display.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-
 export function generateRoot(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -22,6 +21,11 @@ export function generateRoot(difficulty?: string): void{
 		rootExpression=`\\[ \\sqrt[${root}]{${radicand}}=? \\]`;
 	}
 	let correctRoot=base.toString();
+	let choices=[correctRoot];
+	choices.push((base+1).toString());
+	choices.push((base-1).toString());
+	choices.push((base*2).toString());
+	choices.push((Math.pow(radicand,1/root+0.1)).toFixed(2));
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=rootExpression;
 	questionArea.appendChild(mathContainer);
@@ -30,10 +34,17 @@ export function generateRoot(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correctRoot)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctRoot;
+		else uniqueChoices=[correctRoot];
+	}
 	window.correctAnswer={
 		correct: correctRoot,
 		alternate: correctRoot,
-		display: correctRoot
+		display: correctRoot,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a whole number";
 }
