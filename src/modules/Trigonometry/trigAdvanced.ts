@@ -1,16 +1,10 @@
 /**
  * Advanced trigonometry: inverse trig functions, equations, graphs.
- * @fileoverview Generates questions on inverse trigonometric functions, solving trigonometric equations, and interpreting trig graphs. Sets window.correctAnswer with LaTeX display and plain text alternate.
- * @date 2026-03-15
+ * @fileoverview Generates questions on inverse trigonometric functions, solving trigonometric equations, and interpreting trig graphs. Sets window.correctAnswer with LaTeX display and plain text alternate, plus plausible wrong answers for MCQ mode.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../script.js";
 import {formatPiFraction} from "./trigUtils.js";
-
-/**
- * Generates an inverse trigonometric function question (arcsin, arccos, arctan).
- * Asks for the principal value in radians and degrees.
- * @param difficulty - optional difficulty level.
- */
 export function generateInverseTrig(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -40,7 +34,6 @@ export function generateInverseTrig(difficulty?: string): void{
 	else principal=Math.atan(val);
 	let deg=(principal*180/Math.PI).toFixed(1);
 	questionText=`Evaluate \\( ${type}(${val.toFixed(2)}) \\) in radians and degrees. (Principal value)`;
-	// Try to get exact representation
 	let exact: string|null=null;
 	const exactRadians: Record<string, number> = {
 		"0":0, "\\frac{\\pi}{6}":Math.PI/6, "\\frac{\\pi}{4}":Math.PI/4, "\\frac{\\pi}{3}":Math.PI/3,
@@ -66,6 +59,31 @@ export function generateInverseTrig(difficulty?: string): void{
 		displayAnswerStr=`${principal.toFixed(2)}\\ \\text{rad},\\ ${deg}^\\circ`;
 		hint=`Enter as "x rad, y°" (e.g., "0.52 rad, 30.0°")`;
 	}
+	let choices=[correctAnswerStr];
+	let wrongPrincipal=type==="arcsin"?Math.asin(-val):(type==="arccos"?Math.acos(-val):Math.atan(-val));
+	let wrongDeg=(wrongPrincipal*180/Math.PI).toFixed(1);
+	let wrongExact=null;
+	for (let [exactStr, rad] of Object.entries(exactRadians)){
+		if (Math.abs(wrongPrincipal-rad)<1e-8){
+			wrongExact=exactStr;
+			break;
+		}
+	}
+	if (wrongExact){
+		choices.push(`${wrongExact} rad, ${wrongDeg}°`);
+	}
+	else{
+		choices.push(`${wrongPrincipal.toFixed(2)} rad, ${wrongDeg}°`);
+	}
+	choices.push(`${principal.toFixed(2)} rad`);
+	choices.push(`${deg}°`);
+	choices.push(`undefined`);
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correctAnswerStr)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswerStr;
+		else uniqueChoices=[correctAnswerStr];
+	}
 	const container=document.createElement("div");
 	container.style.display="flex";
 	container.style.flexDirection="column";
@@ -78,19 +96,14 @@ export function generateInverseTrig(difficulty?: string): void{
 	window.correctAnswer={
 		correct: correctAnswerStr,
 		alternate: alternateAnswerStr,
-		display: displayAnswerStr
+		display: displayAnswerStr,
+		choices: uniqueChoices
 	};
 	window.expectedFormat=hint;
 	if (window.MathJax&&window.MathJax.typeset){
 		window.MathJax.typeset();
 	}
 }
-
-/**
- * Generates a trigonometric equation question (basic, multiple-angle, or using identity).
- * Asks for the smallest positive solution in radians.
- * @param difficulty - optional difficulty level.
- */
 export function generateTrigEquations(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -112,11 +125,9 @@ export function generateTrigEquations(difficulty?: string): void{
 			}
 			val=Math.min(0.99,Math.max(-0.99,val));
 			let angle=func==="sin"?Math.asin(val):Math.acos(val);
-			// smallest positive solution
 			let sol=angle;
 			if (sol<0) sol+=2*Math.PI;
 			questionText=`Solve \\( ${func}\\theta=${val.toFixed(2)} \\) for \\( \\theta \\) in \\( [0, 2\\pi) \\). Give the smallest positive solution.`;
-			// Try exact
 			let exact=null;
 			const exactRadians: Record<string, number> = {
 				"0":0, "\\frac{\\pi}{6}":Math.PI/6, "\\frac{\\pi}{4}":Math.PI/4, "\\frac{\\pi}{3}":Math.PI/3,
@@ -142,6 +153,51 @@ export function generateTrigEquations(difficulty?: string): void{
 				displayAnswerStr=sol.toFixed(2);
 				hint=`Enter a decimal (e.g., 0.52)`;
 			}
+			let choices=[correctAnswerStr];
+			let wrongAngle=func==="sin"?Math.asin(-val):Math.acos(-val);
+			let wrongSol=wrongAngle;
+			if (wrongSol<0) wrongSol+=2*Math.PI;
+			let wrongExact=null;
+			for (let [exactStr, rad] of Object.entries(exactRadians)){
+				if (Math.abs(wrongSol-rad)<1e-8){
+					wrongExact=exactStr;
+					break;
+				}
+			}
+			if (wrongExact){
+				choices.push(wrongExact);
+			}
+			else{
+				choices.push(wrongSol.toFixed(2));
+			}
+			let otherSol=2*Math.PI-sol;
+			let otherExact=null;
+			for (let [exactStr, rad] of Object.entries(exactRadians)){
+				if (Math.abs(otherSol-rad)<1e-8){
+					otherExact=exactStr;
+					break;
+				}
+			}
+			if (otherExact){
+				choices.push(otherExact);
+			}
+			else{
+				choices.push(otherSol.toFixed(2));
+			}
+			choices.push(sol.toFixed(2));
+			choices.push(sol.toFixed(2)+"π");
+			let uniqueChoices=[...new Set(choices)];
+			if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+			if (!uniqueChoices.includes(correctAnswerStr)){
+				if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswerStr;
+				else uniqueChoices=[correctAnswerStr];
+			}
+			window.correctAnswer={
+				correct: correctAnswerStr,
+				alternate: alternateAnswerStr,
+				display: displayAnswerStr,
+				choices: uniqueChoices
+			};
 			break;
 		}
 		case "multiple_angle":{
@@ -157,11 +213,9 @@ export function generateTrigEquations(difficulty?: string): void{
 			val=Math.min(0.99,Math.max(-0.99,val));
 			let angle=func==="sin"?Math.asin(val):Math.acos(val);
 			let base=angle/coeff;
-			// smallest positive solution
 			let sol=base;
 			if (sol<0) sol+=2*Math.PI;
 			questionText=`Solve \\( ${func}(${coeff}\\theta)=${val.toFixed(2)} \\) for \\( 0 \\le \\theta < 2\\pi \\). Give the smallest positive solution.`;
-			// Try exact
 			let exact=null;
 			const exactRadians: Record<string, number> = {
 				"0":0, "\\frac{\\pi}{6}":Math.PI/6, "\\frac{\\pi}{4}":Math.PI/4, "\\frac{\\pi}{3}":Math.PI/3,
@@ -187,6 +241,53 @@ export function generateTrigEquations(difficulty?: string): void{
 				displayAnswerStr=sol.toFixed(2);
 				hint=`Enter a decimal (e.g., 0.52)`;
 			}
+			let choices=[correctAnswerStr];
+			let wrongBase=(Math.PI-angle)/coeff;
+			let wrongSol=wrongBase;
+			if (wrongSol<0) wrongSol+=2*Math.PI;
+			let wrongExact=null;
+			for (let [exactStr, rad] of Object.entries(exactRadians)){
+				if (Math.abs(wrongSol-rad)<1e-8){
+					wrongExact=exactStr;
+					break;
+				}
+			}
+			if (wrongExact){
+				choices.push(wrongExact);
+			}
+			else{
+				choices.push(wrongSol.toFixed(2));
+			}
+			let otherSol=sol+2*Math.PI/coeff;
+			if (otherSol<2*Math.PI){
+				let otherExact=null;
+				for (let [exactStr, rad] of Object.entries(exactRadians)){
+					if (Math.abs(otherSol-rad)<1e-8){
+						otherExact=exactStr;
+						break;
+					}
+				}
+				if (otherExact){
+					choices.push(otherExact);
+				}
+				else{
+					choices.push(otherSol.toFixed(2));
+				}
+			}
+			choices.push(sol.toFixed(2));
+			choices.push(sol.toFixed(2)+"π");
+			let uniqueChoices=[...new Set(choices)];
+			if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+			if (!uniqueChoices.includes(correctAnswerStr)){
+				if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswerStr;
+				else uniqueChoices=[correctAnswerStr];
+			}
+			window.correctAnswer={
+				correct: correctAnswerStr,
+				alternate: alternateAnswerStr,
+				display: displayAnswerStr,
+				choices: uniqueChoices
+			};
 			break;
 		}
 		case "using_identity":{
@@ -201,7 +302,6 @@ export function generateTrigEquations(difficulty?: string): void{
 			let baseAngle=Math.asin(Math.sqrt(c));
 			let sol=baseAngle;
 			if (sol<0) sol+=2*Math.PI;
-			// Try exact
 			let exact=null;
 			const exactRadians: Record<string, number> = {
 				"0":0, "\\frac{\\pi}{6}":Math.PI/6, "\\frac{\\pi}{4}":Math.PI/4, "\\frac{\\pi}{3}":Math.PI/3,
@@ -227,6 +327,51 @@ export function generateTrigEquations(difficulty?: string): void{
 				displayAnswerStr=sol.toFixed(2);
 				hint=`Enter a decimal (e.g., 0.52)`;
 			}
+			let choices=[correctAnswerStr];
+			let wrongBase=Math.asin(-Math.sqrt(c));
+			let wrongSol=wrongBase;
+			if (wrongSol<0) wrongSol+=2*Math.PI;
+			let wrongExact=null;
+			for (let [exactStr, rad] of Object.entries(exactRadians)){
+				if (Math.abs(wrongSol-rad)<1e-8){
+					wrongExact=exactStr;
+					break;
+				}
+			}
+			if (wrongExact){
+				choices.push(wrongExact);
+			}
+			else{
+				choices.push(wrongSol.toFixed(2));
+			}
+			let otherSol=Math.PI-sol;
+			let otherExact=null;
+			for (let [exactStr, rad] of Object.entries(exactRadians)){
+				if (Math.abs(otherSol-rad)<1e-8){
+					otherExact=exactStr;
+					break;
+				}
+			}
+			if (otherExact){
+				choices.push(otherExact);
+			}
+			else{
+				choices.push(otherSol.toFixed(2));
+			}
+			choices.push(sol.toFixed(2));
+			choices.push(sol.toFixed(2)+"π");
+			let uniqueChoices=[...new Set(choices)];
+			if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+			if (!uniqueChoices.includes(correctAnswerStr)){
+				if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswerStr;
+				else uniqueChoices=[correctAnswerStr];
+			}
+			window.correctAnswer={
+				correct: correctAnswerStr,
+				alternate: alternateAnswerStr,
+				display: displayAnswerStr,
+				choices: uniqueChoices
+			};
 			break;
 		}
 	}
@@ -239,22 +384,11 @@ export function generateTrigEquations(difficulty?: string): void{
 	textDiv.innerHTML=questionText;
 	textDiv.style.marginBottom="10px";
 	container.appendChild(textDiv);
-	window.correctAnswer={
-		correct: correctAnswerStr,
-		alternate: alternateAnswerStr,
-		display: displayAnswerStr
-	};
 	window.expectedFormat=hint;
 	if (window.MathJax&&window.MathJax.typeset){
 		window.MathJax.typeset();
 	}
 }
-
-/**
- * Generates a trigonometric graph interpretation question (sine, cosine, tangent).
- * Asks for amplitude, period, phase shift, or asymptotes.
- * @param difficulty - optional difficulty level.
- */
 export function generateTrigGraphs(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -425,6 +559,7 @@ export function generateTrigGraphs(difficulty?: string): void{
 		ctx.stroke();
 	}
 	let questionText="", correctAnswerStr="", alternateAnswerStr="", displayAnswerStr="", hint="";
+	let choices: string[]=[];
 	switch (type){
 		case "sine":
 		case "cosine":{
@@ -435,12 +570,16 @@ export function generateTrigGraphs(difficulty?: string): void{
 				alternateAnswerStr=A.toString();
 				displayAnswerStr=A.toString();
 				hint="Enter a number";
+				choices=[correctAnswerStr];
+				choices.push((A+1).toString());
+				choices.push((A-1).toString());
+				choices.push((A*2).toString());
+				choices.push((A/2).toFixed(2));
 			}
 			else if (askType===1){
 				const period=2*Math.PI/B;
 				const exactPeriod=formatPiFraction(period);
 				questionText=`What is the period of the graphed ${type} function? (in radians)`;
-				// Use exact if possible
 				if (exactPeriod.includes("π")){
 					correctAnswerStr=exactPeriod;
 					alternateAnswerStr=period.toFixed(2);
@@ -452,6 +591,19 @@ export function generateTrigGraphs(difficulty?: string): void{
 					displayAnswerStr=period.toFixed(2);
 				}
 				hint="Enter a number or expression like 2π/3";
+				choices=[correctAnswerStr];
+				let wrongPeriod1=2*Math.PI/(B+1);
+				let wrongPeriod2=2*Math.PI/(B-1);
+				if (exactPeriod.includes("π")){
+					choices.push(formatPiFraction(wrongPeriod1));
+					choices.push(formatPiFraction(wrongPeriod2));
+				}
+				else{
+					choices.push(wrongPeriod1.toFixed(2));
+					choices.push(wrongPeriod2.toFixed(2));
+				}
+				choices.push((period/2).toFixed(2));
+				choices.push((period*2).toFixed(2));
 			}
 			else{
 				const phaseShift=-C/B;
@@ -461,17 +613,30 @@ export function generateTrigGraphs(difficulty?: string): void{
 					correctAnswerStr="0";
 					alternateAnswerStr="0";
 					displayAnswerStr="0";
+					choices=["0","π/2","π","-π/2"];
 				}
 				else{
 					if (exactPhase.includes("π")){
 						correctAnswerStr=exactPhase;
 						alternateAnswerStr=phaseShift.toFixed(2);
 						displayAnswerStr=`\\${exactPhase}`;
+						choices=[correctAnswerStr];
+						let wrongPhase1=(-C+1)/B;
+						let wrongPhase2=(-C-1)/B;
+						choices.push(formatPiFraction(wrongPhase1));
+						choices.push(formatPiFraction(wrongPhase2));
+						choices.push(phaseShift.toFixed(2));
+						choices.push((phaseShift+0.5).toFixed(2));
 					}
 					else{
 						correctAnswerStr=phaseShift.toFixed(2);
 						alternateAnswerStr=phaseShift.toFixed(2);
 						displayAnswerStr=phaseShift.toFixed(2);
+						choices=[correctAnswerStr];
+						choices.push((phaseShift+0.5).toFixed(2));
+						choices.push((phaseShift-0.5).toFixed(2));
+						choices.push((phaseShift*2).toFixed(2));
+						choices.push((phaseShift/2).toFixed(2));
 					}
 				}
 				hint="Enter a number or expression like π/6";
@@ -495,35 +660,71 @@ export function generateTrigGraphs(difficulty?: string): void{
 					displayAnswerStr=period.toFixed(2);
 				}
 				hint="Enter a number or expression like π/2";
+				choices=[correctAnswerStr];
+				let wrongPeriod1=Math.PI/(B+1);
+				let wrongPeriod2=Math.PI/(B-1);
+				if (exactPeriod.includes("π")){
+					choices.push(formatPiFraction(wrongPeriod1));
+					choices.push(formatPiFraction(wrongPeriod2));
+				}
+				else{
+					choices.push(wrongPeriod1.toFixed(2));
+					choices.push(wrongPeriod2.toFixed(2));
+				}
+				choices.push((period/2).toFixed(2));
+				choices.push((period*2).toFixed(2));
 			}
 			else{
 				const period=Math.PI/B;
-				// Ask for the equation of the first positive vertical asymptote.
-				// x = π/(2B) - C/B  (with k=0)
 				let firstAsymp=(Math.PI/2 - C)/B;
-				if (firstAsymp<0) firstAsymp+=period; // adjust to smallest positive
+				if (firstAsymp<0) firstAsymp+=period;
 				const exactAsymp=formatPiFraction(firstAsymp);
 				questionText=`Give the equation of the vertical asymptote that lies between 0 and π/${B.toFixed(2)}.`;
 				if (exactAsymp.includes("π")){
 					correctAnswerStr=`x=${exactAsymp}`;
 					alternateAnswerStr=`x=${firstAsymp.toFixed(2)}`;
 					displayAnswerStr=`x=\\${exactAsymp}`;
+					choices=[correctAnswerStr];
+					let wrongAsymp1=(Math.PI/2 - C + Math.PI)/B;
+					if (wrongAsymp1<0) wrongAsymp1+=period;
+					choices.push(`x=${formatPiFraction(wrongAsymp1)}`);
+					let wrongAsymp2=(Math.PI/2 - C - Math.PI)/B;
+					if (wrongAsymp2<0) wrongAsymp2+=period;
+					choices.push(`x=${formatPiFraction(wrongAsymp2)}`);
+					choices.push(`x=${firstAsymp.toFixed(2)}`);
+					choices.push(`x=${(firstAsymp+0.5).toFixed(2)}`);
 				}
 				else{
 					correctAnswerStr=`x=${firstAsymp.toFixed(2)}`;
 					alternateAnswerStr=`x=${firstAsymp.toFixed(2)}`;
 					displayAnswerStr=`x=${firstAsymp.toFixed(2)}`;
+					choices=[correctAnswerStr];
+					choices.push(`x=${(firstAsymp+0.5).toFixed(2)}`);
+					choices.push(`x=${(firstAsymp-0.5).toFixed(2)}`);
+					choices.push(`x=${(firstAsymp+1).toFixed(2)}`);
+					choices.push(`x=${(firstAsymp-1).toFixed(2)}`);
 				}
 				hint="Enter as 'x = ...'";
 			}
 			break;
 		}
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correctAnswerStr)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswerStr;
+		else uniqueChoices=[correctAnswerStr];
+	}
 	const textDiv=document.createElement("div");
 	textDiv.innerHTML=questionText;
 	textDiv.style.marginTop="10px";
 	container.appendChild(textDiv);
-	window.correctAnswer={ correct: correctAnswerStr, alternate: alternateAnswerStr, display: displayAnswerStr };
+	window.correctAnswer={
+		correct: correctAnswerStr,
+		alternate: alternateAnswerStr,
+		display: displayAnswerStr,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
