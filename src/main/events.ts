@@ -329,6 +329,13 @@ export function setupEventListeners(): void{
 			ui.updateCheckboxAria(dom.mentalShuffleToggle);
 		});
 	}
+	if (dom.mcqToggle){
+		dom.mcqToggle.addEventListener("change",()=>{
+			ui.toggleMcqMode();
+			settings.settings.mcqMode=dom.mcqToggle!.checked;
+			settings.saveSettings();
+		});
+	}
 	if (dom.topicSearch){
 		dom.topicSearch.addEventListener("input",()=>{
 			topics.renderTopicGrid();

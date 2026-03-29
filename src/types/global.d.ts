@@ -8,6 +8,7 @@ export interface CorrectAnswer{
 	correct: string;
 	alternate?: string;
 	display?: string;
+	choices?: string[];
 }
 export interface MathJaxConfig{
 	tex:{
@@ -25,7 +26,7 @@ declare global{
 		MathJax: MathJaxConfig;
 		correctAnswer: CorrectAnswer;
 		expectedFormat: string;
-		hasQuestion: boolean; 
+		hasQuestion: boolean;
 		__TAURI__?: any;
 		katex: any;
 	}
