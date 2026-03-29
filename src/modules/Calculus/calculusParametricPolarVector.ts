@@ -1,20 +1,23 @@
 /**
  * Generates and displays a random question involving parametric equations, polar coordinates, or vector-valued functions.
+ * Includes custom multiple‑choice options for MCQ mode.
  *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
  *                     Influences the maximum coefficient value used in generated expressions
  *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
  * @returns void
+ * @date 2026-03-29
  *
  * @remarks
  * The function performs the following steps:
  * 1. Clears `questionArea.innerHTML`.
  * 2. Randomly selects a question type from a predefined list.
- * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type.
+ * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type,
+ *    along with plausible distractors for MCQ mode.
  * 4. Appends a `<div>` containing the LaTeX to `questionArea`.
  * 5. Triggers MathJax (if available) to render the math.
  * 6. Sets global variables for answer validation:
- *    - `window.correctAnswer` – an object with `correct`, `alternate`, and `display` properties.
+ *    - `window.correctAnswer` – an object with `correct`, `alternate`, `display`, and `choices` properties.
  *      `correct` and `alternate` hold the plain‑text answer for validation;
  *      `display` holds a LaTeX‑formatted version for rendering with KaTeX.
  *    - `window.expectedFormat` – a string describing the expected input format (e.g., "Enter number").
@@ -30,19 +33,9 @@
  * - `polarArea`           – area enclosed by a limaçon r = 1 + a cos θ.
  * - `polarAreaBetween`    – area inside one polar curve and outside another.
  *
- * **External dependencies**:
- * - `questionArea` (imported from `../../script.js`) – must be a DOM element.
- * - `getMaxCoeff` (imported from `./calculusUtils.js`) – provides the coefficient limit.
- * - `window.MathJax` – optional; if present, `MathJax.typesetPromise` is called.
- *
  * @example
- * ```typescript
- * // Generate a question with default difficulty
  * generateParametricPolarVector();
- *
- * // Generate a hard question
  * generateParametricPolarVector("hard");
- * ```
  */
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
@@ -56,6 +49,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 	let latexAnswer="";
 	let expectedFormat="Enter your answer";
 	let maxCoeff=getMaxCoeff(difficulty);
+	let choices: string[]=[];
 	switch (questionType){
 		case "parametricDeriv":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
@@ -68,6 +62,11 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			plainCorrectAnswer=deriv.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			choices=[plainCorrectAnswer];
+			choices.push((deriv+0.1).toFixed(3));
+			choices.push((deriv-0.1).toFixed(3));
+			choices.push((dy/dx*dx).toFixed(3));
+			choices.push((dy/dx/dx).toFixed(3));
 			break;
 		}
 		case "parametricSecond":{
@@ -82,6 +81,11 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			plainCorrectAnswer=second.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			choices=[plainCorrectAnswer];
+			choices.push((second+0.1).toFixed(3));
+			choices.push((second-0.1).toFixed(3));
+			choices.push((dy/dx).toFixed(3));
+			choices.push((dy/dx/dx).toFixed(3));
 			break;
 		}
 		case "arcLengthParam":{
@@ -93,6 +97,11 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			plainCorrectAnswer=len.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			choices=[plainCorrectAnswer];
+			choices.push((len+0.5).toFixed(3));
+			choices.push((len-0.5).toFixed(3));
+			choices.push((a*(t1-t0)).toFixed(3));
+			choices.push((Math.sqrt(2)*a).toFixed(3));
 			break;
 		}
 		case "vectorDeriv":{
@@ -101,6 +110,12 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			plainCorrectAnswer=`<2t, ${a}e^(${a}t)>`;
 			latexAnswer=`\\langle 2t,\\ ${a}e^{${a}t} \\rangle`;
 			expectedFormat="Enter vector";
+			let correctNorm=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
+			choices=[correctNorm];
+			choices.push(`<2t, e^(${a}t)>`.replace(/\s/g,"").toLowerCase());
+			choices.push(`<2, ${a}e^(${a}t)>`.replace(/\s/g,"").toLowerCase());
+			choices.push(`<2t, ${a}e^(${a}t) + C>`.replace(/\s/g,"").toLowerCase());
+			choices.push(`<t^2, ${a}e^(${a}t)>`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "vectorIntegral":{
@@ -111,6 +126,12 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			plainCorrectAnswer=`<${intX.toFixed(3)}, ${intY.toFixed(3)}>`;
 			latexAnswer=`\\langle ${intX.toFixed(3)},\\ ${intY.toFixed(3)} \\rangle`;
 			expectedFormat="Enter vector";
+			let correctNorm=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
+			choices=[correctNorm];
+			choices.push(`<0.5, ${a/2}>`.replace(/\s/g,"").toLowerCase());
+			choices.push(`<1, ${a}>`.replace(/\s/g,"").toLowerCase());
+			choices.push(`<0.5, ${a}>`.replace(/\s/g,"").toLowerCase());
+			choices.push(`<1, ${a/3}>`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "motionParam":{
@@ -120,6 +141,11 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			plainCorrectAnswer=speed.toString();
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			choices=[plainCorrectAnswer];
+			choices.push((a+1).toString());
+			choices.push((a-1).toString());
+			choices.push((a*a).toString());
+			choices.push("1");
 			break;
 		}
 		case "polarDeriv":{
@@ -134,6 +160,11 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			plainCorrectAnswer=deriv.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			choices=[plainCorrectAnswer];
+			choices.push((deriv+0.1).toFixed(3));
+			choices.push((deriv-0.1).toFixed(3));
+			choices.push((dy_dtheta).toFixed(3));
+			choices.push((dx_dtheta).toFixed(3));
 			break;
 		}
 		case "polarArea":{
@@ -143,6 +174,11 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			plainCorrectAnswer=area.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			choices=[plainCorrectAnswer];
+			choices.push((area+1).toFixed(3));
+			choices.push((area-1).toFixed(3));
+			choices.push((Math.PI).toFixed(3));
+			choices.push((Math.PI*a*a/2).toFixed(3));
 			break;
 		}
 		case "polarAreaBetween":{
@@ -152,8 +188,19 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			plainCorrectAnswer=area.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			choices=[plainCorrectAnswer];
+			choices.push((area+1).toFixed(3));
+			choices.push((area-1).toFixed(3));
+			choices.push((Math.PI*a*a).toFixed(3));
+			choices.push((Math.PI*a*a/4).toFixed(3));
 			break;
 		}
+	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(plainCorrectAnswer)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+		else uniqueChoices=[plainCorrectAnswer];
 	}
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
@@ -166,7 +213,8 @@ export function generateParametricPolarVector(difficulty?: string): void{
 	window.correctAnswer={
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
-		display: latexAnswer
+		display: latexAnswer,
+		choices: uniqueChoices
 	};
 	window.expectedFormat=expectedFormat;
 }
