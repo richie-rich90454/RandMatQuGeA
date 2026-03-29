@@ -1,11 +1,10 @@
 /**
  * Exponent rules: product, quotient, power, negative, zero.
- * @fileoverview Generates questions on exponent rules. Sets window.correctAnswer with correct expression and display.
- * @date 2026-03-15
+ * @fileoverview Generates questions on exponent rules with MCQ distractors. Sets window.correctAnswer with correct expression and display.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-
 export function generateExponentRules(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -16,64 +15,82 @@ export function generateExponentRules(difficulty?: string): void{
 	let m=Math.floor(Math.random()*3)+1;
 	let n=Math.floor(Math.random()*3)+1;
 	let hint="";
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	switch (type){
 		case "product":{
+			correct=`${base}^${m+n}`;
+			alternate=correct;
+			display=correct;
 			questionArea.innerHTML=`Simplify: \\( ${base}^{${m}} \\times ${base}^{${n}} \\)`;
-			let ans=`${base}^${m+n}`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: ans,
-				display: ans
-			};
-			hint="Enter as a^b";
+			choices=[correct];
+			choices.push(`${base}^${m}`);
+			choices.push(`${base}^${n}`);
+			choices.push(`${base}^${m*n}`);
+			choices.push(`${base}^${m+n+1}`);
 			break;
 		}
 		case "quotient":{
+			correct=`${base}^${m}`;
+			alternate=correct;
+			display=correct;
 			questionArea.innerHTML=`Simplify: \\( \\frac{${base}^{${m+n}}}{${base}^{${n}}} \\)`;
-			let ans=`${base}^${m}`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: ans,
-				display: ans
-			};
-			hint="Enter as a^b";
+			choices=[correct];
+			choices.push(`${base}^${m+n}`);
+			choices.push(`${base}^${m-1}`);
+			choices.push(`${base}^${m+1}`);
+			choices.push(`1`);
 			break;
 		}
 		case "power":{
+			correct=`${base}^${m*n}`;
+			alternate=correct;
+			display=correct;
 			questionArea.innerHTML=`Simplify: \\( (${base}^{${m}})^{${n}} \\)`;
-			let ans=`${base}^${m*n}`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: ans,
-				display: ans
-			};
-			hint="Enter as a^b";
+			choices=[correct];
+			choices.push(`${base}^${m+n}`);
+			choices.push(`${base}^${m}`);
+			choices.push(`${base}^${n}`);
+			choices.push(`${base}^${m*n+1}`);
 			break;
 		}
 		case "negative":{
+			correct=`\\frac{1}{${base}^{${m}}}`;
+			alternate=`1/${base}^${m}`;
+			display=correct;
 			questionArea.innerHTML=`Write with a positive exponent: \\( ${base}^{-${m}} \\)`;
-			let ans=`\\frac{1}{${base}^{${m}}}`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: `1/${base}^${m}`,
-				display: ans
-			};
-			hint="Enter as 1/a^b";
+			choices=[correct];
+			choices.push(`${base}^${-m}`);
+			choices.push(`${base}^${m}`);
+			choices.push(`\\frac{1}{${base}^{${m-1}}}`);
+			choices.push(`\\frac{1}{${base}}`);
 			break;
 		}
 		case "zero":{
+			correct="1";
+			alternate="1";
+			display="1";
 			questionArea.innerHTML=`Evaluate: \\( ${base}^{0} \\)`;
-			window.correctAnswer={
-				correct: "1",
-				alternate: "1",
-				display: "1"
-			};
-			hint="Enter 1";
+			choices=["1","0","-1","undefined"];
 			break;
 		}
+		default:
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
-	}
+	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
 }

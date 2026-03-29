@@ -1,7 +1,7 @@
 /**
  * Factorial questions: basic, division, equation, approximation, prime exponent.
- * @fileoverview Generates factorial questions. Sets window.correctAnswer with correct result and display.
- * @date 2026-03-15
+ * @fileoverview Generates factorial questions with MCQ distractors. Sets window.correctAnswer with correct result and display.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 import {factorial, getMaxForDifficulty} from "../algebraUtils.js";
@@ -14,72 +14,102 @@ export function generateFactorial(difficulty?: string): void{
 	let n=Math.floor(Math.random()*maxN)+5;
 	let k=Math.floor(Math.random()*(n-2))+2;
 	let hint="";
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	switch (type){
 		case "basic":{
-			questionArea.innerHTML=`Calculate \\( ${n}! \\)`;
 			let ans=factorial(n).toString();
-			window.correctAnswer={
-				correct: ans,
-				alternate: ans,
-				display: ans
-			};
-			hint="Enter a whole number";
+			correct=ans;
+			alternate=ans;
+			display=ans;
+			questionArea.innerHTML=`Calculate \\( ${n}! \\)`;
+			let numVal=parseInt(ans);
+			choices=[ans];
+			choices.push((numVal+1).toString());
+			choices.push((numVal-1).toString());
+			choices.push((numVal*2).toString());
+			choices.push((numVal/2).toString());
 			break;
 		}
 		case "division":{
 			let result=Array.from({length:n-k},(_,i)=>n-i).reduce((a,b)=>a*b,1);
+			correct=result.toString();
+			alternate=(factorial(n)/factorial(k)).toString();
+			display=correct;
 			questionArea.innerHTML=`Simplify: \\( \\frac{${n}!}{${k}!} \\)`;
-			window.correctAnswer={
-				correct: result.toString(),
-				alternate: (factorial(n)/factorial(k)).toString(),
-				display: result.toString()
-			};
-			hint="Enter a whole number";
+			let numVal=parseInt(correct);
+			choices=[correct];
+			choices.push((numVal+1).toString());
+			choices.push((numVal-1).toString());
+			choices.push(factorial(n).toString());
+			choices.push(factorial(k).toString());
 			break;
 		}
 		case "equation":{
 			let factVal=factorial(n);
+			correct=n.toString();
+			alternate=correct;
+			display=correct;
 			questionArea.innerHTML=`Solve for \\( n \\): \\( n!=${factVal} \\)`;
-			window.correctAnswer={
-				correct: n.toString(),
-				alternate: n.toString(),
-				display: n.toString()
-			};
-			hint="Enter a whole number";
+			choices=[correct];
+			choices.push((n+1).toString());
+			choices.push((n-1).toString());
+			choices.push((Math.floor(Math.pow(factVal,1/3))).toString());
+			choices.push((Math.floor(Math.sqrt(factVal))).toString());
 			break;
 		}
 		case "approximation":{
-			questionArea.innerHTML=`Estimate \\( ${n}! \\) using Stirling's approximation`;
 			let stirling=Math.sqrt(2*Math.PI*n)*Math.pow(n/Math.E,n);
-			window.correctAnswer={
-				correct: stirling.toFixed(0),
-				alternate: Math.round(stirling).toString(),
-				display: stirling.toFixed(0)
-			};
-			hint="Enter a rounded whole number";
+			correct=stirling.toFixed(0);
+			alternate=Math.round(stirling).toString();
+			display=correct;
+			questionArea.innerHTML=`Estimate \\( ${n}! \\) using Stirling's approximation`;
+			let numVal=parseInt(correct);
+			choices=[correct];
+			choices.push((numVal+100).toString());
+			choices.push((numVal-100).toString());
+			choices.push((numVal*2).toString());
+			choices.push((numVal/2).toString());
 			break;
 		}
 		case "prime":{
 			let primes=[2,3,5,7,11];
 			let prime=primes[Math.floor(Math.random()*primes.length)];
-			questionArea.innerHTML=`Find the exponent of \\( ${prime} \\) in \\( ${n}! \\) (prime factorization)`;
 			let count=0;
 			let temp=n;
 			while (temp>0){
 				temp=Math.floor(temp/prime);
 				count+=temp;
 			}
-			window.correctAnswer={
-				correct: count.toString(),
-				alternate: count.toString(),
-				display: count.toString()
-			};
-			hint="Enter a whole number";
+			correct=count.toString();
+			alternate=correct;
+			display=correct;
+			questionArea.innerHTML=`Find the exponent of \\( ${prime} \\) in \\( ${n}! \\) (prime factorization)`;
+			let numVal=parseInt(correct);
+			choices=[correct];
+			choices.push((numVal+1).toString());
+			choices.push((numVal-1).toString());
+			choices.push((Math.floor(n/prime)).toString());
+			choices.push((Math.floor(n/(prime*prime))).toString());
 			break;
 		}
+		default:
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
-	}
+	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
 }
