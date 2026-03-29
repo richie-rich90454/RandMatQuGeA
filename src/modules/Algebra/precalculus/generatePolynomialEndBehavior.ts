@@ -1,7 +1,7 @@
 /**
  * Polynomial end behavior: end behavior, multiplicity, IVT.
- * @fileoverview Generates polynomial property questions.
- * @date 2026-03-15
+ * @fileoverview Generates polynomial property questions with MCQ distractors.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
@@ -13,6 +13,10 @@ export function generatePolynomialEndBehavior(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,3);
 	let hint="";
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	const a=Math.floor(Math.random()*max)+1;
 	const b=Math.floor(Math.random()*max)+1;
 	switch (type){
@@ -27,11 +31,18 @@ export function generatePolynomialEndBehavior(difficulty?: string): void{
 			}else{
 				desc=lc===1?"left down, right up":"left up, right down";
 			}
-			window.correctAnswer={
-				correct:desc,
-				alternate:desc,
-				display:desc
-			};
+			correct=desc;
+			alternate=desc;
+			display=desc;
+			let wrong1="both ends up";
+			let wrong2="both ends down";
+			let wrong3="left down, right up";
+			let wrong4="left up, right down";
+			choices=[desc];
+			for (let w of [wrong1,wrong2,wrong3,wrong4]){
+				if (w!==desc) choices.push(w);
+				if (choices.length>=4) break;
+			}
 			hint="Enter description like 'both ends up'";
 			break;
 		}
@@ -41,11 +52,14 @@ export function generatePolynomialEndBehavior(difficulty?: string): void{
 			const poly=`(x - ${root})^${mult}`;
 			questionArea.innerHTML=`For the polynomial \\( ${poly} \\), what is the multiplicity of the root at x=${root}?`;
 			const ans=mult.toString();
-			window.correctAnswer={
-				correct:ans,
-				alternate:ans,
-				display:ans
-			};
+			correct=ans;
+			alternate=ans;
+			display=ans;
+			choices=[ans];
+			choices.push((mult+1).toString());
+			choices.push((mult-1).toString());
+			choices.push("1");
+			choices.push("0");
 			hint="Enter a number";
 			break;
 		}
@@ -54,15 +68,28 @@ export function generatePolynomialEndBehavior(difficulty?: string): void{
 			const val2=val1+Math.floor(Math.random()*5)+2;
 			const poly=`x^3 - ${a}x + ${b}`;
 			questionArea.innerHTML=`Use the Intermediate Value Theorem to show that \\( ${poly} \\) has a root between ${val1} and ${val2}. (Enter yes/no if it applies)`;
-			window.correctAnswer={
-				correct:"yes",
-				alternate:"yes",
-				display:"yes"
-			};
+			correct="yes";
+			alternate="yes";
+			display="yes";
+			choices=["yes","no","maybe","cannot determine"];
 			hint="Enter 'yes' or 'no'";
 			break;
 		}
+		default:
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
 	if (window.MathJax&&window.MathJax.typeset){
 		window.MathJax.typeset();

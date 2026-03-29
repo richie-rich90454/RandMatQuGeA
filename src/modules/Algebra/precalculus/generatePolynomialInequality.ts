@@ -1,7 +1,7 @@
 /**
  * Polynomial inequality: solve >0 with factoring.
- * @fileoverview Generates polynomial inequality questions.
- * @date 2026-03-15
+ * @fileoverview Generates polynomial inequality questions with MCQ distractors.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
@@ -34,10 +34,33 @@ export function generatePolynomialInequality(difficulty?: string): void{
 		}
 	}
 	const answer=intervals.join(' ∪ ');
+	let correct=answer;
+	let alternate=answer.replace(/∞/g,'infinity');
+	let display=answer;
+	let choices=[correct];
+	if (intervals.length>1){
+		let wrong1=intervals.slice(0,1).join(' ∪ ');
+		let wrong2=intervals.slice(1).join(' ∪ ');
+		choices.push(wrong1);
+		choices.push(wrong2);
+	}
+	else{
+		choices.push(`(-∞, ${roots[0]})`);
+		choices.push(`(${roots[0]}, ∞)`);
+	}
+	choices.push(`(-∞, ∞)`);
+	choices.push(`∅`);
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct:answer,
-		alternate:answer.replace(/∞/g,'infinity'),
-		display:answer
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter intervals like (-∞,1) ∪ (3,∞)";
 	if (window.MathJax&&window.MathJax.typeset){
