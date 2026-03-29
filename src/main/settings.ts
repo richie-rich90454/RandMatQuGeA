@@ -1,4 +1,5 @@
 import * as dom from "./dom";
+import * as state from "./state";
 import {invoke} from "@tauri-apps/api/core";
 import * as math from "mathjs";
 export let settings={
@@ -85,7 +86,15 @@ export function saveSettings():void{
 	if (dom.settingsVibration) settings.vibration=dom.settingsVibration.checked;
 	if (dom.unlimitedToggle) settings.unlimitedMode=dom.unlimitedToggle.checked;
 	if (dom.mcqToggle) settings.mcqMode=dom.mcqToggle.checked;
-	if (dom.settingsMcqChoices) settings.mcqChoicesCount=parseInt(dom.settingsMcqChoices.value)||4;
+	if (dom.settingsMcqChoices){
+		const newCount=parseInt(dom.settingsMcqChoices.value)||4;
+		if (settings.mcqChoicesCount!==newCount){
+			settings.mcqChoicesCount=newCount;
+			if (state.mcqMode&&window.hasQuestion&&window.correctAnswer.correct){
+				import("./mcq").then(mcq=>mcq.generateChoicesForCurrentQuestion());
+			}
+		}
+	}
 	localStorage.setItem("appSettings",JSON.stringify(settings));
 	applySettingsToApp();
 }
