@@ -1,19 +1,19 @@
 /**
  * Basic trigonometry: sine, cosine, tangent functions (evaluate, solve, amplitude, period, phase shift, law of sines/cosines, unit circle, identities).
- * @fileoverview Generates basic trig questions. Sets window.correctAnswer with LaTeX display and plain text alternate.
- * @date 2026-03-15
+ * @fileoverview Generates basic trig questions with MCQ distractors. Sets window.correctAnswer with LaTeX display, plain text alternate, and plausible wrong answers.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../script.js";
 
-/**
- * Generates a sine-related question.
- * @param difficulty - optional difficulty level.
- */
 export function generateSin(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["evaluate","solve","amplitude","period","phase_shift","law_sines","unit_circle","identity"];
 	let type=types[Math.floor(Math.random()*types.length)];
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	switch (type){
 		case "evaluate":{
 			let radianAngles=[
@@ -35,10 +35,18 @@ export function generateSin(difficulty?: string): void{
 				{value:11*Math.PI/6,label:"\\frac{11\\pi}{6}"}
 			];
 			let obj=radianAngles[Math.floor(Math.random()*radianAngles.length)];
-			let value=Math.sin(obj.value).toFixed(2);
+			let angleVal=obj.value;
+			let value=Math.sin(angleVal).toFixed(2);
+			correct=value;
+			alternate=value;
+			display=value;
 			questionArea.innerHTML=`Evaluate \$\\sin(${obj.label})\$`;
-			window.correctAnswer={ correct: value, alternate: value, display: value };
-			window.expectedFormat="Enter a decimal (e.g., 0.50) or exact expression (e.g., 1/2)";
+			choices=[correct];
+			let wrong1=Math.sin(angleVal+0.1).toFixed(2);
+			let wrong2=Math.sin(angleVal-0.1).toFixed(2);
+			let wrong3=Math.cos(angleVal).toFixed(2);
+			let wrong4=(-Math.sin(angleVal)).toFixed(2);
+			choices.push(wrong1,wrong2,wrong3,wrong4);
 			break;
 		}
 		case "solve":{
@@ -54,46 +62,68 @@ export function generateSin(difficulty?: string): void{
 					plainNumbers.push(sol.toFixed(2));
 				}
 			});
+			correct=solutions.join(", ");
+			alternate=plainNumbers.join(", ");
+			display=solutions.join(", ");
 			questionArea.innerHTML=`Solve \$\\sin\\theta=${k}\$ for \$0\\le\\theta<2\\pi\$ (in radians)`;
-			window.correctAnswer={
-				correct: solutions.join(", "),
-				alternate: plainNumbers.join(", "),
-				display: solutions.join(", ")
-			};
-			window.expectedFormat="Enter angles in radians, e.g., 0.52, 2.62 or exact expressions like π/6, 5π/6";
+			choices=[correct];
+			let wrongSol1Num=Math.asin(parseFloat(k))+0.2;
+			let wrongSol2Num=Math.PI-wrongSol1Num;
+			let wrongSol1=wrongSol1Num.toFixed(2);
+			let wrongSol2=wrongSol2Num.toFixed(2);
+			choices.push(`${wrongSol1}, ${wrongSol2}`);
+			let wrongSol3Num=Math.asin(parseFloat(k))-0.2;
+			let wrongSol4Num=Math.PI-wrongSol3Num;
+			let wrongSol3=wrongSol3Num.toFixed(2);
+			let wrongSol4=wrongSol4Num.toFixed(2);
+			choices.push(`${wrongSol3}, ${wrongSol4}`);
+			choices.push(`${(Math.asin(parseFloat(k))).toFixed(2)}`);
+			choices.push(`${(Math.PI-Math.asin(parseFloat(k))).toFixed(2)}`);
 			break;
 		}
 		case "amplitude":{
 			let A=(Math.random()*4+1).toFixed(1);
 			if (difficulty==="easy") A=(Math.random()*2+1).toFixed(1);
 			if (difficulty==="hard") A=(Math.random()*6+1).toFixed(1);
+			correct=A;
+			alternate=A;
+			display=A;
 			questionArea.innerHTML=`Find the amplitude of \$y=${A}\\sin(3x+\\pi/4)\$`;
-			window.correctAnswer={ correct: A, alternate: A, display: A };
-			window.expectedFormat="Enter a number (e.g., 2.5)";
+			choices=[correct];
+			let aNum=parseFloat(A);
+			choices.push((aNum+1).toFixed(1));
+			choices.push((aNum-1).toFixed(1));
+			choices.push((aNum*2).toFixed(1));
+			choices.push((aNum/2).toFixed(1));
 			break;
 		}
 		case "period":{
 			let B=Math.floor(Math.random()*4+1);
+			let period=2*Math.PI/B;
+			correct=period.toFixed(2)+" rad";
+			alternate=`2π/${B} rad`;
+			display=period.toFixed(2)+" rad";
 			questionArea.innerHTML=`What is the period of \$y=\\sin(${B}x)\$? (in radians)`;
-			window.correctAnswer={
-				correct: (2*Math.PI/B).toFixed(2)+" rad",
-				alternate: `2π/${B} rad`,
-				display: (2*Math.PI/B).toFixed(2)+" rad"
-			};
-			window.expectedFormat="Enter as a number with units (e.g., 3.14 rad) or exact expression (e.g., 2π/3 rad)";
+			choices=[correct];
+			choices.push((2*Math.PI/(B+1)).toFixed(2)+" rad");
+			choices.push((2*Math.PI/(B-1)).toFixed(2)+" rad");
+			choices.push((Math.PI/B).toFixed(2)+" rad");
+			choices.push((2*Math.PI*B).toFixed(2)+" rad");
 			break;
 		}
 		case "phase_shift":{
 			let C=(Math.random()*Math.PI).toFixed(2);
 			let shiftDirection=(parseFloat(C)>0)?"left":"right";
 			let shiftText=(parseFloat(C)==0)?"0":`${C} rad ${shiftDirection}`;
+			correct=shiftText;
+			alternate=(parseFloat(C)==0)?"0":`-${C}`;
+			display=shiftText;
 			questionArea.innerHTML=`Identify the phase shift of \$y=\\sin(x+${C})\$ (in radians)`;
-			window.correctAnswer={
-				correct: shiftText,
-				alternate: (parseFloat(C)==0)?"0":`-${C}`,
-				display: shiftText
-			};
-			window.expectedFormat="Enter as 'x rad left/right' or '-x' (e.g., 0.5 rad left)";
+			choices=[correct];
+			choices.push((parseFloat(C)==0)?"0":`${(parseFloat(C)+0.2).toFixed(2)} rad ${shiftDirection}`);
+			choices.push((parseFloat(C)==0)?"0":`${(parseFloat(C)-0.2).toFixed(2)} rad ${shiftDirection}`);
+			choices.push((parseFloat(C)==0)?"0":`${C} rad ${shiftDirection==="left"?"right":"left"}`);
+			choices.push((parseFloat(C)==0)?"0":`${C}`);
 			break;
 		}
 		case "law_sines":{
@@ -106,11 +136,18 @@ export function generateSin(difficulty?: string): void{
 				sideA=Math.floor(Math.random()*5+5);
 			}
 			let sideB=(sideA*Math.sin(angleB*Math.PI/180)/Math.sin(angleA*Math.PI/180)).toFixed(1);
+			correct=sideB;
+			alternate=sideB;
+			display=sideB;
 			questionArea.innerHTML=`Using the Law of Sines:<br>
 				In triangle ABC, ∠A=${angleA}°, ∠B=${angleB}°, and side a=${sideA}.<br>
 				Find side b.`;
-			window.correctAnswer={ correct: sideB, alternate: sideB, display: sideB };
-			window.expectedFormat="Enter a number (e.g., 7.2)";
+			let bNum=parseFloat(sideB);
+			choices=[correct];
+			choices.push((bNum+0.5).toFixed(1));
+			choices.push((bNum-0.5).toFixed(1));
+			choices.push((sideA).toFixed(1));
+			choices.push((sideA*Math.sin(angleB*Math.PI/180)).toFixed(1));
 			break;
 		}
 		case "unit_circle":{
@@ -118,32 +155,56 @@ export function generateSin(difficulty?: string): void{
 			let angle=angles[Math.floor(Math.random()*angles.length)];
 			let cosVal=Math.cos(angle*Math.PI/180).toFixed(2);
 			let sinVal=Math.sin(angle*Math.PI/180).toFixed(2);
+			correct=`(${cosVal}, ${sinVal})`;
+			alternate=`(${cosVal}, ${sinVal})`;
+			display=`(${cosVal}, ${sinVal})`;
 			questionArea.innerHTML=`Find the coordinates on the unit circle for an angle of ${angle}° (format: (cos, sin))`;
-			window.correctAnswer={ correct: `(${cosVal}, ${sinVal})`, alternate: `(${cosVal}, ${sinVal})`, display: `(${cosVal}, ${sinVal})` };
-			window.expectedFormat="Enter as (cos, sin) e.g., (0.71, 0.71)";
+			let cosNum=parseFloat(cosVal);
+			let sinNum=parseFloat(sinVal);
+			choices=[correct];
+			choices.push(`(${(cosNum+0.1).toFixed(2)}, ${sinNum})`);
+			choices.push(`(${cosNum}, ${(sinNum+0.1).toFixed(2)})`);
+			choices.push(`(${(cosNum-0.1).toFixed(2)}, ${sinNum})`);
+			choices.push(`(${cosNum}, ${(sinNum-0.1).toFixed(2)})`);
 			break;
 		}
 		case "identity":{
+			correct="1";
+			alternate="one";
+			display="1";
 			questionArea.innerHTML=`Complete the identity: \$\\sin^2\\theta+\\cos^2\\theta=\\; ?\$`;
-			window.correctAnswer={ correct: "1", alternate: "one", display: "1" };
-			window.expectedFormat="Enter '1'";
+			choices=["1","0","-1","sin^2θ+cos^2θ"];
 			break;
 		}
 		default:
 			questionArea.innerHTML="Unknown sine question type";
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
+	window.expectedFormat=window.expectedFormat || "";
 	window.MathJax?.typeset();
 }
 
-/**
- * Generates a cosine-related question.
- * @param difficulty - optional difficulty level.
- */
 export function generateCosine(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["evaluate","solve","amplitude","period","phase_shift","law_cosines","identity"];
 	let type=types[Math.floor(Math.random()*types.length)];
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	switch (type){
 		case "evaluate":{
 			let radianAngles=[
@@ -157,10 +218,18 @@ export function generateCosine(difficulty?: string): void{
 				{value:5*Math.PI/3,label:"\\frac{5\\pi}{3}"}
 			];
 			let obj=radianAngles[Math.floor(Math.random()*radianAngles.length)];
-			let value=Math.cos(obj.value).toFixed(2);
+			let angleVal=obj.value;
+			let value=Math.cos(angleVal).toFixed(2);
+			correct=value;
+			alternate=value;
+			display=value;
 			questionArea.innerHTML=`Evaluate \$\\cos(${obj.label})\$`;
-			window.correctAnswer={ correct: value, alternate: value, display: value };
-			window.expectedFormat="Enter a decimal (e.g., 0.50) or exact expression (e.g., 1/2)";
+			choices=[correct];
+			let wrong1=Math.cos(angleVal+0.1).toFixed(2);
+			let wrong2=Math.cos(angleVal-0.1).toFixed(2);
+			let wrong3=Math.sin(angleVal).toFixed(2);
+			let wrong4=(-Math.cos(angleVal)).toFixed(2);
+			choices.push(wrong1,wrong2,wrong3,wrong4);
 			break;
 		}
 		case "solve":{
@@ -176,46 +245,68 @@ export function generateCosine(difficulty?: string): void{
 					plainNumbers.push(sol.toFixed(2));
 				}
 			});
+			correct=solutions.join(", ");
+			alternate=plainNumbers.join(", ");
+			display=solutions.join(", ");
 			questionArea.innerHTML=`Solve \$\\cos\\theta=${k}\$ for \$0\\le\\theta<2\\pi\$ (in radians)`;
-			window.correctAnswer={
-				correct: solutions.join(", "),
-				alternate: plainNumbers.join(", "),
-				display: solutions.join(", ")
-			};
-			window.expectedFormat="Enter angles in radians, e.g., 1.05, 5.24 or exact expressions like π/3, 5π/3";
+			choices=[correct];
+			let wrongSol1Num=Math.acos(parseFloat(k))+0.2;
+			let wrongSol2Num=2*Math.PI-wrongSol1Num;
+			let wrongSol1=wrongSol1Num.toFixed(2);
+			let wrongSol2=wrongSol2Num.toFixed(2);
+			choices.push(`${wrongSol1}, ${wrongSol2}`);
+			let wrongSol3Num=Math.acos(parseFloat(k))-0.2;
+			let wrongSol4Num=2*Math.PI-wrongSol3Num;
+			let wrongSol3=wrongSol3Num.toFixed(2);
+			let wrongSol4=wrongSol4Num.toFixed(2);
+			choices.push(`${wrongSol3}, ${wrongSol4}`);
+			choices.push(`${(Math.acos(parseFloat(k))).toFixed(2)}`);
+			choices.push(`${(2*Math.PI-Math.acos(parseFloat(k))).toFixed(2)}`);
 			break;
 		}
 		case "amplitude":{
 			let A=(Math.random()*4+1).toFixed(1);
 			if (difficulty==="easy") A=(Math.random()*2+1).toFixed(1);
 			if (difficulty==="hard") A=(Math.random()*6+1).toFixed(1);
+			correct=A;
+			alternate=A;
+			display=A;
 			questionArea.innerHTML=`Find the amplitude of \$y=${A}\\cos(2x-\\pi/3)\$`;
-			window.correctAnswer={ correct: A, alternate: A, display: A };
-			window.expectedFormat="Enter a number (e.g., 2.5)";
+			choices=[correct];
+			let aNum=parseFloat(A);
+			choices.push((aNum+1).toFixed(1));
+			choices.push((aNum-1).toFixed(1));
+			choices.push((aNum*2).toFixed(1));
+			choices.push((aNum/2).toFixed(1));
 			break;
 		}
 		case "period":{
 			let B=Math.floor(Math.random()*4+1);
+			let period=2*Math.PI/B;
+			correct=period.toFixed(2)+" rad";
+			alternate=`2π/${B} rad`;
+			display=period.toFixed(2)+" rad";
 			questionArea.innerHTML=`What is the period of \$y=\\cos(${B}x)\$? (in radians)`;
-			window.correctAnswer={
-				correct: (2*Math.PI/B).toFixed(2)+" rad",
-				alternate: `2π/${B} rad`,
-				display: (2*Math.PI/B).toFixed(2)+" rad"
-			};
-			window.expectedFormat="Enter as a number with units (e.g., 3.14 rad) or exact expression (e.g., 2π/3 rad)";
+			choices=[correct];
+			choices.push((2*Math.PI/(B+1)).toFixed(2)+" rad");
+			choices.push((2*Math.PI/(B-1)).toFixed(2)+" rad");
+			choices.push((Math.PI/B).toFixed(2)+" rad");
+			choices.push((2*Math.PI*B).toFixed(2)+" rad");
 			break;
 		}
 		case "phase_shift":{
 			let C=(Math.random()*Math.PI).toFixed(2);
 			let shiftDirection=(parseFloat(C)>0)?"left":"right";
 			let shiftText=(parseFloat(C)==0)?"0":`${C} rad ${shiftDirection}`;
+			correct=shiftText;
+			alternate=(parseFloat(C)==0)?"0":`-${C}`;
+			display=shiftText;
 			questionArea.innerHTML=`Identify the phase shift of \$y=\\cos(x+${C})\$ (in radians)`;
-			window.correctAnswer={
-				correct: shiftText,
-				alternate: (parseFloat(C)==0)?"0":`-${C}`,
-				display: shiftText
-			};
-			window.expectedFormat="Enter as 'x rad left/right' or '-x' (e.g., 0.5 rad left)";
+			choices=[correct];
+			choices.push((parseFloat(C)==0)?"0":`${(parseFloat(C)+0.2).toFixed(2)} rad ${shiftDirection}`);
+			choices.push((parseFloat(C)==0)?"0":`${(parseFloat(C)-0.2).toFixed(2)} rad ${shiftDirection}`);
+			choices.push((parseFloat(C)==0)?"0":`${C} rad ${shiftDirection==="left"?"right":"left"}`);
+			choices.push((parseFloat(C)==0)?"0":`${C}`);
 			break;
 		}
 		case "law_cosines":{
@@ -228,34 +319,57 @@ export function generateCosine(difficulty?: string): void{
 				angleC=Math.floor(Math.random()*30+30);
 			}
 			let c=Math.sqrt(a*a+b*b-2*a*b*Math.cos(angleC*Math.PI/180)).toFixed(1);
+			correct=c;
+			alternate=c;
+			display=c;
 			questionArea.innerHTML=`Using the Law of Cosines:<br>
 				In triangle ABC, sides a=${a}, b=${b}, and ∠C=${angleC}°.<br>
 				Find side c.`;
-			window.correctAnswer={ correct: c, alternate: c, display: c };
-			window.expectedFormat="Enter a number (e.g., 7.2)";
+			let cNum=parseFloat(c);
+			choices=[correct];
+			choices.push((cNum+0.5).toFixed(1));
+			choices.push((cNum-0.5).toFixed(1));
+			choices.push(Math.sqrt(a*a+b*b).toFixed(1));
+			choices.push(Math.sqrt(a*a+b*b-2*a*b).toFixed(1));
 			break;
 		}
 		case "identity":{
+			correct="1";
+			alternate="one";
+			display="1";
 			questionArea.innerHTML=`Complete the identity: \$\\cos^2\\theta+\\sin^2\\theta=\\; ?\$`;
-			window.correctAnswer={ correct: "1", alternate: "one", display: "1" };
-			window.expectedFormat="Enter '1'";
+			choices=["1","0","-1","cos^2θ+sin^2θ"];
 			break;
 		}
 		default:
 			questionArea.innerHTML="Unknown cosine question type";
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
+	window.expectedFormat=window.expectedFormat || "";
 	window.MathJax?.typeset();
 }
 
-/**
- * Generates a tangent-related question.
- * @param _difficulty - unused (kept for consistency).
- */
 export function generateTangent(_difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["evaluate","solve","period","asymptote","identity"];
 	let type=types[Math.floor(Math.random()*types.length)];
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	switch (type){
 		case "evaluate":{
 			let angles=[0,Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4];
@@ -263,56 +377,85 @@ export function generateTangent(_difficulty?: string): void{
 			let idx=Math.floor(Math.random()*angles.length);
 			let angle=angles[idx];
 			let value=Math.tan(angle).toFixed(2);
+			correct=value;
+			alternate=value;
+			display=value;
 			questionArea.innerHTML=`Evaluate \$\\tan(${labels[idx]})\$`;
-			window.correctAnswer={ correct: value, alternate: value, display: value };
-			window.expectedFormat="Enter a decimal number (e.g., 1.0)";
+			choices=[correct];
+			let wrong1=Math.tan(angle+0.1).toFixed(2);
+			let wrong2=Math.tan(angle-0.1).toFixed(2);
+			let wrong3=Math.sin(angle).toFixed(2);
+			let wrong4=Math.cos(angle).toFixed(2);
+			choices.push(wrong1,wrong2,wrong3,wrong4);
 			break;
 		}
 		case "solve":{
 			let k=(Math.random()*10-5).toFixed(2);
 			let principal=Math.atan(parseFloat(k));
-			let displayAnswer=`${principal.toFixed(2)}+\\pi n`;
+			correct=`${principal.toFixed(2)}+\\pi n`;
+			alternate=`${principal.toFixed(2)}+πn`;
+			display=`${principal.toFixed(2)}+\\pi n`;
 			questionArea.innerHTML=`Solve \$\\tan\\theta=${k}\$ (in radians, give the principal solution)`;
-			window.correctAnswer={
-				correct: displayAnswer,
-				alternate: `${principal.toFixed(2)}+πn`,
-				display: displayAnswer
-			};
-			window.expectedFormat="Enter as 'θ+πn' e.g., '0.79+πn'";
+			choices=[correct];
+			let wrongPrincipal=Math.atan(parseFloat(k)+0.5);
+			choices.push(`${wrongPrincipal.toFixed(2)}+πn`);
+			wrongPrincipal=Math.atan(parseFloat(k)-0.5);
+			choices.push(`${wrongPrincipal.toFixed(2)}+πn`);
+			choices.push(`${(Math.atan(parseFloat(k))+0.2).toFixed(2)}+πn`);
+			choices.push(`${(Math.atan(parseFloat(k))-0.2).toFixed(2)}+πn`);
 			break;
 		}
 		case "period":{
 			let B=Math.floor(Math.random()*3+1);
+			let period=Math.PI/B;
+			correct=period.toFixed(2)+" rad";
+			alternate=`π/${B} rad`;
+			display=period.toFixed(2)+" rad";
 			questionArea.innerHTML=`What is the period of \$y=\\tan(${B}x)\$? (in radians)`;
-			let period=(Math.PI/B).toFixed(2);
-			window.correctAnswer={
-				correct: period+" rad",
-				alternate: `π/${B} rad`,
-				display: period+" rad"
-			};
-			window.expectedFormat="Enter as a number with units (e.g., 1.57 rad) or exact expression (e.g., π/2 rad)";
+			choices=[correct];
+			choices.push((Math.PI/(B+1)).toFixed(2)+" rad");
+			choices.push((Math.PI/(B-1)).toFixed(2)+" rad");
+			choices.push((2*Math.PI/B).toFixed(2)+" rad");
+			choices.push((Math.PI*B).toFixed(2)+" rad");
 			break;
 		}
 		case "asymptote":{
 			let B=Math.floor(Math.random()*2+1);
-			let displayAnswer=`x = \\frac{\\pi}{2\\cdot${B}} + \\frac{\\pi k}{${B}}`;
+			correct=`x = \\frac{\\pi}{2\\cdot${B}} + \\frac{\\pi k}{${B}}`;
+			alternate=`x=π/(2*${B}) + πk/${B}`;
+			display=`x = \\frac{\\pi}{2\\cdot${B}} + \\frac{\\pi k}{${B}}`;
 			questionArea.innerHTML=`Find the vertical asymptotes of \$y=\\tan(${B}x)\$ (in radians).`;
-			window.correctAnswer={
-				correct: displayAnswer,
-				alternate: `x=π/(2*${B}) + πk/${B}`,
-				display: displayAnswer
-			};
-			window.expectedFormat="Enter as 'x=π/(2B) + πk/B'";
+			choices=[correct];
+			choices.push(`x = \\frac{\\pi}{${B}} + \\frac{\\pi k}{${B}}`);
+			choices.push(`x = \\frac{\\pi}{4\\cdot${B}} + \\frac{\\pi k}{${B}}`);
+			choices.push(`x = \\frac{\\pi}{2\\cdot${B+1}} + \\frac{\\pi k}{${B}}`);
+			choices.push(`x = \\frac{\\pi}{2\\cdot${B}} + \\frac{\\pi k}{${B+1}}`);
 			break;
 		}
 		case "identity":{
+			correct="\\sec^2\\theta";
+			alternate="sec^2θ";
+			display="\\sec^2\\theta";
 			questionArea.innerHTML=`Complete the identity: \$1+\\tan^2\\theta=\\; ?\$`;
-			window.correctAnswer={ correct: "\\sec^2\\theta", alternate: "sec^2θ", display: "\\sec^2\\theta" };
-			window.expectedFormat="Enter 'sec^2θ'";
+			choices=["\\sec^2\\theta","\\csc^2\\theta","1","\\tan^2\\theta"];
 			break;
 		}
 		default:
 			questionArea.innerHTML="Unknown tangent question type";
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
+	window.expectedFormat=window.expectedFormat || "";
 	window.MathJax?.typeset();
 }
