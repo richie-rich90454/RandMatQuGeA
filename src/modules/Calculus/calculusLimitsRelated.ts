@@ -3,21 +3,24 @@ import {getMaxCoeff} from "./calculusUtils.js";
 
 /**
  * Generates and displays a random limit question in the global `questionArea`.
+ * Includes custom multiple‑choice options for MCQ mode.
  *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
  *                     Influences the maximum coefficient value used in generated expressions
  *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
  * @returns void
+ * @date 2026-03-29
  *
  * @remarks
  * The function performs the following steps:
  * 1. Clears `questionArea.innerHTML`.
  * 2. Randomly selects a limit type from a predefined list.
- * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type.
+ * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type,
+ *    along with plausible distractors for MCQ mode.
  * 4. Appends a `<div>` containing the LaTeX to `questionArea`.
  * 5. Triggers MathJax (if available) to render the math.
  * 6. Sets global variables for answer validation:
- *    - `window.correctAnswer` – an object with `correct`, `alternate`, and `display` properties.
+ *    - `window.correctAnswer` – an object with `correct`, `alternate`, `display`, and `choices` properties.
  *      `correct` and `alternate` hold the plain‑text answer for validation;
  *      `display` holds a LaTeX‑formatted version for rendering with KaTeX.
  *    - `window.expectedFormat` – a string describing the expected input format.
@@ -28,19 +31,9 @@ import {getMaxCoeff} from "./calculusUtils.js";
  * - `infinity`   – limit of a rational function as x → ∞ (leading coefficient ratio).
  * - `trig`       – fundamental limit lim_{x→0} sin(x)/x = 1.
  *
- * **External dependencies**:
- * - `questionArea` (imported from `../../script.js`) – must be a DOM element.
- * - `getMaxCoeff` (imported from `./calculusUtils.js`) – provides the coefficient limit.
- * - `window.MathJax` – optional; if present, `MathJax.typesetPromise` is called.
- *
  * @example
- * ```typescript
- * // Generate a limit question with default difficulty
  * generateLimit();
- *
- * // Generate a hard limit question
  * generateLimit("hard");
- * ```
  */
 export function generateLimit(difficulty?: string): void{
 	if (!questionArea) return;
@@ -51,6 +44,7 @@ export function generateLimit(difficulty?: string): void{
 	let plainCorrectAnswer="";
 	let latexAnswer="";
 	let maxCoeff=getMaxCoeff(difficulty);
+	let choices: string[]=[];
 	switch (type){
 		case "polynomial":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
@@ -60,12 +54,11 @@ export function generateLimit(difficulty?: string): void{
 			mathExpression=`\\[ \\lim_{x \\to ${x0}} (${a}x^2+${c}) \\]`;
 			plainCorrectAnswer=limit.toString();
 			latexAnswer=plainCorrectAnswer;
-			window.correctAnswer={
-				correct: plainCorrectAnswer,
-				alternate: plainCorrectAnswer,
-				display: latexAnswer
-			};
-			window.expectedFormat="Enter a number";
+			choices=[plainCorrectAnswer];
+			choices.push((limit+1).toString());
+			choices.push((limit-1).toString());
+			choices.push((a*x0*x0).toString());
+			choices.push((c).toString());
 			break;
 		}
 		case "rational":{
@@ -73,17 +66,18 @@ export function generateLimit(difficulty?: string): void{
 			let b=Math.floor(Math.random()*maxCoeff)+2; // ensure denominator nonzero at x0
 			let x0=Math.floor(Math.random()*5)+1;
 			let limit=(a*x0+1)/(b*x0-1);
-			mathExpression=`\\[ \\lim_{x \\to ${x0}} \\frac{${a}x+1}{${b}x-1} \\]`;
+			let exactNum=a*x0+1;
+			let exactDen=b*x0-1;
+			let exactFraction=`${exactNum}/${exactDen}`;
 			plainCorrectAnswer=limit.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
-			let num=a*x0+1;
-			let den=b*x0-1;
-			window.correctAnswer={
-				correct: plainCorrectAnswer,
-				alternate: `${num}/${den}`,
-				display: latexAnswer
-			};
-			window.expectedFormat="Enter a decimal number (e.g., 2.5) or a fraction (e.g., 7/3)";
+			let altNum=exactNum+1;
+			let altDen=exactDen-1;
+			choices=[plainCorrectAnswer];
+			choices.push(exactFraction);
+			choices.push((limit+0.1).toFixed(2));
+			choices.push((limit-0.1).toFixed(2));
+			choices.push(`${altNum}/${altDen}`);
 			break;
 		}
 		case "infinity":{
@@ -91,26 +85,26 @@ export function generateLimit(difficulty?: string): void{
 			mathExpression=`\\[ \\lim_{x \\to \\infty} \\frac{${a}x^2+x}{x^2-1} \\]`;
 			plainCorrectAnswer=a.toString();
 			latexAnswer=plainCorrectAnswer;
-			window.correctAnswer={
-				correct: plainCorrectAnswer,
-				alternate: plainCorrectAnswer,
-				display: latexAnswer
-			};
-			window.expectedFormat="Enter a number";
+			choices=[plainCorrectAnswer];
+			choices.push((a+1).toString());
+			choices.push((a-1).toString());
+			choices.push("0");
+			choices.push("∞");
 			break;
 		}
 		case "trig":{
 			mathExpression=`\\[ \\lim_{x \\to 0} \\frac{\\sin(x)}{x} \\]`;
 			plainCorrectAnswer="1";
 			latexAnswer="1";
-			window.correctAnswer={
-				correct: plainCorrectAnswer,
-				alternate: plainCorrectAnswer,
-				display: latexAnswer
-			};
-			window.expectedFormat="Enter a number";
+			choices=["1","0","∞","does not exist"];
 			break;
 		}
+	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(plainCorrectAnswer)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+		else uniqueChoices=[plainCorrectAnswer];
 	}
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
@@ -120,25 +114,35 @@ export function generateLimit(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
+	window.correctAnswer={
+		correct: plainCorrectAnswer,
+		alternate: plainCorrectAnswer,
+		display: latexAnswer,
+		choices: uniqueChoices
+	};
+	window.expectedFormat="Enter a number";
 }
 
 /**
  * Generates and displays a random related rates problem in the global `questionArea`.
+ * Includes custom multiple‑choice options for MCQ mode.
  *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
  *                     Scales the numerical values in the problem (ladder length, distances,
  *                     rates, etc.) via `getMaxCoeff`. If omitted, a moderate default is used.
  * @returns void
+ * @date 2026-03-29
  *
  * @remarks
  * The function performs the following steps:
  * 1. Clears `questionArea.innerHTML`.
  * 2. Randomly selects a related rates scenario.
- * 3. Constructs descriptive problem text and a LaTeX expression for the unknown rate.
+ * 3. Constructs descriptive problem text and a LaTeX expression for the unknown rate,
+ *    along with plausible distractors for MCQ mode.
  * 4. Appends the problem text (with class `"problem-text"`) followed by a `<div>` containing the LaTeX.
  * 5. Triggers MathJax (if available) to render the math.
  * 6. Sets global variables for answer validation:
- *    - `window.correctAnswer` – an object with `correct`, `alternate`, and `display` properties.
+ *    - `window.correctAnswer` – an object with `correct`, `alternate`, `display`, and `choices` properties.
  *      `correct` and `alternate` hold the plain‑text answer for validation;
  *      `display` holds a LaTeX‑formatted version for rendering with KaTeX.
  *    - `window.expectedFormat` – a string describing the expected input format (including units).
@@ -149,19 +153,9 @@ export function generateLimit(difficulty?: string): void{
  * - `cone`   – conical tank: given radius and height, and rate of radius increase,
  *              find the rate of change of volume.
  *
- * **External dependencies**:
- * - `questionArea` (imported from `../../script.js`) – must be a DOM element.
- * - `getMaxCoeff` (imported from `./calculusUtils.js`) – provides the scaling factor.
- * - `window.MathJax` – optional; if present, `MathJax.typesetPromise` is called.
- *
  * @example
- * ```typescript
- * // Generate a related rates question with default difficulty
  * generateRelatedRates();
- *
- * // Generate an easy related rates question
  * generateRelatedRates("easy");
- * ```
  */
 export function generateRelatedRates(difficulty?: string): void{
 	if (!questionArea) return;
@@ -173,6 +167,7 @@ export function generateRelatedRates(difficulty?: string): void{
 	let latexAnswer="";
 	let problemText="";
 	let scale=getMaxCoeff(difficulty);
+	let choices: string[]=[];
 	switch (type){
 		case "ladder":{
 			let ladder=10*scale/5;
@@ -184,12 +179,12 @@ export function generateRelatedRates(difficulty?: string): void{
 			mathExpression=`\\[ \\frac{dy}{dt}=? \\]`;
 			plainCorrectAnswer=dy_dt.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
-			window.correctAnswer={
-				correct: plainCorrectAnswer,
-				alternate: plainCorrectAnswer,
-				display: latexAnswer
-			};
-			window.expectedFormat="Enter a number (ft/s, e.g., -1.5)";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+0.5).toFixed(2));
+			choices.push((correctNum-0.5).toFixed(2));
+			choices.push((dx_dt).toFixed(2));
+			choices.push((-(x/y)*dx_dt*0.5).toFixed(2));
 			break;
 		}
 		case "cone":{
@@ -202,14 +197,20 @@ export function generateRelatedRates(difficulty?: string): void{
 			mathExpression=`\\[ \\frac{dV}{dt}=? \\]`;
 			plainCorrectAnswer=dV_dt.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
-			window.correctAnswer={
-				correct: plainCorrectAnswer,
-				alternate: plainCorrectAnswer,
-				display: latexAnswer
-			};
-			window.expectedFormat="Enter a number (ft³/s, e.g., 42.41)";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((correctNum*0.5).toFixed(2));
+			choices.push((Math.PI*r*h*dr_dt).toFixed(2));
 			break;
 		}
+	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(plainCorrectAnswer)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+		else uniqueChoices=[plainCorrectAnswer];
 	}
 	let textContainer=document.createElement("div");
 	textContainer.textContent=problemText;
@@ -223,4 +224,11 @@ export function generateRelatedRates(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
+	window.correctAnswer={
+		correct: plainCorrectAnswer,
+		alternate: plainCorrectAnswer,
+		display: latexAnswer,
+		choices: uniqueChoices
+	};
+	window.expectedFormat="Enter a number (ft/s or ft³/s, e.g., -1.5)";
 }
