@@ -1,16 +1,11 @@
 /**
  * Analytic trigonometry: degrees/radians conversion, arc length, angular/linear speed, right triangle definitions, special triangles, elevation/depression, reference angles, ASTC signs, sum/difference, double/half-angle, polar coordinates, parametric equations, complex numbers.
- * @fileoverview Generates a variety of analytic trigonometry questions. Sets window.correctAnswer with LaTeX display and plain text alternate.
- * @date 2026-03-15
+ * @fileoverview Generates a variety of analytic trigonometry questions with MCQ distractors. Sets window.correctAnswer with LaTeX display and plain text alternate.
+ * @date 2026-03-29
  */
 import { questionArea } from "../../script.js";
 import { getMaxForDifficulty } from "../Algebra/algebraUtils.js";
 import { formatPiFraction } from "./trigUtils.js";
-
-/**
- * Converts degrees to radians.
- * @param difficulty - optional difficulty level.
- */
 export function generateDegreesToRadians(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -28,19 +23,35 @@ export function generateDegreesToRadians(difficulty?: string): void{
 	const angleRad=angleDeg*Math.PI/180;
 	const exact=formatPiFraction(angleRad);
 	questionArea.innerHTML=`Convert ${angleDeg}° to radians.`;
+	let correct=exact;
+	let choices=[correct];
+	if (exact.includes("π")){
+		choices.push(exact.replace("π","2π"));
+		choices.push(exact.replace("π","π/2"));
+		choices.push(angleRad.toFixed(4)+" rad");
+	}
+	else{
+		choices.push((angleRad+0.5).toFixed(4)+" rad");
+		choices.push((angleRad-0.5).toFixed(4)+" rad");
+		choices.push((angleRad*2).toFixed(4)+" rad");
+	}
+	choices.push(angleDeg+" rad");
+	choices.push((angleDeg*Math.PI/180).toFixed(2)+" rad");
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: exact,
+		correct: correct,
 		alternate: angleRad.toFixed(4)+" rad",
-		display: exact
+		display: exact,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as a decimal (e.g., 0.7854 rad) or exact expression (e.g., π/4 rad)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Converts radians to degrees.
- * @param difficulty - optional difficulty level.
- */
 export function generateRadiansToDegrees(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -62,19 +73,27 @@ export function generateRadiansToDegrees(difficulty?: string): void{
 	}
 	const angleDeg=(angleRad*180/Math.PI).toFixed(2);
 	questionArea.innerHTML=`Convert ${displayRad} to degrees.`;
+	let correct=`${angleDeg}°`;
+	let choices=[correct];
+	choices.push(`${(parseFloat(angleDeg)+1).toFixed(2)}°`);
+	choices.push(`${(parseFloat(angleDeg)-1).toFixed(2)}°`);
+	choices.push(`${(parseFloat(angleDeg)*180/Math.PI).toFixed(2)}°`);
+	choices.push(`${(parseFloat(angleDeg)*Math.PI/180).toFixed(2)}°`);
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: angleDeg+"°",
+		correct: correct,
 		alternate: angleDeg,
-		display: angleDeg+"°"
+		display: correct,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as a number with ° (e.g., 45°)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Calculates arc length.
- * @param difficulty - optional difficulty level.
- */
 export function generateArcLength(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -96,15 +115,28 @@ export function generateArcLength(difficulty?: string): void{
 	const arc=(r*angleRad).toFixed(2);
 	const angleDisplay=angle.toFixed(2)+(angleType==="°"?"°":" rad");
 	questionArea.innerHTML=`Find the arc length of a circle with radius ${r} and central angle ${angleDisplay}.`;
-	window.correctAnswer={ correct: arc, alternate: arc, display: arc };
+	let correct=arc;
+	let choices=[correct];
+	let wrongArc1=(r*(angleRad+0.1)).toFixed(2);
+	let wrongArc2=(r*(angleRad-0.1)).toFixed(2);
+	let wrongArc3=(r*angleRad*2).toFixed(2);
+	let wrongArc4=(r*angleRad/2).toFixed(2);
+	choices.push(wrongArc1,wrongArc2,wrongArc3,wrongArc4);
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: correct,
+		display: correct,
+		choices: uniqueChoices
+	};
 	window.expectedFormat="Enter a number (e.g., 15.71)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Calculates angular or linear speed from rpm.
- * @param difficulty - optional difficulty level.
- */
 export function generateAngularLinearSpeed(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -114,22 +146,41 @@ export function generateAngularLinearSpeed(difficulty?: string): void{
 	const omega=(rpm*2*Math.PI/60);
 	const v=r*omega;
 	const type=Math.random()<0.5?"angular":"linear";
+	let correct:string;
+	let choices:string[]=[];
 	if (type==="angular"){
 		questionArea.innerHTML=`A wheel of radius ${r} m rotates at ${rpm} rpm. Find its angular speed in rad/s.`;
-		window.correctAnswer={ correct: omega.toFixed(2), alternate: omega.toFixed(2), display: omega.toFixed(2) };
+		correct=omega.toFixed(2);
+		choices=[correct];
+		choices.push((omega+0.5).toFixed(2));
+		choices.push((omega-0.5).toFixed(2));
+		choices.push((omega*2).toFixed(2));
+		choices.push((omega/2).toFixed(2));
 	}
 	else{
 		questionArea.innerHTML=`A wheel of radius ${r} m rotates at ${rpm} rpm. Find the linear speed of a point on its rim in m/s.`;
-		window.correctAnswer={ correct: v.toFixed(2), alternate: v.toFixed(2), display: v.toFixed(2) };
+		correct=v.toFixed(2);
+		choices=[correct];
+		choices.push((v+0.5).toFixed(2));
+		choices.push((v-0.5).toFixed(2));
+		choices.push((v*2).toFixed(2));
+		choices.push((v/2).toFixed(2));
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: correct,
+		display: correct,
+		choices: uniqueChoices
+	};
 	window.expectedFormat="Enter a number (e.g., 6.28)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Asks for the definition of a trigonometric function in a right triangle.
- * @param difficulty - optional difficulty level.
- */
 export function generateRightTriangleDefs(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -151,15 +202,43 @@ export function generateRightTriangleDefs(difficulty?: string): void{
 	else if (func==="sec") answer=(side==="hypotenuse")?"hypotenuse/adjacent":"hypotenuse/opposite";
 	else if (func==="cot") answer=(side==="adjacent")?"adjacent/opposite":"opposite/adjacent";
 	questionArea.innerHTML=`In a right triangle, what is the definition of ${func} of an angle in terms of ${side} and the hypotenuse?`;
-	window.correctAnswer={ correct: answer, alternate: answer, display: answer };
+	let correct=answer;
+	let choices=[correct];
+	if (func==="sin"){
+		choices.push("opposite/adjacent");
+		choices.push("adjacent/hypotenuse");
+		choices.push("hypotenuse/opposite");
+	}
+	else if (func==="cos"){
+		choices.push("opposite/hypotenuse");
+		choices.push("opposite/adjacent");
+		choices.push("hypotenuse/adjacent");
+	}
+	else if (func==="tan"){
+		choices.push("opposite/hypotenuse");
+		choices.push("adjacent/hypotenuse");
+		choices.push("hypotenuse/opposite");
+	}
+	else{
+		choices.push("opposite/hypotenuse");
+		choices.push("adjacent/hypotenuse");
+		choices.push("hypotenuse/adjacent");
+	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: correct,
+		display: correct,
+		choices: uniqueChoices
+	};
 	window.expectedFormat="Enter as a fraction (e.g., opposite/hypotenuse)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Asks for side lengths in special triangles (30-60-90 or 45-45-90).
- * @param difficulty - optional difficulty level.
- */
 export function generateSpecialTriangle(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -173,11 +252,23 @@ export function generateSpecialTriangle(difficulty?: string): void{
 			const long=short*Math.sqrt(3);
 			const hyp=2*short;
 			questionArea.innerHTML=`In a 30-60-90 triangle, the shortest leg is ${short}. Find the other leg and the hypotenuse.`;
-			const displayAnswer=`long leg = ${long.toFixed(2)}, hypotenuse = ${hyp}`;
+			const correct=`long leg = ${long.toFixed(2)}, hypotenuse = ${hyp}`;
+			let choices=[correct];
+			choices.push(`long leg = ${(long+1).toFixed(2)}, hypotenuse = ${hyp}`);
+			choices.push(`long leg = ${(long-1).toFixed(2)}, hypotenuse = ${hyp}`);
+			choices.push(`long leg = ${long.toFixed(2)}, hypotenuse = ${hyp+1}`);
+			choices.push(`long leg = ${long.toFixed(2)}, hypotenuse = ${hyp-1}`);
+			let uniqueChoices=[...new Set(choices)];
+			if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+			if (!uniqueChoices.includes(correct)){
+				if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+				else uniqueChoices=[correct];
+			}
 			window.correctAnswer={
-				correct: displayAnswer,
+				correct: correct,
 				alternate: `${long.toFixed(2)}, ${hyp}`,
-				display: displayAnswer
+				display: correct,
+				choices: uniqueChoices
 			};
 		}
 		else{
@@ -185,11 +276,23 @@ export function generateSpecialTriangle(difficulty?: string): void{
 			const short=long/Math.sqrt(3);
 			const hyp=2*short;
 			questionArea.innerHTML=`In a 30-60-90 triangle, the longer leg is ${long}. Find the short leg and the hypotenuse.`;
-			const displayAnswer=`short leg = ${short.toFixed(2)}, hypotenuse = ${hyp.toFixed(2)}`;
+			const correct=`short leg = ${short.toFixed(2)}, hypotenuse = ${hyp.toFixed(2)}`;
+			let choices=[correct];
+			choices.push(`short leg = ${(short+1).toFixed(2)}, hypotenuse = ${hyp.toFixed(2)}`);
+			choices.push(`short leg = ${(short-1).toFixed(2)}, hypotenuse = ${hyp.toFixed(2)}`);
+			choices.push(`short leg = ${short.toFixed(2)}, hypotenuse = ${(hyp+1).toFixed(2)}`);
+			choices.push(`short leg = ${short.toFixed(2)}, hypotenuse = ${(hyp-1).toFixed(2)}`);
+			let uniqueChoices=[...new Set(choices)];
+			if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+			if (!uniqueChoices.includes(correct)){
+				if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+				else uniqueChoices=[correct];
+			}
 			window.correctAnswer={
-				correct: displayAnswer,
+				correct: correct,
 				alternate: `${short.toFixed(2)}, ${hyp.toFixed(2)}`,
-				display: displayAnswer
+				display: correct,
+				choices: uniqueChoices
 			};
 		}
 	}
@@ -197,20 +300,28 @@ export function generateSpecialTriangle(difficulty?: string): void{
 		const leg=Math.floor(Math.random()*maxSide)+1;
 		const hyp=leg*Math.sqrt(2);
 		questionArea.innerHTML=`In a 45-45-90 triangle, each leg is ${leg}. Find the hypotenuse.`;
+		const correct=hyp.toFixed(2);
+		let choices=[correct];
+		choices.push((hyp+1).toFixed(2));
+		choices.push((hyp-1).toFixed(2));
+		choices.push((hyp*2).toFixed(2));
+		choices.push((hyp/2).toFixed(2));
+		let uniqueChoices=[...new Set(choices)];
+		if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+		if (!uniqueChoices.includes(correct)){
+			if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+			else uniqueChoices=[correct];
+		}
 		window.correctAnswer={
-			correct: hyp.toFixed(2),
-			alternate: hyp.toFixed(2),
-			display: hyp.toFixed(2)
+			correct: correct,
+			alternate: correct,
+			display: correct,
+			choices: uniqueChoices
 		};
 	}
 	window.expectedFormat="Enter numbers separated by commas or phrases";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Asks for angle of elevation/depression problem.
- * @param difficulty - optional difficulty level.
- */
 export function generateElevationDepression(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -229,23 +340,50 @@ export function generateElevationDepression(difficulty?: string): void{
 	const dist=Math.floor(Math.random()*(distMax-distMin+1))+distMin;
 	if (type==="elevation"){
 		const height=dist*Math.tan(angle*Math.PI/180);
-		questionArea.innerHTML=`From a point ${dist} m away from the base of a tree, the angle of elevation to the top is ${angle}°. Find the height of the tree.`;
-		window.correctAnswer={ correct: height.toFixed(2), alternate: height.toFixed(2), display: height.toFixed(2) };
+		const correct=height.toFixed(2);
+		let choices=[correct];
+		choices.push((height+1).toFixed(2));
+		choices.push((height-1).toFixed(2));
+		choices.push((height*0.5).toFixed(2));
+		choices.push((height*1.5).toFixed(2));
+		let uniqueChoices=[...new Set(choices)];
+		if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+		if (!uniqueChoices.includes(correct)){
+			if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+			else uniqueChoices=[correct];
+		}
+		window.correctAnswer={
+			correct: correct,
+			alternate: correct,
+			display: correct,
+			choices: uniqueChoices
+		};
 	}
 	else{
 		const heightKnown=Math.floor(Math.random()*(distMax-distMin+1))+distMin;
 		const distance=heightKnown/Math.tan(angle*Math.PI/180);
-		questionArea.innerHTML=`From the top of a lighthouse ${heightKnown} m high, the angle of depression to a boat is ${angle}°. Find the horizontal distance from the boat to the lighthouse.`;
-		window.correctAnswer={ correct: distance.toFixed(2), alternate: distance.toFixed(2), display: distance.toFixed(2) };
+		const correct=distance.toFixed(2);
+		let choices=[correct];
+		choices.push((distance+1).toFixed(2));
+		choices.push((distance-1).toFixed(2));
+		choices.push((distance*0.5).toFixed(2));
+		choices.push((distance*1.5).toFixed(2));
+		let uniqueChoices=[...new Set(choices)];
+		if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+		if (!uniqueChoices.includes(correct)){
+			if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+			else uniqueChoices=[correct];
+		}
+		window.correctAnswer={
+			correct: correct,
+			alternate: correct,
+			display: correct,
+			choices: uniqueChoices
+		};
 	}
 	window.expectedFormat="Enter a number (e.g., 15.2)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Finds the reference angle for a given degree measure.
- * @param difficulty - optional difficulty level.
- */
 export function generateReferenceAngle(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -264,15 +402,27 @@ export function generateReferenceAngle(difficulty?: string): void{
 	if (ref>90) ref=180-ref;
 	if (ref===0) ref=0;
 	questionArea.innerHTML=`Find the reference angle for ${angle}°.`;
-	window.correctAnswer={ correct: ref.toString(), alternate: ref+"°", display: ref.toString() };
+	const correct=ref.toString();
+	let choices=[correct];
+	choices.push((ref+5).toString());
+	choices.push((ref-5).toString());
+	choices.push((180-ref).toString());
+	choices.push((90-ref).toString());
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: ref+"°",
+		display: correct,
+		choices: uniqueChoices
+	};
 	window.expectedFormat="Enter a number (e.g., 30)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Asks for the sign of a trigonometric function in a given quadrant (ASTC).
- * @param difficulty - optional difficulty level.
- */
 export function generateASTCSign(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -291,15 +441,27 @@ export function generateASTCSign(difficulty?: string): void{
 	else if (func==="cos") sign=(quad==="I"||quad==="IV")?"positive":"negative";
 	else sign=(quad==="I"||quad==="III")?"positive":"negative";
 	questionArea.innerHTML=`In quadrant ${quad}, is ${func} positive or negative?`;
-	window.correctAnswer={ correct: sign, alternate: sign, display: sign };
+	let correct=sign;
+	let choices=[correct];
+	choices.push(sign==="positive"?"negative":"positive");
+	choices.push("zero");
+	choices.push("undefined");
+	choices.push("both");
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: correct,
+		display: correct,
+		choices: uniqueChoices
+	};
 	window.expectedFormat="Enter 'positive' or 'negative'";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Asks for the exact value using sum/difference formula.
- * @param difficulty - optional difficulty level.
- */
 export function generateSumDifference(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -330,19 +492,27 @@ export function generateSumDifference(difficulty?: string): void{
 	else if (func==="cos") value=Math.cos(radA+(op==="sum"?radB:-radB));
 	else value=Math.tan(radA+(op==="sum"?radB:-radB));
 	const displayValue=value.toFixed(4);
+	let correct=displayValue;
+	let choices=[correct];
+	choices.push((value+0.1).toFixed(4));
+	choices.push((value-0.1).toFixed(4));
+	choices.push((value*2).toFixed(4));
+	choices.push((value/2).toFixed(4));
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: displayValue,
-		alternate: displayValue,
-		display: displayValue
+		correct: correct,
+		alternate: correct,
+		display: correct,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a decimal (e.g., 0.7071) or exact expression (e.g., √2/2)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Asks for the exact value using double-angle formula.
- * @param difficulty - optional difficulty level.
- */
 export function generateDoubleAngle(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -362,19 +532,27 @@ export function generateDoubleAngle(difficulty?: string): void{
 	else if (func==="cos") value=Math.cos(2*rad);
 	else value=Math.tan(2*rad);
 	const displayValue=value.toFixed(4);
+	let correct=displayValue;
+	let choices=[correct];
+	choices.push((value+0.1).toFixed(4));
+	choices.push((value-0.1).toFixed(4));
+	choices.push((value*2).toFixed(4));
+	choices.push((value/2).toFixed(4));
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: displayValue,
-		alternate: displayValue,
-		display: displayValue
+		correct: correct,
+		alternate: correct,
+		display: correct,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a decimal (e.g., 0.8660) or exact expression";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Asks for the exact value using half-angle formula.
- * @param difficulty - optional difficulty level.
- */
 export function generateHalfAngle(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -394,19 +572,27 @@ export function generateHalfAngle(difficulty?: string): void{
 	else if (func==="cos") value=Math.cos(rad);
 	else value=Math.tan(rad);
 	const displayValue=value.toFixed(4);
+	let correct=displayValue;
+	let choices=[correct];
+	choices.push((value+0.1).toFixed(4));
+	choices.push((value-0.1).toFixed(4));
+	choices.push((value*2).toFixed(4));
+	choices.push((value/2).toFixed(4));
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: displayValue,
-		alternate: displayValue,
-		display: displayValue
+		correct: correct,
+		alternate: correct,
+		display: correct,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a decimal (e.g., 0.2588) or exact expression";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Converts polar coordinates to rectangular.
- * @param difficulty - optional difficulty level.
- */
 export function generatePolarToRectangular(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -428,19 +614,27 @@ export function generatePolarToRectangular(difficulty?: string): void{
 	const y=(r*Math.sin(thetaRad)).toFixed(2);
 	const displayAnswer=`(${x}, ${y})`;
 	questionArea.innerHTML=`Convert the polar coordinate \\( (${r}, ${thetaDeg}°) \\) to rectangular coordinates.`;
+	let correct=displayAnswer;
+	let choices=[correct];
+	choices.push(`(${(parseFloat(x)+1).toFixed(2)}, ${y})`);
+	choices.push(`(${x}, ${(parseFloat(y)+1).toFixed(2)})`);
+	choices.push(`(${(parseFloat(x)-1).toFixed(2)}, ${y})`);
+	choices.push(`(${x}, ${(parseFloat(y)-1).toFixed(2)})`);
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: displayAnswer,
+		correct: correct,
 		alternate: `(${x}, ${y})`,
-		display: displayAnswer
+		display: correct,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as (x, y)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Converts rectangular coordinates to polar.
- * @param difficulty - optional difficulty level.
- */
 export function generateRectangularToPolar(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -464,19 +658,27 @@ export function generateRectangularToPolar(difficulty?: string): void{
 	const thetaDeg=(thetaRad*180/Math.PI).toFixed(2);
 	const displayAnswer=`(${r}, ${thetaDeg}°)`;
 	questionArea.innerHTML=`Convert the rectangular coordinate \\( (${x}, ${y}) \\) to polar coordinates (give angle in degrees).`;
+	let correct=displayAnswer;
+	let choices=[correct];
+	choices.push(`(${r}, ${(parseFloat(thetaDeg)+10).toFixed(2)}°)`);
+	choices.push(`(${r}, ${(parseFloat(thetaDeg)-10).toFixed(2)}°)`);
+	choices.push(`(${(parseFloat(r)+1).toFixed(2)}, ${thetaDeg}°)`);
+	choices.push(`(${(parseFloat(r)-1).toFixed(2)}, ${thetaDeg}°)`);
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: displayAnswer,
+		correct: correct,
 		alternate: `(${r}, ${thetaDeg})`,
-		display: displayAnswer
+		display: correct,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as (r, θ°)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Finds the distance between two points given in polar coordinates.
- * @param difficulty - optional difficulty level.
- */
 export function generatePolarDistance(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -489,15 +691,27 @@ export function generatePolarDistance(difficulty?: string): void{
 	const theta2=theta2Deg*Math.PI/180;
 	const dist=Math.sqrt(r1*r1+r2*r2-2*r1*r2*Math.cos(theta1-theta2)).toFixed(2);
 	questionArea.innerHTML=`Find the distance between the polar points \\( (${r1}, ${theta1Deg}°) \\) and \\( (${r2}, ${theta2Deg}°) \\).`;
-	window.correctAnswer={ correct: dist, alternate: dist, display: dist };
+	let correct=dist;
+	let choices=[correct];
+	choices.push((parseFloat(dist)+0.5).toFixed(2));
+	choices.push((parseFloat(dist)-0.5).toFixed(2));
+	choices.push((Math.abs(r1-r2)).toFixed(2));
+	choices.push((r1+r2).toFixed(2));
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: correct,
+		display: correct,
+		choices: uniqueChoices
+	};
 	window.expectedFormat="Enter a number";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Asks to identify the type of polar graph from its equation.
- * @param difficulty - optional difficulty level.
- */
 export function generatePolarGraphEquation(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -539,15 +753,38 @@ export function generatePolarGraphEquation(difficulty?: string): void{
 			break;
 	}
 	questionArea.innerHTML=`Identify the type of polar graph: \\( ${equation} \\).`;
-	window.correctAnswer={ correct: description, alternate: description, display: description };
+	let correct=description;
+	let choices=[correct];
+	if (type==="rose"){
+		choices.push("A circle", "A cardioid", "A lemniscate", "A limaçon");
+	}
+	else if (type==="limaçon"){
+		choices.push("A rose", "A cardioid", "A lemniscate", "A spiral");
+	}
+	else if (type==="cardioid"){
+		choices.push("A rose", "A limaçon", "A lemniscate", "A spiral");
+	}
+	else if (type==="lemniscate"){
+		choices.push("A rose", "A cardioid", "A limaçon", "A spiral");
+	}
+	else{
+		choices.push("A rose", "A cardioid", "A lemniscate", "A limaçon");
+	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: correct,
+		display: correct,
+		choices: uniqueChoices
+	};
 	window.expectedFormat="Enter a short description (e.g., 'rose with 4 petals')";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Eliminates the parameter to find Cartesian equation from parametric equations.
- * @param difficulty - optional difficulty level.
- */
 export function generateParametricToCartesian(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -582,15 +819,47 @@ export function generateParametricToCartesian(difficulty?: string): void{
 		cartesian=`y = ${a} x^2`;
 	}
 	questionArea.innerHTML=`Eliminate the parameter to find the Cartesian equation: \\( x = ${xEq}, y = ${yEq} \\).`;
-	window.correctAnswer={ correct: cartesian, alternate: cartesian, display: cartesian };
+	let correct=cartesian;
+	let choices=[correct];
+	if (type==="line"){
+		choices.push(`y = ${parseInt(cartesian.split("=")[1].split("x")[0])+1}x + ${cartesian.split("+")[1]}`);
+		choices.push(`y = ${parseInt(cartesian.split("=")[1].split("x")[0])-1}x + ${cartesian.split("+")[1]}`);
+		choices.push(`y = ${parseInt(cartesian.split("=")[1].split("x")[0])}x + ${parseInt(cartesian.split("+")[1])+1}`);
+		choices.push(`y = ${parseInt(cartesian.split("=")[1].split("x")[0])}x + ${parseInt(cartesian.split("+")[1])-1}`);
+	}
+	else if (type==="circle"){
+		choices.push(`x^2 + y^2 = ${(parseInt(cartesian.split("=")[1])+1).toFixed(2)}`);
+		choices.push(`x^2 + y^2 = ${(parseInt(cartesian.split("=")[1])-1).toFixed(2)}`);
+		choices.push(`x^2 + y^2 = ${(parseInt(cartesian.split("=")[1])*2).toFixed(2)}`);
+		choices.push(`x^2 + y^2 = ${(parseInt(cartesian.split("=")[1])/2).toFixed(2)}`);
+	}
+	else if (type==="ellipse"){
+		choices.push(`\\frac{x^2}{${(parseInt(cartesian.split("x^2/")[1].split("+")[0])+1).toFixed(2)}} + \\frac{y^2}{${parseInt(cartesian.split("y^2/")[1].split("=")[0])}} = 1`);
+		choices.push(`\\frac{x^2}{${(parseInt(cartesian.split("x^2/")[1].split("+")[0])-1).toFixed(2)}} + \\frac{y^2}{${parseInt(cartesian.split("y^2/")[1].split("=")[0])}} = 1`);
+		choices.push(`\\frac{x^2}{${parseInt(cartesian.split("x^2/")[1].split("+")[0])}} + \\frac{y^2}{${(parseInt(cartesian.split("y^2/")[1].split("=")[0])+1).toFixed(2)}} = 1`);
+		choices.push(`\\frac{x^2}{${parseInt(cartesian.split("x^2/")[1].split("+")[0])}} + \\frac{y^2}{${(parseInt(cartesian.split("y^2/")[1].split("=")[0])-1).toFixed(2)}} = 1`);
+	}
+	else{
+		choices.push(`y = ${parseFloat(cartesian.split("=")[1].split("x")[0])+1}x^2`);
+		choices.push(`y = ${parseFloat(cartesian.split("=")[1].split("x")[0])-1}x^2`);
+		choices.push(`y = ${parseFloat(cartesian.split("=")[1].split("x")[0])}x^3`);
+		choices.push(`y = ${parseFloat(cartesian.split("=")[1].split("x")[0])}x`);
+	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: correct,
+		display: correct,
+		choices: uniqueChoices
+	};
 	window.expectedFormat="Enter the Cartesian equation (e.g., y = 2x + 3)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Asks for coordinates of a projectile at a given time.
- * @param difficulty - optional difficulty level.
- */
 export function generateParametricMotion(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -603,19 +872,27 @@ export function generateParametricMotion(difficulty?: string): void{
 	const y=v0*Math.sin(theta*Math.PI/180)*t-0.5*g*t*t;
 	const displayAnswer=`(${x.toFixed(2)}, ${y.toFixed(2)})`;
 	questionArea.innerHTML=`A projectile is launched with initial velocity ${v0} m/s at angle ${theta}°. Find its coordinates after ${t} seconds (use g = 9.8 m/s²).`;
+	let correct=displayAnswer;
+	let choices=[correct];
+	choices.push(`(${(x+1).toFixed(2)}, ${y.toFixed(2)})`);
+	choices.push(`(${x.toFixed(2)}, ${(y+1).toFixed(2)})`);
+	choices.push(`(${(x-1).toFixed(2)}, ${y.toFixed(2)})`);
+	choices.push(`(${x.toFixed(2)}, ${(y-1).toFixed(2)})`);
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: displayAnswer,
+		correct: correct,
 		alternate: `(${x.toFixed(2)}, ${y.toFixed(2)})`,
-		display: displayAnswer
+		display: correct,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as (x, y)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Writes a complex number in polar form.
- * @param difficulty - optional difficulty level.
- */
 export function generateComplexPolarForm(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -628,19 +905,27 @@ export function generateComplexPolarForm(difficulty?: string): void{
 	const thetaDeg=(thetaRad*180/Math.PI).toFixed(2);
 	const displayAnswer=`${r} \\operatorname{cis} ${thetaDeg}°`;
 	questionArea.innerHTML=`Write the complex number \\( ${a} + ${b}i \\) in polar form (angle in degrees).`;
+	let correct=displayAnswer;
+	let choices=[correct];
+	choices.push(`${(parseFloat(r)+1).toFixed(2)} \\operatorname{cis} ${thetaDeg}°`);
+	choices.push(`${(parseFloat(r)-1).toFixed(2)} \\operatorname{cis} ${thetaDeg}°`);
+	choices.push(`${r} \\operatorname{cis} ${(parseFloat(thetaDeg)+10).toFixed(2)}°`);
+	choices.push(`${r} \\operatorname{cis} ${(parseFloat(thetaDeg)-10).toFixed(2)}°`);
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: displayAnswer,
+		correct: correct,
 		alternate: `${r} cis ${thetaDeg}°`,
-		display: displayAnswer
+		display: correct,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as 'r cis θ°' or r(cos θ + i sin θ)";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Multiplies or divides complex numbers in polar form.
- * @param difficulty - optional difficulty level.
- */
 export function generateComplexMultiplyDivide(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -661,19 +946,27 @@ export function generateComplexMultiplyDivide(difficulty?: string): void{
 	}
 	const displayAnswer=`${resultR} \\operatorname{cis} ${resultThetaDeg}°`;
 	questionArea.innerHTML=`Given \\( z_1 = ${r1} \\text{ cis } ${theta1Deg}° \\) and \\( z_2 = ${r2} \\text{ cis } ${theta2Deg}° \\), find \\( z_1 ${op==='multiply'?'\\cdot':'/'} z_2 \\) in polar form.`;
+	let correct=displayAnswer;
+	let choices=[correct];
+	choices.push(`${(parseFloat(resultR)+1).toFixed(2)} \\operatorname{cis} ${resultThetaDeg}°`);
+	choices.push(`${(parseFloat(resultR)-1).toFixed(2)} \\operatorname{cis} ${resultThetaDeg}°`);
+	choices.push(`${resultR} \\operatorname{cis} ${(resultThetaDeg+10).toFixed(2)}°`);
+	choices.push(`${resultR} \\operatorname{cis} ${(resultThetaDeg-10).toFixed(2)}°`);
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: displayAnswer,
+		correct: correct,
 		alternate: `${resultR} cis ${resultThetaDeg}°`,
-		display: displayAnswer
+		display: correct,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as 'r cis θ°' or expanded form";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Applies De Moivre's theorem to raise a complex number to a power.
- * @param difficulty - optional difficulty level.
- */
 export function generateDeMoivre(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -685,19 +978,27 @@ export function generateDeMoivre(difficulty?: string): void{
 	const newThetaDeg=(thetaDeg*n)%360;
 	const displayAnswer=`${newR} \\operatorname{cis} ${newThetaDeg}°`;
 	questionArea.innerHTML=`Use De Moivre's theorem to compute \\( (${r} \\text{ cis } ${thetaDeg}°)^{${n}} \\).`;
+	let correct=displayAnswer;
+	let choices=[correct];
+	choices.push(`${(parseFloat(newR)+1).toFixed(2)} \\operatorname{cis} ${newThetaDeg}°`);
+	choices.push(`${(parseFloat(newR)-1).toFixed(2)} \\operatorname{cis} ${newThetaDeg}°`);
+	choices.push(`${newR} \\operatorname{cis} ${(newThetaDeg+10).toFixed(2)}°`);
+	choices.push(`${newR} \\operatorname{cis} ${(newThetaDeg-10).toFixed(2)}°`);
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: displayAnswer,
+		correct: correct,
 		alternate: `${newR} cis ${newThetaDeg}°`,
-		display: displayAnswer
+		display: correct,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as 'r cis θ°' or expanded form";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
-/**
- * Finds all nth roots of a complex number in polar form.
- * @param difficulty - optional difficulty level.
- */
 export function generateComplexRoots(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -714,10 +1015,33 @@ export function generateComplexRoots(difficulty?: string): void{
 		displayAngles.push(`${rootR} \\operatorname{cis} ${angle.toFixed(2)}°`);
 	}
 	questionArea.innerHTML=`Find all ${n}th roots of \\( ${r} \\text{ cis } ${thetaDeg}° \\).`;
+	let correct=displayAngles.join("; ");
+	let choices=[correct];
+	let wrongRoots:string[]=[];
+	for (let k=0; k<n; k++){
+		let wrongAngle=(thetaDeg+360*k+10)/n;
+		wrongRoots.push(`${rootR} \\operatorname{cis} ${wrongAngle.toFixed(2)}°`);
+	}
+	choices.push(wrongRoots.join("; "));
+	wrongRoots=[];
+	for (let k=0; k<n; k++){
+		let wrongAngle=(thetaDeg+360*k-10)/n;
+		wrongRoots.push(`${rootR} \\operatorname{cis} ${wrongAngle.toFixed(2)}°`);
+	}
+	choices.push(wrongRoots.join("; "));
+	choices.push(`${rootR} \\operatorname{cis} ${(thetaDeg/n).toFixed(2)}° only`);
+	choices.push("No real roots");
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
 	window.correctAnswer={
-		correct: displayAngles.join("; "),
+		correct: correct,
 		alternate: angles.join("; "),
-		display: displayAngles.join("; ")
+		display: correct,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as 'r1 cis θ1°; r2 cis θ2°; ...'";
 	if (window.MathJax?.typeset) window.MathJax.typeset();
