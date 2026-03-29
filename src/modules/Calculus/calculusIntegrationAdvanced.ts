@@ -1,5 +1,6 @@
 /**
  * Generates a random advanced integration or differential equations question.
+ * Includes custom multiple‑choice options for MCQ mode.
  *
  * This function randomly selects a topic from a comprehensive list covering
  * applications of integration (average value, area between curves, volumes,
@@ -15,61 +16,12 @@
  *                     that influences the maximum coefficient value used in
  *                     generated expressions. If omitted, a default moderate value
  *                     is used (via `getMaxCoeff` from `./calculusUtils.js`).
- *
- * @remarks
- * The function relies on several imported utilities:
- * - `questionArea` (DOM element) from `../../script.js`
- * - `getMaxCoeff` from `./calculusUtils.js` (the import of `latexToPlain` is
- *   currently unused and marked with `@ts-expect-error` for potential future use)
- * - `window.MathJax` (optional) for LaTeX rendering.
- *
- * **Question types** (selected randomly from an array):
- * - **Average value** (`avgValue`): average value of x² on a random interval.
- * - **Area between curves**:
- *   - `areaBetweenX`: area between y = x² and y = ax (intersection at x = a).
- *   - `areaBetweenY`: area between x = y² and x = y + a.
- *   - `areaMultiple`: area between sin x and cos x from 0 to 2π (answer 4).
- * - **Volumes**:
- *   - `volumeCrossSquare`: base bounded by y = x² and y = a, cross sections perpendicular to y‑axis are squares.
- *   - `volumeCrossSemi`: same base, cross sections perpendicular to x‑axis are semicircles.
- *   - `volumeDisc`: solid of revolution (disc method) for y = √x about x‑axis.
- *   - `volumeDiscOther`: disc method with axis y = -1.
- *   - `volumeWasher`: washer method for region between y = x² and y = ax about x‑axis.
- *   - `volumeWasherOther`: same region revolved about y = -1.
- * - **Arc length** (`arcLength`): length of y = x^(3/2) from 0 to a.
- * - **Integration techniques**:
- *   - `parts`: ∫ x e^(ax) dx (integration by parts).
- *   - `partialFractions`: ∫ 1/(x² - a) dx (requires partial fractions).
- *   - `improper`: ∫₁^∞ 1/x^a dx (converges if a > 1, else diverges).
- *   - `selectTechnique`: multiple choice on the best technique for ∫ dx/√(4-x²).
- * - **Differential equations**:
- *   - `diffEqModel`: write a DE for proportional growth.
- *   - `verifySolution`: verify that y = e^(ax) solves y'' - a²y = 0.
- *   - `slopeField`: slope of dy/dx = x - y at (0,0).
- *   - `euler`: one step of Euler's method for dy/dx = x + ay.
- *   - `separationGeneral`: general solution of dy/dx = a x y.
- *   - `separationParticular`: particular solution with initial condition.
- *   - `exponentialModel`: find decay constant from half‑life.
- *   - `logisticModel`: write logistic DE given carrying capacity and growth rate.
- *
- * **Side effects**:
- * - Clears `questionArea.innerHTML`.
- * - Appends a new `<div>` containing the LaTeX question.
- * - Calls `window.MathJax.typesetPromise` (if available) to render the math.
- * - Sets `window.correctAnswer` to an object with `correct`, `alternate`, and `display`
- *   properties. `correct` and `alternate` hold the plain‑text answer for validation;
- *   `display` holds a LaTeX‑formatted version for rendering with KaTeX.
- * - Sets `window.expectedFormat` to a string describing the expected answer format
- *   (e.g., `"Enter a number"`, `"Enter expression"`, `"Enter equation"`, etc.).
+ * @returns void
+ * @date 2026-03-29
  *
  * @example
- * ```typescript
- * // Generate a default‑difficulty advanced integration question
  * generateIntegrationAdvanced();
- *
- * // Generate a hard question
  * generateIntegrationAdvanced("hard");
- * ```
  */
 import {questionArea} from "../../script.js";
 // @ts-expect-error - latexToPlain is imported for potential future use
@@ -84,6 +36,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 	let latexAnswer="";
 	let expectedFormat="Enter your answer";
 	let maxCoeff=getMaxCoeff(difficulty);
+	let choices: string[]=[];
 	switch (questionType){
 		case "avgValue": {
 			let a=Math.floor(Math.random()*maxCoeff)+1;
@@ -94,6 +47,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((correctNum*1.1).toFixed(2));
+			choices.push(((a*a + b*b)/2).toFixed(2));
 			break;
 		}
 		case "areaBetweenX": {
@@ -104,6 +63,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((correctNum*1.5).toFixed(2));
+			choices.push(((intersect*intersect)/2).toFixed(2));
 			break;
 		}
 		case "areaBetweenY":{
@@ -115,13 +80,26 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=area.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((correctNum*0.8).toFixed(2));
+			choices.push(((intersect2-intersect1)*a).toFixed(2));
 			break;
 		}
 		case "areaMultiple":{
 			mathExpression=`\\[ \\text{Area between } y=\\sin x \\text{ and } y=\\cos x \\text{ from } 0 \\text{ to } 2\\pi. \\]`;
-			plainCorrectAnswer=(4*Math.sqrt(2)).toFixed(2);
+			let correctVal=4*Math.sqrt(2);
+			plainCorrectAnswer=correctVal.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((4).toFixed(2));
+			choices.push((2*Math.sqrt(2)).toFixed(2));
 			break;
 		}
 		case "volumeCrossSquare":{
@@ -131,6 +109,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((a*a).toFixed(2));
+			choices.push((4*a*a).toFixed(2));
 			break;
 		}
 		case "volumeCrossSemi":{
@@ -140,6 +124,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((Math.PI/8*Math.pow(a,2.5)).toFixed(2));
+			choices.push((Math.PI/5*Math.pow(a,2.5)).toFixed(2));
 			break;
 		}
 		case "volumeDisc":{
@@ -149,6 +139,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((Math.PI*a).toFixed(2));
+			choices.push((Math.PI*a*a/3).toFixed(2));
 			break;
 		}
 		case "volumeDiscOther":{
@@ -158,6 +154,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((Math.PI*(a**5/5 + a**3/3 + a)).toFixed(2));
+			choices.push((Math.PI*(a**5/5 + a)).toFixed(2));
 			break;
 		}
 		case "volumeWasher": {
@@ -168,6 +170,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((Math.PI*intersect**5/3).toFixed(2));
+			choices.push((Math.PI*intersect**5/5).toFixed(2));
 			break;
 		}
 		case "volumeWasherOther": {
@@ -178,6 +186,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((Math.PI*intersect**5/3).toFixed(2));
+			choices.push((Math.PI*intersect**5/5).toFixed(2));
 			break;
 		}
 		case "arcLength":{
@@ -187,6 +201,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=len.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((Math.pow(1+9*a/4,1.5)).toFixed(2));
+			choices.push((a*Math.sqrt(1+9*a/4)).toFixed(2));
 			break;
 		}
 		case "parts":{
@@ -195,6 +215,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=`(1/${a})x e^(${a}x) - (1/${a*a}) e^(${a}x) + C`;
 			latexAnswer=`\\frac{1}{${a}}x e^{${a}x} - \\frac{1}{${a*a}} e^{${a}x} + C`;
 			expectedFormat="Enter expression";
+			let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`(1/${a})x e^(${a}x) + C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`(1/${a}) e^(${a}x) + C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`(1/${a})x e^(${a}x) - (1/${a}) e^(${a}x) + C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`(1/${a})x^2 e^(${a}x) + C`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "partialFractions":{
@@ -204,6 +230,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=`(1/(2*${sqrtA})) ln| (x-${sqrtA})/(x+${sqrtA}) | + C`;
 			latexAnswer=`\\frac{1}{2\\sqrt{${a}}} \\ln\\left|\\frac{x-\\sqrt{${a}}}{x+\\sqrt{${a}}}\\right| + C`;
 			expectedFormat="Enter expression";
+			let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`(1/(2*${sqrtA})) ln| (x-${sqrtA})/(x-${sqrtA}) | + C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`(1/(2*${sqrtA})) ln| (x+${sqrtA})/(x-${sqrtA}) | + C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`(1/(2*${sqrtA})) ln| x^2-${a} | + C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`(1/(2*${a})) ln| (x-${sqrtA})/(x+${sqrtA}) | + C`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "improper":{
@@ -213,10 +245,17 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 				let val=(1/(a-1)).toFixed(2);
 				plainCorrectAnswer=val;
 				latexAnswer=val;
+				let correctNum=parseFloat(plainCorrectAnswer);
+				choices=[plainCorrectAnswer];
+				choices.push((correctNum+1).toFixed(2));
+				choices.push((correctNum-1).toFixed(2));
+				choices.push((1/(a)).toFixed(2));
+				choices.push("diverges");
 			}
 			else{
 				plainCorrectAnswer="diverges";
 				latexAnswer="\\text{diverges}";
+				choices=["diverges","converges to 1","converges to 0","diverges to infinity"];
 			}
 			expectedFormat="Enter number or 'diverges'";
 			break;
@@ -228,6 +267,8 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			latexAnswer=`\\text{${options[correctIdx]}}`;
 			mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{4-x^2}} \\] Best technique? A) ${options[0]} B) ${options[1]} C) ${options[2]} D) ${options[3]}`;
 			expectedFormat="Enter letter";
+			choices=[options[correctIdx]];
+			for (let i=0;i<options.length;i++) if (i!==correctIdx) choices.push(options[i]);
 			break;
 		}
 		case "diffEqModel": {
@@ -236,6 +277,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=`dP/dt=${a}P`;
 			latexAnswer=`\\frac{dP}{dt}=${a}P`;
 			expectedFormat="Enter equation";
+			let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`dP/dt=${a}`.replace(/\s/g,"").toLowerCase());
+			choices.push(`dP/dt=P+${a}`.replace(/\s/g,"").toLowerCase());
+			choices.push(`dP/dt=${a}/P`.replace(/\s/g,"").toLowerCase());
+			choices.push(`dP/dt=${a}t`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "verifySolution":{
@@ -244,6 +291,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer="yes";
 			latexAnswer="\\text{yes}";
 			expectedFormat="Enter yes or no";
+			choices=["yes","no","maybe","only if x=0"];
 			break;
 		}
 		case "slopeField":{
@@ -251,6 +299,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer="slope 0";
 			latexAnswer="\\text{slope }0";
 			expectedFormat="Describe slope";
+			choices=["slope 0","slope 1","slope -1","slope undefined"];
 			break;
 		}
 		case "euler": {
@@ -265,6 +314,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=y.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+0.1).toFixed(3));
+			choices.push((correctNum-0.1).toFixed(3));
+			choices.push((correctNum*1.1).toFixed(3));
+			choices.push((correctNum*0.9).toFixed(3));
 			break;
 		}
 		case "separationGeneral":{
@@ -274,6 +329,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=`y=C e^(${halfA}x^2)`;
 			latexAnswer=`y=Ce^{\\frac{${a}}{2}x^{2}}`;
 			expectedFormat="Enter expression";
+			let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`y=C e^(${halfA}x)`.replace(/\s/g,"").toLowerCase());
+			choices.push(`y=C e^(${a}x^2)`.replace(/\s/g,"").toLowerCase());
+			choices.push(`y=C x^${halfA}`.replace(/\s/g,"").toLowerCase());
+			choices.push(`y=C e^(${halfA}x^2)+1`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "separationParticular": {
@@ -283,6 +344,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=`y=e^(${halfA}x^2)`;
 			latexAnswer=`y=e^{\\frac{${a}}{2}x^{2}}`;
 			expectedFormat="Enter expression";
+			let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`y=e^(${halfA}x)`.replace(/\s/g,"").toLowerCase());
+			choices.push(`y=e^(${a}x^2)`.replace(/\s/g,"").toLowerCase());
+			choices.push(`y=x^${halfA}`.replace(/\s/g,"").toLowerCase());
+			choices.push(`y=e^(${halfA}x^2)+1`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "exponentialModel":{
@@ -292,6 +359,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=val.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+0.05).toFixed(3));
+			choices.push((correctNum-0.05).toFixed(3));
+			choices.push((Math.LN2/(a+1)).toFixed(3));
+			choices.push((Math.LN2/(a-1)).toFixed(3));
 			break;
 		}
 		case "logisticModel":{
@@ -300,6 +373,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=`dP/dt=0.5P(1 - P/${a}0)`;
 			latexAnswer=`\\frac{dP}{dt}=0.5P\\left(1-\\frac{P}{${a}0}\\right)`;
 			expectedFormat="Enter equation";
+			let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`dP/dt=0.5P`.replace(/\s/g,"").toLowerCase());
+			choices.push(`dP/dt=0.5P(1 - P/${a}0)`.replace(/\s/g,"").toLowerCase());
+			choices.push(`dP/dt=0.5P(1 - ${a}0/P)`.replace(/\s/g,"").toLowerCase());
+			choices.push(`dP/dt=0.5P(1 - P)`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 	}
@@ -311,10 +390,17 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(plainCorrectAnswer)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+		else uniqueChoices=[plainCorrectAnswer];
+	}
 	window.correctAnswer={
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
-		display: latexAnswer
+		display: latexAnswer,
+		choices: uniqueChoices
 	};
 	window.expectedFormat=expectedFormat;
 }
