@@ -1,7 +1,7 @@
 /**
  * Synthetic division: divide, remainder, factor.
- * @fileoverview Generates synthetic division questions.
- * @date 2026-03-15
+ * @fileoverview Generates synthetic division questions with MCQ distractors.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
@@ -13,6 +13,10 @@ export function generateSyntheticDivision(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let hint="";
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	const a=Math.floor(Math.random()*max)+1;
 	const b=Math.floor(Math.random()*max)+1;
 	const c=Math.floor(Math.random()*max)+1;
@@ -31,25 +35,33 @@ export function generateSyntheticDivision(difficulty?: string): void{
 				result.push(carry);
 			}
 			const quotient=`${result[0]}x^2 + ${result[1]}x + ${result[2]}`;
-			window.correctAnswer={
-				correct:quotient,
-				alternate:quotient,
-				display:quotient
-			};
+			correct=quotient;
+			alternate=quotient;
+			display=quotient;
+			let q0=result[0];
+			let q1=result[1];
+			let q2=result[2];
+			choices=[quotient];
+			choices.push(`${q0+1}x^2 + ${q1}x + ${q2}`);
+			choices.push(`${q0}x^2 + ${q1+1}x + ${q2}`);
+			choices.push(`${q0}x^2 + ${q1}x + ${q2+1}`);
+			choices.push(`${q0-1}x^2 + ${q1}x + ${q2}`);
 			hint="Enter polynomial";
 			break;
 		}
 		case "remainder":{
-			const dividend=`${a}x^2 + ${b}x + ${c}`;
-			const divisor=`x - ${d}`;
 			const remainder=a*d*d+b*d+c;
 			const ans=remainder.toString();
-			questionArea.innerHTML=`Use the Remainder Theorem to find the remainder when \\( ${dividend} \\) is divided by \\( ${divisor} \\).`;
-			window.correctAnswer={
-				correct:ans,
-				alternate:ans,
-				display:ans
-			};
+			correct=ans;
+			alternate=ans;
+			display=ans;
+			const numRem=remainder;
+			choices=[ans];
+			choices.push((numRem+1).toString());
+			choices.push((numRem-1).toString());
+			choices.push((a*d*d+b*d).toString());
+			choices.push((a*d+b).toString());
+			questionArea.innerHTML=`Use the Remainder Theorem to find the remainder when \\( ${a}x^2 + ${b}x + ${c} \\) is divided by \\( x - ${d} \\).`;
 			hint="Enter a number";
 			break;
 		}
@@ -57,15 +69,28 @@ export function generateSyntheticDivision(difficulty?: string): void{
 			const root=a;
 			const poly=`x^3 - ${a}x^2 + ${b}x - ${a*b}`;
 			questionArea.innerHTML=`Is \\( x - ${root} \\) a factor of \\( ${poly} \\)? (yes/no)`;
-			window.correctAnswer={
-				correct:"yes",
-				alternate:"yes",
-				display:"yes"
-			};
+			correct="yes";
+			alternate="yes";
+			display="yes";
+			choices=["yes","no","maybe","only if b=0"];
 			hint="Enter 'yes' or 'no'";
 			break;
 		}
+		default:
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
 	if (window.MathJax&&window.MathJax.typeset){
 		window.MathJax.typeset();
