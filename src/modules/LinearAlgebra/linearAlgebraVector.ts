@@ -1,15 +1,10 @@
 /**
  * Vector operations in 2D: magnitude, direction, unit, dot, angle, projection, parametric, polar conversion, polar graph, motion, De Moivre, addition, subtraction, parametric to Cartesian.
- * @fileoverview Generates 2D vector and polar coordinate questions. Sets window.correctAnswer with LaTeX display (pure LaTeX) and plain text alternate.
- * @date 2026-03-15
+ * @fileoverview Generates 2D vector and polar coordinate questions with MCQ distractors. Sets window.correctAnswer with LaTeX display (pure LaTeX) and plain text alternate.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../script.js";
 import {Vector2D, getRange} from "./linearAlgebraUtils.js";
-
-/**
- * Generates a random 2D vector or polar coordinate question.
- * @param difficulty - optional difficulty level.
- */
 export function generateVector(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -31,30 +26,32 @@ export function generateVector(difficulty?: string): void{
 		} while (Math.abs(vec.x)<0.1);
 		return vec;
 	};
+	let choices: string[]=[];
 	switch (type){
 		case "magnitude":{
 			const{ x, y }=generateNonZeroVector();
 			let mag=Math.sqrt(x**2+y**2).toFixed(2);
 			questionArea.innerHTML=`Find the magnitude of \\(\\langle ${x.toFixed(1)}, ${y.toFixed(1)} \\rangle\\).`;
-			window.correctAnswer={
-				correct: mag,
-				alternate: mag,
-				display: mag
-			};
-			window.expectedFormat="Enter a number (e.g., 5.83)";
+			let correct=mag;
+			choices=[correct];
+			let magNum=parseFloat(mag);
+			choices.push((magNum+0.5).toFixed(2));
+			choices.push((magNum-0.5).toFixed(2));
+			choices.push((Math.abs(x)+Math.abs(y)).toFixed(2));
+			choices.push((Math.abs(x)).toFixed(2));
 			break;
 		}
 		case "direction":{
 			const{ x, y }=generateNonZeroVector();
 			let angle=(Math.atan2(y, x)*180/Math.PI).toFixed(1);
+			let correct=`${angle}^{\\circ}`;
 			questionArea.innerHTML=`Find the direction angle (in degrees) of \\(\\langle ${x.toFixed(1)}, ${y.toFixed(1)} \\rangle\\).`;
-			let correctLaTeX=`${angle}^{\\circ}`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: angle,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter a number (degrees, e.g., 53.1)";
+			let angleNum=parseFloat(angle);
+			choices=[correct];
+			choices.push(`${(angleNum+10).toFixed(1)}^{\\circ}`);
+			choices.push(`${(angleNum-10).toFixed(1)}^{\\circ}`);
+			choices.push(`${(Math.atan2(y, x)*180/Math.PI+180).toFixed(1)}^{\\circ}`);
+			choices.push(`${(Math.atan2(x, y)*180/Math.PI).toFixed(1)}^{\\circ}`);
 			break;
 		}
 		case "unit":{
@@ -63,13 +60,12 @@ export function generateVector(difficulty?: string): void{
 			let ux=(x/mag).toFixed(2);
 			let uy=(y/mag).toFixed(2);
 			questionArea.innerHTML=`Find the unit vector in the direction of \\(\\langle ${x.toFixed(1)}, ${y.toFixed(1)} \\rangle\\).`;
-			let correctLaTeX=`\\langle ${ux}, ${uy} \\rangle`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: `<${ux}, ${uy}>`,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter as <x, y> or (x, y)";
+			let correct=`\\langle ${ux}, ${uy} \\rangle`;
+			choices=[correct];
+			choices.push(`\\langle ${(x/mag+0.1).toFixed(2)}, ${uy} \\rangle`);
+			choices.push(`\\langle ${ux}, ${(y/mag+0.1).toFixed(2)} \\rangle`);
+			choices.push(`\\langle ${(x/mag).toFixed(2)}, ${(y/mag).toFixed(2)} \\rangle`);
+			choices.push(`\\langle ${(x/(mag+0.5)).toFixed(2)}, ${(y/(mag+0.5)).toFixed(2)} \\rangle`);
 			break;
 		}
 		case "dot":{
@@ -77,12 +73,13 @@ export function generateVector(difficulty?: string): void{
 			let v2=generateNonZeroVector();
 			let product=(v1.x*v2.x+v1.y*v2.y).toFixed(2);
 			questionArea.innerHTML=`Calculate \\(\\langle ${v1.x.toFixed(1)}, ${v1.y.toFixed(1)} \\rangle \\cdot \\langle ${v2.x.toFixed(1)}, ${v2.y.toFixed(1)} \\rangle\\).`;
-			window.correctAnswer={
-				correct: product,
-				alternate: product,
-				display: product
-			};
-			window.expectedFormat="Enter a number (e.g., 12.5)";
+			let correct=product;
+			let prodNum=parseFloat(product);
+			choices=[correct];
+			choices.push((prodNum+1).toFixed(2));
+			choices.push((prodNum-1).toFixed(2));
+			choices.push((v1.x*v2.x).toFixed(2));
+			choices.push((v1.y*v2.y).toFixed(2));
 			break;
 		}
 		case "angle":{
@@ -92,18 +89,17 @@ export function generateVector(difficulty?: string): void{
 			let mag1=Math.sqrt(v1.x**2+v1.y**2);
 			let mag2=Math.sqrt(v2.x**2+v2.y**2);
 			let cosTheta=dot/(mag1*mag2);
-			// Clamp to avoid floating point errors outside [-1,1]
 			if (cosTheta>1) cosTheta=1;
 			if (cosTheta<-1) cosTheta=-1;
 			let angle=(Math.acos(cosTheta)*180/Math.PI).toFixed(1);
+			let correct=`${angle}^{\\circ}`;
 			questionArea.innerHTML=`Find the angle (in degrees) between \\(\\langle ${v1.x.toFixed(1)}, ${v1.y.toFixed(1)} \\rangle\\) and \\(\\langle ${v2.x.toFixed(1)}, ${v2.y.toFixed(1)} \\rangle\\).`;
-			let correctLaTeX=`${angle}^{\\circ}`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: angle,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter a number (degrees, e.g., 45.0)";
+			let angleNum=parseFloat(angle);
+			choices=[correct];
+			choices.push(`${(angleNum+10).toFixed(1)}^{\\circ}`);
+			choices.push(`${(angleNum-10).toFixed(1)}^{\\circ}`);
+			choices.push(`${(180-angleNum).toFixed(1)}^{\\circ}`);
+			choices.push(`${(Math.asin(cosTheta)*180/Math.PI).toFixed(1)}^{\\circ}`);
 			break;
 		}
 		case "projection":{
@@ -114,13 +110,12 @@ export function generateVector(difficulty?: string): void{
 			let projX=(dot/magV2Sq*v2.x).toFixed(2);
 			let projY=(dot/magV2Sq*v2.y).toFixed(2);
 			questionArea.innerHTML=`Find the projection of \\(\\langle ${v1.x.toFixed(1)}, ${v1.y.toFixed(1)} \\rangle\\) onto \\(\\langle ${v2.x.toFixed(1)}, ${v2.y.toFixed(1)} \\rangle\\).`;
-			let correctLaTeX=`\\langle ${projX}, ${projY} \\rangle`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: `<${projX}, ${projY}>`,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter as <x, y> or (x, y)";
+			let correct=`\\langle ${projX}, ${projY} \\rangle`;
+			choices=[correct];
+			choices.push(`\\langle ${(dot/(magV2Sq+0.5)*v2.x).toFixed(2)}, ${(dot/(magV2Sq+0.5)*v2.y).toFixed(2)} \\rangle`);
+			choices.push(`\\langle ${(parseFloat(projX)+0.1).toFixed(2)}, ${projY} \\rangle`);
+			choices.push(`\\langle ${projX}, ${(parseFloat(projY)+0.1).toFixed(2)} \\rangle`);
+			choices.push(`\\langle ${(v1.x).toFixed(2)}, ${(v1.y).toFixed(2)} \\rangle`);
 			break;
 		}
 		case "parametric":{
@@ -128,13 +123,12 @@ export function generateVector(difficulty?: string): void{
 			let pointY=(Math.random()*range*2-range).toFixed(1);
 			let dir=generateNonZeroVector();
 			questionArea.innerHTML=`Write the parametric equations for the line that passes through \\((${pointX}, ${pointY})\\) and has direction vector \\(\\langle ${dir.x.toFixed(1)}, ${dir.y.toFixed(1)} \\rangle\\).`;
-			let correctLaTeX=`x=${pointX}+${dir.x.toFixed(1)}t, y=${pointY}+${dir.y.toFixed(1)}t`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: `<${pointX}+${dir.x.toFixed(1)}t, ${pointY}+${dir.y.toFixed(1)}t>`,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter as \"x=...t, y=...t\" or <..., ...>";
+			let correct=`x=${pointX}+${dir.x.toFixed(1)}t, y=${pointY}+${dir.y.toFixed(1)}t`;
+			choices=[correct];
+			choices.push(`x=${pointX}+${(dir.x+1).toFixed(1)}t, y=${pointY}+${dir.y.toFixed(1)}t`);
+			choices.push(`x=${pointX}+${dir.x.toFixed(1)}t, y=${pointY}+${(dir.y+1).toFixed(1)}t`);
+			choices.push(`x=${pointX}+${(-dir.x).toFixed(1)}t, y=${pointY}+${dir.y.toFixed(1)}t`);
+			choices.push(`x=${pointX}+${dir.x.toFixed(1)}t, y=${pointY}+${(-dir.y).toFixed(1)}t`);
 			break;
 		}
 		case "polar_convert":{
@@ -143,13 +137,13 @@ export function generateVector(difficulty?: string): void{
 			let x=(parseFloat(r)*Math.cos(parseFloat(theta)*Math.PI/180)).toFixed(2);
 			let y=(parseFloat(r)*Math.sin(parseFloat(theta)*Math.PI/180)).toFixed(2);
 			questionArea.innerHTML=`Convert the polar coordinate \\((${r}, ${theta}^{\\circ})\\) to Cartesian coordinates.`;
-			let correctLaTeX=`(${x}, ${y})`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: `(${x}, ${y})`,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter as (x, y)";
+			let correct=`(${x}, ${y})`;
+			let xNum=parseFloat(x), yNum=parseFloat(y);
+			choices=[correct];
+			choices.push(`(${(xNum+0.5).toFixed(2)}, ${yNum})`);
+			choices.push(`(${xNum}, ${(yNum+0.5).toFixed(2)})`);
+			choices.push(`(${(xNum).toFixed(2)}, ${(yNum).toFixed(2)})`);
+			choices.push(`(${(parseFloat(r)*Math.cos(parseFloat(theta)*Math.PI/180+0.1)).toFixed(2)}, ${y})`);
 			break;
 		}
 		case "cartesian_convert":{
@@ -157,13 +151,13 @@ export function generateVector(difficulty?: string): void{
 			let r=Math.sqrt(x**2+y**2).toFixed(2);
 			let theta=(Math.atan2(y, x)*180/Math.PI).toFixed(1);
 			questionArea.innerHTML=`Convert the Cartesian coordinate \\((${x.toFixed(1)}, ${y.toFixed(1)})\\) to polar coordinates. Answer with (r, degrees), no need to add deg.`;
-			let correctLaTeX=`(${r}, ${theta}^{\\circ})`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: `(${r}, ${theta})`,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter as (r, θ) e.g., (5.0, 53.1)";
+			let correct=`(${r}, ${theta}^{\\circ})`;
+			let rNum=parseFloat(r), thetaNum=parseFloat(theta);
+			choices=[correct];
+			choices.push(`(${(rNum+1).toFixed(2)}, ${thetaNum}^{\\circ})`);
+			choices.push(`(${(rNum-1).toFixed(2)}, ${thetaNum}^{\\circ})`);
+			choices.push(`(${rNum}, ${(thetaNum+10).toFixed(1)}^{\\circ})`);
+			choices.push(`(${rNum}, ${(thetaNum-10).toFixed(1)}^{\\circ})`);
 			break;
 		}
 		case "polar_graph":{
@@ -172,24 +166,22 @@ export function generateVector(difficulty?: string): void{
 			if (useSin){
 				questionArea.innerHTML=`Describe the graph of the polar equation \\(r=${a}\\sin\\theta\\). Use the format "A circle with center at (x, y) and radius (radius)" Use two decimal places.`;
 				let center=(parseFloat(a)/2).toFixed(2);
-				let correctLaTeX=`A circle with center at (0, ${center}) and radius ${center}`;
-				window.correctAnswer={
-					correct: correctLaTeX,
-					alternate: `A circle with center at (0, ${center}) and radius ${center}`,
-					display: correctLaTeX
-				};
-				window.expectedFormat="Enter as \"A circle with center at (x, y) and radius r\"";
+				let correct=`A circle with center at (0, ${center}) and radius ${center}`;
+				choices=[correct];
+				choices.push(`A circle with center at (${center}, 0) and radius ${center}`);
+				choices.push(`A circle with center at (0, ${(parseFloat(a)).toFixed(2)}) and radius ${(parseFloat(a)).toFixed(2)}`);
+				choices.push(`A circle with center at (0, 0) and radius ${center}`);
+				choices.push(`A cardioid`);
 			}
 			else{
 				questionArea.innerHTML=`Describe the graph of the polar equation \\(r=${a}\\cos\\theta\\). Use the format "A circle with center at (x, y) and radius (radius)" Use two decimal places.`;
 				let center=(parseFloat(a)/2).toFixed(2);
-				let correctLaTeX=`A circle with center at (${center}, 0) and radius ${center}`;
-				window.correctAnswer={
-					correct: correctLaTeX,
-					alternate: `A circle with center at (${center}, 0) and radius ${center}`,
-					display: correctLaTeX
-				};
-				window.expectedFormat="Enter as \"A circle with center at (x, y) and radius r\"";
+				let correct=`A circle with center at (${center}, 0) and radius ${center}`;
+				choices=[correct];
+				choices.push(`A circle with center at (0, ${center}) and radius ${center}`);
+				choices.push(`A circle with center at (${(parseFloat(a)).toFixed(2)}, 0) and radius ${(parseFloat(a)).toFixed(2)}`);
+				choices.push(`A circle with center at (0, 0) and radius ${center}`);
+				choices.push(`A cardioid`);
 			}
 			break;
 		}
@@ -198,13 +190,12 @@ export function generateVector(difficulty?: string): void{
 			let posY=(Math.random()*range*2-range).toFixed(1);
 			let v=generateNonZeroVector();
 			questionArea.innerHTML=`A particle starts at \\((${posX}, ${posY})\\) and moves with constant velocity \\(\\langle ${v.x.toFixed(1)}, ${v.y.toFixed(1)} \\rangle\\). Write the position vector as a function of time \\(t\\).`;
-			let correctLaTeX=`\\langle ${posX}+${v.x.toFixed(1)}t, ${posY}+${v.y.toFixed(1)}t \\rangle`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: `<${posX}+${v.x.toFixed(1)}t, ${posY}+${v.y.toFixed(1)}t>`,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter as <x0+vx*t, y0+vy*t> or parametric form";
+			let correct=`\\langle ${posX}+${v.x.toFixed(1)}t, ${posY}+${v.y.toFixed(1)}t \\rangle`;
+			choices=[correct];
+			choices.push(`\\langle ${posX}+${(v.x+1).toFixed(1)}t, ${posY}+${v.y.toFixed(1)}t \\rangle`);
+			choices.push(`\\langle ${posX}+${v.x.toFixed(1)}t, ${posY}+${(v.y+1).toFixed(1)}t \\rangle`);
+			choices.push(`\\langle ${posX}+${(-v.x).toFixed(1)}t, ${posY}+${v.y.toFixed(1)}t \\rangle`);
+			choices.push(`\\langle ${posX}+${v.x.toFixed(1)}t, ${posY}+${(-v.y).toFixed(1)}t \\rangle`);
 			break;
 		}
 		case "de_moivre":{
@@ -214,13 +205,12 @@ export function generateVector(difficulty?: string): void{
 			let newR=(Math.pow(parseFloat(r), n)).toFixed(2);
 			let newTheta=(theta*n) % 360;
 			questionArea.innerHTML=`Compute \\((${r}(\\cos ${theta}^{\\circ}+i\\sin ${theta}^{\\circ}))^{${n}}\\) using De Moivre's Theorem. Answer with degrees (no need to add deg).`;
-			let correctLaTeX=`${newR} \\operatorname{cis} ${newTheta}^{\\circ}`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: `${newR} cis ${newTheta}`,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter as \"r cis θ\" e.g., \"8 cis 120\" or expanded form";
+			let correct=`${newR} \\operatorname{cis} ${newTheta}^{\\circ}`;
+			choices=[correct];
+			choices.push(`${newR} \\operatorname{cis} ${(newTheta+360).toFixed(0)}^{\\circ}`);
+			choices.push(`${(parseFloat(newR)+1).toFixed(2)} \\operatorname{cis} ${newTheta}^{\\circ}`);
+			choices.push(`${(parseFloat(newR)-1).toFixed(2)} \\operatorname{cis} ${newTheta}^{\\circ}`);
+			choices.push(`${newR} \\operatorname{cis} ${(theta*n+1).toFixed(0)}^{\\circ}`);
 			break;
 		}
 		case "add":{
@@ -229,13 +219,12 @@ export function generateVector(difficulty?: string): void{
 			let sumX=(v1.x+v2.x).toFixed(2);
 			let sumY=(v1.y+v2.y).toFixed(2);
 			questionArea.innerHTML=`Find the sum of the vectors \\(\\langle ${v1.x.toFixed(1)}, ${v1.y.toFixed(1)} \\rangle\\) and \\(\\langle ${v2.x.toFixed(1)}, ${v2.y.toFixed(1)} \\rangle\\).`;
-			let correctLaTeX=`\\langle ${sumX}, ${sumY} \\rangle`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: `<${sumX}, ${sumY}>`,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter as <x, y> or (x, y)";
+			let correct=`\\langle ${sumX}, ${sumY} \\rangle`;
+			choices=[correct];
+			choices.push(`\\langle ${(parseFloat(sumX)+1).toFixed(2)}, ${sumY} \\rangle`);
+			choices.push(`\\langle ${sumX}, ${(parseFloat(sumY)+1).toFixed(2)} \\rangle`);
+			choices.push(`\\langle ${(parseFloat(sumX)-1).toFixed(2)}, ${sumY} \\rangle`);
+			choices.push(`\\langle ${sumX}, ${(parseFloat(sumY)-1).toFixed(2)} \\rangle`);
 			break;
 		}
 		case "subtract":{
@@ -244,13 +233,12 @@ export function generateVector(difficulty?: string): void{
 			let diffX=(v1.x-v2.x).toFixed(2);
 			let diffY=(v1.y-v2.y).toFixed(2);
 			questionArea.innerHTML=`Subtract \\(\\langle ${v2.x.toFixed(1)}, ${v2.y.toFixed(1)} \\rangle\\) from \\(\\langle ${v1.x.toFixed(1)}, ${v1.y.toFixed(1)} \\rangle\\).`;
-			let correctLaTeX=`\\langle ${diffX}, ${diffY} \\rangle`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: `<${diffX}, ${diffY}>`,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter as <x, y> or (x, y)";
+			let correct=`\\langle ${diffX}, ${diffY} \\rangle`;
+			choices=[correct];
+			choices.push(`\\langle ${(parseFloat(diffX)+1).toFixed(2)}, ${diffY} \\rangle`);
+			choices.push(`\\langle ${diffX}, ${(parseFloat(diffY)+1).toFixed(2)} \\rangle`);
+			choices.push(`\\langle ${(parseFloat(diffX)-1).toFixed(2)}, ${diffY} \\rangle`);
+			choices.push(`\\langle ${diffX}, ${(parseFloat(diffY)-1).toFixed(2)} \\rangle`);
 			break;
 		}
 		case "parametric_to_cartesian":{
@@ -263,24 +251,62 @@ export function generateVector(difficulty?: string): void{
 			let slopeStr=slope.toFixed(2);
 			let intercept=parseFloat(y0)-slope*parseFloat(x0);
 			let interceptStr=intercept.toFixed(2);
-			// Build the equation with proper sign handling
 			let interceptDisplay=intercept>=0?`+ ${interceptStr}`:`- ${Math.abs(intercept).toFixed(2)}`;
 			questionArea.innerHTML=`The line is given by the parametric equations \\(x=${x0}+${dir.x.toFixed(1)}t\\) and \\(y=${y0}+${dir.y.toFixed(1)}t\\). Convert these into a single Cartesian equation.`;
-			let correctLaTeX=`y = ${slopeStr}x ${interceptDisplay}`;
-			window.correctAnswer={
-				correct: correctLaTeX,
-				alternate: `y = ${slopeStr}x ${interceptDisplay}`,
-				display: correctLaTeX
-			};
-			window.expectedFormat="Enter as \"y = mx + b\"";
+			let correct=`y = ${slopeStr}x ${interceptDisplay}`;
+			choices=[correct];
+			choices.push(`y = ${(slope+0.1).toFixed(2)}x ${interceptDisplay}`);
+			choices.push(`y = ${slopeStr}x ${(intercept+0.5).toFixed(2)}`);
+			choices.push(`y = ${(slope-0.1).toFixed(2)}x ${interceptDisplay}`);
+			choices.push(`y = ${slopeStr}x ${(intercept-0.5).toFixed(2)}`);
 			break;
 		}
 		default:
 			questionArea.innerHTML="Unknown question type.";
-			window.correctAnswer={ correct: "", alternate: "", display: "" };
+			window.correctAnswer={ correct: "", alternate: "", display: "", choices: [] };
 			window.expectedFormat="";
+			if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+			return;
 	}
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	let correctAnswerStr: string;
+	if (window.correctAnswer?.correct){
+		correctAnswerStr=window.correctAnswer.correct;
 	}
+	else{
+		switch (type){
+			case "magnitude":
+			case "direction":
+			case "unit":
+			case "dot":
+			case "angle":
+			case "projection":
+			case "parametric":
+			case "polar_convert":
+			case "cartesian_convert":
+			case "polar_graph":
+			case "motion":
+			case "de_moivre":
+			case "add":
+			case "subtract":
+			case "parametric_to_cartesian":
+				correctAnswerStr=choices[0]||"";
+				break;
+			default:
+				correctAnswerStr="";
+		}
+	}
+	if (!uniqueChoices.includes(correctAnswerStr)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswerStr;
+		else uniqueChoices=[correctAnswerStr];
+	}
+	window.correctAnswer={
+		correct: correctAnswerStr,
+		alternate: window.correctAnswer?.alternate || correctAnswerStr,
+		display: window.correctAnswer?.display || correctAnswerStr,
+		choices: uniqueChoices
+	};
+	window.expectedFormat=window.expectedFormat || "";
+	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
 }
