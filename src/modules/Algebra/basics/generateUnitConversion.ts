@@ -1,11 +1,10 @@
 /**
- * Generates a unit conversion question (US length, metric length, area, volume, or multi‑step).
- * @fileoverview Unit conversions. Sets window.correctAnswer with numeric result.
- * @date 2026-03-15
+ * Generates a unit conversion question (US length, metric length, area, volume, or multi‑step) with MCQ distractors.
+ * @fileoverview Unit conversions. Sets window.correctAnswer with numeric result and plausible wrong answers.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-
 export function generateUnitConversion(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -13,6 +12,10 @@ export function generateUnitConversion(difficulty?: string): void{
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,50);
 	let hint="";
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	let value=Math.floor(Math.random()*maxVal)+1;
 	switch (type){
 		case "length_us":{
@@ -23,14 +26,16 @@ export function generateUnitConversion(difficulty?: string): void{
 			];
 			let c=conversions[Math.floor(Math.random()*conversions.length)];
 			let result=value*c.factor;
-			let ans=result.toString();
+			correct=result.toString();
+			alternate=correct;
+			display=correct;
 			questionArea.innerHTML=`Convert \\( ${value} \\text{ ${c.from}} \\) to \\( \\text{${c.to}} \\).`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: ans,
-				display: ans
-			};
-			hint="Enter a number";
+			let numRes=parseInt(correct);
+			choices=[correct];
+			choices.push((numRes+1).toString());
+			choices.push((numRes-1).toString());
+			choices.push((value+c.factor).toString());
+			choices.push((value).toString());
 			break;
 		}
 		case "length_metric":{
@@ -41,58 +46,78 @@ export function generateUnitConversion(difficulty?: string): void{
 			];
 			let c=conversions[Math.floor(Math.random()*conversions.length)];
 			let result=value*c.factor;
-			let ans=result.toString();
+			correct=result.toString();
+			alternate=correct;
+			display=correct;
 			questionArea.innerHTML=`Convert \\( ${value} \\text{ ${c.from}} \\) to \\( \\text{${c.to}} \\).`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: ans,
-				display: ans
-			};
-			hint="Enter a number";
+			let numRes=parseInt(correct);
+			choices=[correct];
+			choices.push((numRes+1).toString());
+			choices.push((numRes-1).toString());
+			choices.push((value+c.factor).toString());
+			choices.push((value).toString());
 			break;
 		}
 		case "area":{
 			let value2=Math.floor(Math.random()*10)+1;
 			let result=value2*9;
-			let ans=result.toString();
+			correct=result.toString();
+			alternate=correct;
+			display=correct;
 			questionArea.innerHTML=`Convert \\( ${value2} \\text{ yd}^2 \\) to \\( \\text{ft}^2 \\). (1 yd=3 ft)`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: ans,
-				display: ans
-			};
-			hint="Enter a number";
+			let numRes=parseInt(correct);
+			choices=[correct];
+			choices.push((numRes+1).toString());
+			choices.push((numRes-1).toString());
+			choices.push((value2*3).toString());
+			choices.push((value2).toString());
 			break;
 		}
 		case "volume":{
 			let value2=Math.floor(Math.random()*5)+1;
 			let result=value2*1000;
-			let ans=result.toString();
+			correct=result.toString();
+			alternate=correct;
+			display=correct;
 			questionArea.innerHTML=`Convert \\( ${value2} \\text{ L} \\) to \\( \\text{mL} \\).`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: ans,
-				display: ans
-			};
-			hint="Enter a number";
+			let numRes=parseInt(correct);
+			choices=[correct];
+			choices.push((numRes+1).toString());
+			choices.push((numRes-1).toString());
+			choices.push((value2*100).toString());
+			choices.push((value2).toString());
 			break;
 		}
 		case "multi_step":{
 			let value2=Math.floor(Math.random()*10)+1;
 			let result=value2*12*3;
-			let ans=result.toString();
+			correct=result.toString();
+			alternate=correct;
+			display=correct;
 			questionArea.innerHTML=`Convert \\( ${value2} \\text{ yd} \\) to \\( \\text{in} \\). (1 yd=3 ft, 1 ft=12 in)`;
-			window.correctAnswer={
-				correct: ans,
-				alternate: ans,
-				display: ans
-			};
-			hint="Enter a number";
+			let numRes=parseInt(correct);
+			choices=[correct];
+			choices.push((numRes+1).toString());
+			choices.push((numRes-1).toString());
+			choices.push((value2*12).toString());
+			choices.push((value2*3).toString());
 			break;
 		}
+		default:
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
-	}
+	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
 }
