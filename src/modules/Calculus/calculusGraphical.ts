@@ -1,5 +1,6 @@
 /**
  * Generates a random "graphical calculus" question involving visual or tabular data.
+ * Includes custom multiple‑choice options for MCQ mode.
  *
  * The function randomly selects a question type from a predefined list, constructs
  * a mathematical expression (often including LaTeX tables or references to drawn
@@ -11,58 +12,12 @@
  *                     that influences the maximum coefficient value used in
  *                     generated expressions. If omitted, a default moderate value
  *                     is used (via `getMaxCoeff`).
- *
- * @remarks
- * The function relies on several imported utilities:
- * - `questionArea` (DOM element) from `../../script.js`
- * - `getMaxCoeff` from `./calculusUtils.js`
- * - `window.MathJax` (optional) for LaTeX rendering.
- *
- * **Question types** (each may involve a drawn canvas and/or a LaTeX table):
- * - `limitFromGraph`      – limit of a quadratic function with a removable discontinuity (hole).
- * - `multipleReps`        – limit inferred from both a graph and a table.
- * - `estimateDerivTable`  – estimate a derivative using a table of function values.
- * - `diffContinuity`      – differentiability of |x - a| at x = a.
- * - `inverseFunc`         – derivative of an inverse function given f(a) and f'(a).
- * - `invTrigDeriv`        – derivative of arctan(ax).
- * - `selectProcedure`     – choose which differentiation rule(s) apply to a given function.
- * - `derivContext`        – interpret the meaning of a derivative in a real‑world context.
- * - `riemannSum`          – left Riemann sum for ∫x² dx, with a drawn graph.
- * - `riemannNotation`     – rewrite a limit of Riemann sums as a definite integral.
- * - `accumFTC`            – evaluate F'(x₀) for an accumulation function F(x)=∫_a^x f(t) dt.
- * - `accumBehavior`       – determine where an accumulation function is increasing.
- * - `definiteProps`       – use properties of definite integrals to combine two intervals.
- * - `longDivision`        – integrate a rational function after polynomial long division.
- * - `flowAccum`           – total accumulated water from a variable rate.
- * - `instantChange`       – explain how limits give instantaneous velocity.
- * - `derivativeLimit`     – use the limit definition to find the derivative of a linear function.
- *
- * **Internal drawing functions** (used to generate canvases):
- * - `drawLimitGraph`      – draws a parabola with a hole.
- * - `drawAbsoluteGraph`   – draws a V‑shaped absolute value graph.
- * - `drawQuadraticGraph`  – draws a parabola.
- * - `drawRiemannSum`      – draws a function and shades left‑endpoint rectangles.
- * - `drawAccumGraph`      – draws f(t)=t and marks the accumulation starting point.
- * - `drawAccumGraph2`     – draws a piecewise constant function.
- *
- * **Side effects**:
- * - Clears `questionArea.innerHTML`.
- * - Appends any generated canvas first, then a `<div>` containing the LaTeX question.
- * - Calls `window.MathJax.typesetPromise` (if available) to render the math.
- * - Sets `window.correctAnswer` to an object with `correct`, `alternate`, and `display`
- *   properties. `correct` and `alternate` hold the plain‑text answer for validation;
- *   `display` holds a LaTeX‑formatted version for rendering with KaTeX.
- * - Sets `window.expectedFormat` to a string describing the expected answer format
- *   (e.g., `"Enter a number"`, `"Enter expression"`, `"Enter interval"`, etc.).
+ * @returns void
+ * @date 2026-03-29
  *
  * @example
- * ```typescript
- * // Generate a default‑difficulty graphical calculus question
  * generateGraphicalCalculus();
- *
- * // Generate an easy question
- * generateGraphicalCalculus("easy");
- * ```
+ * generateGraphicalCalculus("hard");
  */
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
@@ -88,6 +43,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 	let expectedFormat="Enter your answer";
 	let maxCoeff=getMaxCoeff(difficulty);
 	let canvas: HTMLCanvasElement|null=null;
+	let choices: string[]=[];
 	switch (questionType){
 		case "limitFromGraph":{
 			let coeff=Math.floor(Math.random()*maxCoeff)+1;
@@ -96,8 +52,13 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			canvas=drawLimitGraph(coeff, holeX, holeY);
 			mathExpression=`\\[ \\lim_{x\\to ${holeX}} f(x)=? \\]`;
 			plainCorrectAnswer=holeY.toString();
-			latexAnswer=holeY.toString();
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			choices=[plainCorrectAnswer];
+			choices.push((holeY+1).toString());
+			choices.push((holeY-1).toString());
+			choices.push((coeff*(holeX+1)*(holeX+1)).toString());
+			choices.push((coeff*(holeX-1)*(holeX-1)).toString());
 			break;
 		}
 		case "multipleReps":{
@@ -107,9 +68,15 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			canvas=drawQuadraticGraph(a, b, -2, 4);
 			let table=`\\begin{array}{c|c} x & f(x) \\\\ ${c-0.1} & ${a*(c-0.1)**2+b} \\\\ ${c+0.1} & ${a*(c+0.1)**2+b} \\end{array}`;
 			mathExpression=`\\[ \\text{Graph and table given, find } \\lim_{x\\to ${c}} f(x). \\] ${table}`;
-			plainCorrectAnswer=(a*c*c+b).toString();
-			latexAnswer=(a*c*c+b).toString();
+			let correctVal=a*c*c+b;
+			plainCorrectAnswer=correctVal.toString();
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			choices=[plainCorrectAnswer];
+			choices.push((correctVal+1).toString());
+			choices.push((correctVal-1).toString());
+			choices.push((a*(c+0.1)*(c+0.1)+b).toString());
+			choices.push((a*(c-0.1)*(c-0.1)+b).toString());
 			break;
 		}
 		case "estimateDerivTable":{
@@ -128,6 +95,12 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer=derivEst.toFixed(4);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a decimal";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+0.1).toFixed(4));
+			choices.push((correctNum-0.1).toFixed(4));
+			choices.push(((vals[4]-vals[0])/(4*h)).toFixed(4));
+			choices.push(((vals[2]-vals[2])/(h)).toFixed(4));
 			break;
 		}
 		case "diffContinuity":{
@@ -137,6 +110,7 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer="no";
 			latexAnswer="\\text{no}";
 			expectedFormat="Enter yes or no";
+			choices=["no", "yes", "maybe", "only if continuous"];
 			break;
 		}
 		case "inverseFunc":{
@@ -144,9 +118,15 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			let fPrime=Math.floor(Math.random()*maxCoeff)+1;
 			let a=Math.floor(Math.random()*5)+1;
 			mathExpression=`\\[ f(${a})=${fVal}, f'(${a})=${fPrime}. \\text{ Find } (f^{-1})'(${fVal}). \\]`;
-			plainCorrectAnswer=(1/fPrime).toFixed(3);
+			let correct=1/fPrime;
+			plainCorrectAnswer=correct.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			choices=[plainCorrectAnswer];
+			choices.push((1/(fPrime+1)).toFixed(3));
+			choices.push((1/(fPrime-1)).toFixed(3));
+			choices.push(fPrime.toFixed(3));
+			choices.push((1/fVal).toFixed(3));
 			break;
 		}
 		case "invTrigDeriv":{
@@ -155,6 +135,11 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer=`${a}/(1+${a*a}x^2)`;
 			latexAnswer=`\\frac{${a}}{1+${a*a}x^{2}}`;
 			expectedFormat="Enter expression";
+			choices=[plainCorrectAnswer];
+			choices.push(`${a}/(1+x^2)`);
+			choices.push(`${a}/(1+${a*a}x)`);
+			choices.push(`${a}/(1+${a*a}x^2)*${a}`);
+			choices.push(`${a}*x/(1+${a*a}x^2)`);
 			break;
 		}
 		case "selectProcedure":{
@@ -164,6 +149,10 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			latexAnswer=`\\text{${options[correctIdx]}}`;
 			mathExpression=`\\[ f(x)=x^2 e^{${maxCoeff}x} \\cos x \\] Which rule(s)? A) ${options[0]} B) ${options[1]} C) ${options[2]} D) ${options[3]}`;
 			expectedFormat="Enter letter";
+			choices=[options[correctIdx]];
+			for (let i=0;i<options.length;i++){
+				if (i!==correctIdx) choices.push(options[i]);
+			}
 			break;
 		}
 		case "derivContext":{
@@ -172,6 +161,11 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer="rate of change of volume";
 			latexAnswer="\\text{rate of change of volume}";
 			expectedFormat="Enter description";
+			choices=[plainCorrectAnswer];
+			choices.push("volume");
+			choices.push("rate of change of radius");
+			choices.push("acceleration");
+			choices.push("speed");
 			break;
 		}
 		case "riemannSum":{
@@ -189,6 +183,12 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer=sum.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+0.5).toFixed(3));
+			choices.push((correctNum-0.5).toFixed(3));
+			choices.push((correctNum*1.1).toFixed(3));
+			choices.push((correctNum*0.9).toFixed(3));
 			break;
 		}
 		case "riemannNotation":{
@@ -200,6 +200,11 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer=`\\int_{${a}}^{${b}} x^2 \\,dx`;
 			latexAnswer=`\\int_{${a}}^{${b}} x^{2}\\,dx`;
 			expectedFormat="Enter integral";
+			choices=[plainCorrectAnswer];
+			choices.push(`\\int_{${a}}^{${b}} x \\,dx`);
+			choices.push(`\\int_{${a}}^{${b}} x^3 \\,dx`);
+			choices.push(`\\int_{${a}}^{${b}} (x^2+1) \\,dx`);
+			choices.push(`\\int_{${a}}^{${b}} 2x \\,dx`);
 			break;
 		}
 		case "accumFTC":{
@@ -210,6 +215,11 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer=(x0).toString();
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			choices=[plainCorrectAnswer];
+			choices.push((x0+1).toString());
+			choices.push((x0-1).toString());
+			choices.push((a).toString());
+			choices.push((x0*a).toString());
 			break;
 		}
 		case "accumBehavior":{
@@ -219,6 +229,11 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer=`(${a}, ${a+2})`;
 			latexAnswer=`(${a},${a+2})`;
 			expectedFormat="Enter interval";
+			choices=[plainCorrectAnswer];
+			choices.push(`(${a-1}, ${a+1})`);
+			choices.push(`(${a+1}, ${a+3})`);
+			choices.push(`(${0}, ${a})`);
+			choices.push(`(${a+2}, ${a+4})`);
 			break;
 		}
 		case "definiteProps":{
@@ -228,9 +243,15 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			let b=a+Math.floor(Math.random()*3)+1;
 			let c=b+Math.floor(Math.random()*3)+1;
 			mathExpression=`\\[ \\int_{${a}}^{${b}} f=${int1}, \\int_{${b}}^{${c}} f=${int2}, \\text{ find } \\int_{${a}}^{${c}} f. \\]`;
-			plainCorrectAnswer=(int1+int2).toString();
+			let correct=int1+int2;
+			plainCorrectAnswer=correct.toString();
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			choices=[plainCorrectAnswer];
+			choices.push((int1-int2).toString());
+			choices.push((int2-int1).toString());
+			choices.push((int1*int2).toString());
+			choices.push((int1/int2).toString());
 			break;
 		}
 		case "longDivision":{
@@ -239,6 +260,11 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer=`(1/2)x^2 - ${a}ln|x^2+${a}| + C`;
 			latexAnswer=`\\frac{1}{2}x^{2} - ${a}\\ln|x^{2}+${a}| + C`;
 			expectedFormat="Enter expression";
+			choices=[plainCorrectAnswer];
+			choices.push(`(1/2)x^2 + ${a}ln|x^2+${a}| + C`);
+			choices.push(`x - ${a}ln|x^2+${a}| + C`);
+			choices.push(`(1/2)x^2 - ${a}ln|x^2| + C`);
+			choices.push(`x^2 - ${a}ln|x^2+${a}| + C`);
 			break;
 		}
 		case "flowAccum":{
@@ -249,6 +275,12 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer=accum.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((rate*tMax).toFixed(2));
+			choices.push((tMax*tMax/2).toFixed(2));
 			break;
 		}
 		case "instantChange":{
@@ -256,6 +288,11 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer="average velocity approaches instantaneous as interval shrinks";
 			latexAnswer="\\text{average velocity approaches instantaneous as interval shrinks}";
 			expectedFormat="Enter explanation";
+			choices=[plainCorrectAnswer];
+			choices.push("velocity is constant");
+			choices.push("instantaneous velocity is the slope of the secant line");
+			choices.push("limit of average velocity as time interval goes to zero");
+			choices.push("derivative of position gives velocity");
 			break;
 		}
 		case "derivativeLimit":{
@@ -265,6 +302,11 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			plainCorrectAnswer=a.toString();
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter expression";
+			choices=[plainCorrectAnswer];
+			choices.push((a+1).toString());
+			choices.push((a-1).toString());
+			choices.push((b).toString());
+			choices.push(`${a}x+${b}`);
 			break;
 		}
 	}
@@ -279,10 +321,17 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(plainCorrectAnswer)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+		else uniqueChoices=[plainCorrectAnswer];
+	}
 	window.correctAnswer={
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
-		display: latexAnswer
+		display: latexAnswer,
+		choices: uniqueChoices
 	};
 	window.expectedFormat=expectedFormat;
 }

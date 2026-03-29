@@ -1,5 +1,6 @@
 /**
  * Generates a random integration question and displays it in the global question area.
+ * Includes custom multiple‑choice options for MCQ mode.
  *
  * The function randomly selects a question type (polynomial, trigonometric, exponential,
  * logarithmic, substitution, definite, initial value, area, or motion), constructs a
@@ -12,48 +13,12 @@
  *                     influences the maximum coefficient value used in generated
  *                     expressions. If omitted, a default moderate value is used
  *                     (via `getMaxCoeff`).
- *
- * @remarks
- * The function relies on several imported utilities:
- * - `questionArea` (DOM element) from `../../script.js`
- * - `getMaxCoeff` and `trigIntegrals` from `./calculusUtils.js`
- * - `window.MathJax` (optional) for LaTeX rendering.
- *
- * **Question types** (each uses random coefficients scaled by `difficulty`):
- * - `polynomial`      – indefinite integral of a polynomial (answers include +C).
- * - `trigonometric`   – integral of a trigonometric function (sin(ax), cos(ax), etc.).
- * - `exponential`     – integral of e^(ax) or a^x.
- * - `logarithmic`     – integral of c/x (natural log).
- * - `substitution`    – integral of c(ax+b)^n (simple linear substitution).
- * - `definite`        – definite integral of a polynomial from lower to upper.
- * - `initialValue`    – find f(x) given f'(x) and an initial condition f(x₀)=y₀.
- * - `area`            – set up the integral for the area under a given function.
- * - `motion`          – find position from velocity or acceleration.
- *
- * **Answer formatting**:
- * - Indefinite integrals include an integration constant "+C".
- * - Coefficients are often simplified and shown with two decimal places, but
- *   trailing zeros may be removed (e.g., "2.00x^3" becomes "2x^3").
- * - The global `window.correctAnswer` stores a normalized version (spaces
- *   removed, braces stripped) in `correct`, an alternate plain‑text version in
- *   `alternate`, and a LaTeX‑formatted version in `display` for rendering with KaTeX.
- *
- * **Side effects**:
- * - Clears `questionArea.innerHTML`.
- * - Appends a new `<div>` containing the LaTeX question.
- * - Calls `window.MathJax.typesetPromise` (if available) to render the math.
- * - Sets `window.correctAnswer` to an object with `correct`, `alternate`, and `display`.
- * - Sets `window.expectedFormat` to a string describing the expected input format
- *   (e.g., "Enter the integral as an expression, e.g., 2x^3/3+5x^2/2+C, ...").
+ * @returns void
+ * @date 2026-03-29
  *
  * @example
- * ```typescript
- * // Generate a default‑difficulty integral question
  * generateIntegral();
- *
- * // Generate a hard integral question
  * generateIntegral("hard");
- * ```
  */
 import { questionArea } from "../../script.js";
 import { getMaxCoeff } from "./calculusUtils.js";
@@ -87,6 +52,7 @@ export function generateIntegral(difficulty?: string): void{
 	let plainCorrectIntegral="";
 	let latexAnswer="";
 	let alternateAnswer:string|undefined=undefined;
+	let choices: string[]=[];
 	switch (questionType){
 		case "polynomial":{
 			const numTerms=Math.floor(Math.random()*4)+2;
@@ -125,7 +91,18 @@ export function generateIntegral(difficulty?: string): void{
 			}
 			integralTerms.push("C");
 			plainCorrectIntegral=integralTerms.join("+");
-			latexAnswer=integralTerms.join("+");
+			latexAnswer=plainCorrectIntegral;
+			const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			const wrongTerms=[...integralTerms];
+			if (wrongTerms.length>1){
+				wrongTerms[0]=`${parseFloat(wrongTerms[0])+1}${wrongTerms[0].match(/[a-z]/)?.[0]||""}`;
+				choices.push(wrongTerms.join("+").replace(/\s/g,"").toLowerCase());
+				wrongTerms[0]=`${parseFloat(wrongTerms[0])-2}${wrongTerms[0].match(/[a-z]/)?.[0]||""}`;
+				choices.push(wrongTerms.join("+").replace(/\s/g,"").toLowerCase());
+			}
+			choices.push(integralTerms.map(t=>t.replace(/\^(\d+)/,"^$1")).join("+").replace(/\s/g,"").toLowerCase());
+			choices.push(integralTerms.map(t=>t.replace(/\^(\d+)/,"^"+ (parseInt(t.match(/\d+$/)?.[0]||"1")+1))).join("+").replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "trigonometric":{
@@ -148,6 +125,14 @@ export function generateIntegral(difficulty?: string): void{
 			const signStr=chosen.sign===1 ? '' : '-';
 			alternateAnswer=`${signStr}${fractionStr} ${chosen.target}(${a}x)+C`;
 			latexAnswer=`${signStr}\\frac{${coeff}}{${a}} ${chosen.target}(${a}x)+C`;
+			const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			const wrongSign=chosen.sign===1 ? -1 : 1;
+			const wrongSignStr=wrongSign===1 ? '' : '-';
+			choices.push(`${wrongSignStr}${fractionStr} ${chosen.target}(${a}x)+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${signStr}${fractionStr} ${chosen.func}(${a}x)+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${signStr}${fractionStr} ${chosen.target}(x)+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${signStr}${coeff} ${chosen.target}(${a}x)+C`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "exponential":{
@@ -158,12 +143,24 @@ export function generateIntegral(difficulty?: string): void{
 				mathExpression=`\\[ \\int ${coeff}e^{${a}x} \\,dx=? \\]`;
 				plainCorrectIntegral=`${formatNumber(coeff/a)}e^(${a}x)+C`;
 				latexAnswer=`\\frac{${coeff}}{${a}}e^{${a}x}+C`;
+				const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+				choices=[normalizedCorrect];
+				choices.push(`${formatNumber(coeff)}e^(${a}x)+C`.replace(/\s/g,"").toLowerCase());
+				choices.push(`${formatNumber(coeff/a)}e^(${a}x)`.replace(/\s/g,"").toLowerCase());
+				choices.push(`${formatNumber(coeff*a)}e^(${a}x)+C`.replace(/\s/g,"").toLowerCase());
+				choices.push(`${formatNumber(coeff/(a+1))}e^(${a}x)+C`.replace(/\s/g,"").toLowerCase());
 			}
 			else{
 				mathExpression=`\\[ \\int ${coeff}${base}^{x} \\,dx=? \\]`;
 				const lnBase=Math.log(base as number);
 				plainCorrectIntegral=`${formatNumber(coeff/lnBase)}${base}^x+C`;
 				latexAnswer=`\\frac{${coeff}}{\\ln(${base})}${base}^{x}+C`;
+				const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+				choices=[normalizedCorrect];
+				choices.push(`${coeff}${base}^x+C`.replace(/\s/g,"").toLowerCase());
+				choices.push(`${formatNumber(coeff)}${base}^x+C`.replace(/\s/g,"").toLowerCase());
+				choices.push(`${formatNumber(coeff/lnBase)}${base}^x`.replace(/\s/g,"").toLowerCase());
+				choices.push(`${formatNumber(coeff/(lnBase+1))}${base}^x+C`.replace(/\s/g,"").toLowerCase());
 			}
 			break;
 		}
@@ -172,6 +169,12 @@ export function generateIntegral(difficulty?: string): void{
 			mathExpression=`\\[ \\int \\frac{${coeff}}{x} \\,dx=? \\]`;
 			plainCorrectIntegral=`${coeff}ln|x|+C`;
 			latexAnswer=`${coeff}\\ln|x|+C`;
+			const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`${coeff}ln(x)+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${coeff}ln|${coeff}x|+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${coeff}x+ C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${coeff}/x + C`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "substitution":{
@@ -184,6 +187,13 @@ export function generateIntegral(difficulty?: string): void{
 			const factor=coeff/(a*newPower);
 			plainCorrectIntegral=`${formatNumber(factor)}(${a}x+${b})^${newPower}+C`;
 			latexAnswer=`\\frac{${coeff}}{${a}${newPower}}(${a}x+${b})^{${newPower}}+C`;
+			const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			const wrongFactor=coeff/(a*(newPower-1));
+			choices.push(`${formatNumber(wrongFactor)}(${a}x+${b})^${newPower-1}+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${formatNumber(coeff)}(${a}x+${b})^${newPower}+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${formatNumber(factor)}(${a}x+${b})^${power}+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${formatNumber(coeff/(newPower))}(${a}x+${b})^${newPower}+C`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "definite":{
@@ -204,6 +214,19 @@ export function generateIntegral(difficulty?: string): void{
 			}
 			plainCorrectIntegral=formatNumber(result);
 			latexAnswer=plainCorrectIntegral;
+			const correctNum=parseFloat(plainCorrectIntegral);
+			choices=[plainCorrectIntegral];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			let wrongResult=0;
+			for (let i=0;i<numTerms;i++){
+				const exp=exponents[i];
+				const coeff=coefficients[i];
+				const antideriv=coeff/(exp+1);
+				wrongResult+=antideriv*(Math.pow(upper,exp)-Math.pow(lower,exp));
+			}
+			choices.push(formatNumber(wrongResult));
+			choices.push((correctNum*0.9).toFixed(2));
 			break;
 		}
 		case "initialValue":{
@@ -217,6 +240,12 @@ export function generateIntegral(difficulty?: string): void{
 			mathExpression=`\\[ \\text{Find } f(x) \\text{ where } f(${xVal}) = ${yVal} \\text{ and } f'(x) = ${polynomial} \\]`;
 			plainCorrectIntegral=`${formatNumber(antiderivCoeff)}x^${exponent+1} + ${formatNumber(c)}`;
 			latexAnswer=`\\frac{${coeff}}{${exponent+1}}x^{${exponent+1}} + ${formatNumber(c)}`;
+			const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`${formatNumber(antiderivCoeff)}x^${exponent+1} + ${formatNumber(c+1)}`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${formatNumber(antiderivCoeff)}x^${exponent+1} + ${formatNumber(c-1)}`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${formatNumber(antiderivCoeff+1)}x^${exponent+1} + ${formatNumber(c)}`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${formatNumber(coeff)}x^${exponent+1} + ${formatNumber(c)}`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		case "area":{
@@ -230,9 +259,14 @@ export function generateIntegral(difficulty?: string): void{
 			const a=0;
 			const b=Math.floor(Math.random()*4)+1;
 			const area=chosen.antideriv(b)-chosen.antideriv(a);
-			mathExpression=`\\[ \\text{Area under } ${chosen.expr} \\text{ from } ${a} \\text{ to } ${b} = ? \\]`;
 			plainCorrectIntegral=formatNumber(area);
 			latexAnswer=plainCorrectIntegral;
+			const correctNum=parseFloat(plainCorrectIntegral);
+			choices=[plainCorrectIntegral];
+			choices.push((correctNum+1).toFixed(2));
+			choices.push((correctNum-1).toFixed(2));
+			choices.push((correctNum*1.1).toFixed(2));
+			choices.push((correctNum*0.9).toFixed(2));
 			break;
 		}
 		case "motion":{
@@ -241,6 +275,12 @@ export function generateIntegral(difficulty?: string): void{
 			plainCorrectIntegral=`${formatNumber(coeff/3)}t^3 + C`;
 			alternateAnswer=`${coeff}t^3/3 + C`;
 			latexAnswer=`\\frac{${coeff}}{3}t^{3} + C`;
+			const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`${formatNumber(coeff)}t^3 + C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${formatNumber(coeff/2)}t^3 + C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${formatNumber(coeff/3)}t^2 + C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`${formatNumber(coeff/3)}t^3`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 		default:{
@@ -248,6 +288,8 @@ export function generateIntegral(difficulty?: string): void{
 			mathExpression=`\\[ \\int ${polynomial} \\,dx=? \\]`;
 			plainCorrectIntegral="x^3/3 + C";
 			latexAnswer="\\frac{x^{3}}{3} + C";
+			choices=["x^3/3+C", "x^3/3", "x^2+C", "x^3/2+C"];
+			break;
 		}
 	}
 	const mathContainer=document.createElement("div");
@@ -263,10 +305,19 @@ export function generateIntegral(difficulty?: string): void{
 		 .replace(/\^{/g,"^")
 		 .replace(/[{}]/g,"")
 		 .toLowerCase();
+	let correctNorm=normalize(plainCorrectIntegral);
+	let altNorm=alternateAnswer ? normalize(alternateAnswer) : correctNorm;
+	let uniqueChoices=[...new Set(choices.map(normalize))];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correctNorm)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctNorm;
+		else uniqueChoices=[correctNorm];
+	}
 	window.correctAnswer={
-		correct: normalize(plainCorrectIntegral),
-		alternate: alternateAnswer ? normalize(alternateAnswer) : plainCorrectIntegral,
-		display: latexAnswer
+		correct: correctNorm,
+		alternate: altNorm,
+		display: latexAnswer,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter the integral as an expression, e.g., 2x^3/3+5x^2/2+C, 1/3 sin(3x)+C, etc.";
 }

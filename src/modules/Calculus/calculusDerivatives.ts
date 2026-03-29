@@ -5,12 +5,15 @@
  * logarithmic, product, quotient, chain, implicit, higher‑order, or motion), constructs
  * a LaTeX expression for the function, computes its derivative (both in LaTeX and plain
  * text), and appends the formatted question to the DOM. It also triggers MathJax
- * rendering and sets global variables for answer validation.
+ * rendering and sets global variables for answer validation, including plausible
+ * multiple‑choice distractors.
  *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that
  *                     influences the maximum coefficient value used in generated
  *                     expressions. If omitted, a default moderate value is used
  *                     (via `getMaxCoeff`).
+ * @returns void
+ * @date 2026-03-29
  *
  * @remarks
  * The function relies on several imported utilities:
@@ -22,24 +25,15 @@
  * **Side effects**:
  * - Clears `questionArea.innerHTML`.
  * - Appends a new `<div>` containing the LaTeX question.
- * - Sets `window.correctAnswer` to an object with `correct`, `alternate`, and `display` properties.
+ * - Sets `window.correctAnswer` to an object with `correct`, `alternate`, `display`, and `choices` properties.
  *   `correct` and `alternate` hold the plain‑text derivative; `display` holds a LaTeX version for rendering.
  * - Sets `window.expectedFormat` to a string describing the expected answer format
  *   (e.g., `"Enter the derivative as an expression, e.g., 2x+3, cos(x), etc."`).
  * - If MathJax is available, calls `MathJax.typesetPromise` on the new element.
  *
- * The generated derivative answer is stored as a plain string (e.g., `"2x+3"`, `"cos(x)"`)
- * and is intended for comparison with user input. The expected format is also provided
- * for user guidance.
- *
  * @example
- * ```typescript
- * // Generate a default‑difficulty derivative question
  * generateDerivative();
- *
- * // Generate a hard derivative question
  * generateDerivative("hard");
- * ```
  */
 import {questionArea} from "../../script.js";
 import {getMaxCoeff, trigFunctions, expFunctions, logFunctions, latexToPlain} from "./calculusUtils.js";
@@ -54,6 +48,7 @@ export function generateDerivative(difficulty?: string): void{
 	let plainCorrectDerivative="";
 	let mathExpression="";
 	let maxCoeff=getMaxCoeff(difficulty);
+	let choices: string[]=[];
 	switch (questionType){
 		case "polynomial":{
 			let numTerms=Math.floor(Math.random()*4)+2;
@@ -100,6 +95,22 @@ export function generateDerivative(difficulty?: string): void{
 			correctDerivative=derivativeTerms.join("+")||"0";
 			plainCorrectDerivative=plainDerivativeTerms.join("+")||"0";
 			mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
+			choices=[plainCorrectDerivative];
+			let correctNumTerms=plainDerivativeTerms.length;
+			if (correctNumTerms>0){
+				let altTerms=[...plainDerivativeTerms];
+				if (altTerms.length>0){
+					altTerms[0]=`${parseInt(altTerms[0])+1}`;
+					choices.push(altTerms.join("+"));
+				}
+				altTerms=[...plainDerivativeTerms];
+				if (altTerms.length>0){
+					altTerms[0]=`${parseInt(altTerms[0])-1}`;
+					choices.push(altTerms.join("+"));
+				}
+				choices.push(plainDerivativeTerms.map(t=>t.replace(/x\^\d+/, "x")).join("+"));
+				choices.push(plainDerivativeTerms.map(t=>t.replace(/x\^\d+/, "x^"+(parseInt(t.match(/\d+$/)?.[0]||"1")+1))).join("+"));
+			}
 			break;
 		}
 		case "trigonometric":{
@@ -109,6 +120,12 @@ export function generateDerivative(difficulty?: string): void{
 			correctDerivative=`${coeff} \\cdot ${trig.deriv}`;
 			plainCorrectDerivative=`${coeff}*${trig.plainDeriv}`;
 			mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
+			choices=[plainCorrectDerivative];
+			choices.push(`${coeff}*${trig.func}`);
+			let wrongSign=trig.plainDeriv.replace(/^(-)?/, m=>m===""?"-":"");
+			choices.push(`${coeff}*${wrongSign}`);
+			if (trig.func.includes("sin")) choices.push(`${coeff}*cos(x)`);
+			if (trig.func.includes("cos")) choices.push(`${coeff}*-sin(x)`);
 			break;
 		}
 		case "exponential":{
@@ -118,6 +135,10 @@ export function generateDerivative(difficulty?: string): void{
 			correctDerivative=`${coeff} \\cdot ${exp.deriv}`;
 			plainCorrectDerivative=`${coeff}*${exp.plainDeriv}`;
 			mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
+			choices=[plainCorrectDerivative];
+			choices.push(`${coeff}*${exp.func}`);
+			choices.push(`${coeff}*${exp.plainDeriv.replace(/e\^/,"")}`);
+			choices.push(`${coeff}*${exp.plainDeriv.replace(/e\^x/,"x*e^{x}")}`);
 			break;
 		}
 		case "logarithmic":{
@@ -126,6 +147,10 @@ export function generateDerivative(difficulty?: string): void{
 			correctDerivative=log.deriv;
 			plainCorrectDerivative=log.plainDeriv;
 			mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
+			choices=[plainCorrectDerivative];
+			choices.push(`1/${polynomial.replace(/ln/,"x")}`);
+			choices.push(`1/x`);
+			choices.push(`1/(${polynomial.replace(/ln/,"")})`);
 			break;
 		}
 		case "product":{
@@ -136,6 +161,10 @@ export function generateDerivative(difficulty?: string): void{
 			correctDerivative=`${a} \\cdot ${trigProd.func}+(${linear}) \\cdot (${trigProd.deriv})`;
 			plainCorrectDerivative=`${a}*${latexToPlain(trigProd.func)}+(${linear})*${trigProd.plainDeriv}`;
 			mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
+			choices=[plainCorrectDerivative];
+			choices.push(`${a}*${latexToPlain(trigProd.func)}+(${linear})*${trigProd.plainDeriv}`.replace(/\+/,"-"));
+			choices.push(`${a}*${latexToPlain(trigProd.deriv)}+(${linear})*${latexToPlain(trigProd.func)}`);
+			choices.push(`${a}*${latexToPlain(trigProd.func)}*${latexToPlain(trigProd.deriv)}`);
 			break;
 		}
 		case "quotient":{
@@ -147,6 +176,10 @@ export function generateDerivative(difficulty?: string): void{
 			correctDerivative=`\\frac{${b} \\cdot ${trigQuot.func}-(${num}) \\cdot ${trigQuot.deriv}}{(${trigQuot.func})^{2}}`;
 			plainCorrectDerivative=`(${b}*${latexToPlain(trigQuot.func)}-(${num})*${trigQuot.plainDeriv})/(${latexToPlain(trigQuot.func)})^2`;
 			mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
+			choices=[plainCorrectDerivative];
+			choices.push(`(${b}*${latexToPlain(trigQuot.func)}+(${num})*${trigQuot.plainDeriv})/(${latexToPlain(trigQuot.func)})^2`);
+			choices.push(`(${b}*${latexToPlain(trigQuot.deriv)}-(${num})*${latexToPlain(trigQuot.func)})/(${latexToPlain(trigQuot.func)})^2`);
+			choices.push(`${b}*${latexToPlain(trigQuot.deriv)}/(${latexToPlain(trigQuot.func)})`);
 			break;
 		}
 		case "chain":{
@@ -160,19 +193,30 @@ export function generateDerivative(difficulty?: string): void{
 				polynomial=`${trigFunc.func.replace("x", inner)}`;
 				correctDerivative=`${trigFunc.deriv.replace("x", inner)} \\cdot ${a}`;
 				plainCorrectDerivative=`${trigFunc.plainDeriv.replace("x", plainInner)}*${a}`;
+				choices=[plainCorrectDerivative];
+				choices.push(`${trigFunc.plainDeriv.replace("x", plainInner)}`);
+				choices.push(`${trigFunc.plainDeriv.replace("x", plainInner)}*${a+1}`);
+				choices.push(`${trigFunc.plainDeriv.replace("x", plainInner)}/${a}`);
 			}
 			else if (chainType===1){
 				polynomial=`e^{${inner}}`;
 				correctDerivative=`e^{${inner}} \\cdot ${a}`;
 				plainCorrectDerivative=`e^(${plainInner})*${a}`;
+				choices=[plainCorrectDerivative];
+				choices.push(`e^(${plainInner})`);
+				choices.push(`${a}*e^(${plainInner})*${plainInner}`);
+				choices.push(`e^(${plainInner})*${a+1}`);
 			}
 			else{
 				let k=Math.floor(Math.random()*3)+2;
 				polynomial=`(${inner})^{${k}}`;
 				correctDerivative=`${k} (${inner})^{${k-1}} \\cdot ${a}`;
 				plainCorrectDerivative=`${k}*(${plainInner})^${k-1}*${a}`;
+				choices=[plainCorrectDerivative];
+				choices.push(`${k}*(${plainInner})^${k-1}`);
+				choices.push(`${k}*(${plainInner})^${k}*${a}`);
+				choices.push(`${k-1}*(${plainInner})^${k-2}*${a}`);
 			}
-			mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
 			break;
 		}
 		case "implicit":{
@@ -182,6 +226,10 @@ export function generateDerivative(difficulty?: string): void{
 			correctDerivative=`-\\frac{${a}x}{${b}y}`;
 			plainCorrectDerivative=`-(${a}x)/(${b}y)`;
 			mathExpression=`\\[ \\text{Find } \\frac{dy}{dx} \\text{ given } ${polynomial} \\]`;
+			choices=[plainCorrectDerivative];
+			choices.push(`(${a}x)/(${b}y)`);
+			choices.push(`-(${b}x)/(${a}y)`);
+			choices.push(`-(${a}y)/(${b}x)`);
 			break;
 		}
 		case "higherOrder":{
@@ -204,6 +252,10 @@ export function generateDerivative(difficulty?: string): void{
 					currExp===1?`${deriv}x` :
 						`${deriv}x^${currExp}`;
 			mathExpression=`\\[ \\frac{d^{${order}}}{dx^{${order}}} ${polynomial}=? \\]`;
+			choices=[plainCorrectDerivative];
+			choices.push(`${coeff*exp}x^{${exp}}`);
+			choices.push(`${coeff*exp}x^{${exp-1}}`);
+			if (order>1) choices.push(`${coeff*exp*(exp-1)}x^{${exp-2}}`);
 			break;
 		}
 		case "motion":{
@@ -213,8 +265,18 @@ export function generateDerivative(difficulty?: string): void{
 			correctDerivative=`${2*a}t+${b}`;
 			plainCorrectDerivative=`${2*a}t+${b}`;
 			mathExpression=`\\[ \\text{If position } s(t)=${polynomial}, \\text{ find velocity } v(t)=? \\]`;
+			choices=[plainCorrectDerivative];
+			choices.push(`${a}t+${b}`);
+			choices.push(`${2*a}t`);
+			choices.push(`${2*a}t+${b-1}`);
 			break;
 		}
+	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(plainCorrectDerivative)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectDerivative;
+		else uniqueChoices=[plainCorrectDerivative];
 	}
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
@@ -227,7 +289,8 @@ export function generateDerivative(difficulty?: string): void{
 	window.correctAnswer={
 		correct: plainCorrectDerivative,
 		alternate: plainCorrectDerivative,
-		display: correctDerivative
+		display: correctDerivative,
+		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter the derivative as an expression, e.g., 2x+3, cos(x), etc.";
 }
