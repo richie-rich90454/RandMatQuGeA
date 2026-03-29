@@ -1,5 +1,6 @@
 /**
  * Generates a random limits and continuity question and displays it in the global question area.
+ * Includes custom multiple‑choice options for MCQ mode.
  *
  * The function randomly selects a question type from a predefined list covering limit notation,
  * estimation from tables, limit properties, algebraic manipulation, the Squeeze theorem,
@@ -12,48 +13,12 @@
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that influences
  *                     the maximum coefficient value used in generated expressions. If omitted,
  *                     a default moderate value is used (via `getMaxCoeff` from `./calculusUtils.js`).
- *
- * @remarks
- * The function relies on several imported utilities:
- * - `questionArea` (DOM element) from `../../script.js`
- * - `getMaxCoeff` from `./calculusUtils.js` (the import of `latexToPlain` is currently unused
- *   and marked with `@ts-expect-error` for potential future use)
- * - `window.MathJax` (optional) for LaTeX rendering.
- *
- * **Question types** (selected randomly from an array):
- * - `limitNotation`        – use limit notation to describe behavior of a rational function near a point.
- * - `limitFromTable`       – estimate a limit from a table of function values.
- * - `limitProperties`      – apply limit laws (linear combination) given two limits.
- * - `limitManipulation`    – algebraically simplify a limit expression (e.g., rationalizing).
- * - `limitSqueeze`         – evaluate a limit using the Squeeze theorem (xⁿ cos(1/x) → 0).
- * - `discontinuityType`    – classify a discontinuity (removable, jump, infinite) for a given rational function.
- * - `continuityConditions` – list the three conditions for continuity at a point.
- * - `continuityInterval`   – find the interval(s) where a function (e.g., √(a-x²)) is continuous.
- * - `removeDiscontinuity`  – define a function value to remove a removable discontinuity.
- * - `verticalAsymptote`    – find vertical asymptotes of a rational function.
- * - `horizontalAsymptote`  – evaluate a limit at infinity to find a horizontal asymptote.
- * - `ivt`                  – apply the Intermediate Value Theorem to show existence of a root.
- * - `selectProcedure`      – choose the most efficient method for evaluating a given limit (multiple choice).
- *
- * **Side effects**:
- * - Clears `questionArea.innerHTML`.
- * - Appends a new `<div>` containing the LaTeX question.
- * - Calls `window.MathJax.typesetPromise` (if available) to render the math.
- * - Sets `window.correctAnswer` to an object with `correct`, `alternate`, and `display`
- *   properties. `correct` and `alternate` hold the plain‑text answer for validation;
- *   `display` holds a LaTeX‑formatted version for rendering with KaTeX.
- * - Sets `window.expectedFormat` to a string describing the expected answer format
- *   (e.g., `"Enter a number"`, `"Enter the limit statement"`, `"Enter removable, jump, or infinite"`,
- *   `"Enter interval like [-2,2]"`, `"Enter the letter of the correct option"`, etc.).
+ * @returns void
+ * @date 2026-03-29
  *
  * @example
- * ```typescript
- * // Generate a default‑difficulty limits and continuity question
  * generateLimitsContinuity();
- *
- * // Generate a hard question
  * generateLimitsContinuity("hard");
- * ```
  */
 import {questionArea} from "../../script.js";
 // @ts-expect-error - latexToPlain is imported for potential future use
@@ -68,6 +33,7 @@ export function generateLimitsContinuity(difficulty?: string): void{
 	let latexAnswer="";
 	let expectedFormat="Enter your answer";
 	let maxCoeff=getMaxCoeff(difficulty);
+	let choices: string[]=[];
 	switch (questionType){
 		case "limitNotation":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
@@ -78,6 +44,11 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			plainCorrectAnswer=`\\lim_{x\\to ${c}} f(x)=${val}`;
 			latexAnswer=`\\lim_{x\\to ${c}} f(x)=${val}`;
 			expectedFormat="Enter the limit statement, e.g., \\lim_{x\\to 2} f(x)=5";
+			choices=[plainCorrectAnswer];
+			choices.push(`\\lim_{x\\to ${c}} f(x)=${val+1}`);
+			choices.push(`\\lim_{x\\to ${c}} f(x)=${val-1}`);
+			choices.push(`\\lim_{x\\to ${c}} f(x)=\\infty`);
+			choices.push(`\\lim_{x\\to ${c}} f(x)=-\\infty`);
 			break;
 		}
 		case "limitFromTable":{
@@ -94,6 +65,12 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			plainCorrectAnswer=values[2].toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a decimal number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+0.1).toFixed(2));
+			choices.push((correctNum-0.1).toFixed(2));
+			choices.push(values[1].toFixed(2));
+			choices.push(values[3].toFixed(2));
 			break;
 		}
 		case "limitProperties":{
@@ -106,6 +83,11 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			plainCorrectAnswer=result.toString();
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			choices=[plainCorrectAnswer];
+			choices.push((result+1).toString());
+			choices.push((result-1).toString());
+			choices.push((coeff1*limF-coeff2*limG).toString());
+			choices.push((coeff1*limF).toString());
 			break;
 		}
 		case "limitManipulation":{
@@ -117,6 +99,12 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			plainCorrectAnswer=result.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number (e.g., 4)";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+0.5).toFixed(2));
+			choices.push((correctNum-0.5).toFixed(2));
+			choices.push((a*c/b).toFixed(2));
+			choices.push("0");
 			break;
 		}
 		case "limitSqueeze":{
@@ -125,16 +113,18 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			plainCorrectAnswer="0";
 			latexAnswer="0";
 			expectedFormat="Enter 0";
+			choices=["0","1","-1","does not exist"];
 			break;
 		}
 		case "discontinuityType":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
-			let root=Math.sqrt(b/a);
-			mathExpression=`\\[ f(x)=\\frac{${a}x^2-${b}}{x-${root.toFixed(2)}} \\]`;
+			let root=Math.sqrt(b/a).toFixed(2);
+			mathExpression=`\\[ f(x)=\\frac{${a}x^2-${b}}{x-${root}} \\]`;
 			plainCorrectAnswer="removable";
 			latexAnswer="\\text{removable}";
 			expectedFormat="Enter removable, jump, or infinite";
+			choices=["removable","jump","infinite","oscillating"];
 			break;
 		}
 		case "continuityConditions":{
@@ -142,6 +132,11 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			plainCorrectAnswer="f(c) defined, limit exists, limit equals f(c)";
 			latexAnswer="f(c) \\text{ defined}, \\lim_{x\\to c}f(x) \\text{ exists}, \\lim_{x\\to c}f(x)=f(c)";
 			expectedFormat="Enter the three conditions separated by commas";
+			choices=[plainCorrectAnswer];
+			choices.push("f(c) defined, limit exists");
+			choices.push("limit exists, limit equals f(c)");
+			choices.push("f(c) defined, limit equals f(c)");
+			choices.push("f is differentiable");
 			break;
 		}
 		case "continuityInterval":{
@@ -151,6 +146,11 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			plainCorrectAnswer=`[-${sqrtA},${sqrtA}]`;
 			latexAnswer=`[-${sqrtA},${sqrtA}]`;
 			expectedFormat="Enter interval like [-2,2]";
+			choices=[plainCorrectAnswer];
+			choices.push(`(-${sqrtA},${sqrtA})`);
+			choices.push(`[-${sqrtA},${sqrtA})`);
+			choices.push(`(-${sqrtA},${sqrtA}]`);
+			choices.push(`[0,${sqrtA}]`);
 			break;
 		}
 		case "removeDiscontinuity": {
@@ -161,16 +161,29 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			plainCorrectAnswer=val.toString();
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+1).toString());
+			choices.push((correctNum-1).toString());
+			choices.push((2*a).toString());
+			choices.push((a*c).toString());
 			break;
 		}
 		case "verticalAsymptote":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
-			let sqrtB=Math.sqrt(b).toFixed(2);
+			let sqrtBVal=Math.sqrt(b);
+			let sqrtBStr=sqrtBVal.toFixed(2);
 			mathExpression=`\\[ \\text{Find vertical asymptotes of } f(x)=\\frac{${a}x+1}{x^2-${b}}. \\]`;
-			plainCorrectAnswer=`x=${sqrtB}, x=-${sqrtB}`;
-			latexAnswer=`x=${sqrtB},\\ x=-${sqrtB}`;
+			plainCorrectAnswer=`x=${sqrtBStr}, x=-${sqrtBStr}`;
+			latexAnswer=`x=${sqrtBStr},\\ x=-${sqrtBStr}`;
 			expectedFormat="Enter equations like x=2, x=-2";
+			choices=[plainCorrectAnswer];
+			choices.push(`x=${sqrtBStr}`);
+			choices.push(`x=-${sqrtBStr}`);
+			choices.push(`x=0`);
+			let halfSqrt=(sqrtBVal/2).toFixed(2);
+			choices.push(`x=${halfSqrt}`);
 			break;
 		}
 		case "horizontalAsymptote":{
@@ -180,6 +193,7 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			plainCorrectAnswer="1";
 			latexAnswer="1";
 			expectedFormat="Enter a number";
+			choices=["1","0","-1","∞"];
 			break;
 		}
 		case "ivt":{
@@ -189,6 +203,14 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			plainCorrectAnswer="f(1)<0, f(2)>0, so IVT applies";
 			latexAnswer="f(1)<0,\\ f(2)>0,\\ \\text{so IVT applies}";
 			expectedFormat="Explain briefly";
+			let f1=1-a-b;
+			let f2=8-2*a-b;
+			let desc=f1<0 && f2>0 ? "f(1)<0, f(2)>0" : (f1>0 && f2<0 ? "f(1)>0, f(2)<0" : "f(1) and f(2) have opposite signs");
+			choices=[desc];
+			choices.push("f(1)>0, f(2)>0");
+			choices.push("f(1)<0, f(2)<0");
+			choices.push("f(1)=0, f(2)=0");
+			choices.push("f is continuous");
 			break;
 		}
 		case "selectProcedure":{
@@ -198,6 +220,8 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			latexAnswer=`\\text{${options[correctIdx]}}`;
 			mathExpression=`\\[ \\lim_{x\\to 0} \\frac{\\sin ${maxCoeff}x}{x} \\] Which procedure is most efficient? A) ${options[0]} B) ${options[1]} C) ${options[2]} D) ${options[3]}`;
 			expectedFormat="Enter the letter of the correct option (A, B, C, or D)";
+			choices=[options[correctIdx]];
+			for (let i=0;i<options.length;i++) if (i!==correctIdx) choices.push(options[i]);
 			break;
 		}
 	}
@@ -209,10 +233,17 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(plainCorrectAnswer)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+		else uniqueChoices=[plainCorrectAnswer];
+	}
 	window.correctAnswer={
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
-		display: latexAnswer
+		display: latexAnswer,
+		choices: uniqueChoices
 	};
 	window.expectedFormat=expectedFormat;
 }
