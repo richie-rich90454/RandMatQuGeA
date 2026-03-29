@@ -1,7 +1,7 @@
 /**
  * Circle equations: standard form, center/radius, complete the square.
- * @fileoverview Generates circle equation questions.
- * @date 2026-03-15
+ * @fileoverview Generates circle equation questions with MCQ distractors.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
@@ -13,6 +13,10 @@ export function generateCircleEquations(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let hint="";
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	switch (type){
 		case "standard":{
 			const h=Math.floor(Math.random()*max*2)-max;
@@ -21,11 +25,16 @@ export function generateCircleEquations(difficulty?: string): void{
 			questionArea.innerHTML=`Write the equation of a circle with center \\( (${h}, ${k}) \\) and radius \\( ${r} \\).`;
 			const eq=`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 = ${r}^2`;
 			const displayEq=`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 = ${r}^2`;
-			window.correctAnswer={
-				correct:eq,
-				alternate:eq,
-				display:displayEq
-			};
+			correct=eq;
+			alternate=eq;
+			display=displayEq;
+			let wrongH=h+1;
+			let wrongK=k+1;
+			choices=[correct];
+			choices.push(`(x ${wrongH>=0?'-':'+'} ${Math.abs(wrongH)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 = ${r}^2`);
+			choices.push(`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${wrongK>=0?'-':'+'} ${Math.abs(wrongK)})^2 = ${r}^2`);
+			choices.push(`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 = ${(r+1)}^2`);
+			choices.push(`(x ${h>=0?'+':'-'} ${Math.abs(h)})^2 + (y ${k>=0?'+':'-'} ${Math.abs(k)})^2 = ${r}^2`);
 			hint="Enter as (x-h)^2 + (y-k)^2 = r^2";
 			break;
 		}
@@ -36,11 +45,14 @@ export function generateCircleEquations(difficulty?: string): void{
 			const eq=`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 = ${r}^2`;
 			questionArea.innerHTML=`Find the center and radius of the circle: \\( ${eq} \\).`;
 			const ans=`center (${h}, ${k}), radius ${r}`;
-			window.correctAnswer={
-				correct:ans,
-				alternate:`(${h},${k}), ${r}`,
-				display:ans
-			};
+			correct=ans;
+			alternate=`(${h},${k}), ${r}`;
+			display=ans;
+			choices=[correct];
+			choices.push(`center (${h+1}, ${k}), radius ${r}`);
+			choices.push(`center (${h}, ${k+1}), radius ${r}`);
+			choices.push(`center (${h}, ${k}), radius ${r+1}`);
+			choices.push(`center (${-h}, ${k}), radius ${r}`);
 			hint="Enter as 'center (h,k), radius r'";
 			break;
 		}
@@ -54,15 +66,32 @@ export function generateCircleEquations(difficulty?: string): void{
 			const eq=`x^2 + y^2 ${xCoeff>=0?'+':'-'} ${Math.abs(xCoeff)}x ${yCoeff>=0?'+':'-'} ${Math.abs(yCoeff)}y ${constTerm>=0?'+':'-'} ${Math.abs(constTerm)} = 0`;
 			questionArea.innerHTML=`Complete the square to find the center and radius: \\( ${eq} \\).`;
 			const ans=`center (${h}, ${k}), radius ${r}`;
-			window.correctAnswer={
-				correct:ans,
-				alternate:`(${h},${k}), ${r}`,
-				display:ans
-			};
+			correct=ans;
+			alternate=`(${h},${k}), ${r}`;
+			display=ans;
+			choices=[correct];
+			choices.push(`center (${h+1}, ${k}), radius ${r}`);
+			choices.push(`center (${h}, ${k+1}), radius ${r}`);
+			choices.push(`center (${h}, ${k}), radius ${r+1}`);
+			choices.push(`center (${-h}, ${-k}), radius ${r}`);
 			hint="Enter as 'center (h,k), radius r'";
 			break;
 		}
+		default:
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
 	if (window.MathJax&&window.MathJax.typeset){
 		window.MathJax.typeset();

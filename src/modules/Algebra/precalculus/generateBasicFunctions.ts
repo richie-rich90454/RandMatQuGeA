@@ -1,7 +1,7 @@
 /**
  * Basic functions: identify or give property.
- * @fileoverview Generates basic function questions.
- * @date 2026-03-15
+ * @fileoverview Generates basic function questions with MCQ distractors.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 
@@ -26,24 +26,56 @@ export function generateBasicFunctions(): void{
 	const types=["identify","properties"];
 	const type=types[Math.floor(Math.random()*types.length)];
 	let hint="";
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	if (type==="identify"){
 		questionArea.innerHTML=`Identify the function: \\( ${chosen.expr} \\). (Enter name)`;
-		window.correctAnswer={
-			correct:chosen.name,
-			alternate:chosen.name,
-			display:chosen.name
-		};
+		correct=chosen.name;
+		alternate=chosen.name;
+		display=chosen.name;
+		choices=[correct];
+		for (let f of functions){
+			if (f.name!==chosen.name){
+				choices.push(f.name);
+				if (choices.length>=4) break;
+			}
+		}
 		hint="Enter the function name";
 	}
 	else{
 		questionArea.innerHTML=`Give one key property of \\( ${chosen.expr} \\).`;
-		window.correctAnswer={
-			correct:chosen.props,
-			alternate:chosen.props,
-			display:chosen.props
-		};
+		correct=chosen.props;
+		alternate=chosen.props;
+		display=chosen.props;
+		let wrongProps: string[]=[];
+		for (let f of functions){
+			if (f.name!==chosen.name){
+				let firstProp=f.props.split(", ")[0];
+				if (!wrongProps.includes(firstProp)) wrongProps.push(firstProp);
+				if (wrongProps.length>=3) break;
+			}
+		}
+		choices=[correct];
+		choices.push(...wrongProps.slice(0,3));
+		if (choices.length<4){
+			choices.push("increasing", "decreasing", "even", "odd", "periodic");
+		}
 		hint="Enter a property (e.g., 'even', 'increasing')";
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
 	if (window.MathJax&&window.MathJax.typeset){
 		window.MathJax.typeset();
