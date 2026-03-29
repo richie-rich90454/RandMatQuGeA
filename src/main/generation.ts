@@ -3,6 +3,7 @@ import * as state from "./state";
 import * as ui from "./ui";
 import * as topics from "./topics";
 import {generateQuestion as callGenerator} from "./questionGenerator";
+import {generateChoicesForCurrentQuestion} from "./mcq";  // <-- new import
 
 export function debounceGenerate(): void{
 	if (state.generateDebounceTimeout) clearTimeout(state.generateDebounceTimeout);
@@ -51,6 +52,9 @@ export function generateQuestion(): void{
 	try {
 		callGenerator(state.selectedTopic,state.currentDifficulty);
 		window.hasQuestion=true;
+		if (state.mcqMode){
+			generateChoicesForCurrentQuestion();
+		}
 	} catch (error) {
 		console.error("Question generation failed:", error);
 		dom.questionArea.innerHTML=`

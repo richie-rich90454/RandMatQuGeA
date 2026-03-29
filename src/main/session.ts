@@ -6,6 +6,7 @@ import * as topicsModule from "./topics";
 import {topics as topicList, SESSION_STORAGE_KEY} from "./constants";
 import {generateQuestion as callGenerator} from "./questionGenerator";
 import {invoke} from "@tauri-apps/api/core";
+import {generateChoicesForCurrentQuestion} from "./mcq";
 
 export function saveSessionSnapshot(): void{
 	if (!state.sessionActive) return;
@@ -134,6 +135,17 @@ export function generateNextMentalQuestion(): void{
 		window.hasQuestion=true;
 		ui.updateUIState();
 		state.setCurrentQuestionStartTime(Date.now());
+		if (state.mcqMode){
+			generateChoicesForCurrentQuestion();
+			if (dom.userAnswer) dom.userAnswer.style.display="none";
+			if (dom.mathToolbar) dom.mathToolbar.style.display="none";
+			if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="flex";
+		}
+		else{
+			if (dom.userAnswer) dom.userAnswer.style.display="block";
+			if (dom.mathToolbar) dom.mathToolbar.style.display="flex";
+			if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="none";
+		}
 	} catch (error) {
 		console.error("Mental question generation failed:", error);
 		dom.questionArea.innerHTML=`<div class="empty-state">Generation failed</div>`;
@@ -152,17 +164,20 @@ export function generateNextMentalQuestion(): void{
 		window.MathJax.typesetPromise([dom.questionArea]).catch((err: any)=>console.log("MathJax typeset error:",err));
 	}
 }
-export async function handleMentalAnswer(): Promise<void>{
+export async function handleMentalAnswer(answer?: string): Promise<void>{
 	if (!state.sessionActive||state.sessionPaused) return;
 	if (!dom.userAnswer||!dom.answerResults) return;
 	if (state.mentalNextQuestionTimeout){
 		clearTimeout(state.mentalNextQuestionTimeout);
 		state.setMentalNextQuestionTimeout(null);
 	}
-	let userInput=dom.userAnswer.value.trim();
-	if (!userInput){
-		ui.showNotification("Please enter an answer","warning");
-		return;
+	let userInput=answer;
+	if (userInput===undefined){
+		userInput=dom.userAnswer.value.trim();
+		if (!userInput){
+			ui.showNotification("Please enter an answer","warning");
+			return;
+		}
 	}
 	let correct=window.correctAnswer.correct;
 	let alternate=window.correctAnswer.alternate;
@@ -233,6 +248,9 @@ export async function handleMentalAnswer(): Promise<void>{
 		}
 		state.setMentalNextQuestionTimeout(null);
 	},settings.settings.autoCheckDelay));
+}
+export function handleMcqChoice(choice: string): void{
+	handleMentalAnswer(choice);
 }
 export function startMentalSession(): void{
 	if (!state.selectedTopic&&!state.mentalShuffle){

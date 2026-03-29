@@ -21,7 +21,9 @@ export let modeButtons=[dom.modeSingleBtn,dom.modeMentalBtn];
 export let unlimitedMode: boolean=false;
 export let totalTimeSpent: number=0;
 export let answeredQuestionsCount: number=0;
-export let currentQuestionStartTime: number | null=null;
+export let currentQuestionStartTime: number|null=null;
+export let mcqMode: boolean=false;
+export let mcqChoices: string[]=[];
 
 export function setSelectedTopic(topicId: string|null): void{
 	selectedTopic=topicId;
@@ -86,6 +88,12 @@ export function setTotalTimeSpent(value: number): void{
 export function setAnsweredQuestionsCount(value: number): void{
 	answeredQuestionsCount=value;
 }
-export function setCurrentQuestionStartTime(value: number | null): void{
+export function setCurrentQuestionStartTime(value: number|null): void{
 	currentQuestionStartTime=value;
+}
+export function setMcqMode(value: boolean): void{
+	mcqMode=value;
+}
+export function setMcqChoices(choices: string[]): void{
+	mcqChoices=choices;
 }

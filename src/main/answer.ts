@@ -12,6 +12,8 @@ import {evaluate, simplify, parse} from "mathjs";
  * integration question. It is designed to handle an extremely wide range of edge cases and
  * mathematical notations, ensuring robust and accurate validation.
  *
+ * @param userInput Optional answer string. If not provided, reads from the textarea.
+ *
  * **Supported Features:**
  * - Whitespace normalization, case insensitivity.
  * - Multiple exponent notations: `x^2`, `x^{2}`, `x**2`.
@@ -69,16 +71,19 @@ import {evaluate, simplify, parse} from "mathjs";
  *
  * @throws No exceptions are thrown; errors are caught and logged, with user‑friendly notifications.
  */
-export function checkAnswer(): void{
+export function checkAnswer(userInput?: string): void{
 	if (!state.selectedTopic){
 		ui.showNotification("Please select a topic and generate a question first","warning");
 		return;
 	}
 	if (!dom.userAnswer||!dom.answerResults) return;
-	let userInput=dom.userAnswer.value.trim();
-	if (!userInput){
-		ui.showNotification("Please enter an answer before checking","warning");
-		return;
+	let answer = userInput;
+	if (answer === undefined){
+		answer = dom.userAnswer.value.trim();
+		if (!answer){
+			ui.showNotification("Please enter an answer before checking","warning");
+			return;
+		}
 	}
 	let correct=window.correctAnswer.correct;
 	let alternate=window.correctAnswer.alternate;
@@ -262,8 +267,8 @@ export function checkAnswer(): void{
 	// --- Main comparison logic ---
 	let isCorrect=false;
 	// Check if the expression contains an equals sign (equation)
-	if (userInput.includes('=') && correct.includes('=')){
-		let [userLeft, userRight] = userInput.split('=').map(s=>s.trim());
+	if (answer.includes('=') && correct.includes('=')){
+		let [userLeft, userRight] = answer.split('=').map(s=>s.trim());
 		let [correctLeft, correctRight] = correct.split('=').map(s=>s.trim());
 		// Compare left sides
 		let leftOk=compareExpressions(userLeft, correctLeft, true);
@@ -291,14 +296,14 @@ export function checkAnswer(): void{
 		}
 		isCorrect = leftOk && rightOk;
 	}
-	else if (userInput.includes('=') || correct.includes('=')){
+	else if (answer.includes('=') || correct.includes('=')){
 		// One is equation, other is not -> incorrect
 		isCorrect=false;
 	}
 	else{
 		// No equals sign: treat as single expression (original logic)
 		// Convert LaTeX in userInput and correct/alternate
-		let convertedUser=convertLatex(userInput);
+		let convertedUser=convertLatex(answer);
 		let convertedCorrect=convertLatex(correct);
 		let convertedAlternate=alternate?convertLatex(alternate):'';
 		const sanitize=(s: string): string=>{
@@ -464,7 +469,7 @@ export function checkAnswer(): void{
 						}
 					}
 					if (!isCorrect){
-						isCorrect=settings.isAnswerCorrect(userInput,sanCorrect,alternate);
+						isCorrect=settings.isAnswerCorrect(answer,sanCorrect,alternate);
 					}
 				}
 			}

@@ -22,7 +22,9 @@ export let settings={
 	decimalPlaces:2,
 	sound:false,
 	vibration:false,
-	unlimitedMode:false
+	unlimitedMode:false,
+	mcqMode:false,
+	mcqChoicesCount:4
 };
 export function loadSettings():void{
 	const saved=localStorage.getItem("appSettings");
@@ -56,6 +58,8 @@ export function loadSettings():void{
 	if (dom.settingsSound) dom.settingsSound.checked=settings.sound;
 	if (dom.settingsVibration) dom.settingsVibration.checked=settings.vibration;
 	if (dom.unlimitedToggle) dom.unlimitedToggle.checked=settings.unlimitedMode;
+	if (dom.mcqToggle) dom.mcqToggle.checked=settings.mcqMode;
+	if (dom.settingsMcqChoices) dom.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
 	applySettingsToApp();
 }
 export function saveSettings():void{
@@ -80,6 +84,8 @@ export function saveSettings():void{
 	if (dom.settingsSound) settings.sound=dom.settingsSound.checked;
 	if (dom.settingsVibration) settings.vibration=dom.settingsVibration.checked;
 	if (dom.unlimitedToggle) settings.unlimitedMode=dom.unlimitedToggle.checked;
+	if (dom.mcqToggle) settings.mcqMode=dom.mcqToggle.checked;
+	if (dom.settingsMcqChoices) settings.mcqChoicesCount=parseInt(dom.settingsMcqChoices.value)||4;
 	localStorage.setItem("appSettings",JSON.stringify(settings));
 	applySettingsToApp();
 }
@@ -159,6 +165,12 @@ export function previewSetting(field:string,value:any):void{
 		case "unlimitedMode":
 			if (dom.unlimitedToggle) dom.unlimitedToggle.checked=value;
 			break;
+		case "mcqMode":
+			if (dom.mcqToggle) dom.mcqToggle.checked=value;
+			break;
+		case "mcqChoicesCount":
+			if (dom.settingsMcqChoices) dom.settingsMcqChoices.value=value;
+			break;
 	}
 }
 export function applySettingsToApp():void{
@@ -177,6 +189,8 @@ export function applySettingsToApp():void{
 	if (dom.mentalScopeSelect) dom.mentalScopeSelect.value=settings.scope;
 	if (dom.difficultySelect) dom.difficultySelect.value=settings.difficulty;
 	if (dom.unlimitedToggle) dom.unlimitedToggle.checked=settings.unlimitedMode;
+	if (dom.mcqToggle) dom.mcqToggle.checked=settings.mcqMode;
+	if (dom.settingsMcqChoices) dom.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
 	if (settings.perfMaster){
 		applyPerformanceMaster(true);
 	}
@@ -210,6 +224,8 @@ export function resetSettings():void{
 	if (dom.settingsSound) dom.settingsSound.checked=false;
 	if (dom.settingsVibration) dom.settingsVibration.checked=false;
 	if (dom.unlimitedToggle) dom.unlimitedToggle.checked=false;
+	if (dom.mcqToggle) dom.mcqToggle.checked=false;
+	if (dom.settingsMcqChoices) dom.settingsMcqChoices.value="4";
 	saveSettings();
 }
 export function openSettings():void{

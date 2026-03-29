@@ -77,6 +77,9 @@ export let unlimitedToggle: HTMLInputElement|null=document.getElementById("unlim
 export let statisticsPanel: HTMLElement|null=document.getElementById("statistics-panel");
 export let accuracyStat: HTMLElement|null=document.getElementById("accuracy-stat");
 export let avgTimeStat: HTMLElement|null=document.getElementById("avg-time-stat");
+export let mcqToggle: HTMLInputElement|null=document.getElementById("mcq-toggle") as HTMLInputElement|null;
+export let mcqChoicesContainer: HTMLElement|null=document.getElementById("mcq-choices-container");
+export let settingsMcqChoices: HTMLInputElement|null=document.getElementById("settings-mcq-choices") as HTMLInputElement|null;
 try{
 	appWindow=getCurrentWindow();
 }

@@ -1,6 +1,8 @@
 import * as dom from "./dom";
 import * as state from "./state";
 import * as settings from "./settings";
+import {generateChoicesForCurrentQuestion} from "./mcq";
+
 export function clearAllTimeouts(): void{
 	if (state.autoTimeout) { clearTimeout(state.autoTimeout); state.setAutoTimeout(null); }
 	if (state.previewTimeout) { clearTimeout(state.previewTimeout); state.setPreviewTimeout(null); }
@@ -17,12 +19,14 @@ export function syncSettingsToState(): void{
 	state.setMentalShuffle(settings.settings.shuffle);
 	state.setMaxQuestions(settings.settings.maxQuestions);
 	state.setTimeLeft(settings.settings.timer);
+	state.setMcqMode(settings.settings.mcqMode);
 	if (dom.scopeSelect) dom.scopeSelect.value=state.scope;
 	if (dom.mentalScopeSelect) dom.mentalScopeSelect.value=state.mentalScope;
 	if (dom.shuffleToggle) dom.shuffleToggle.checked=state.shuffle;
 	if (dom.mentalShuffleToggle) dom.mentalShuffleToggle.checked=state.mentalShuffle;
 	if (dom.autocontinueToggle) dom.autocontinueToggle.checked=state.autocontinue;
 	if (dom.difficultySelect) dom.difficultySelect.value=state.currentDifficulty;
+	if (dom.mcqToggle) dom.mcqToggle.checked=state.mcqMode;
 }
 export function updateAriaPressed(): void{
 	if (dom.modeSingleBtn) dom.modeSingleBtn.setAttribute("aria-pressed",String(state.currentMode==="single"));
@@ -33,7 +37,7 @@ export function updateCheckboxAria(checkbox: HTMLInputElement|null): void{
 }
 export function updateProgressBar(): void{
 	if (dom.mentalProgressBar){
-		let now=(state.sessionScore.total/state.maxQuestions)*100;
+		const now=(state.sessionScore.total/state.maxQuestions)*100;
 		dom.mentalProgressBar.setAttribute("aria-valuenow",String(now));
 	}
 }
@@ -87,7 +91,7 @@ export function setSessionButton(isActive: boolean): void{
 export function updateUIState(): void{
 	if (!dom.generateQuestionButton||!dom.checkAnswerButton||!dom.questionArea) return;
 	let hasTopic=state.selectedTopic!==null;
-	let hasQuestion=window.hasQuestion||!!window.correctAnswer.correct;
+	let hasQuestion=window.hasQuestion || !!window.correctAnswer.correct;
 	dom.generateQuestionButton.disabled=!hasTopic;
 	dom.generateQuestionButton.setAttribute("aria-disabled",String(!hasTopic));
 	dom.checkAnswerButton.disabled=!hasTopic||!hasQuestion;
@@ -110,6 +114,16 @@ export function updateUIState(): void{
       <kbd class="shortcut-hint">Ctrl+G</kbd>
     `;
 	}
+	if (state.mcqMode){
+		if (dom.userAnswer) dom.userAnswer.style.display="none";
+		if (dom.mathToolbar) dom.mathToolbar.style.display="none";
+		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="flex";
+	}
+	else{
+		if (dom.userAnswer) dom.userAnswer.style.display="block";
+		if (dom.mathToolbar) dom.mathToolbar.style.display="flex";
+		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="none";
+	}
 }
 export function showNotification(message: string, type: "info"|"warning"="info"): void{
 	if (!settings.settings.notifications) return;
@@ -129,7 +143,7 @@ export function showNotification(message: string, type: "info"|"warning"="info")
 }
 export function updatePreview(): void{
 	if (!dom.previewDiv||!dom.userAnswer) return;
-	let input=dom.userAnswer.value.trim();
+	const input=dom.userAnswer.value.trim();
 	if (!input){
 		dom.previewDiv.innerHTML="";
 		dom.previewDiv.classList.remove("has-content");
@@ -142,7 +156,7 @@ export function updatePreview(): void{
 		});
 		dom.previewDiv.classList.add("has-content");
 	} catch (e){
-		let errorMessage=e instanceof Error?e.message:String(e);
+		const errorMessage=e instanceof Error?e.message:String(e);
 		dom.previewDiv.innerHTML=`<span style="color: var(--error);">${errorMessage}</span>`;
 		dom.previewDiv.classList.add("has-content");
 	}
@@ -154,26 +168,17 @@ export function updatePreviewDebounced(): void{
 		state.setPreviewTimeout(null);
 	},200));
 }
-/**
- * Inserts a math symbol or template at the current cursor position in the answer input.
- * Handles simple symbols and templates with placeholders (e.g., \frac{}{}, \int_{}^{}).
- * For templates, it inserts the full LaTeX and places the cursor at the first placeholder.
- */
 export function insertSymbol(symbol: string): void{
 	if (!dom.userAnswer) return;
-	let start=dom.userAnswer.selectionStart;
-	let end=dom.userAnswer.selectionEnd;
-	let text=dom.userAnswer.value;
-	// Check if it's a template (contains {} or &)
-	if (symbol.includes('{}')||symbol.includes('&')){
-		let newText=text.substring(0,start)+symbol+text.substring(end);
+	const start=dom.userAnswer.selectionStart;
+	const end=dom.userAnswer.selectionEnd;
+	const text=dom.userAnswer.value;
+	if (symbol.includes('{}') || symbol.includes('&')){
+		const newText=text.substring(0,start)+symbol+text.substring(end);
 		dom.userAnswer.value=newText;
-		// Find position of first placeholder (inside the first {} or after &)
 		let placeholderPos=symbol.indexOf('{}');
 		if (placeholderPos===-1) placeholderPos=symbol.indexOf('&');
 		if (placeholderPos!==-1){
-			// For {}, cursor goes after the opening brace (placeholderPos+1)
-			// For &, cursor goes after & (placeholderPos+1)
 			dom.userAnswer.selectionStart=dom.userAnswer.selectionEnd=start+placeholderPos+1;
 		}
 		else{
@@ -181,7 +186,7 @@ export function insertSymbol(symbol: string): void{
 		}
 	}
 	else{
-		let newText=text.substring(0,start)+symbol+text.substring(end);
+		const newText=text.substring(0,start)+symbol+text.substring(end);
 		dom.userAnswer.value=newText;
 		dom.userAnswer.selectionStart=dom.userAnswer.selectionEnd=start+symbol.length;
 	}
@@ -219,14 +224,52 @@ export function hideOnboarding(): void{
 	if (dom.onboardingOverlay) dom.onboardingOverlay.classList.remove("show");
 }
 export function updateStatistics(): void{
-    if (!dom.accuracyStat||!dom.avgTimeStat) return;
-    let accuracy=state.sessionScore.total>0?(state.sessionScore.correct/state.sessionScore.total)*100:0;
-    dom.accuracyStat.textContent=`Accuracy: ${accuracy.toFixed(1)}%`;
-    if (state.answeredQuestionsCount > 0){
-        let avg=state.totalTimeSpent/state.answeredQuestionsCount/1000;
-        dom.avgTimeStat.textContent=`Avg: ${avg.toFixed(1)}s`;
+	if (!dom.accuracyStat || !dom.avgTimeStat) return;
+	const accuracy = state.sessionScore.total > 0 ? (state.sessionScore.correct / state.sessionScore.total) * 100 : 0;
+	dom.accuracyStat.textContent = `Accuracy: ${accuracy.toFixed(1)}%`;
+	if (state.answeredQuestionsCount > 0){
+		const avg = state.totalTimeSpent / state.answeredQuestionsCount / 1000;
+		dom.avgTimeStat.textContent = `Avg: ${avg.toFixed(1)}s`;
 	}
 	else{
-        dom.avgTimeStat.textContent=`Avg: 0.0s`;
-    }
+		dom.avgTimeStat.textContent = `Avg: 0.0s`;
+	}
+}
+export function toggleMcqMode(): void{
+	const isMcq = dom.mcqToggle?.checked ?? false;
+	state.setMcqMode(isMcq);
+	if (state.currentMode !== "mental" && state.currentMode !== "single") return;
+	if (isMcq){
+		if (dom.userAnswer) dom.userAnswer.style.display="none";
+		if (dom.mathToolbar) dom.mathToolbar.style.display="none";
+		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="flex";
+		if (window.hasQuestion && window.correctAnswer.correct){
+			generateChoicesForCurrentQuestion();
+		}
+	}
+	else{
+		if (dom.userAnswer) dom.userAnswer.style.display="block";
+		if (dom.mathToolbar) dom.mathToolbar.style.display="flex";
+		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="none";
+	}
+}
+export function renderMcqChoices(choices: string[]): void{
+	if (!dom.mcqChoicesContainer) return;
+	dom.mcqChoicesContainer.innerHTML="";
+	choices.forEach(choice=>{
+		const btn=document.createElement("button");
+		btn.className="choice-button secondary-button";
+		btn.textContent=choice;
+		btn.addEventListener("click",()=>{
+			if (state.currentMode==="mental"){
+				if (state.sessionActive && !state.sessionPaused){
+					import("./session").then(session=>session.handleMcqChoice(choice));
+				}
+			}
+			else{
+				import("./answer").then(answer=>answer.checkAnswer(choice));
+			}
+		});
+		dom.mcqChoicesContainer!.appendChild(btn);
+	});
 }
