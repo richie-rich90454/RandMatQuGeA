@@ -1,7 +1,7 @@
 /**
  * Function operations: composition, sum, product.
- * @fileoverview Generates function operation questions.
- * @date 2026-03-15
+ * @fileoverview Generates function operation questions with MCQ distractors.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
@@ -13,6 +13,10 @@ export function generateFunctionOperations(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let hint="";
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	const a=Math.floor(Math.random()*max)+1;
 	const b=Math.floor(Math.random()*max)+1;
 	const c=Math.floor(Math.random()*max)+1;
@@ -24,11 +28,15 @@ export function generateFunctionOperations(difficulty?: string): void{
 			questionArea.innerHTML=`Given \\( f(x)=${f} \\) and \\( g(x)=${g} \\), find \\( (f \\circ g)(${xVal}) \\).`;
 			const result=a*(xVal*xVal)+b;
 			const ans=result.toString();
-			window.correctAnswer={
-				correct:ans,
-				alternate:ans,
-				display:ans
-			};
+			correct=ans;
+			alternate=ans;
+			display=ans;
+			let numAns=parseInt(ans);
+			choices=[ans];
+			choices.push((numAns+1).toString());
+			choices.push((numAns-1).toString());
+			choices.push((a*xVal+b).toString());
+			choices.push((xVal*xVal).toString());
 			hint="Enter a number";
 			break;
 		}
@@ -37,11 +45,14 @@ export function generateFunctionOperations(difficulty?: string): void{
 			const g=`${c}x^2`;
 			questionArea.innerHTML=`Find \\( (f+g)(x) \\) for \\( f(x)=${f} \\) and \\( g(x)=${g} \\).`;
 			const sum=`${c}x^2 + ${a}x + ${b}`;
-			window.correctAnswer={
-				correct:sum,
-				alternate:sum.replace(/\s+/g,''),
-				display:sum
-			};
+			correct=sum;
+			alternate=sum.replace(/\s+/g,'');
+			display=sum;
+			choices=[sum];
+			choices.push(`${c}x^2 + ${a+1}x + ${b}`);
+			choices.push(`${c}x^2 + ${a}x + ${b+1}`);
+			choices.push(`${c+1}x^2 + ${a}x + ${b}`);
+			choices.push(`${c}x^2 + ${a-1}x + ${b}`);
 			hint="Enter as polynomial";
 			break;
 		}
@@ -50,15 +61,32 @@ export function generateFunctionOperations(difficulty?: string): void{
 			const g=`${c}x + 1`;
 			questionArea.innerHTML=`Find \\( (f \\cdot g)(x) \\) for \\( f(x)=${f} \\) and \\( g(x)=${g} \\).`;
 			const prod=`${a*c}x^2 + ${a*1+b*c}x + ${b*1}`;
-			window.correctAnswer={
-				correct:prod,
-				alternate:prod.replace(/\s+/g,''),
-				display:prod
-			};
+			correct=prod;
+			alternate=prod.replace(/\s+/g,'');
+			display=prod;
+			choices=[prod];
+			choices.push(`${a*c}x^2 + ${a*1+b*c+1}x + ${b}`);
+			choices.push(`${a*c}x^2 + ${a*1+b*c}x + ${b+1}`);
+			choices.push(`${a*c+1}x^2 + ${a*1+b*c}x + ${b}`);
+			choices.push(`${a*c}x^2 + ${a*1+b*c-1}x + ${b}`);
 			hint="Enter as polynomial";
 			break;
 		}
+		default:
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
 	if (window.MathJax&&window.MathJax.typeset){
 		window.MathJax.typeset();

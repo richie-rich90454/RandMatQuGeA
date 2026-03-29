@@ -1,7 +1,7 @@
 /**
  * Function properties: continuity, extrema, symmetry, asymptotes, end behavior.
- * @fileoverview Generates function property questions.
- * @date 2026-03-15
+ * @fileoverview Generates function property questions with MCQ distractors.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
@@ -13,6 +13,10 @@ export function generateFunctionProperties(difficulty?: string): void{
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let hint="";
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	switch (type){
 		case "continuity":{
 			const a=Math.floor(Math.random()*max)+1;
@@ -27,11 +31,18 @@ export function generateFunctionProperties(difficulty?: string): void{
 			if (chosen.includes("frac")) answer=`x = ${a}`;
 			else if (chosen.includes("sqrt")) answer=`x < ${a}`;
 			else answer="none";
-			window.correctAnswer={
-				correct:answer,
-				alternate:answer,
-				display:answer
-			};
+			correct=answer;
+			alternate=answer;
+			display=answer;
+			if (answer==="none"){
+				choices=["none","x=0","x=1","all reals"];
+			}
+			else if (answer.includes("x =")){
+				choices=[answer,`x = ${a+1}`,`x = ${a-1}`,`x = 0`];
+			}
+			else{
+				choices=[answer,`x ≤ ${a}`,`x > ${a}`,`x ≥ ${a}`];
+			}
 			hint="Enter x value, interval, or 'none'";
 			break;
 		}
@@ -39,11 +50,10 @@ export function generateFunctionProperties(difficulty?: string): void{
 			const a=Math.floor(Math.random()*max)+1;
 			const b=Math.floor(Math.random()*max)+1;
 			questionArea.innerHTML=`Does \\( f(x)=x^2 - ${a}x + ${b} \\) have a local minimum or maximum? (Enter 'min' or 'max')`;
-			window.correctAnswer={
-				correct:"min",
-				alternate:"minimum",
-				display:"min"
-			};
+			correct="min";
+			alternate="minimum";
+			display="min";
+			choices=["min","max","neither","both"];
 			hint="Enter 'min' or 'max'";
 			break;
 		}
@@ -55,11 +65,10 @@ export function generateFunctionProperties(difficulty?: string): void{
 			];
 			const chosen=functions[Math.floor(Math.random()*functions.length)];
 			questionArea.innerHTML=`Is \\( ${chosen.expr} \\) even, odd, or neither?`;
-			window.correctAnswer={
-				correct:chosen.type,
-				alternate:chosen.type,
-				display:chosen.type
-			};
+			correct=chosen.type;
+			alternate=chosen.type;
+			display=chosen.type;
+			choices=["even","odd","neither"];
 			hint="Enter 'even', 'odd', or 'neither'";
 			break;
 		}
@@ -69,18 +78,17 @@ export function generateFunctionProperties(difficulty?: string): void{
 			const expr=`\\frac{${a}x+${b}}{x-${a}}`;
 			questionArea.innerHTML=`Find the vertical asymptote of \\( ${expr} \\). (Enter x=value)`;
 			const ans=`x=${a}`;
-			window.correctAnswer={
-				correct:ans,
-				alternate:ans,
-				display:ans
-			};
+			correct=ans;
+			alternate=ans;
+			display=ans;
+			choices=[ans,`x=${a+1}`,`x=${a-1}`,`y=0`];
 			hint="Enter x = number";
 			break;
 		}
 		case "endbehavior":{
-			const a=Math.floor(Math.random()*2)+1;
+			const aSign=Math.floor(Math.random()*2)+1;
 			const deg=Math.floor(Math.random()*2)+3;
-			const sign=a===1?"positive":"negative";
+			const sign=aSign===1?"positive":"negative";
 			const evenOdd=deg%2===0?"even":"odd";
 			let desc="";
 			if (evenOdd==="even"){
@@ -89,15 +97,36 @@ export function generateFunctionProperties(difficulty?: string): void{
 				desc=sign==="positive"?"left down, right up":"left up, right down";
 			}
 			questionArea.innerHTML=`Describe the end behavior of a polynomial with leading coefficient ${sign} and degree ${deg}.`;
-			window.correctAnswer={
-				correct:desc,
-				alternate:desc,
-				display:desc
-			};
+			correct=desc;
+			alternate=desc;
+			display=desc;
+			let wrong1="both ends up";
+			let wrong2="both ends down";
+			let wrong3="left down, right up";
+			let wrong4="left up, right down";
+			choices=[desc];
+			for (let w of [wrong1,wrong2,wrong3,wrong4]){
+				if (w!==desc) choices.push(w);
+				if (choices.length>=4) break;
+			}
 			hint="Enter description like 'both ends up'";
 			break;
 		}
+		default:
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
 	if (window.MathJax&&window.MathJax.typeset){
 		window.MathJax.typeset();

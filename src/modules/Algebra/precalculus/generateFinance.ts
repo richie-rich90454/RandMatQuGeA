@@ -1,7 +1,7 @@
 /**
  * Finance: compound interest, continuous, APY, annuity.
- * @fileoverview Generates finance questions.
- * @date 2026-03-15
+ * @fileoverview Generates finance questions with MCQ distractors.
+ * @date 2026-03-29
  */
 import {questionArea} from "../../../script.js";
 
@@ -11,6 +11,10 @@ export function generateFinance(): void{
 	const types=["compound","continuous","apy","annuity"];
 	const type=types[Math.floor(Math.random()*types.length)];
 	let hint="";
+	let correct="";
+	let alternate="";
+	let display="";
+	let choices:string[]=[];
 	const principal=Math.floor(Math.random()*5000)+1000;
 	const rate=(Math.random()*0.05+0.02).toFixed(3);
 	const years=Math.floor(Math.random()*10)+1;
@@ -20,11 +24,15 @@ export function generateFinance(): void{
 			questionArea.innerHTML=`Find the amount after ${years} years if $${principal} is invested at ${(parseFloat(rate)*100).toFixed(1)}% compounded ${n} times per year.`;
 			const amount=principal*Math.pow(1+parseFloat(rate)/n,n*years);
 			const ans=amount.toFixed(2);
-			window.correctAnswer={
-				correct:ans,
-				alternate:ans,
-				display:ans
-			};
+			correct=ans;
+			alternate=ans;
+			display=ans;
+			let numAns=parseFloat(ans);
+			choices=[ans];
+			choices.push((numAns+1).toFixed(2));
+			choices.push((numAns-1).toFixed(2));
+			choices.push((principal*Math.pow(1+parseFloat(rate)/n,n*years+1)).toFixed(2));
+			choices.push((principal*Math.pow(1+parseFloat(rate)/n,n*years-1)).toFixed(2));
 			hint="Enter decimal (two decimals)";
 			break;
 		}
@@ -32,11 +40,15 @@ export function generateFinance(): void{
 			questionArea.innerHTML=`Find the amount after ${years} years if $${principal} is invested at ${(parseFloat(rate)*100).toFixed(1)}% compounded continuously.`;
 			const amount=principal*Math.exp(parseFloat(rate)*years);
 			const ans=amount.toFixed(2);
-			window.correctAnswer={
-				correct:ans,
-				alternate:ans,
-				display:ans
-			};
+			correct=ans;
+			alternate=ans;
+			display=ans;
+			let numAns=parseFloat(ans);
+			choices=[ans];
+			choices.push((numAns+1).toFixed(2));
+			choices.push((numAns-1).toFixed(2));
+			choices.push((principal*Math.exp(parseFloat(rate)*(years+1))).toFixed(2));
+			choices.push((principal*Math.exp(parseFloat(rate)*(years-1))).toFixed(2));
 			hint="Enter decimal";
 			break;
 		}
@@ -44,11 +56,15 @@ export function generateFinance(): void{
 			questionArea.innerHTML=`Find the APY for a nominal rate of ${(parseFloat(rate)*100).toFixed(1)}% compounded ${n} times per year. (as a percentage)`;
 			const apy=(Math.pow(1+parseFloat(rate)/n,n)-1)*100;
 			const ans=apy.toFixed(2);
-			window.correctAnswer={
-				correct:ans,
-				alternate:ans,
-				display:ans
-			};
+			correct=ans;
+			alternate=ans;
+			display=ans;
+			let numAns=parseFloat(ans);
+			choices=[ans];
+			choices.push((numAns+0.1).toFixed(2));
+			choices.push((numAns-0.1).toFixed(2));
+			choices.push((parseFloat(rate)*100).toFixed(2));
+			choices.push((apy+0.5).toFixed(2));
 			hint="Enter percentage (e.g., 5.25)";
 			break;
 		}
@@ -57,15 +73,33 @@ export function generateFinance(): void{
 			questionArea.innerHTML=`You deposit $${payment} at the end of each year into an account earning ${(parseFloat(rate)*100).toFixed(1)}% compounded annually. Find the future value after ${years} years.`;
 			const fv=payment*((Math.pow(1+parseFloat(rate),years)-1)/parseFloat(rate));
 			const ans=fv.toFixed(2);
-			window.correctAnswer={
-				correct:ans,
-				alternate:ans,
-				display:ans
-			};
+			correct=ans;
+			alternate=ans;
+			display=ans;
+			let numAns=parseFloat(ans);
+			choices=[ans];
+			choices.push((numAns+1).toFixed(2));
+			choices.push((numAns-1).toFixed(2));
+			choices.push((payment*((Math.pow(1+parseFloat(rate),years+1)-1)/parseFloat(rate))).toFixed(2));
+			choices.push((payment*((Math.pow(1+parseFloat(rate),years-1)-1)/parseFloat(rate))).toFixed(2));
 			hint="Enter decimal";
 			break;
 		}
+		default:
+			return;
 	}
+	let uniqueChoices=[...new Set(choices)];
+	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if (!uniqueChoices.includes(correct)){
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		else uniqueChoices=[correct];
+	}
+	window.correctAnswer={
+		correct: correct,
+		alternate: alternate,
+		display: display,
+		choices: uniqueChoices
+	};
 	window.expectedFormat=hint;
 	if (window.MathJax&&window.MathJax.typeset){
 		window.MathJax.typeset();
