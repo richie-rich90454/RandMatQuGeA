@@ -118,11 +118,13 @@ export function updateUIState(): void{
 		if (dom.userAnswer) dom.userAnswer.style.display="none";
 		if (dom.mathToolbar) dom.mathToolbar.style.display="none";
 		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="flex";
+		if (dom.expectedFormatDiv) dom.expectedFormatDiv.style.display="none";
 	}
 	else{
 		if (dom.userAnswer) dom.userAnswer.style.display="block";
 		if (dom.mathToolbar) dom.mathToolbar.style.display="flex";
 		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="none";
+		if (dom.expectedFormatDiv) dom.expectedFormatDiv.style.display="block";
 	}
 }
 export function showNotification(message: string, type: "info"|"warning"="info"): void{
@@ -225,25 +227,26 @@ export function hideOnboarding(): void{
 }
 export function updateStatistics(): void{
 	if (!dom.accuracyStat || !dom.avgTimeStat) return;
-	const accuracy = state.sessionScore.total > 0 ? (state.sessionScore.correct / state.sessionScore.total) * 100 : 0;
-	dom.accuracyStat.textContent = `Accuracy: ${accuracy.toFixed(1)}%`;
+	const accuracy=state.sessionScore.total > 0 ? (state.sessionScore.correct / state.sessionScore.total) * 100 : 0;
+	dom.accuracyStat.textContent=`Accuracy: ${accuracy.toFixed(1)}%`;
 	if (state.answeredQuestionsCount > 0){
-		const avg = state.totalTimeSpent / state.answeredQuestionsCount / 1000;
-		dom.avgTimeStat.textContent = `Avg: ${avg.toFixed(1)}s`;
+		const avg=state.totalTimeSpent / state.answeredQuestionsCount / 1000;
+		dom.avgTimeStat.textContent=`Avg: ${avg.toFixed(1)}s`;
 	}
 	else{
-		dom.avgTimeStat.textContent = `Avg: 0.0s`;
+		dom.avgTimeStat.textContent=`Avg: 0.0s`;
 	}
 }
 export function toggleMcqMode(): void{
-	const isMcq = dom.mcqToggle?.checked ?? false;
+	const isMcq=dom.mcqToggle?.checked ?? false;
 	state.setMcqMode(isMcq);
-	if (state.currentMode !== "mental" && state.currentMode !== "single") return;
+	if (state.currentMode!=="mental"&&state.currentMode!=="single") return;
 	if (isMcq){
 		if (dom.userAnswer) dom.userAnswer.style.display="none";
 		if (dom.mathToolbar) dom.mathToolbar.style.display="none";
 		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="flex";
-		if (window.hasQuestion && window.correctAnswer.correct){
+		if (dom.expectedFormatDiv) dom.expectedFormatDiv.style.display="none";
+		if (window.hasQuestion&&window.correctAnswer.correct){
 			generateChoicesForCurrentQuestion();
 		}
 	}
@@ -251,6 +254,7 @@ export function toggleMcqMode(): void{
 		if (dom.userAnswer) dom.userAnswer.style.display="block";
 		if (dom.mathToolbar) dom.mathToolbar.style.display="flex";
 		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="none";
+		if (dom.expectedFormatDiv) dom.expectedFormatDiv.style.display="block";
 	}
 }
 export function renderMcqChoices(choices: string[]): void{
@@ -259,7 +263,7 @@ export function renderMcqChoices(choices: string[]): void{
 	choices.forEach(choice=>{
 		const btn=document.createElement("button");
 		btn.className="choice-button secondary-button";
-		if (isProbablyLaTeX(choice) && window.katex){
+		if (isProbablyLaTeX(choice)&&window.katex){
 			try{
 				const renderedHtml=window.katex.renderToString(choice,{
 					throwOnError:false,
