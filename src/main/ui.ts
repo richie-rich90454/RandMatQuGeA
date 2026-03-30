@@ -119,12 +119,14 @@ export function updateUIState(): void{
 		if (dom.mathToolbar) dom.mathToolbar.style.display="none";
 		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="flex";
 		if (dom.expectedFormatDiv) dom.expectedFormatDiv.style.display="none";
+		if (dom.previewDiv) dom.previewDiv.style.display="none";
 	}
 	else{
 		if (dom.userAnswer) dom.userAnswer.style.display="block";
 		if (dom.mathToolbar) dom.mathToolbar.style.display="flex";
 		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="none";
 		if (dom.expectedFormatDiv) dom.expectedFormatDiv.style.display="block";
+		if (dom.previewDiv) dom.previewDiv.style.display="block";
 	}
 }
 export function showNotification(message: string, type: "info"|"warning"="info"): void{
@@ -246,6 +248,7 @@ export function toggleMcqMode(): void{
 		if (dom.mathToolbar) dom.mathToolbar.style.display="none";
 		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="flex";
 		if (dom.expectedFormatDiv) dom.expectedFormatDiv.style.display="none";
+		if (dom.previewDiv) dom.previewDiv.style.display="none";
 		if (window.hasQuestion&&window.correctAnswer.correct){
 			generateChoicesForCurrentQuestion();
 		}
@@ -255,6 +258,7 @@ export function toggleMcqMode(): void{
 		if (dom.mathToolbar) dom.mathToolbar.style.display="flex";
 		if (dom.mcqChoicesContainer) dom.mcqChoicesContainer.style.display="none";
 		if (dom.expectedFormatDiv) dom.expectedFormatDiv.style.display="block";
+		if (dom.previewDiv) dom.previewDiv.style.display="block";
 	}
 }
 export function renderMcqChoices(choices: string[]): void{
