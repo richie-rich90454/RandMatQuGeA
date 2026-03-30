@@ -259,7 +259,23 @@ export function renderMcqChoices(choices: string[]): void{
 	choices.forEach(choice=>{
 		const btn=document.createElement("button");
 		btn.className="choice-button secondary-button";
-		btn.textContent=choice;
+		let renderedHtml="";
+		if (window.katex){
+			try{
+				renderedHtml=window.katex.renderToString(choice,{
+					throwOnError:false,
+					displayMode:false
+				});
+			}
+			catch(e){
+				console.warn("KaTeX rendering failed for choice:",choice,e);
+				renderedHtml=choice;
+			}
+		}
+		else{
+			renderedHtml=choice;
+		}
+		btn.innerHTML=renderedHtml;
 		btn.addEventListener("click",()=>{
 			if (state.currentMode==="mental"){
 				if (state.sessionActive && !state.sessionPaused){

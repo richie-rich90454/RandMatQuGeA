@@ -3,7 +3,7 @@ import * as state from "./state";
 import * as ui from "./ui";
 import * as topics from "./topics";
 import {generateQuestion as callGenerator} from "./questionGenerator";
-import {generateChoicesForCurrentQuestion} from "./mcq";  // <-- new import
+import {generateChoicesForCurrentQuestion} from "./mcq";
 
 export function debounceGenerate(): void{
 	if (state.generateDebounceTimeout) clearTimeout(state.generateDebounceTimeout);
