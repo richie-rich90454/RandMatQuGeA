@@ -1,6 +1,7 @@
 import * as state from "./state";
 import * as settings from "./settings";
 import {evaluate} from "mathjs";
+import * as ui from "./ui";
 export function generateDistractors(correctAnswer: string, count: number): string[]{
 	let num: number|null=null;
 	try{
@@ -157,5 +158,5 @@ export function generateChoicesForCurrentQuestion(): void{
 		choices=generateDistractors(correctObj.correct, count);
 	}
 	state.setMcqChoices(choices);
-	import("./ui").then(ui=>ui.renderMcqChoices(choices));
+	ui.renderMcqChoices(choices);
 }

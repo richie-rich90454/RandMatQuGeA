@@ -1,7 +1,8 @@
 import * as dom from "./dom";
 import * as state from "./state";
 import {invoke} from "@tauri-apps/api/core";
-import * as math from "mathjs";
+import {evaluate} from "mathjs";
+import {generateChoicesForCurrentQuestion} from "./mcq";
 export let settings={
 	theme:"system",
 	defaultMode:"single",
@@ -91,7 +92,7 @@ export function saveSettings():void{
 		if (settings.mcqChoicesCount!==newCount){
 			settings.mcqChoicesCount=newCount;
 			if (state.mcqMode&&window.hasQuestion&&window.correctAnswer.correct){
-				import("./mcq").then(mcq=>mcq.generateChoicesForCurrentQuestion());
+				generateChoicesForCurrentQuestion();
 			}
 		}
 	}
@@ -105,7 +106,7 @@ export function previewSetting(field:string,value:any):void{
 				let prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
 				applyTheme(prefersDark?"dark":"light");
 			}
-            else{
+			else{
 				applyTheme(value);
 			}
 			break;
@@ -187,7 +188,7 @@ export function applySettingsToApp():void{
 		const prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
 		applyTheme(prefersDark?"dark":"light");
 	}
-    else{
+	else{
 		applyTheme(settings.theme as "light"|"dark");
 	}
 	applyFont(settings.font);
@@ -203,7 +204,7 @@ export function applySettingsToApp():void{
 	if (settings.perfMaster){
 		applyPerformanceMaster(true);
 	}
-    else{
+	else{
 		applyWaveBackground(settings.perfWave);
 		applyBlurEffects(settings.perfBlur);
 		applyLivePreview(settings.perfPreview);
@@ -250,7 +251,7 @@ export function applyTheme(theme:"light"|"dark"):void{
 		root.classList.add("dark");
 		root.classList.remove("light");
 	}
-    else{
+	else{
 		root.classList.add("light");
 		root.classList.remove("dark");
 	}
@@ -295,7 +296,7 @@ export function applyFPSCap(value:number):void{
 				(baseDrift[0]*scale)+"s, "+
 				(baseDrift[1]*scale)+"s";
 		}
-        else{
+		else{
 			wave.style.animationDuration="";
 		}
 	}
@@ -307,7 +308,7 @@ export function applyPerformanceMaster(enabled:boolean):void{
 		applyLivePreview(false);
 		applyAnimations(false);
 	}
-    else{
+	else{
 		applyWaveBackground(settings.perfWave);
 		applyBlurEffects(settings.perfBlur);
 		applyLivePreview(settings.perfPreview);
@@ -326,13 +327,13 @@ export function isAnswerCorrect(userInput:string,correct:string,alternate?:strin
 	function evaluateExpression(expr:string):number|null{
 		try{
 			const cleaned=prepareForEval(expr);
-			const result=math.evaluate(cleaned);
+			const result=evaluate(cleaned);
 			if (typeof result==="number"&&!isNaN(result)){
 				return result;
 			}
 			return null;
 		}
-        catch{
+		catch{
 			return null;
 		}
 	}
@@ -383,7 +384,7 @@ export async function checkAnswerFast(userInput:string,correct:string,alternate?
 		try{
 			return await invoke("check_math",{userExpr:userInput,correctExpr:correct});
 		}
-        catch(e){
+		catch(e){
 			console.warn("Rust check failed, falling back to JS",e);
 		}
 	}

@@ -2,7 +2,8 @@ import * as dom from "./dom";
 import * as state from "./state";
 import * as settings from "./settings";
 import {generateChoicesForCurrentQuestion} from "./mcq";
-
+import * as session from "./session";
+import * as answer from "./answer";
 export function clearAllTimeouts(): void{
 	if (state.autoTimeout) { clearTimeout(state.autoTimeout); state.setAutoTimeout(null); }
 	if (state.previewTimeout) { clearTimeout(state.previewTimeout); state.setPreviewTimeout(null); }
@@ -285,11 +286,11 @@ export function renderMcqChoices(choices: string[]): void{
 		btn.addEventListener("click",()=>{
 			if (state.currentMode==="mental"){
 				if (state.sessionActive&&!state.sessionPaused){
-					import("./session").then(session=>session.handleMcqChoice(choice));
+					session.handleMcqChoice(choice);
 				}
 			}
 			else{
-				import("./answer").then(answer=>answer.checkAnswer(choice));
+				answer.checkAnswer(choice);
 			}
 		});
 		dom.mcqChoicesContainer!.appendChild(btn);
