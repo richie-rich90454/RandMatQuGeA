@@ -259,26 +259,24 @@ export function renderMcqChoices(choices: string[]): void{
 	choices.forEach(choice=>{
 		const btn=document.createElement("button");
 		btn.className="choice-button secondary-button";
-		let renderedHtml="";
-		if (window.katex){
+		if (isProbablyLaTeX(choice) && window.katex){
 			try{
-				renderedHtml=window.katex.renderToString(choice,{
+				const renderedHtml=window.katex.renderToString(choice,{
 					throwOnError:false,
 					displayMode:false
 				});
-			}
-			catch(e){
+				btn.innerHTML=renderedHtml;
+			}catch(e){
 				console.warn("KaTeX rendering failed for choice:",choice,e);
-				renderedHtml=choice;
+				btn.textContent=choice;
 			}
 		}
 		else{
-			renderedHtml=choice;
+			btn.textContent=choice;
 		}
-		btn.innerHTML=renderedHtml;
 		btn.addEventListener("click",()=>{
 			if (state.currentMode==="mental"){
-				if (state.sessionActive && !state.sessionPaused){
+				if (state.sessionActive&&!state.sessionPaused){
 					import("./session").then(session=>session.handleMcqChoice(choice));
 				}
 			}
@@ -288,4 +286,7 @@ export function renderMcqChoices(choices: string[]): void{
 		});
 		dom.mcqChoicesContainer!.appendChild(btn);
 	});
+}
+function isProbablyLaTeX(str: string): boolean{
+	return /\\|{|}|^[^a-zA-Z0-9]/.test(str) || /[a-zA-Z]+\^/i.test(str);
 }
