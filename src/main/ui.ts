@@ -162,7 +162,11 @@ export function updatePreview(): void{
 		dom.previewDiv.classList.add("has-content");
 	} catch (e){
 		const errorMessage=e instanceof Error?e.message:String(e);
-		dom.previewDiv.innerHTML=`<span style="color: var(--error);">${errorMessage}</span>`;
+		dom.previewDiv.innerHTML="";
+		const errorSpan=document.createElement("span");
+		errorSpan.style.color="var(--error)";
+		errorSpan.textContent=errorMessage;
+		dom.previewDiv.appendChild(errorSpan);
 		dom.previewDiv.classList.add("has-content");
 	}
 }
