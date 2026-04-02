@@ -5,7 +5,8 @@
  * The function randomly selects a question type from a predefined list covering limit notation,
  * estimation from tables, limit properties, algebraic manipulation, the Squeeze theorem,
  * discontinuity types, continuity conditions, continuity intervals, removable discontinuities,
- * asymptotes, the Intermediate Value Theorem (IVT), and selection of appropriate limit procedures.
+ * asymptotes, the Intermediate Value Theorem (IVT), selection of appropriate limit procedures,
+ * and the conceptual connection between average and instantaneous rates of change.
  * It constructs a LaTeX expression for the problem, computes the correct answer (as a plain‑text
  * string), appends the formatted question to the DOM, triggers MathJax rendering, and sets global
  * variables for answer validation.
@@ -14,7 +15,7 @@
  *                     the maximum coefficient value used in generated expressions. If omitted,
  *                     a default moderate value is used (via `getMaxCoeff` from `./calculusUtils.js`).
  * @returns void
- * @date 2026-03-29
+ * @date 2026-04-02
  *
  * @example
  * generateLimitsContinuity();
@@ -26,7 +27,7 @@ import {getMaxCoeff, latexToPlain} from "./calculusUtils.js";
 export function generateLimitsContinuity(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let questionTypes=["limitNotation","limitFromTable","limitProperties","limitManipulation","limitSqueeze","discontinuityType","continuityConditions","continuityInterval","removeDiscontinuity","verticalAsymptote","horizontalAsymptote","ivt","selectProcedure"];
+	let questionTypes=["limitNotation","limitFromTable","limitProperties","limitManipulation","limitSqueeze","discontinuityType","continuityConditions","continuityInterval","removeDiscontinuity","verticalAsymptote","horizontalAsymptote","ivt","selectProcedure","instantaneousRateConceptual"];
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
@@ -38,9 +39,9 @@ export function generateLimitsContinuity(difficulty?: string): void{
 		case "limitNotation":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let c=Math.floor(Math.random()*5)+1;
-			let b=a*c*c; // ensure numerator factors to give finite limit
+			let b=a*c*c;
 			mathExpression=`\\[ \\text{Use limit notation to describe the behavior of } f(x)=\\frac{${a}x^2-${b}}{x-${c}} \\text{ as } x \\to ${c}. \\]`;
-			let val=2*a*c; // limit after factoring: a(x-c)(x+c)/(x-c) = a(x+c) → 2ac
+			let val=2*a*c;
 			plainCorrectAnswer=`\\lim_{x\\to ${c}} f(x)=${val}`;
 			latexAnswer=`\\lim_{x\\to ${c}} f(x)=${val}`;
 			expectedFormat="Enter the limit statement, e.g., \\lim_{x\\to 2} f(x)=5";
@@ -153,7 +154,7 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			choices.push(`[0,${sqrtA}]`);
 			break;
 		}
-		case "removeDiscontinuity": {
+		case "removeDiscontinuity":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let c=Math.floor(Math.random()*5)+1;
 			let val=2*a*c;
@@ -215,13 +216,28 @@ export function generateLimitsContinuity(difficulty?: string): void{
 		}
 		case "selectProcedure":{
 			let options=["Factoring", "Rationalizing", "Squeeze theorem", "Direct substitution"];
-			let correctIdx=2; // Squeeze theorem is appropriate for sin(kx)/x
+			let correctIdx=2;
 			plainCorrectAnswer=options[correctIdx];
 			latexAnswer=`\\text{${options[correctIdx]}}`;
 			mathExpression=`\\[ \\lim_{x\\to 0} \\frac{\\sin ${maxCoeff}x}{x} \\] Which procedure is most efficient? A) ${options[0]} B) ${options[1]} C) ${options[2]} D) ${options[3]}`;
 			expectedFormat="Enter the letter of the correct option (A, B, C, or D)";
 			choices=[options[correctIdx]];
 			for (let i=0;i<options.length;i++) if (i!==correctIdx) choices.push(options[i]);
+			break;
+		}
+		case "instantaneousRateConceptual":{
+			let t0=Math.floor(Math.random()*3)+1;
+			let s=(t: number)=>t*t;
+			let avgVelOverInterval=(s(t0+0.1)-s(t0))/0.1;
+			let exactInstVel=2*t0;
+			mathExpression=`\\[ \\text{The position of a particle is given by } s(t)=t^2 \\text{ (meters).} \\] \\[ \\text{(a) Find the average velocity from } t=${t0} \\text{ to } t=${(t0+0.1).toFixed(1)}. \\] \\[ \\text{(b) Find the instantaneous velocity at } t=${t0} \\text{ using the limit definition.} \\] \\[ \\text{(c) Explain why the limit gives the instantaneous rate of change.} \\]`;
+			plainCorrectAnswer=`avg=${avgVelOverInterval.toFixed(2)} inst=${exactInstVel} The limit of average velocities as the time interval shrinks to zero gives the exact instantaneous rate.`;
+			latexAnswer=`\\text{avg}=${avgVelOverInterval.toFixed(2)},\\ \\text{inst}=${exactInstVel}`;
+			expectedFormat="Enter avg=..., inst=... and a brief explanation";
+			choices=[`avg=${avgVelOverInterval.toFixed(2)} inst=${exactInstVel}`];
+			choices.push(`avg=${(avgVelOverInterval+0.5).toFixed(2)} inst=${exactInstVel}`);
+			choices.push(`avg=${avgVelOverInterval.toFixed(2)} inst=${exactInstVel+1}`);
+			choices.push(`avg=${(avgVelOverInterval-0.5).toFixed(2)} inst=${exactInstVel-1}`);
 			break;
 		}
 	}
