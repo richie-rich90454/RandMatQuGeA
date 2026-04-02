@@ -9,7 +9,7 @@ import {getMaxCoeff} from "./calculusUtils.js";
  *                     Influences the maximum coefficient value used in generated expressions
  *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
  * @returns void
- * @date 2026-03-29
+ * @date 2026-04-02
  *
  * @remarks
  * The function performs the following steps:
@@ -19,11 +19,7 @@ import {getMaxCoeff} from "./calculusUtils.js";
  *    along with plausible distractors for MCQ mode.
  * 4. Appends a `<div>` containing the LaTeX to `questionArea`.
  * 5. Triggers MathJax (if available) to render the math.
- * 6. Sets global variables for answer validation:
- *    - `window.correctAnswer` – an object with `correct`, `alternate`, `display`, and `choices` properties.
- *      `correct` and `alternate` hold the plain‑text answer for validation;
- *      `display` holds a LaTeX‑formatted version for rendering with KaTeX.
- *    - `window.expectedFormat` – a string describing the expected input format.
+ * 6. Sets global variables for answer validation.
  *
  * **Question types** (each uses random coefficients scaled by `difficulty` where applicable):
  * - `integralTest`      – apply the integral test to determine convergence of ∑ 1/(n²+p).
@@ -38,6 +34,12 @@ import {getMaxCoeff} from "./calculusUtils.js";
  * - `radiusInterval`    – find the interval of convergence for ∑ xⁿ/aⁿ.
  * - `maclaurin`         – recall the Maclaurin series for sin x.
  * - `powerSeries`       – express 1/(1‑x) as a power series.
+ * - `geometricSeries`   – determine convergence and sum of a geometric series.
+ * - `nthTermTest`       – apply the nth term test for divergence.
+ * - `limitComparison`   – use limit comparison test on a rational series.
+ * - `taylorCos`         – Maclaurin series for cos x.
+ * - `taylorLn`          – Maclaurin series for ln(1+x) by integrating geometric series.
+ * - `seriesOperations`  – multiply or integrate known power series (e.g., x·eˣ or ∫x·eˣ dx).
  *
  * @example
  * generateSequencesSeries();
@@ -46,7 +48,7 @@ import {getMaxCoeff} from "./calculusUtils.js";
 export function generateSequencesSeries(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let questionTypes=["integralTest","pSeries","comparisonTest","alternatingTest","ratioTest","absCond","altError","taylorPoly","lagrangeError","radiusInterval","maclaurin","powerSeries"];
+	let questionTypes=["integralTest","pSeries","comparisonTest","alternatingTest","ratioTest","absCond","altError","taylorPoly","lagrangeError","radiusInterval","maclaurin","powerSeries","geometricSeries","nthTermTest","limitComparison","taylorCos","taylorLn","seriesOperations"];
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
@@ -68,8 +70,14 @@ export function generateSequencesSeries(difficulty?: string): void{
 			let pVal=(Math.random()*2).toFixed(1);
 			let pNum=parseFloat(pVal);
 			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{1}{n^{${pVal}}} \\text{ converges for?} \\]`;
-			plainCorrectAnswer= pNum>1 ? "converges" : "diverges";
-			latexAnswer= pNum>1 ? "\\text{converges}" : "\\text{diverges}";
+			if (pNum>1){
+				plainCorrectAnswer="converges";
+				latexAnswer="\\text{converges}";
+			}
+			else{
+				plainCorrectAnswer="diverges";
+				latexAnswer="\\text{diverges}";
+			}
 			expectedFormat="Enter converges or diverges";
 			choices=["converges","diverges"];
 			if (pNum>1) choices.push("diverges");
@@ -195,12 +203,102 @@ export function generateSequencesSeries(difficulty?: string): void{
 			choices.push("∑ 1/x^n, |x|>1");
 			break;
 		}
+		case "geometricSeries":{
+			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let r=0.5;
+			mathExpression=`\\[ \\sum_{n=0}^\\infty ${a} \\cdot (${r})^n \\text{ converges? If so, find sum.} \\]`;
+			let sum=a/(1-r);
+			plainCorrectAnswer=`converges, sum=${sum.toFixed(2)}`;
+			latexAnswer=`\\text{converges, sum}=${sum.toFixed(2)}`;
+			expectedFormat="Enter converges/diverges and sum";
+			choices=[plainCorrectAnswer];
+			choices.push(`converges, sum=${(sum+1).toFixed(2)}`);
+			choices.push(`converges, sum=${(sum-1).toFixed(2)}`);
+			choices.push(`diverges`);
+			choices.push(`converges, sum=${(sum*2).toFixed(2)}`);
+			break;
+		}
+		case "nthTermTest":{
+			let a=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{n}{${a}n+1} \\text{ apply nth term test.} \\]`;
+			let limit=1/a;
+			plainCorrectAnswer=`limit=${limit.toFixed(2)} ≠ 0, diverges`;
+			latexAnswer=`\\lim_{n\\to\\infty} a_n = ${limit.toFixed(2)} \\neq 0,\\ \\text{diverges}`;
+			expectedFormat="Enter conclusion";
+			choices=[plainCorrectAnswer];
+			choices.push(`limit=0, inconclusive`);
+			choices.push(`limit=${(limit+0.2).toFixed(2)}, diverges`);
+			choices.push(`limit=∞, diverges`);
+			break;
+		}
+		case "limitComparison":{
+			let a=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{${a}n^2+1}{n^4+3} \\text{ use limit comparison test with } \\sum \\frac{1}{n^2}. \\]`;
+			let limitRatio=a;
+			plainCorrectAnswer=`converges (limit = ${limitRatio})`;
+			latexAnswer=`\\text{converges}\\ (\\lim = ${limitRatio})`;
+			expectedFormat="Enter converges or diverges";
+			choices=[plainCorrectAnswer];
+			choices.push(`diverges (limit = ${limitRatio})`);
+			choices.push(`converges (limit = ${limitRatio+1})`);
+			choices.push(`diverges (limit = ${limitRatio-1})`);
+			break;
+		}
+		case "taylorCos":{
+			mathExpression=`\\[ \\text{Maclaurin series for } \\cos x \\text{ by differentiating } \\sin x \\text{ series.} \\]`;
+			plainCorrectAnswer="1 - x^2/2! + x^4/4! - x^6/6! + ...";
+			latexAnswer="1 - \\frac{x^{2}}{2!} + \\frac{x^{4}}{4!} - \\frac{x^{6}}{6!} + \\cdots";
+			expectedFormat="Enter series";
+			choices=[plainCorrectAnswer];
+			choices.push("x - x^3/3! + x^5/5! - ...");
+			choices.push("1 + x^2/2! + x^4/4! + ...");
+			choices.push("x + x^3/3! + x^5/5! + ...");
+			choices.push("1 - x^2/2 + x^4/24 - ...");
+			break;
+		}
+		case "taylorLn":{
+			mathExpression=`\\[ \\text{Maclaurin series for } \\ln(1+x) \\text{ by integrating } \\frac{1}{1+x}. \\]`;
+			plainCorrectAnswer="x - x^2/2 + x^3/3 - x^4/4 + ...";
+			latexAnswer="x - \\frac{x^{2}}{2} + \\frac{x^{3}}{3} - \\frac{x^{4}}{4} + \\cdots";
+			expectedFormat="Enter series";
+			choices=[plainCorrectAnswer];
+			choices.push("x + x^2/2 + x^3/3 + ...");
+			choices.push("1 - x + x^2 - x^3 + ...");
+			choices.push("x - x^2/2! + x^3/3! - ...");
+			choices.push("∑ x^n/n");
+			break;
+		}
+		case "seriesOperations":{
+			let a=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\text{Given } e^x = \\sum_{n=0}^\\infty \\frac{x^n}{n!}, \\text{ find series for } x e^{${a}x} \\text{ and } \\int x e^{${a}x} dx. \\]`;
+			let series1=`∑ (${a}^(n-1)/(n-1)!) x^n`;
+			let series2=`∑ (${a}^(n-1)/(n!*n)) x^(n+1) + C`;
+			plainCorrectAnswer=`x e^(${a}x) = ${series1}, integral = ${series2}`;
+			latexAnswer=`xe^{${a}x} = \\sum_{n=1}^\\infty \\frac{${a}^{n-1}}{(n-1)!}x^n,\\ \\int xe^{${a}x}dx = \\sum_{n=0}^\\infty \\frac{${a}^{n}}{n!(n+2)}x^{n+2}+C`;
+			expectedFormat="Enter series expressions";
+			choices=[plainCorrectAnswer];
+			choices.push(`x e^(${a}x) = ∑ ${a}^n x^n/n!, integral = ∑ ${a}^n x^(n+1)/(n+1)!+C`);
+			choices.push(`x e^(${a}x) = ∑ ${a}^(n-1) x^n/(n-1)!, integral = ∑ ${a}^(n-1) x^(n+1)/(n-1)!n +C`);
+			choices.push(`x e^(${a}x) = ∑ x^(n+1)/n!, integral = ∑ x^(n+2)/(n+2)n! +C`);
+			break;
+		}
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(plainCorrectAnswer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
-		else uniqueChoices=[plainCorrectAnswer];
+	let found=false;
+	for (let i=0;i<uniqueChoices.length;i++){
+		if (uniqueChoices[i]===plainCorrectAnswer){
+			found=true;
+			break;
+		}
+	}
+	if (!found){
+		if (uniqueChoices.length>0){
+			uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+		}
+		else{
+			uniqueChoices=[plainCorrectAnswer];
+		}
 	}
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
