@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Generates random integral calculus questions for AP Calculus practice.
+ * Provides a wide variety of integration problems including polynomial, trigonometric,
+ * exponential, logarithmic, substitution, definite integrals, initial value problems,
+ * area under curves, motion, inverse trigonometric integrals, completing the square,
+ * logistic models, improper integrals with vertical asymptotes, polar arc length,
+ * and parametric arc length. Each question is presented with LaTeX formatting and
+ * includes multiple‑choice distractors for MCQ mode.
+ *
+ * @module calculusIntegral
+ * @date 2026-04-02
+ */
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
 function gcd(a: number, b: number): number{
@@ -15,8 +27,36 @@ function formatFraction(num: number, den: number): string{
 	let g=gcd(num,den);
 	num/=g;
 	den/=g;
-	return den===1 ? `${num}` : `${num}/${den}`;
+	if (den===1){
+		return `${num}`;
+	}
+	else{
+		return `${num}/${den}`;
+	}
 }
+/**
+ * Generates and displays a random integral question in the global `questionArea`.
+ * Includes custom multiple‑choice options for MCQ mode.
+ *
+ * The function randomly selects a question type from a comprehensive list covering
+ * basic antiderivatives, substitution, definite integrals, applications, and advanced
+ * topics (inverse trig, completing the square, logistic model, improper integrals,
+ * polar/parametric arc length). It constructs a LaTeX expression for the problem,
+ * computes the correct antiderivative or definite integral result (as a plain‑text
+ * string), and appends the formatted question to the DOM. It triggers MathJax
+ * rendering and sets global variables for answer validation.
+ *
+ * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that
+ *                     influences the maximum coefficient value used in generated
+ *                     expressions. If omitted, a default moderate value is used
+ *                     (via `getMaxCoeff`).
+ * @returns void
+ * @date 2026-04-02
+ *
+ * @example
+ * generateIntegral();
+ * generateIntegral("hard");
+ */
 export function generateIntegral(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
@@ -43,20 +83,31 @@ export function generateIntegral(difficulty?: string): void{
 			const exponentsArray=Array.from(exponents).sort((a,b)=>b-a);
 			const coefficients: number[]=[];
 			for (const exp of exponentsArray){
-				const coeff=exp===0
-					?Math.floor(Math.random()*100)+1
-					:exp===1
-						?Math.floor(Math.random()*maxCoeff)+1
-						:Math.floor(Math.random()*maxCoeff*2)+1;
+				let coeff;
+				if (exp===0){
+					coeff=Math.floor(Math.random()*100)+1;
+				}
+				else if (exp===1){
+					coeff=Math.floor(Math.random()*maxCoeff)+1;
+				}
+				else{
+					coeff=Math.floor(Math.random()*maxCoeff*2)+1;
+				}
 				coefficients.push(coeff);
 			}
 			const terms: string[]=[];
 			for (let i=0;i<exponentsArray.length;i++){
 				const exp=exponentsArray[i];
 				const coeff=coefficients[i];
-				if (exp===0) terms.push(`${coeff}`);
-				else if (exp===1) terms.push(`${coeff}x`);
-				else terms.push(`${coeff}x^{${exp}}`);
+				if (exp===0){
+					terms.push(`${coeff}`);
+				}
+				else if (exp===1){
+					terms.push(`${coeff}x`);
+				}
+				else{
+					terms.push(`${coeff}x^{${exp}}`);
+				}
 			}
 			const polynomial=`(${terms.join("+")})`;
 			mathExpression=`\\[ \\int ${polynomial} \\,dx=? \\]`;
@@ -66,7 +117,13 @@ export function generateIntegral(difficulty?: string): void{
 				const coeff=coefficients[i];
 				const newExp=exp+1;
 				const newCoeff=coeff/newExp;
-				const xPart=newExp===1?"x":`x^${newExp}`;
+				let xPart;
+				if (newExp===1){
+					xPart="x";
+				}
+				else{
+					xPart=`x^${newExp}`;
+				}
 				integralTerms.push(`${formatNumber(newCoeff)}${xPart}`);
 			}
 			integralTerms.push("C");
@@ -102,13 +159,31 @@ export function generateIntegral(difficulty?: string): void{
 			const decimalCoeff=coeff/a;
 			plainCorrectIntegral=`${formatNumber(chosen.sign*decimalCoeff)} ${chosen.target}(${a}x)+C`;
 			const fractionStr=formatFraction(coeff,a);
-			const signStr=chosen.sign===1 ? '' : '-';
+			let signStr;
+			if (chosen.sign===1){
+				signStr='';
+			}
+			else{
+				signStr='-';
+			}
 			alternateAnswer=`${signStr}${fractionStr} ${chosen.target}(${a}x)+C`;
 			latexAnswer=`${signStr}\\frac{${coeff}}{${a}} ${chosen.target}(${a}x)+C`;
 			const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
 			choices=[normalizedCorrect];
-			const wrongSign=chosen.sign===1 ? -1 : 1;
-			const wrongSignStr=wrongSign===1 ? '' : '-';
+			let wrongSign;
+			if (chosen.sign===1){
+				wrongSign=-1;
+			}
+			else{
+				wrongSign=1;
+			}
+			let wrongSignStr;
+			if (wrongSign===1){
+				wrongSignStr='';
+			}
+			else{
+				wrongSignStr='-';
+			}
 			choices.push(`${wrongSignStr}${fractionStr} ${chosen.target}(${a}x)+C`.replace(/\s/g,"").toLowerCase());
 			choices.push(`${signStr}${fractionStr} ${chosen.func}(${a}x)+C`.replace(/\s/g,"").toLowerCase());
 			choices.push(`${signStr}${fractionStr} ${chosen.target}(x)+C`.replace(/\s/g,"").toLowerCase());
