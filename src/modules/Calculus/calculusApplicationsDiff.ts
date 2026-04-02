@@ -8,7 +8,7 @@ import {getMaxCoeff} from "./calculusUtils.js";
  *                     Influences the maximum coefficient value used in generated expressions
  *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
  * @returns void
- * @date 2026-03-29
+ * @date 2026-04-02
  *
  * @remarks
  * The function performs the following steps:
@@ -18,25 +18,27 @@ import {getMaxCoeff} from "./calculusUtils.js";
  * 4. Generates plausible incorrect answers (distractors) for MCQ mode.
  * 5. Appends a `<div>` containing the LaTeX to `questionArea`.
  * 6. Triggers MathJax (if available) to render the math.
- * 7. Sets global variables for answer validation:
- *    - `window.correctAnswer` – an object with `correct`, `alternate`, `display`, and `choices` properties.
- *      `correct` and `alternate` hold the plain‑text answer; `display` holds a LaTeX version for rendering.
- *    - `window.expectedFormat` – a string describing the expected input format.
+ * 7. Sets global variables for answer validation.
  *
  * **Question types** (each uses random coefficients scaled by `difficulty`):
- * - `linearization`      – approximate a square root using linear approximation.
- * - `lhopital`           – evaluate a limit using l'Hôpital's rule.
- * - `mvt`                – find a point `c` satisfying the Mean Value Theorem.
- * - `evt`                – find critical points on a closed interval (Extreme Value Theorem).
- * - `incDec`             – determine intervals where a function is increasing.
- * - `firstDerivativeTest`– classify critical points as local maxima/minima.
- * - `candidatesTest`     – find the absolute maximum on a closed interval.
- * - `concavity`          – find intervals of concavity and inflection points.
- * - `secondDerivativeTest`– apply the second derivative test at a point.
- * - `graphSketch`        – describe the shape of `f` from conditions on `f'` and `f''`.
- * - `connecting`         – relate the signs of `f'` and `f''` to the behavior of `f`.
- * - `optimization`       – maximize the product of two numbers given their sum.
- * - `implicitBehavior`   – find the slope of a tangent line to an implicitly defined curve.
+ * - `linearization`            – approximate a square root using linear approximation.
+ * - `lhopital`                 – evaluate a limit using l'Hôpital's rule.
+ * - `mvt`                      – find a point `c` satisfying the Mean Value Theorem.
+ * - `evt`                      – find critical points on a closed interval (Extreme Value Theorem).
+ * - `incDec`                   – determine intervals where a function is increasing.
+ * - `firstDerivativeTest`      – classify critical points as local maxima/minima.
+ * - `candidatesTest`           – find the absolute maximum on a closed interval.
+ * - `concavity`                – find intervals of concavity and inflection points.
+ * - `secondDerivativeTest`     – apply the second derivative test at a point.
+ * - `graphSketch`              – describe the shape of `f` from conditions on `f'` and `f''`.
+ * - `connecting`               – relate the signs of `f'` and `f''` to the behavior of `f`.
+ * - `optimization`             – maximize the product of two numbers given their sum.
+ * - `implicitBehavior`         – find the slope of a tangent line to an implicitly defined curve.
+ * - `rectangleOptimization`    – maximize area of rectangle subdivided by a fence (fixed perimeter).
+ * - `boxOptimization`          – maximize volume of an open‑top box from a square sheet.
+ * - `cylinderOptimization`     – minimize surface area of a cylinder with fixed volume.
+ * - `fencingOptimization`      – maximize area of a rectangular pasture along a river.
+ * - `ladderOptimization`       – find the shortest ladder that reaches over a fence to a building.
  *
  * @example
  * generateApplicationsDiff();
@@ -45,7 +47,7 @@ import {getMaxCoeff} from "./calculusUtils.js";
 export function generateApplicationsDiff(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let questionTypes=["linearization","lhopital","mvt","evt","incDec","firstDerivativeTest","candidatesTest","concavity","secondDerivativeTest","graphSketch","connecting","optimization","implicitBehavior"];
+	let questionTypes=["linearization","lhopital","mvt","evt","incDec","firstDerivativeTest","candidatesTest","concavity","secondDerivativeTest","graphSketch","connecting","optimization","implicitBehavior","rectangleOptimization","boxOptimization","cylinderOptimization","fencingOptimization","ladderOptimization"];
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
@@ -147,7 +149,9 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ f(x)=x^3-${a}x \\text{ on } [0,3]. \\text{ Find absolute max.} \\]`;
 			let maxVal=Math.max(0, 27-3*a, Math.pow(Math.sqrt(a/3),3)-a*Math.sqrt(a/3));
-			if (isNaN(maxVal)) maxVal=Math.max(0,27-3*a);
+			if (isNaN(maxVal)){
+				maxVal=Math.max(0,27-3*a);
+			}
 			plainCorrectAnswer=maxVal.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
@@ -245,12 +249,99 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			choices.push("0");
 			break;
 		}
+		case "rectangleOptimization":{
+			let fencing=Math.floor(Math.random()*maxCoeff*20)+100;
+			mathExpression=`\\[ \\text{A farmer has ${fencing} ft of fencing to enclose a rectangular field and subdivide it into two equal plots with a fence parallel to one side. Find dimensions that maximize total area.} \\]`;
+			let width=fencing/4;
+			let length=fencing/2;
+			let maxArea=width*length;
+			plainCorrectAnswer=`width=${width.toFixed(1)} ft, length=${length.toFixed(1)} ft, area=${maxArea.toFixed(1)} sq ft`;
+			latexAnswer=`\\text{width}=${width.toFixed(1)}\\text{ ft},\\ \\text{length}=${length.toFixed(1)}\\text{ ft},\\ \\text{area}=${maxArea.toFixed(1)}\\text{ ft}^2`;
+			expectedFormat="Enter width, length, area";
+			choices=[plainCorrectAnswer];
+			choices.push(`width=${(width+5).toFixed(1)} ft, length=${(length-10).toFixed(1)} ft, area=${((width+5)*(length-10)).toFixed(1)} sq ft`);
+			choices.push(`width=${(width-5).toFixed(1)} ft, length=${(length+10).toFixed(1)} ft, area=${((width-5)*(length+10)).toFixed(1)} sq ft`);
+			choices.push(`width=${(fencing/5).toFixed(1)} ft, length=${(fencing/2.5).toFixed(1)} ft, area=${((fencing/5)*(fencing/2.5)).toFixed(1)} sq ft`);
+			break;
+		}
+		case "boxOptimization":{
+			let side=Math.floor(Math.random()*maxCoeff*10)+10;
+			mathExpression=`\\[ \\text{An open‑top box is made from a ${side}-in by ${side}-in square by cutting equal squares from each corner and folding up. Find the cut‑out side length that maximizes volume.} \\]`;
+			let optimalCut=side/6;
+			let maxVol=2*optimalCut*optimalCut*optimalCut;
+			plainCorrectAnswer=`cut=${optimalCut.toFixed(2)} in, volume=${maxVol.toFixed(2)} cubic in`;
+			latexAnswer=`\\text{cut}=${optimalCut.toFixed(2)}\\text{ in},\\ \\text{volume}=${maxVol.toFixed(2)}\\text{ in}^3`;
+			expectedFormat="Enter cut length and volume";
+			choices=[plainCorrectAnswer];
+			choices.push(`cut=${(optimalCut+0.5).toFixed(2)} in, volume=${(2*Math.pow(optimalCut+0.5,3)).toFixed(2)} cubic in`);
+			choices.push(`cut=${(optimalCut-0.5).toFixed(2)} in, volume=${(2*Math.pow(optimalCut-0.5,3)).toFixed(2)} cubic in`);
+			choices.push(`cut=${(side/5).toFixed(2)} in, volume=${(2*Math.pow(side/5,3)).toFixed(2)} cubic in`);
+			break;
+		}
+		case "cylinderOptimization":{
+			let volume=Math.floor(Math.random()*maxCoeff*100)+200;
+			mathExpression=`\\[ \\text{A cylindrical can must hold ${volume} cm}^3 \\text{ of liquid. Find dimensions (radius and height) that minimize surface area (including both ends).} \\]`;
+			let radius=Math.pow(volume/(2*Math.PI), 1/3);
+			let height=volume/(Math.PI*radius*radius);
+			let minSA=2*Math.PI*radius*radius+2*Math.PI*radius*height;
+			plainCorrectAnswer=`r=${radius.toFixed(2)} cm, h=${height.toFixed(2)} cm, SA=${minSA.toFixed(2)} cm^2`;
+			latexAnswer=`r=${radius.toFixed(2)}\\text{ cm},\\ h=${height.toFixed(2)}\\text{ cm},\\ SA=${minSA.toFixed(2)}\\text{ cm}^2`;
+			expectedFormat="Enter radius, height, surface area";
+			choices=[plainCorrectAnswer];
+			choices.push(`r=${(radius*1.2).toFixed(2)} cm, h=${(height/1.2).toFixed(2)} cm, SA=${(2*Math.PI*Math.pow(radius*1.2,2)+2*Math.PI*(radius*1.2)*(height/1.2)).toFixed(2)} cm^2`);
+			choices.push(`r=${(radius*0.8).toFixed(2)} cm, h=${(height/0.8).toFixed(2)} cm, SA=${(2*Math.PI*Math.pow(radius*0.8,2)+2*Math.PI*(radius*0.8)*(height/0.8)).toFixed(2)} cm^2`);
+			choices.push(`r=${(volume/(2*Math.PI)).toFixed(2)} cm, h=1 cm, SA=${(2*Math.PI*Math.pow(volume/(2*Math.PI),2)+2*Math.PI*(volume/(2*Math.PI))).toFixed(2)} cm^2`);
+			break;
+		}
+		case "fencingOptimization":{
+			let fencing=Math.floor(Math.random()*maxCoeff*20)+100;
+			mathExpression=`\\[ \\text{A rancher has ${fencing} m of fencing to enclose a rectangular pasture along a straight river (no fence on river side). What dimensions give the greatest area?} \\]`;
+			let width=fencing/2;
+			let length=fencing/4;
+			let maxArea=width*length;
+			plainCorrectAnswer=`width=${width.toFixed(1)} m, length=${length.toFixed(1)} m, area=${maxArea.toFixed(1)} m^2`;
+			latexAnswer=`\\text{width}=${width.toFixed(1)}\\text{ m},\\ \\text{length}=${length.toFixed(1)}\\text{ m},\\ \\text{area}=${maxArea.toFixed(1)}\\text{ m}^2`;
+			expectedFormat="Enter width, length, area";
+			choices=[plainCorrectAnswer];
+			choices.push(`width=${(width+10).toFixed(1)} m, length=${(length-5).toFixed(1)} m, area=${((width+10)*(length-5)).toFixed(1)} m^2`);
+			choices.push(`width=${(width-10).toFixed(1)} m, length=${(length+5).toFixed(1)} m, area=${((width-10)*(length+5)).toFixed(1)} m^2`);
+			choices.push(`width=${(fencing/3).toFixed(1)} m, length=${(fencing/3).toFixed(1)} m, area=${(Math.pow(fencing/3,2)).toFixed(1)} m^2`);
+			break;
+		}
+		case "ladderOptimization":{
+			let fenceHt=Math.floor(Math.random()*maxCoeff*2)+4;
+			let distFromBuilding=Math.floor(Math.random()*maxCoeff*2)+6;
+			mathExpression=`\\[ \\text{A ${fenceHt}-ft tall fence runs parallel to a building at a distance of ${distFromBuilding} ft. Find the shortest ladder that reaches from the ground over the fence to the building.} \\]`;
+			let ladderLength=Math.pow(Math.pow(fenceHt, 2/3)+Math.pow(distFromBuilding, 2/3), 3/2);
+			plainCorrectAnswer=ladderLength.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
+			expectedFormat="Enter ladder length";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+2).toFixed(2));
+			choices.push((correctNum-2).toFixed(2));
+			choices.push((Math.sqrt(fenceHt*fenceHt+distFromBuilding*distFromBuilding)).toFixed(2));
+			choices.push((fenceHt+distFromBuilding).toFixed(2));
+			break;
+		}
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(plainCorrectAnswer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
-		else uniqueChoices=[plainCorrectAnswer];
+	let found=false;
+	for (let i=0;i<uniqueChoices.length;i++){
+		if (uniqueChoices[i]===plainCorrectAnswer){
+			found=true;
+			break;
+		}
+	}
+	if (!found){
+		if (uniqueChoices.length>0){
+			let randomIndex=Math.floor(Math.random()*uniqueChoices.length);
+			uniqueChoices[randomIndex]=plainCorrectAnswer;
+		}
+		else{
+			uniqueChoices=[plainCorrectAnswer];
+		}
 	}
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
