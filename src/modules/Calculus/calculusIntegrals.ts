@@ -1,27 +1,5 @@
-/**
- * Generates a random integration question and displays it in the global question area.
- * Includes custom multiple‑choice options for MCQ mode.
- *
- * The function randomly selects a question type (polynomial, trigonometric, exponential,
- * logarithmic, substitution, definite, initial value, area, or motion), constructs a
- * LaTeX expression for the integrand or problem statement, computes the correct
- * antiderivative or definite integral result (as a plain‑text string), and appends the
- * formatted question to the DOM. It triggers MathJax rendering and sets global variables
- * for answer validation.
- *
- * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that
- *                     influences the maximum coefficient value used in generated
- *                     expressions. If omitted, a default moderate value is used
- *                     (via `getMaxCoeff`).
- * @returns void
- * @date 2026-03-29
- *
- * @example
- * generateIntegral();
- * generateIntegral("hard");
- */
-import { questionArea } from "../../script.js";
-import { getMaxCoeff } from "./calculusUtils.js";
+import {questionArea} from "../../script.js";
+import {getMaxCoeff} from "./calculusUtils.js";
 function gcd(a: number, b: number): number{
 	while (b){
 		let t=b;
@@ -44,7 +22,9 @@ export function generateIntegral(difficulty?: string): void{
 	questionArea.innerHTML="";
 	const questionTypes=[
 		"polynomial","trigonometric","exponential","logarithmic",
-		"substitution","definite","initialValue","area","motion"
+		"substitution","definite","initialValue","area","motion",
+		"inverseTrig","completingSquare","logisticModel","improperVertical",
+		"polarArcLength","parametricArcLength"
 	];
 	const questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
 	const maxCoeff=getMaxCoeff(difficulty);
@@ -281,6 +261,97 @@ export function generateIntegral(difficulty?: string): void{
 			choices.push(`${formatNumber(coeff/2)}t^3 + C`.replace(/\s/g,"").toLowerCase());
 			choices.push(`${formatNumber(coeff/3)}t^2 + C`.replace(/\s/g,"").toLowerCase());
 			choices.push(`${formatNumber(coeff/3)}t^3`.replace(/\s/g,"").toLowerCase());
+			break;
+		}
+		case "inverseTrig":{
+			const subtypes=["arcsin","arctan","arcsec"];
+			const sub=subtypes[Math.floor(Math.random()*subtypes.length)];
+			const a=Math.floor(Math.random()*maxCoeff)+1;
+			if (sub==="arcsin"){
+				mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{${a*a}-x^2}} \\]`;
+				plainCorrectIntegral=`arcsin(x/${a})+C`;
+				latexAnswer=`\\arcsin\\left(\\frac{x}{${a}}\\right)+C`;
+				const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+				choices=[normalizedCorrect];
+				choices.push(`arcsin(x/${a*a})+C`.replace(/\s/g,"").toLowerCase());
+				choices.push(`arctan(x/${a})+C`.replace(/\s/g,"").toLowerCase());
+				choices.push(`(1/${a})arcsin(x/${a})+C`.replace(/\s/g,"").toLowerCase());
+			}
+			else if (sub==="arctan"){
+				mathExpression=`\\[ \\int \\frac{dx}{${a*a}+x^2} \\]`;
+				plainCorrectIntegral=`(1/${a})arctan(x/${a})+C`;
+				latexAnswer=`\\frac{1}{${a}}\\arctan\\left(\\frac{x}{${a}}\\right)+C`;
+				const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+				choices=[normalizedCorrect];
+				choices.push(`arctan(x/${a})+C`.replace(/\s/g,"").toLowerCase());
+				choices.push(`(1/${a})arctan(${a}x)+C`.replace(/\s/g,"").toLowerCase());
+				choices.push(`(1/${a*a})arctan(x/${a})+C`.replace(/\s/g,"").toLowerCase());
+			}
+			else{
+				mathExpression=`\\[ \\int \\frac{dx}{x\\sqrt{x^2-1}} \\]`;
+				plainCorrectIntegral=`arcsec|x|+C`;
+				latexAnswer=`\\operatorname{arcsec}|x|+C`;
+				const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+				choices=[normalizedCorrect];
+				choices.push(`arcsin(x)+C`.replace(/\s/g,"").toLowerCase());
+				choices.push(`arctan(x)+C`.replace(/\s/g,"").toLowerCase());
+				choices.push(`ln|x+sqrt(x^2-1)|+C`.replace(/\s/g,"").toLowerCase());
+			}
+			break;
+		}
+		case "completingSquare":{
+			const a=Math.floor(Math.random()*maxCoeff)+2;
+			mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{${2*a}x - x^2}} \\]`;
+			plainCorrectIntegral=`arcsin((x-${a})/${a})+C`;
+			latexAnswer=`\\arcsin\\left(\\frac{x-${a}}{${a}}\\right)+C`;
+			const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`arcsin(x/${a})+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`arcsin((x-${a})/${2*a})+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`arctan((x-${a})/${a})+C`.replace(/\s/g,"").toLowerCase());
+			break;
+		}
+		case "logisticModel":{
+			const K=Math.floor(Math.random()*maxCoeff*2)+20;
+			const r=0.05;
+			const P0=Math.floor(K/10)+5;
+			mathExpression=`\\[ \\text{Solve } \\frac{dP}{dt}=${r}P\\left(1-\\frac{P}{${K}}\\right),\\ P(0)=${P0}. \\] \\[ \\text{Find } \\lim_{t\\to\\infty}P(t). \\]`;
+			plainCorrectIntegral=K.toString();
+			latexAnswer=K.toString();
+			choices=[plainCorrectIntegral];
+			choices.push((K+10).toString());
+			choices.push((K-10).toString());
+			choices.push(P0.toString());
+			break;
+		}
+		case "improperVertical":{
+			mathExpression=`\\[ \\int_0^1 \\frac{1}{\\sqrt{1-x^2}} \\,dx \\]`;
+			const val=Math.PI/2;
+			plainCorrectIntegral=val.toFixed(4);
+			latexAnswer=`\\frac{\\pi}{2}`;
+			choices=[plainCorrectIntegral, (val+0.5).toFixed(4), (val-0.5).toFixed(4), "diverges"];
+			break;
+		}
+		case "polarArcLength":{
+			const a=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\text{Length of } r=${a}(1+\\cos\\theta),\\ 0\\le\\theta\\le\\pi. \\]`;
+			const len=4*a;
+			plainCorrectIntegral=len.toFixed(2);
+			latexAnswer=plainCorrectIntegral;
+			choices=[plainCorrectIntegral, (len+1).toFixed(2), (len-1).toFixed(2), (len*1.5).toFixed(2)];
+			break;
+		}
+		case "parametricArcLength":{
+			const a=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\text{Arc length of } x=${a}t^3,\\ y=${a}t^2,\\ 0\\le t\\le 1. \\]`;
+			const len=a*(13*Math.sqrt(13)-8)/27;
+			plainCorrectIntegral=len.toFixed(4);
+			latexAnswer=plainCorrectIntegral;
+			const correctNum=parseFloat(plainCorrectIntegral);
+			choices=[plainCorrectIntegral];
+			choices.push((correctNum+0.5).toFixed(4));
+			choices.push((correctNum-0.5).toFixed(4));
+			choices.push((correctNum*1.2).toFixed(4));
 			break;
 		}
 		default:{
