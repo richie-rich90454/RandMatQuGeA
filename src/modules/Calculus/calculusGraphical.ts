@@ -8,12 +8,15 @@
  * global `questionArea` element. It triggers MathJax rendering and sets global
  * variables for answer validation.
  *
+ * Added AP topics: slope field sketching, matching DE to slope field, reasoning
+ * from slope field, equilibrium solutions, phase lines.
+ *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`)
  *                     that influences the maximum coefficient value used in
  *                     generated expressions. If omitted, a default moderate value
  *                     is used (via `getMaxCoeff`).
  * @returns void
- * @date 2026-03-29
+ * @date 2026-04-02
  *
  * @example
  * generateGraphicalCalculus();
@@ -35,7 +38,7 @@ function getAppropriateStep(range: number, targetTicks: number=6): number{
 export function generateGraphicalCalculus(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let questionTypes=["limitFromGraph","multipleReps","estimateDerivTable","diffContinuity","inverseFunc","invTrigDeriv","selectProcedure","derivContext","riemannSum","riemannNotation","accumFTC","accumBehavior","definiteProps","longDivision","flowAccum","instantChange","derivativeLimit"];
+	let questionTypes=["limitFromGraph","multipleReps","estimateDerivTable","diffContinuity","inverseFunc","invTrigDeriv","selectProcedure","derivContext","riemannSum","riemannNotation","accumFTC","accumBehavior","definiteProps","longDivision","flowAccum","instantChange","derivativeLimit","sketchSlopeField","matchSlopeField","reasonSlopeField","equilibriumSolutions","phaseLine"];
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
@@ -307,6 +310,62 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			choices.push((a-1).toString());
 			choices.push((b).toString());
 			choices.push(`${a}x+${b}`);
+			break;
+		}
+		case "sketchSlopeField":{
+			let a=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\frac{dy}{dx}=${a}x-y \\] Sketch slope field at points (-1,-1), (-1,0), (-1,1), (0,-1), (0,0), (0,1), (1,-1), (1,0), (1,1). Describe pattern.`;
+			plainCorrectAnswer="slopes: left negative, center zero, right positive; increases with x";
+			latexAnswer="\\text{slopes increase with }x";
+			expectedFormat="Describe slope field";
+			choices=[plainCorrectAnswer];
+			choices.push("all slopes positive");
+			choices.push("all slopes negative");
+			choices.push("slopes depend only on y");
+			break;
+		}
+		case "matchSlopeField":{
+			let eqs=["dy/dx = y(2-y)", "dy/dx = y", "dy/dx = x", "dy/dx = -y"];
+			let correctIdx=Math.floor(Math.random()*eqs.length);
+			plainCorrectAnswer=eqs[correctIdx];
+			latexAnswer=`\\text{${eqs[correctIdx]}}`;
+			mathExpression=`\\[ \\text{Which DE matches slope field with horizontal lines at y=0 and y=2?} \\] A) ${eqs[0]} B) ${eqs[1]} C) ${eqs[2]} D) ${eqs[3]}`;
+			expectedFormat="Enter letter";
+			choices=[plainCorrectAnswer];
+			for (let i=0;i<eqs.length;i++) if (i!==correctIdx) choices.push(eqs[i]);
+			break;
+		}
+		case "reasonSlopeField":{
+			let a=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\frac{dy}{dx}=${a}x^2-y \\] Sketch solution through (0,1). Long-term behavior as x→∞?`;
+			plainCorrectAnswer="y grows like quadratic";
+			latexAnswer="\\text{y grows like quadratic}";
+			expectedFormat="Describe behavior";
+			choices=["y→∞", "y→0", "y→constant", "oscillates"];
+			break;
+		}
+		case "equilibriumSolutions":{
+			let K=Math.floor(Math.random()*maxCoeff)+3;
+			mathExpression=`\\[ \\frac{dy}{dx}=y(${K}-y) \\] Find equilibria and classify.`;
+			plainCorrectAnswer=`y=0 unstable, y=${K} stable`;
+			latexAnswer=`y=0\\text{ unstable}, y=${K}\\text{ stable}`;
+			expectedFormat="Enter equilibria and stability";
+			choices=[plainCorrectAnswer];
+			choices.push(`y=0 stable, y=${K} unstable`);
+			choices.push(`y=0 semi-stable, y=${K} stable`);
+			choices.push(`y=0 unstable, y=${K} unstable`);
+			break;
+		}
+		case "phaseLine":{
+			let a=Math.floor(Math.random()*maxCoeff)+2;
+			mathExpression=`\\[ \\frac{dy}{dt}=y^2-${a}y \\] Draw phase line.`;
+			plainCorrectAnswer=`equilibria at y=0 and y=${a}; 0 unstable, ${a} stable`;
+			latexAnswer=`y=0\\text{ unstable}, y=${a}\\text{ stable}`;
+			expectedFormat="Describe phase line";
+			choices=[plainCorrectAnswer];
+			choices.push(`0 stable, ${a} unstable`);
+			choices.push(`0 semi-stable, ${a} stable`);
+			choices.push(`both unstable`);
 			break;
 		}
 	}
