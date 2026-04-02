@@ -7,17 +7,19 @@
  * arc length), advanced integration techniques (integration by parts, partial
  * fractions, improper integrals), and differential equations (modeling,
  * verification, slope fields, Euler's method, separation of variables,
- * exponential and logistic models). It constructs a LaTeX expression for the
- * problem, computes the correct answer (as a plain‑text string), appends the
- * formatted question to the global `questionArea` element, triggers MathJax
- * rendering, and sets global variables for answer validation.
+ * exponential and logistic models), plus additional topics: logistic model full analysis,
+ * improper integrals with vertical asymptote, polar arc length, parametric arc length,
+ * and completing the square before inverse trig integration.
+ * It constructs a LaTeX expression for the problem, computes the correct answer
+ * (as a plain‑text string), appends the formatted question to the global `questionArea`
+ * element, triggers MathJax rendering, and sets global variables for answer validation.
  *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`)
  *                     that influences the maximum coefficient value used in
  *                     generated expressions. If omitted, a default moderate value
  *                     is used (via `getMaxCoeff` from `./calculusUtils.js`).
  * @returns void
- * @date 2026-03-29
+ * @date 2026-04-02
  *
  * @example
  * generateIntegrationAdvanced();
@@ -29,7 +31,7 @@ import {getMaxCoeff, latexToPlain} from "./calculusUtils.js";
 export function generateIntegrationAdvanced(difficulty?: string): void{
 	if (!questionArea) return;
 	questionArea.innerHTML="";
-	let questionTypes=["avgValue","areaBetweenX","areaBetweenY","areaMultiple","volumeCrossSquare","volumeCrossSemi","volumeDisc","volumeDiscOther","volumeWasher","volumeWasherOther","arcLength","parts","partialFractions","improper","selectTechnique","diffEqModel","verifySolution","slopeField","euler","separationGeneral","separationParticular","exponentialModel","logisticModel"];
+	let questionTypes=["avgValue","areaBetweenX","areaBetweenY","areaMultiple","volumeCrossSquare","volumeCrossSemi","volumeDisc","volumeDiscOther","volumeWasher","volumeWasherOther","arcLength","parts","partialFractions","improper","selectTechnique","diffEqModel","verifySolution","slopeField","euler","separationGeneral","separationParticular","exponentialModel","logisticModel","logisticFullAnalysis","improperVerticalAsymptote","polarArcLength","parametricArcLength","completingSquareInverseTrig"];
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
@@ -379,6 +381,69 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			choices.push(`dP/dt=0.5P(1 - P/${a}0)`.replace(/\s/g,"").toLowerCase());
 			choices.push(`dP/dt=0.5P(1 - ${a}0/P)`.replace(/\s/g,"").toLowerCase());
 			choices.push(`dP/dt=0.5P(1 - P)`.replace(/\s/g,"").toLowerCase());
+			break;
+		}
+		case "logisticFullAnalysis":{
+			let K=Math.floor(Math.random()*maxCoeff*2)+20;
+			let r=0.05;
+			let P0=Math.floor(K/10)+5;
+			mathExpression=`\\[ \\text{The population of a fish farm follows } \\frac{dP}{dt}=${r}P\\left(1-\\frac{P}{${K}}\\right),\\ P(0)=${P0}. \\] \\[ \\text{(a) What is the carrying capacity? (b) When is the population growing fastest? (c) Find } \\lim_{t\\to\\infty} P(t). \\]`;
+			let fastest=K/2;
+			plainCorrectAnswer=`K=${K}, fastest at P=${fastest.toFixed(1)}, limit=${K}`;
+			latexAnswer=`K=${K},\\ \\text{fastest at }P=${fastest.toFixed(1)},\\ \\lim_{t\\to\\infty}P(t)=${K}`;
+			expectedFormat="Enter K, fastest P, limit";
+			choices=[plainCorrectAnswer];
+			choices.push(`K=${K-5}, fastest at P=${fastest.toFixed(1)}, limit=${K}`);
+			choices.push(`K=${K}, fastest at P=${(fastest+10).toFixed(1)}, limit=${K}`);
+			choices.push(`K=${K}, fastest at P=${fastest.toFixed(1)}, limit=${K-10}`);
+			break;
+		}
+		case "improperVerticalAsymptote":{
+			let a=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\int_0^1 \\frac{1}{\\sqrt{${a*a}-x^2}} \\,dx \\]`;
+			let val=Math.PI/2;
+			plainCorrectAnswer=val.toFixed(4);
+			latexAnswer=`\\frac{\\pi}{2}`;
+			expectedFormat="Enter number or π/2";
+			choices=[plainCorrectAnswer, (val+0.5).toFixed(4), (val-0.5).toFixed(4), "diverges"];
+			break;
+		}
+		case "polarArcLength":{
+			let a=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\text{Find the length of the polar curve } r=${a}(1+\\cos\\theta) \\text{ from } \\theta=0 \\text{ to } \\theta=\\pi. \\]`;
+			let len=4*a;
+			plainCorrectAnswer=len.toFixed(2);
+			latexAnswer=plainCorrectAnswer;
+			expectedFormat="Enter number";
+			choices=[plainCorrectAnswer, (len+1).toFixed(2), (len-1).toFixed(2), (len*1.5).toFixed(2)];
+			break;
+		}
+		case "parametricArcLength":{
+			let a=Math.floor(Math.random()*maxCoeff)+1;
+			mathExpression=`\\[ \\text{Find the arc length of } x=t^${a+1},\\ y=t^${a} \\text{ from } t=0 \\text{ to } t=1. \\]`;
+			let val=(8/27)*(Math.pow(1+9/4,1.5)-1);
+			let len=val*a;
+			plainCorrectAnswer=len.toFixed(4);
+			latexAnswer=plainCorrectAnswer;
+			expectedFormat="Enter number";
+			let correctNum=parseFloat(plainCorrectAnswer);
+			choices=[plainCorrectAnswer];
+			choices.push((correctNum+0.5).toFixed(4));
+			choices.push((correctNum-0.5).toFixed(4));
+			choices.push((correctNum*1.2).toFixed(4));
+			break;
+		}
+		case "completingSquareInverseTrig":{
+			let a=Math.floor(Math.random()*maxCoeff)+2;
+			mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{${2*a}x - x^2}} \\]`;
+			plainCorrectAnswer=`arcsin((x-${a})/${a})+C`;
+			latexAnswer=`\\arcsin\\left(\\frac{x-${a}}{${a}}\\right)+C`;
+			expectedFormat="Enter expression";
+			let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`arcsin(x/${a})+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`arcsin((x-${a})/${2*a})+C`.replace(/\s/g,"").toLowerCase());
+			choices.push(`arctan((x-${a})/${a})+C`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 	}
