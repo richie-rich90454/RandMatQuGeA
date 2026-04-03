@@ -19,7 +19,7 @@ use tauri::{
     tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
     Runtime,
 };
-
+mod adaptive;
 #[derive(Serialize, Deserialize, Clone, sqlx::FromRow)]
 struct ScoreEntry {
     topic: String,
@@ -84,7 +84,79 @@ fn spawn_show_window<R: Runtime>(handle: tauri::AppHandle<R>) {
         }
     });
 }
+#[tauri::command]
+async fn save_performance(
+    state: tauri::State<'_, DbState>,
+    topic_id: String,
+    difficulty: String,
+    correct: bool,
+    response_time_ms: u64,
+    error_type: Option<String>,
+) -> Result<(), String> {
+    let pool = &state.pool;
+    let update_result = sqlx::query(
+        "UPDATE user_topic_stats 
+         SET attempts = attempts + 1,
+             correct = correct + ?,
+             total_response_time_ms = total_response_time_ms + ?,
+             last_error_type = ?,
+             last_updated = CURRENT_TIMESTAMP
+         WHERE topic_id = ? AND difficulty = ?",
+    )
+    .bind(if correct { 1 } else { 0 })
+    .bind(response_time_ms as i64)
+    .bind(&error_type)
+    .bind(&topic_id)
+    .bind(&difficulty)
+    .execute(pool)
+    .await
+    .map_err(|e| e.to_string())?;
+    if update_result.rows_affected() == 0 {
+        sqlx::query(
+            "INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms, last_error_type)
+             VALUES (?, ?, 1, ?, ?, ?)"
+        )
+        .bind(&topic_id)
+        .bind(&difficulty)
+        .bind(if correct { 1 } else { 0 })
+        .bind(response_time_ms as i64)
+        .bind(&error_type)
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    }
 
+    Ok(())
+}
+
+#[tauri::command]
+async fn get_next_question_recommendation(
+    state: tauri::State<'_, DbState>,
+    current_topic: String,
+    current_difficulty: String,
+) -> Result<serde_json::Value, String> {
+    let pool = &state.pool;
+
+    let stats = adaptive::fetch_stats_for_topic(pool, &current_topic, &current_difficulty)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let new_difficulty = if let Some(s) = stats {
+        let accuracy = s.correct as f64 / s.attempts as f64;
+        adaptive::recommend_next_difficulty(accuracy)
+    } else {
+        "medium".to_string()
+    };
+
+    let weak_topic = adaptive::find_weakest_topic(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(serde_json::json!({
+        "difficulty": new_difficulty,
+        "weak_topic": weak_topic,
+    }))
+}
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -94,7 +166,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             check_math,
             save_score,
-            load_scores
+            load_scores,
+            save_performance,
+            get_next_question_recommendation,
         ])
         .setup(|app| {
             let handle = app.handle().clone();
@@ -125,7 +199,21 @@ pub fn run() {
                 .execute(&pool)
                 .await
                 .map_err(|e| format!("DB init error: {}", e))?;
-
+                sqlx::query(
+                    "CREATE TABLE IF NOT EXISTS user_topic_stats (
+                    topic_id TEXT NOT NULL,
+                    difficulty TEXT NOT NULL,
+                    attempts INTEGER DEFAULT 0,
+                    correct INTEGER DEFAULT 0,
+                    total_response_time_ms INTEGER DEFAULT 0,
+                    last_error_type TEXT,
+                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (topic_id, difficulty)
+                );",
+                )
+                .execute(&pool)
+                .await
+                .map_err(|e| format!("DB init error for user_topic_stats: {}", e))?;
                 Ok::<SqlitePool, String>(pool)
             })
             .map_err(|e| {
