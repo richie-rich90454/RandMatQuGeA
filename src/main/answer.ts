@@ -4,7 +4,7 @@
  * @description This module provides comprehensive answer checking for math questions, including LaTeX conversion,
  * numeric equivalence, algebraic simplification, and vector/matrix handling. It also records user performance
  * (response time, error types) for the adaptive learning system. Updated to support Tauri commands for saving
- * performance data to SQLite and starting question timers.
+ * performance data to SQLite and starting question timers, with detailed console logging.
  */
 import * as dom from "./dom";
 import * as state from "./state";
@@ -14,23 +14,23 @@ import * as generation from "./generation";
 import {evaluate, simplify, parse} from "mathjs";
 import {invoke} from "@tauri-apps/api/core";
 
-let questionStartTime: number=0;
+let questionStartTime: number = 0;
 export function startQuestionTimer(): void{
-	questionStartTime=performance.now();
+	questionStartTime = performance.now();
 }
 export function getResponseTime(): number{
 	return Math.round(performance.now() - questionStartTime);
 }
 function detectErrorType(userAnswer: string, correctAnswer: string, topicId: string): string | null{
-	if (topicId==='rational_eq'){
+	if (topicId === 'rational_eq'){
 		if (!userAnswer.includes('/')) return 'no_common_denominator';
-		if (userAnswer.includes('+')&&!correctAnswer.includes('+')) return 'sign_error';
+		if (userAnswer.includes('+') && !correctAnswer.includes('+')) return 'sign_error';
 	}
-	if (topicId==='linear_eq'){
-		if (userAnswer.includes('-')&&!correctAnswer.includes('-')) return 'sign_error';
+	if (topicId === 'linear_eq'){
+		if (userAnswer.includes('-') && !correctAnswer.includes('-')) return 'sign_error';
 	}
-	if (topicId==='quadratic_eq'){
-		if (userAnswer.includes('^2')&&!correctAnswer.includes('^2')) return 'missing_exponent';
+	if (topicId === 'quadratic_eq'){
+		if (userAnswer.includes('^2') && !correctAnswer.includes('^2')) return 'missing_exponent';
 	}
 	return null;
 }
@@ -108,7 +108,7 @@ export async function checkAnswer(userInput?: string): Promise<void>{
 	}
 	if (!dom.userAnswer||!dom.answerResults) return;
 	let answer = userInput;
-	if (answer===undefined){
+	if (answer === undefined){
 		answer = dom.userAnswer.value.trim();
 		if (!answer){
 			ui.showNotification("Please enter an answer before checking","warning");
@@ -229,8 +229,8 @@ export async function checkAnswer(userInput?: string): Promise<void>{
 		};
 		let valA=tryEvaluate(exprA);
 		let valB=tryEvaluate(exprB);
-		if (valA!==null&&valB!==null){
-			if (Array.isArray(valA)&&Array.isArray(valB)){
+		if (valA!==null && valB!==null){
+			if (Array.isArray(valA) && Array.isArray(valB)){
 				if (valA.length===valB.length){
 					let allMatch=true;
 					for (let i=0;i<valA.length;i++){
@@ -242,7 +242,7 @@ export async function checkAnswer(userInput?: string): Promise<void>{
 					if (allMatch) return true;
 				}
 			}
-			else if (typeof valA==='number'&&typeof valB==='number'){
+			else if (typeof valA==='number' && typeof valB==='number'){
 				if (Math.abs(valA-valB)<1e-8) return true;
 			}
 		}
@@ -297,7 +297,7 @@ export async function checkAnswer(userInput?: string): Promise<void>{
 	// --- Main comparison logic ---
 	let isCorrect=false;
 	// Check if the expression contains an equals sign (equation)
-	if (answer.includes('=')&&correct.includes('=')){
+	if (answer.includes('=') && correct.includes('=')){
 		let [userLeft, userRight] = answer.split('=').map(s=>s.trim());
 		let [correctLeft, correctRight] = correct.split('=').map(s=>s.trim());
 		// Compare left sides
@@ -309,7 +309,7 @@ export async function checkAnswer(userInput?: string): Promise<void>{
 			try{
 				let varsRightUser=parse(userRight).filter((node:any)=>node.isSymbolNode).length;
 				let varsRightCorrect=parse(correctRight).filter((node:any)=>node.isSymbolNode).length;
-				if (varsRightUser===0&&varsRightCorrect===0){
+				if (varsRightUser===0 && varsRightCorrect===0){
 					let valUser=evaluate(userRight);
 					let valCorrect=evaluate(correctRight);
 					if (Math.abs(valUser-valCorrect)<1e-8){
@@ -324,7 +324,7 @@ export async function checkAnswer(userInput?: string): Promise<void>{
 				rightOk=compareExpressions(userRight, correctRight, true);
 			}
 		}
-		isCorrect = leftOk&&rightOk;
+		isCorrect = leftOk && rightOk;
 	}
 	else if (answer.includes('=') || correct.includes('=')){
 		// One is equation, other is not -> incorrect
@@ -421,8 +421,8 @@ export async function checkAnswer(userInput?: string): Promise<void>{
 					};
 					let valUser=tryEvaluate(convertedUser);
 					let valCorrect=tryEvaluate(convertedCorrect);
-					if (valUser!==null&&valCorrect!==null){
-						if (Array.isArray(valUser)&&Array.isArray(valCorrect)){
+					if (valUser!==null && valCorrect!==null){
+						if (Array.isArray(valUser) && Array.isArray(valCorrect)){
 							if (valUser.length===valCorrect.length){
 								let allMatch=true;
 								for (let i=0;i<valUser.length;i++){
@@ -436,7 +436,7 @@ export async function checkAnswer(userInput?: string): Promise<void>{
 								}
 							}
 						}
-						else if (typeof valUser==='number'&&typeof valCorrect==='number'){
+						else if (typeof valUser==='number' && typeof valCorrect==='number'){
 							if (Math.abs(valUser-valCorrect)<1e-8){
 								isCorrect=true;
 							}
@@ -506,7 +506,14 @@ export async function checkAnswer(userInput?: string): Promise<void>{
 		}
 	}
 	const responseTime=getResponseTime();
-	const errorType=!isCorrect ? detectErrorType(answer, correct, state.selectedTopic||'') : null;
+	const errorType=!isCorrect ? detectErrorType(answer, correct, state.selectedTopic || '') : null;
+	console.log("[Adaptive] Saving performance:", {
+		topicId: state.selectedTopic,
+		difficulty: state.currentDifficulty,
+		correct: isCorrect,
+		responseTimeMs: responseTime,
+		errorType: errorType
+	});
 	try{
 		await invoke('save_performance', {
 			topicId: state.selectedTopic,
@@ -515,8 +522,9 @@ export async function checkAnswer(userInput?: string): Promise<void>{
 			responseTimeMs: responseTime,
 			errorType: errorType
 		});
+		console.log("[Adaptive] Performance saved successfully");
 	}catch(e){
-		console.warn('Failed to save performance:', e);
+		console.warn("[Adaptive] Failed to save performance:", e);
 	}
 	if (settings.settings.sound){
 		const audioCtx=new (window.AudioContext||(window as any).webkitAudioContext)();
