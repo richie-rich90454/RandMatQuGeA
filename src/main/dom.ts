@@ -1,3 +1,10 @@
+/**
+ * @file dom.ts - Central DOM element references for the math quiz application.
+ * @date 2026-04-04
+ * @description This module exports references to all major DOM elements used throughout the app,
+ * including settings controls, answer area, topic grid, and the new adaptive learning toggle.
+ * Updated to include `settingsAdaptive` checkbox for enabling/disabling adaptive difficulty and weak topic recommendations.
+ */
 import {getCurrentWindow,type Window} from "@tauri-apps/api/window";
 export let questionArea: HTMLElement|null=document.getElementById("question-area");
 export let topicGrid: HTMLElement|null=document.getElementById("topic-grid");
@@ -80,6 +87,7 @@ export let avgTimeStat: HTMLElement|null=document.getElementById("avg-time-stat"
 export let mcqToggle: HTMLInputElement|null=document.getElementById("mcq-toggle") as HTMLInputElement|null;
 export let mcqChoicesContainer: HTMLElement|null=document.getElementById("mcq-choices-container");
 export let settingsMcqChoices: HTMLInputElement|null=document.getElementById("settings-mcq-choices") as HTMLInputElement|null;
+export let settingsAdaptive: HTMLInputElement|null=document.getElementById("settings-adaptive") as HTMLInputElement|null;
 try{
 	appWindow=getCurrentWindow();
 }
