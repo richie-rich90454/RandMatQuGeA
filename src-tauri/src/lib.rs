@@ -1,17 +1,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
-use tauri::Manager;
-
 #[cfg(desktop)]
 use std::sync::atomic::{AtomicBool, Ordering};
-
 #[cfg(desktop)]
 use tauri::window::Effect;
-#[cfg(desktop)]
-use tauri_utils::config::WindowEffectsConfig;
-
+use tauri::Manager;
 #[cfg(desktop)]
 use tauri::{
     async_runtime,
@@ -19,6 +13,8 @@ use tauri::{
     tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
     Runtime,
 };
+#[cfg(desktop)]
+use tauri_utils::config::WindowEffectsConfig;
 mod adaptive;
 #[derive(Serialize, Deserialize, Clone, sqlx::FromRow)]
 struct ScoreEntry {
@@ -28,26 +24,20 @@ struct ScoreEntry {
     difficulty: String,
     date: String,
 }
-
 struct DbState {
     pool: SqlitePool,
 }
-
 #[cfg(desktop)]
 static ALLOW_CLOSE: AtomicBool = AtomicBool::new(false);
-
 #[tauri::command]
 fn check_math(user_expr: String, correct_expr: String) -> bool {
     let user_num = user_expr.trim().parse::<f64>();
     let correct_num = correct_expr.trim().parse::<f64>();
-
     if let (Ok(u), Ok(c)) = (user_num, correct_num) {
         return (u - c).abs() < 1e-6;
     }
-
     user_expr.replace(' ', "").to_lowercase() == correct_expr.replace(' ', "").to_lowercase()
 }
-
 #[tauri::command]
 async fn save_score(entry: ScoreEntry, db_state: tauri::State<'_, DbState>) -> Result<(), String> {
     sqlx::query(
@@ -61,10 +51,8 @@ async fn save_score(entry: ScoreEntry, db_state: tauri::State<'_, DbState>) -> R
     .execute(&db_state.pool)
     .await
     .map_err(|e| e.to_string())?;
-
     Ok(())
 }
-
 #[tauri::command]
 async fn load_scores(db_state: tauri::State<'_, DbState>) -> Result<Vec<ScoreEntry>, String> {
     sqlx::query_as::<_, ScoreEntry>(
@@ -74,7 +62,6 @@ async fn load_scores(db_state: tauri::State<'_, DbState>) -> Result<Vec<ScoreEnt
     .await
     .map_err(|e| e.to_string())
 }
-
 #[cfg(desktop)]
 fn spawn_show_window<R: Runtime>(handle: tauri::AppHandle<R>) {
     async_runtime::spawn(async move {
@@ -96,12 +83,12 @@ async fn save_performance(
     let pool = &state.pool;
     let update_result = sqlx::query(
         "UPDATE user_topic_stats 
-         SET attempts = attempts + 1,
-             correct = correct + ?,
-             total_response_time_ms = total_response_time_ms + ?,
-             last_error_type = ?,
-             last_updated = CURRENT_TIMESTAMP
-         WHERE topic_id = ? AND difficulty = ?",
+		 SET attempts = attempts + 1,
+			 correct = correct + ?,
+			 total_response_time_ms = total_response_time_ms + ?,
+			 last_error_type = ?,
+			 last_updated = CURRENT_TIMESTAMP
+		 WHERE topic_id = ? AND difficulty = ?",
     )
     .bind(if correct { 1 } else { 0 })
     .bind(response_time_ms as i64)
@@ -113,49 +100,43 @@ async fn save_performance(
     .map_err(|e| e.to_string())?;
     if update_result.rows_affected() == 0 {
         sqlx::query(
-            "INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms, last_error_type)
-             VALUES (?, ?, 1, ?, ?, ?)"
-        )
-        .bind(&topic_id)
-        .bind(&difficulty)
-        .bind(if correct { 1 } else { 0 })
-        .bind(response_time_ms as i64)
-        .bind(&error_type)
-        .execute(pool)
-        .await
-        .map_err(|e| e.to_string())?;
+			"INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms, last_error_type)
+			 VALUES (?, ?, 1, ?, ?, ?)"
+		)
+		.bind(&topic_id)
+		.bind(&difficulty)
+		.bind(if correct { 1 } else { 0 })
+		.bind(response_time_ms as i64)
+		.bind(&error_type)
+		.execute(pool)
+		.await
+		.map_err(|e| e.to_string())?;
     }
-
     Ok(())
 }
-
 #[tauri::command]
 async fn get_next_question_recommendation(
     state: tauri::State<'_, DbState>,
     current_topic: String,
     current_difficulty: String,
-) -> Result<serde_json::Value, String> {
+) -> Result<adaptive::Recommendation, String> {
     let pool = &state.pool;
-
     let stats = adaptive::fetch_stats_for_topic(pool, &current_topic, &current_difficulty)
         .await
         .map_err(|e| e.to_string())?;
-
     let new_difficulty = if let Some(s) = stats {
         let accuracy = s.correct as f64 / s.attempts as f64;
         adaptive::recommend_next_difficulty(accuracy)
     } else {
         "medium".to_string()
     };
-
     let weak_topic = adaptive::find_weakest_topic(pool)
         .await
         .map_err(|e| e.to_string())?;
-
-    Ok(serde_json::json!({
-        "difficulty": new_difficulty,
-        "weak_topic": weak_topic,
-    }))
+    Ok(adaptive::Recommendation {
+        difficulty: new_difficulty,
+        weak_topic,
+    })
 }
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -178,14 +159,11 @@ pub fn run() {
                     .app_data_dir()
                     .unwrap_or_else(|_| std::env::temp_dir());
                 std::fs::create_dir_all(&data_dir).map_err(|e| e.to_string())?;
-
                 let db_path = data_dir.join("scores.db");
                 let db_url = format!("sqlite:{}?mode=rwc", db_path.to_string_lossy());
-
                 let pool = SqlitePool::connect(&db_url)
                     .await
                     .map_err(|e| format!("DB connect error: {}", e))?;
-
                 sqlx::query(
                     "CREATE TABLE IF NOT EXISTS scores (
 						id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -201,15 +179,15 @@ pub fn run() {
                 .map_err(|e| format!("DB init error: {}", e))?;
                 sqlx::query(
                     "CREATE TABLE IF NOT EXISTS user_topic_stats (
-                    topic_id TEXT NOT NULL,
-                    difficulty TEXT NOT NULL,
-                    attempts INTEGER DEFAULT 0,
-                    correct INTEGER DEFAULT 0,
-                    total_response_time_ms INTEGER DEFAULT 0,
-                    last_error_type TEXT,
-                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (topic_id, difficulty)
-                );",
+					topic_id TEXT NOT NULL,
+					difficulty TEXT NOT NULL,
+					attempts INTEGER DEFAULT 0,
+					correct INTEGER DEFAULT 0,
+					total_response_time_ms INTEGER DEFAULT 0,
+					last_error_type TEXT,
+					last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+					PRIMARY KEY (topic_id, difficulty)
+				);",
                 )
                 .execute(&pool)
                 .await
@@ -220,9 +198,7 @@ pub fn run() {
                 eprintln!("DB init failed: {}", e);
                 e
             })?;
-
             app.manage(DbState { pool });
-
             #[cfg(desktop)]
             if let Some(window) = app.get_webview_window("main") {
                 let w_clone = window.clone();
@@ -234,7 +210,6 @@ pub fn run() {
                         }
                     }
                 });
-
                 #[cfg(target_os = "windows")]
                 {
                     let _ = window.set_effects(WindowEffectsConfig {
@@ -243,13 +218,11 @@ pub fn run() {
                     });
                 }
             }
-
             #[cfg(desktop)]
             {
                 let show_item = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
                 let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
                 let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
-
                 let _tray = TrayIconBuilder::with_id("main")
                     .icon(app.default_window_icon().unwrap().clone())
                     .menu(&menu)
@@ -279,7 +252,6 @@ pub fn run() {
                     })
                     .build(app)?;
             }
-
             Ok(())
         })
         .run(tauri::generate_context!())

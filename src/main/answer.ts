@@ -1,12 +1,41 @@
+/**
+ * @file answer.ts - Handles answer validation, performance tracking, and adaptive learning integration.
+ * @date 2026-04-04
+ * @description This module provides comprehensive answer checking for math questions, including LaTeX conversion,
+ * numeric equivalence, algebraic simplification, and vector/matrix handling. It also records user performance
+ * (response time, error types) for the adaptive learning system. Updated to support Tauri commands for saving
+ * performance data to SQLite and starting question timers.
+ */
 import * as dom from "./dom";
 import * as state from "./state";
 import * as settings from "./settings";
 import * as ui from "./ui";
 import * as generation from "./generation";
 import {evaluate, simplify, parse} from "mathjs";
+import {invoke} from "@tauri-apps/api/core";
+
+let questionStartTime: number=0;
+export function startQuestionTimer(): void{
+	questionStartTime=performance.now();
+}
+export function getResponseTime(): number{
+	return Math.round(performance.now() - questionStartTime);
+}
+function detectErrorType(userAnswer: string, correctAnswer: string, topicId: string): string | null{
+	if (topicId==='rational_eq'){
+		if (!userAnswer.includes('/')) return 'no_common_denominator';
+		if (userAnswer.includes('+')&&!correctAnswer.includes('+')) return 'sign_error';
+	}
+	if (topicId==='linear_eq'){
+		if (userAnswer.includes('-')&&!correctAnswer.includes('-')) return 'sign_error';
+	}
+	if (topicId==='quadratic_eq'){
+		if (userAnswer.includes('^2')&&!correctAnswer.includes('^2')) return 'missing_exponent';
+	}
+	return null;
+}
 /**
  * Validates the user's answer against the expected correct answer.
- *
  * This function performs a comprehensive, multi‑stage equivalence check between the user input
  * and the pre‑computed correct answer (and its alternate form) for the currently displayed
  * integration question. It is designed to handle an extremely wide range of edge cases and
@@ -65,20 +94,21 @@ import {evaluate, simplify, parse} from "mathjs";
  * 12. **Ultimate Fallback** – Use `settings.isAnswerCorrect` (simple evaluation).
  *
  * After determining correctness, the function:
+ * - Records performance data for adaptive learning (response time, error type) via Tauri.
  * - Provides audio/vibration feedback (if enabled).
  * - Displays the result with KaTeX‑formatted correct answer (using `window.katex.renderToString`).
  * - Clears the input and, in auto‑continue mode, generates the next question.
  *
  * @throws No exceptions are thrown; errors are caught and logged, with user‑friendly notifications.
  */
-export function checkAnswer(userInput?: string): void{
+export async function checkAnswer(userInput?: string): Promise<void>{
 	if (!state.selectedTopic){
 		ui.showNotification("Please select a topic and generate a question first","warning");
 		return;
 	}
 	if (!dom.userAnswer||!dom.answerResults) return;
 	let answer = userInput;
-	if (answer === undefined){
+	if (answer===undefined){
 		answer = dom.userAnswer.value.trim();
 		if (!answer){
 			ui.showNotification("Please enter an answer before checking","warning");
@@ -199,8 +229,8 @@ export function checkAnswer(userInput?: string): void{
 		};
 		let valA=tryEvaluate(exprA);
 		let valB=tryEvaluate(exprB);
-		if (valA!==null && valB!==null){
-			if (Array.isArray(valA) && Array.isArray(valB)){
+		if (valA!==null&&valB!==null){
+			if (Array.isArray(valA)&&Array.isArray(valB)){
 				if (valA.length===valB.length){
 					let allMatch=true;
 					for (let i=0;i<valA.length;i++){
@@ -212,7 +242,7 @@ export function checkAnswer(userInput?: string): void{
 					if (allMatch) return true;
 				}
 			}
-			else if (typeof valA==='number' && typeof valB==='number'){
+			else if (typeof valA==='number'&&typeof valB==='number'){
 				if (Math.abs(valA-valB)<1e-8) return true;
 			}
 		}
@@ -267,7 +297,7 @@ export function checkAnswer(userInput?: string): void{
 	// --- Main comparison logic ---
 	let isCorrect=false;
 	// Check if the expression contains an equals sign (equation)
-	if (answer.includes('=') && correct.includes('=')){
+	if (answer.includes('=')&&correct.includes('=')){
 		let [userLeft, userRight] = answer.split('=').map(s=>s.trim());
 		let [correctLeft, correctRight] = correct.split('=').map(s=>s.trim());
 		// Compare left sides
@@ -279,7 +309,7 @@ export function checkAnswer(userInput?: string): void{
 			try{
 				let varsRightUser=parse(userRight).filter((node:any)=>node.isSymbolNode).length;
 				let varsRightCorrect=parse(correctRight).filter((node:any)=>node.isSymbolNode).length;
-				if (varsRightUser===0 && varsRightCorrect===0){
+				if (varsRightUser===0&&varsRightCorrect===0){
 					let valUser=evaluate(userRight);
 					let valCorrect=evaluate(correctRight);
 					if (Math.abs(valUser-valCorrect)<1e-8){
@@ -294,7 +324,7 @@ export function checkAnswer(userInput?: string): void{
 				rightOk=compareExpressions(userRight, correctRight, true);
 			}
 		}
-		isCorrect = leftOk && rightOk;
+		isCorrect = leftOk&&rightOk;
 	}
 	else if (answer.includes('=') || correct.includes('=')){
 		// One is equation, other is not -> incorrect
@@ -391,8 +421,8 @@ export function checkAnswer(userInput?: string): void{
 					};
 					let valUser=tryEvaluate(convertedUser);
 					let valCorrect=tryEvaluate(convertedCorrect);
-					if (valUser!==null && valCorrect!==null){
-						if (Array.isArray(valUser) && Array.isArray(valCorrect)){
+					if (valUser!==null&&valCorrect!==null){
+						if (Array.isArray(valUser)&&Array.isArray(valCorrect)){
 							if (valUser.length===valCorrect.length){
 								let allMatch=true;
 								for (let i=0;i<valUser.length;i++){
@@ -406,7 +436,7 @@ export function checkAnswer(userInput?: string): void{
 								}
 							}
 						}
-						else if (typeof valUser==='number' && typeof valCorrect==='number'){
+						else if (typeof valUser==='number'&&typeof valCorrect==='number'){
 							if (Math.abs(valUser-valCorrect)<1e-8){
 								isCorrect=true;
 							}
@@ -474,6 +504,19 @@ export function checkAnswer(userInput?: string): void{
 				}
 			}
 		}
+	}
+	const responseTime=getResponseTime();
+	const errorType=!isCorrect ? detectErrorType(answer, correct, state.selectedTopic||'') : null;
+	try{
+		await invoke('save_performance', {
+			topicId: state.selectedTopic,
+			difficulty: state.currentDifficulty,
+			correct: isCorrect,
+			responseTimeMs: responseTime,
+			errorType: errorType
+		});
+	}catch(e){
+		console.warn('Failed to save performance:', e);
 	}
 	if (settings.settings.sound){
 		const audioCtx=new (window.AudioContext||(window as any).webkitAudioContext)();
