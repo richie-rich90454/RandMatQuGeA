@@ -30,94 +30,62 @@ function wrapLatexIfNeeded(text: string): string{
 	}
 	return text;
 }
-function extractLatexSource(rawHtml: string): string{
-	if ((window as any).currentQuestionLatex){
-		return (window as any).currentQuestionLatex;
+function captureInnerHTMLAssignment(target: HTMLElement, generator: ()=>void): string{
+	let captured="";
+	const originalDescriptor=Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
+	if (!originalDescriptor||!originalDescriptor.set) return "";
+	const originalSetter=originalDescriptor.set;
+	Object.defineProperty(target, "innerHTML", {
+		set(value: string){
+			captured=value;
+			if (originalSetter) originalSetter.call(this, value);
+		},
+		get(){
+			return originalDescriptor.get?.call(this)||"";
+		},
+		configurable: true
+	});
+	try{
+		generator();
 	}
-	let tempDiv=document.createElement("div");
-	tempDiv.innerHTML=rawHtml;
-	tempDiv.querySelectorAll("canvas, script, style, [data-threejs]").forEach(el=>el.remove());
-	let mjxContainers=tempDiv.querySelectorAll("mjx-container");
-	if (mjxContainers.length>0){
-		let latexParts: string[]=[];
-		mjxContainers.forEach(container=>{
-			let assistiveMml=container.querySelector("mjx-assistive-mml math");
-			if (assistiveMml){
-				let annotation=assistiveMml.querySelector("annotation[encoding='application/x-tex']");
-				if (annotation&&annotation.textContent){
-					let tex=annotation.textContent.trim();
-					if (container.hasAttribute("display")&&container.getAttribute("display")==="true"){
-						latexParts.push(`$$${tex}$$`);
-					}
-					else{
-						latexParts.push(`\\(${tex}\\)`);
-					}
-				}
-			}
+	finally{
+		Object.defineProperty(target, "innerHTML", {
+			set: originalSetter,
+			get: originalDescriptor.get,
+			configurable: true
 		});
-		if (latexParts.length>0) return latexParts.join(" ");
 	}
-	let svgContainers=tempDiv.querySelectorAll("svg[data-mml-node]");
-	if (svgContainers.length>0){
-		let latexParts: string[]=[];
-		svgContainers.forEach(svg=>{
-			let title=svg.querySelector("title");
-			if (title&&title.textContent){
-				let tex=title.textContent.trim();
-				if (svg.getAttribute("data-mml-node")==="math"&&svg.getAttribute("display")==="block"){
-					latexParts.push(`$$${tex}$$`);
-				}
-				else{
-					latexParts.push(`\\(${tex}\\)`);
-				}
-			}
-		});
-		if (latexParts.length>0) return latexParts.join(" ");
-	}
-	let textContent=tempDiv.textContent||"";
-	return escapeHtml(textContent);
+	return captured;
 }
-async function waitForQuestionContent(timeoutMs: number=2000): Promise<void>{
-	let start=Date.now();
-	let lastHtml="";
-	let stableCount=0;
-	let requiredStable=2;
-	while (Date.now()-start<timeoutMs){
-		let current=dom.questionArea?.innerHTML||"";
-		if (current&&current===lastHtml){
-			stableCount++;
-			if (stableCount>=requiredStable) return;
-		}
-		else{
-			stableCount=0;
-		}
-		lastHtml=current;
-		await new Promise(r=>setTimeout(r, 50));
+function extractLaTeXFromCapturedHTML(html: string): string{
+	const temp=document.createElement("div");
+	temp.innerHTML=html;
+	temp.querySelectorAll("canvas, script, style, [data-threejs]").forEach(el=>el.remove());
+	const mjx=temp.querySelector("mjx-container");
+	if (mjx){
+		const assistive=mjx.querySelector("mjx-assistive-mml math annotation[encoding='application/x-tex']");
+		if (assistive?.textContent) return assistive.textContent.trim();
 	}
+	const pre=temp.querySelector("script[type='math/tex'], script[type='math/tex; mode=display']");
+	if (pre?.textContent) return pre.textContent.trim();
+	return temp.innerHTML;
 }
 async function generateQuestionText(topicId: string, difficulty: string): Promise<{ html: string; answerDisplay: string }>{
-	if (!dom.questionArea){
-		return { html: "Error: Question area not found", answerDisplay: "" };
-	}
-	let originalHtml=dom.questionArea.innerHTML;
-	let originalCorrectAnswer=(window as any).correctAnswer;
-	let originalQuestionLatex=(window as any).currentQuestionLatex;
+	if (!dom.questionArea) return { html: "Error: Question area not found", answerDisplay: "" };
+	const originalHtml=dom.questionArea.innerHTML;
+	const originalCorrectAnswer=(window as any).correctAnswer;
 	try{
 		dom.questionArea.innerHTML="";
-		callGenerator(topicId, difficulty);
-		await waitForQuestionContent(3000);
-		let rawHtml=dom.questionArea.innerHTML||"";
-		let latexSource=extractLatexSource(rawHtml);
-		let ansObj=(window as any).correctAnswer;
-		let answer=ansObj?.correct||"";
-		let answerDisplay=ansObj?.display||answer;
-		answerDisplay=wrapLatexIfNeeded(answerDisplay);
+		const capturedHTML=captureInnerHTMLAssignment(dom.questionArea, ()=>callGenerator(topicId, difficulty));
+		const latexSource=extractLaTeXFromCapturedHTML(capturedHTML);
+		const ansObj=(window as any).correctAnswer;
+		const answer=ansObj?.correct||"";
+		const answerDisplay=wrapLatexIfNeeded(ansObj?.display||answer);
 		return { html: latexSource, answerDisplay };
 	}
 	finally{
 		dom.questionArea.innerHTML=originalHtml;
 		(window as any).correctAnswer=originalCorrectAnswer;
-		(window as any).currentQuestionLatex=originalQuestionLatex;
 	}
 }
 function updateTopicDropdown(): void{
@@ -154,19 +122,14 @@ async function generateWorksheet(): Promise<void>{
 	let questions: Array<{ html: string; answerDisplay: string }>=[];
 	for (let i=0; i<count; i++){
 		let selectedTopic=topicList[Math.floor(Math.random()*topicList.length)];
-		let diff=difficulty==="mixed"
-			? ["easy", "medium", "hard"][Math.floor(Math.random()*3)]
-			: difficulty;
+		let diff=difficulty==="mixed"?["easy","medium","hard"][Math.floor(Math.random()*3)]:difficulty;
 		try{
 			let q=await generateQuestionText(selectedTopic, diff);
 			questions.push(q);
 		}
 		catch (err){
 			console.error("Question generation failed:", err);
-			questions.push({
-				html: "[Error generating question]",
-				answerDisplay: ""
-			});
+			questions.push({ html: "\\text{[Error generating question]}", answerDisplay: "" });
 		}
 	}
 	let docHtml=`<!DOCTYPE html>
@@ -187,7 +150,7 @@ async function generateWorksheet(): Promise<void>{
 	<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" defer></script>
 	<style>
 		body{
-			font-family: serif;
+			font-family: "Times New Roman", serif;
 			font-size: 12pt;
 			margin: 0.75in;
 			padding: 0;
@@ -261,12 +224,8 @@ async function generateWorksheet(): Promise<void>{
 		window.addEventListener("load", function(){
 			if (window.MathJax&&typeof window.MathJax.typesetPromise==="function"){
 				window.MathJax.typesetPromise()
-					.then(()=>{
-						setTimeout(()=>window.print(), 800);
-					})
-					.catch(()=>{
-						setTimeout(()=>window.print(), 1500);
-					});
+					.then(()=>{ setTimeout(()=>window.print(), 800); })
+					.catch(()=>{ setTimeout(()=>window.print(), 1500); });
 			}
 			else{
 				setTimeout(()=>window.print(), 2000);
