@@ -1,7 +1,6 @@
-// src/main/printWorksheet.ts
 /**
  * @file printWorksheet.ts - Handles printable worksheet generation (Kuta-style)
- * @date 2026-04-05
+ * @date 2026-04-09
  * @description Generates a standalone HTML document with questions and optional answer key,
  * using MathJax for LaTeX rendering. Properly cleans up #question-area after each generation
  * so no canvas, Three.js, or other artifacts remain in the main UI.
@@ -32,50 +31,55 @@ function wrapLatexIfNeeded(text: string): string{
 	return text;
 }
 function extractLatexSource(rawHtml: string): string{
+	// First, try to use a global variable set by the generator (if available)
+	if ((window as any).currentQuestionLatex){
+		return (window as any).currentQuestionLatex;
+	}
 	let tempDiv=document.createElement("div");
 	tempDiv.innerHTML=rawHtml;
 	tempDiv.querySelectorAll("canvas, script, style, [data-threejs]").forEach(el=>el.remove());
-	let scripts=tempDiv.querySelectorAll("script[type='math/tex'], script[type='math/tex; mode=display']");
-	if (scripts.length>0){
+	// Look for MathJax CHTML assistive MathML containing TeX annotation
+	let mjxContainers=tempDiv.querySelectorAll("mjx-container");
+	if (mjxContainers.length>0){
 		let latexParts: string[]=[];
-		scripts.forEach(script=>{
-			let content=script.textContent||"";
-			if (script.getAttribute("type")==="math/tex; mode=display"){
-				latexParts.push(`$$${content}$$`);
-			}
-			else{
-				latexParts.push(`\\(${content}\\)`);
-			}
-			script.remove();
-		});
-		if (latexParts.length>0) return latexParts.join(" ");
-	}
-	let katexSpans=tempDiv.querySelectorAll(".katex");
-	if (katexSpans.length>0){
-		let latexParts: string[]=[];
-		katexSpans.forEach(span=>{
-			let annotation=span.querySelector(".katex-mathml annotation[encoding='application/x-tex']");
-			if (annotation){
-				let content=annotation.textContent||"";
-				if (span.closest(".katex-display")){
-					latexParts.push(`$$${content}$$`);
-				}
-				else{
-					latexParts.push(`\\(${content}\\)`);
-				}
-			}
-			else{
-				let mathSpan=span.querySelector(".katex-html");
-				if (mathSpan){
-					let text=mathSpan.textContent||"";
-					latexParts.push(escapeHtml(text));
+		mjxContainers.forEach(container=>{
+			let assistiveMml=container.querySelector("mjx-assistive-mml math");
+			if (assistiveMml){
+				let annotation=assistiveMml.querySelector("annotation[encoding='application/x-tex']");
+				if (annotation&&annotation.textContent){
+					let tex=annotation.textContent.trim();
+					// Determine if it was display or inline
+					if (container.hasAttribute("display")&&container.getAttribute("display")==="true"){
+						latexParts.push(`$$${tex}$$`);
+					}
+					else{
+						latexParts.push(`\\(${tex}\\)`);
+					}
 				}
 			}
 		});
 		if (latexParts.length>0) return latexParts.join(" ");
 	}
-	let textContent=tempDiv.textContent||"";
-	return escapeHtml(textContent);
+	// If no MathJax containers, assume the HTML still contains raw LaTeX delimiters
+	let textParts: string[]=[];
+	let processNode=(node: Node)=>{
+		if (node.nodeType===Node.TEXT_NODE){
+			let text=node.textContent||"";
+			textParts.push(text);
+		}
+		else if (node.nodeType===Node.ELEMENT_NODE){
+			let el=node as Element;
+			if (el.tagName==="BR"){
+				textParts.push("\n");
+			}
+			else{
+				for (let child of el.childNodes) processNode(child);
+				if (el.tagName==="P"||el.tagName==="DIV") textParts.push("\n");
+			}
+		}
+	};
+	processNode(tempDiv);
+	return textParts.join("").trim();
 }
 async function waitForQuestionContent(timeoutMs: number=2000): Promise<void>{
 	let start=Date.now();
@@ -107,7 +111,7 @@ async function generateQuestionText(topicId: string, difficulty: string): Promis
 		callGenerator(topicId, difficulty);
 		await waitForQuestionContent(3000);
 		let rawHtml=dom.questionArea.innerHTML||"";
-		let latexSource=(window as any).currentQuestionLatex||extractLatexSource(rawHtml);
+		let latexSource=extractLatexSource(rawHtml);
 		let ansObj=(window as any).correctAnswer;
 		let answer=ansObj?.correct||"";
 		let answerDisplay=ansObj?.display||answer;
@@ -217,7 +221,7 @@ async function generateWorksheet(): Promise<void>{
 		}
 		.question-text{
 			margin-bottom: 12px;
-			display: inline-block;
+			display: block;
 		}
 		.answer-space{
 			height: 1.4em;
