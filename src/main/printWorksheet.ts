@@ -14,14 +14,6 @@ let topicSelect: HTMLSelectElement|null=null;
 let scopeSelect: HTMLSelectElement|null=null;
 let difficultySelect: HTMLSelectElement|null=null;
 let answerKeyCheckbox: HTMLInputElement|null=null;
-function escapeHtml(str: string): string{
-	return str.replace(/[&<>]/g, (m)=>{
-		if (m==="&") return "&amp;";
-		if (m==="<") return "&lt;";
-		if (m===">") return "&gt;";
-		return m;
-	});
-}
 function wrapLatexIfNeeded(text: string): string{
 	if (!text) return "";
 	if (text.match(/\\\(.*\\\)/)||text.match(/\$\$.*\$\$/)||text.match(/\$.*\$/)) return text;
@@ -30,57 +22,101 @@ function wrapLatexIfNeeded(text: string): string{
 	}
 	return text;
 }
-function captureInnerHTMLAssignment(target: HTMLElement, generator: ()=>void): string{
-	let captured="";
-	const originalDescriptor=Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
-	if (!originalDescriptor||!originalDescriptor.set) return "";
-	const originalSetter=originalDescriptor.set;
-	Object.defineProperty(target, "innerHTML", {
-		set(value: string){
-			captured=value;
-			if (originalSetter) originalSetter.call(this, value);
-		},
-		get(){
-			return originalDescriptor.get?.call(this)||"";
-		},
-		configurable: true
-	});
+function escapeLatexForJs(latex: string): string{
+	return latex.replace(/\\/g, "\\\\");
+}
+function captureRawLatexDuringGeneration(generator: ()=>void): string{
+	let originalMathJaxTypesetPromise=(window as any).MathJax?.typesetPromise;
+	let originalMathJaxTypeset=(window as any).MathJax?.typeset;
+	let originalKatexRender=(window as any).katex?.render;
+	let originalKatexRenderToString=(window as any).katex?.renderToString;
+	let capturedLatex="";
+	let captureMathJaxElement=(el: HTMLElement)=>{
+		if (!capturedLatex){
+			capturedLatex=el.innerHTML;
+		}
+	};
+	let captureKatex=(latex: string, element: HTMLElement)=>{
+		if (!capturedLatex){
+			capturedLatex=latex;
+		}
+		if (originalKatexRender){
+			originalKatexRender(latex, element);
+		}
+		else{
+			element.innerHTML=latex;
+		}
+	};
+	if ((window as any).MathJax){
+		if (originalMathJaxTypesetPromise){
+			(window as any).MathJax.typesetPromise=async (elements?: any[])=>{
+				if (elements && elements.length){
+					for (let el of elements){
+						if (el instanceof HTMLElement){
+							captureMathJaxElement(el);
+							break;
+						}
+					}
+				}
+				return originalMathJaxTypesetPromise.call((window as any).MathJax, elements);
+			};
+		}
+		if (originalMathJaxTypeset){
+			(window as any).MathJax.typeset=(elements?: any[])=>{
+				if (elements && elements.length){
+					for (let el of elements){
+						if (el instanceof HTMLElement){
+							captureMathJaxElement(el);
+							break;
+						}
+					}
+				}
+				return originalMathJaxTypeset.call((window as any).MathJax, elements);
+			};
+		}
+	}
+	if ((window as any).katex){
+		(window as any).katex.render=captureKatex;
+		if (originalKatexRenderToString){
+			(window as any).katex.renderToString=(latex: string)=>{
+				if (!capturedLatex){
+					capturedLatex=latex;
+				}
+				return originalKatexRenderToString(latex);
+			};
+		}
+	}
 	try{
+		dom.questionArea!.innerHTML="";
 		generator();
 	}
 	finally{
-		Object.defineProperty(target, "innerHTML", {
-			set: originalSetter,
-			get: originalDescriptor.get,
-			configurable: true
-		});
+		if (originalMathJaxTypesetPromise) (window as any).MathJax.typesetPromise=originalMathJaxTypesetPromise;
+		if (originalMathJaxTypeset) (window as any).MathJax.typeset=originalMathJaxTypeset;
+		if (originalKatexRender) (window as any).katex.render=originalKatexRender;
+		if (originalKatexRenderToString) (window as any).katex.renderToString=originalKatexRenderToString;
 	}
-	return captured;
-}
-function extractLaTeXFromCapturedHTML(html: string): string{
-	const temp=document.createElement("div");
-	temp.innerHTML=html;
-	temp.querySelectorAll("canvas, script, style, [data-threejs]").forEach(el=>el.remove());
-	const mjx=temp.querySelector("mjx-container");
-	if (mjx){
-		const assistive=mjx.querySelector("mjx-assistive-mml math annotation[encoding='application/x-tex']");
-		if (assistive?.textContent) return assistive.textContent.trim();
+	if (!capturedLatex && dom.questionArea){
+		let temp=document.createElement("div");
+		temp.innerHTML=dom.questionArea.innerHTML;
+		temp.querySelectorAll("canvas, script, style, [data-threejs]").forEach(el=>el.remove());
+		capturedLatex=temp.innerHTML;
 	}
-	const pre=temp.querySelector("script[type='math/tex'], script[type='math/tex; mode=display']");
-	if (pre?.textContent) return pre.textContent.trim();
-	return temp.innerHTML;
+	let cleanDiv=document.createElement("div");
+	cleanDiv.innerHTML=capturedLatex;
+	cleanDiv.querySelectorAll("canvas, script, style, [data-threejs]").forEach(el=>el.remove());
+	return cleanDiv.innerHTML;
 }
 async function generateQuestionText(topicId: string, difficulty: string): Promise<{ html: string; answerDisplay: string }>{
-	if (!dom.questionArea) return { html: "Error: Question area not found", answerDisplay: "" };
-	const originalHtml=dom.questionArea.innerHTML;
-	const originalCorrectAnswer=(window as any).correctAnswer;
+	if (!dom.questionArea){
+		return { html: "\\text{Error: Question area not found}", answerDisplay: "" };
+	}
+	let originalHtml=dom.questionArea.innerHTML;
+	let originalCorrectAnswer=(window as any).correctAnswer;
 	try{
-		dom.questionArea.innerHTML="";
-		const capturedHTML=captureInnerHTMLAssignment(dom.questionArea, ()=>callGenerator(topicId, difficulty));
-		const latexSource=extractLaTeXFromCapturedHTML(capturedHTML);
-		const ansObj=(window as any).correctAnswer;
-		const answer=ansObj?.correct||"";
-		const answerDisplay=wrapLatexIfNeeded(ansObj?.display||answer);
+		let latexSource=captureRawLatexDuringGeneration(()=>callGenerator(topicId, difficulty));
+		let ansObj=(window as any).correctAnswer;
+		let answerDisplay=wrapLatexIfNeeded(ansObj?.display||ansObj?.correct||"");
 		return { html: latexSource, answerDisplay };
 	}
 	finally{
@@ -132,7 +168,23 @@ async function generateWorksheet(): Promise<void>{
 			questions.push({ html: "\\text{[Error generating question]}", answerDisplay: "" });
 		}
 	}
-	let docHtml=`<!DOCTYPE html>
+	let questionsHtml="";
+	for (let q of questions){
+		questionsHtml+=`
+			<li class="question-item">
+				<div class="question-text">${escapeLatexForJs(q.html)}</div>
+				<div class="answer-space"></div>
+			</li>`;
+	}
+	let answersHtml="";
+	if (includeAnswers){
+		answersHtml=`<div class="answer-key"><h2>Answer Key</h2><ol id="answer-key" class="no-mathjax">`;
+		for (let q of questions){
+			answersHtml+=`<li>${escapeLatexForJs(q.answerDisplay)}</li>`;
+		}
+		answersHtml+=`</ol></div>`;
+	}
+	let fullHtml=`<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">
@@ -144,10 +196,14 @@ async function generateWorksheet(): Promise<void>{
 				displayMath: [["$$", "$$"], ["\\\\[", "\\\\]"]]
 			},
 			svg: { fontCache: "global" },
-			options: { ignoreHtmlClass: "tex2jax_ignore", processHtmlClass: "tex2jax_process" }
+			options: { ignoreHtmlClass: "no-mathjax", processHtmlClass: "mathjax-process" }
 		};
 	</script>
 	<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" defer></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+		onload="renderMathInElement(document.getElementById('answer-key'), { delimiters: [{left: '\\\\\\\\(', right: '\\\\\\\\)', display: false}] });"></script>
 	<style>
 		body{
 			font-family: "Times New Roman", serif;
@@ -202,23 +258,10 @@ async function generateWorksheet(): Promise<void>{
 		<p>Topic: ${topic==="all"?`Scope: ${scope}`:(topics.find(t=>t.id===topic)?.name||topic)}</p>
 		<p>Difficulty: ${difficulty}</p>
 		<hr>
-		<ol class="questions-list">`;
-	for (let q of questions){
-		docHtml+=`
-			<li class="question-item">
-				<div class="question-text tex2jax_process">${q.html}</div>
-				<div class="answer-space"></div>
-			</li>`;
-	}
-	docHtml+=`</ol>`;
-	if (includeAnswers){
-		docHtml+=`<div class="answer-key"><h2>Answer Key</h2><ol class="tex2jax_process">`;
-		for (let q of questions){
-			docHtml+=`<li>${wrapLatexIfNeeded(q.answerDisplay)}</li>`;
-		}
-		docHtml+=`</ol></div>`;
-	}
-	docHtml+=`
+		<ol class="questions-list mathjax-process">
+			${questionsHtml}
+		</ol>
+		${answersHtml}
 	</div>
 	<script>
 		window.addEventListener("load", function(){
@@ -236,7 +279,7 @@ async function generateWorksheet(): Promise<void>{
 </html>`;
 	let printWindow=window.open("", "_blank", "width=1200,height=900");
 	if (printWindow){
-		printWindow.document.write(docHtml);
+		printWindow.document.write(fullHtml);
 		printWindow.document.close();
 		printWindow.focus();
 	}
