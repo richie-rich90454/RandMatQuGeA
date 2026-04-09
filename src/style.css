@@ -1846,7 +1846,7 @@ hr.context-menu-divider{
 		display: none !important;
 	}
 }
-.loading-overlay {
+.loading-overlay{
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -1858,6 +1858,6 @@ hr.context-menu-divider{
 	justify-content: center;
 	z-index: 1000;
 }
-.print-content {
+.print-content{
 	position: relative;
 }
