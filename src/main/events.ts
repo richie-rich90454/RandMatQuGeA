@@ -10,6 +10,7 @@ import {check} from "@tauri-apps/plugin-updater";
 import {relaunch} from "@tauri-apps/plugin-process";
 import packageJson from "../../package.json";
 import semver from "semver";
+import {initPrintModal, openPrintModal} from "./printWorksheet";
 function isVersionGreater(v1: string, v2: string): boolean{
     const cleanV1=v1.replace(/^v/, "");
     const cleanV2=v2.replace(/^v/, "");
@@ -408,4 +409,7 @@ export function setupEventListeners(): void{
 			}
 		});
 	}
+	initPrintModal();
+	const printWorksheetBtn=document.getElementById("print-worksheet-btn");
+	if (printWorksheetBtn) printWorksheetBtn.addEventListener("click", openPrintModal);
 }
