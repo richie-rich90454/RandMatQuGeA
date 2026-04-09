@@ -31,14 +31,12 @@ function wrapLatexIfNeeded(text: string): string{
 	return text;
 }
 function extractLatexSource(rawHtml: string): string{
-	// First, try to use a global variable set by the generator (if available)
 	if ((window as any).currentQuestionLatex){
 		return (window as any).currentQuestionLatex;
 	}
 	let tempDiv=document.createElement("div");
 	tempDiv.innerHTML=rawHtml;
 	tempDiv.querySelectorAll("canvas, script, style, [data-threejs]").forEach(el=>el.remove());
-	// Look for MathJax CHTML assistive MathML containing TeX annotation
 	let mjxContainers=tempDiv.querySelectorAll("mjx-container");
 	if (mjxContainers.length>0){
 		let latexParts: string[]=[];
@@ -48,7 +46,6 @@ function extractLatexSource(rawHtml: string): string{
 				let annotation=assistiveMml.querySelector("annotation[encoding='application/x-tex']");
 				if (annotation&&annotation.textContent){
 					let tex=annotation.textContent.trim();
-					// Determine if it was display or inline
 					if (container.hasAttribute("display")&&container.getAttribute("display")==="true"){
 						latexParts.push(`$$${tex}$$`);
 					}
@@ -60,26 +57,25 @@ function extractLatexSource(rawHtml: string): string{
 		});
 		if (latexParts.length>0) return latexParts.join(" ");
 	}
-	// If no MathJax containers, assume the HTML still contains raw LaTeX delimiters
-	let textParts: string[]=[];
-	let processNode=(node: Node)=>{
-		if (node.nodeType===Node.TEXT_NODE){
-			let text=node.textContent||"";
-			textParts.push(text);
-		}
-		else if (node.nodeType===Node.ELEMENT_NODE){
-			let el=node as Element;
-			if (el.tagName==="BR"){
-				textParts.push("\n");
+	let svgContainers=tempDiv.querySelectorAll("svg[data-mml-node]");
+	if (svgContainers.length>0){
+		let latexParts: string[]=[];
+		svgContainers.forEach(svg=>{
+			let title=svg.querySelector("title");
+			if (title&&title.textContent){
+				let tex=title.textContent.trim();
+				if (svg.getAttribute("data-mml-node")==="math"&&svg.getAttribute("display")==="block"){
+					latexParts.push(`$$${tex}$$`);
+				}
+				else{
+					latexParts.push(`\\(${tex}\\)`);
+				}
 			}
-			else{
-				for (let child of el.childNodes) processNode(child);
-				if (el.tagName==="P"||el.tagName==="DIV") textParts.push("\n");
-			}
-		}
-	};
-	processNode(tempDiv);
-	return textParts.join("").trim();
+		});
+		if (latexParts.length>0) return latexParts.join(" ");
+	}
+	let textContent=tempDiv.textContent||"";
+	return escapeHtml(textContent);
 }
 async function waitForQuestionContent(timeoutMs: number=2000): Promise<void>{
 	let start=Date.now();
