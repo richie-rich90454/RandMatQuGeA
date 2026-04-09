@@ -17,58 +17,73 @@ let difficultySelect: HTMLSelectElement|null=null;
 let answerKeyCheckbox: HTMLInputElement|null=null;
 function escapeHtml(str: string): string{
 	return str.replace(/[&<>]/g, (m)=>{
-		if (m==='&') return '&amp;';
-		if (m==='<') return '&lt;';
-		if (m==='>') return '&gt;';
+		if (m==="&") return "&amp;";
+		if (m==="<") return "&lt;";
+		if (m===">") return "&gt;";
 		return m;
 	});
 }
 function wrapLatexIfNeeded(text: string): string{
-	if (!text) return '';
+	if (!text) return "";
 	if (text.match(/\\\(.*\\\)/)||text.match(/\$\$.*\$\$/)||text.match(/\$.*\$/)) return text;
 	if (/\\[a-zA-Z]+|[_^]|[{}]|\\[(){}\[\]]/.test(text)){
 		return `\\(${text}\\)`;
 	}
 	return text;
 }
-function cleanQuestionText(html: string): string{
-	let tempDiv=document.createElement('div');
-	tempDiv.innerHTML=html;
-	tempDiv.querySelectorAll('canvas, script, style, [data-threejs]').forEach(el=>el.remove());
-	let lines: string[]=[];
-	let walk=(node: Node)=>{
-		if (node.nodeType===Node.TEXT_NODE){
-			let text=node.textContent?.trim()||'';
-			if (text) lines.push(text);
-		}
-		else if (node.nodeType===Node.ELEMENT_NODE){
-			let el=node as Element;
-			if (el.tagName==='BR'){
-				lines.push('');
-			}
-			else if (el.tagName==='P'||el.tagName==='DIV'){
-				walkChildren(el);
-				lines.push('');
+function extractLatexSource(rawHtml: string): string{
+	let tempDiv=document.createElement("div");
+	tempDiv.innerHTML=rawHtml;
+	tempDiv.querySelectorAll("canvas, script, style, [data-threejs]").forEach(el=>el.remove());
+	let scripts=tempDiv.querySelectorAll("script[type='math/tex'], script[type='math/tex; mode=display']");
+	if (scripts.length>0){
+		let latexParts: string[]=[];
+		scripts.forEach(script=>{
+			let content=script.textContent||"";
+			if (script.getAttribute("type")==="math/tex; mode=display"){
+				latexParts.push(`$$${content}$$`);
 			}
 			else{
-				walkChildren(el);
+				latexParts.push(`\\(${content}\\)`);
 			}
-		}
-	};
-	let walkChildren=(parent: Element)=>{
-		for (let child of parent.childNodes) walk(child);
-	};
-	walkChildren(tempDiv);
-	let cleaned=lines.filter((line, idx, arr)=>line!==''||(idx>0&&arr[idx-1]!==''));
-	return cleaned.map(l=>l===''?'<br>':`<span class="question-line">${escapeHtml(l)}</span>`).join('');
+			script.remove();
+		});
+		if (latexParts.length>0) return latexParts.join(" ");
+	}
+	let katexSpans=tempDiv.querySelectorAll(".katex");
+	if (katexSpans.length>0){
+		let latexParts: string[]=[];
+		katexSpans.forEach(span=>{
+			let annotation=span.querySelector(".katex-mathml annotation[encoding='application/x-tex']");
+			if (annotation){
+				let content=annotation.textContent||"";
+				if (span.closest(".katex-display")){
+					latexParts.push(`$$${content}$$`);
+				}
+				else{
+					latexParts.push(`\\(${content}\\)`);
+				}
+			}
+			else{
+				let mathSpan=span.querySelector(".katex-html");
+				if (mathSpan){
+					let text=mathSpan.textContent||"";
+					latexParts.push(escapeHtml(text));
+				}
+			}
+		});
+		if (latexParts.length>0) return latexParts.join(" ");
+	}
+	let textContent=tempDiv.textContent||"";
+	return escapeHtml(textContent);
 }
 async function waitForQuestionContent(timeoutMs: number=2000): Promise<void>{
 	let start=Date.now();
-	let lastHtml='';
+	let lastHtml="";
 	let stableCount=0;
 	let requiredStable=2;
 	while (Date.now()-start<timeoutMs){
-		let current=dom.questionArea?.innerHTML||'';
+		let current=dom.questionArea?.innerHTML||"";
 		if (current&&current===lastHtml){
 			stableCount++;
 			if (stableCount>=requiredStable) return;
@@ -86,21 +101,23 @@ async function generateQuestionText(topicId: string, difficulty: string): Promis
 	}
 	let originalHtml=dom.questionArea.innerHTML;
 	let originalCorrectAnswer=(window as any).correctAnswer;
+	let originalQuestionLatex=(window as any).currentQuestionLatex;
 	try{
-		dom.questionArea.innerHTML='';
+		dom.questionArea.innerHTML="";
 		callGenerator(topicId, difficulty);
 		await waitForQuestionContent(3000);
-		let rawHtml=dom.questionArea.innerHTML||'';
-		let cleanedHtml=cleanQuestionText(rawHtml);
+		let rawHtml=dom.questionArea.innerHTML||"";
+		let latexSource=(window as any).currentQuestionLatex||extractLatexSource(rawHtml);
 		let ansObj=(window as any).correctAnswer;
-		let answer=ansObj?.correct||'';
+		let answer=ansObj?.correct||"";
 		let answerDisplay=ansObj?.display||answer;
 		answerDisplay=wrapLatexIfNeeded(answerDisplay);
-		return { html: cleanedHtml, answerDisplay };
+		return { html: latexSource, answerDisplay };
 	}
 	finally{
 		dom.questionArea.innerHTML=originalHtml;
 		(window as any).correctAnswer=originalCorrectAnswer;
+		(window as any).currentQuestionLatex=originalQuestionLatex;
 	}
 }
 function updateTopicDropdown(): void{
@@ -108,22 +125,22 @@ function updateTopicDropdown(): void{
 	let scope=scopeSelect.value;
 	let allowedIds=scopeTopics[scope as keyof typeof scopeTopics]||scopeTopics.all;
 	let filteredTopics=topics.filter(t=>allowedIds.includes(t.id));
-	topicSelect.innerHTML='<option value="all">All topics (from selected scope)</option>';
+	topicSelect.innerHTML="<option value=\"all\">All topics (from selected scope)</option>";
 	for (let t of filteredTopics){
-		let opt=document.createElement('option');
+		let opt=document.createElement("option");
 		opt.value=t.id;
 		opt.textContent=t.name;
 		topicSelect.appendChild(opt);
 	}
 }
 async function generateWorksheet(): Promise<void>{
-	let count=parseInt(questionCountSelect?.value||'10', 10);
-	let topic=topicSelect?.value||'all';
-	let scope=scopeSelect?.value||'all';
-	let difficulty=difficultySelect?.value||'medium';
+	let count=parseInt(questionCountSelect?.value||"10", 10);
+	let topic=topicSelect?.value||"all";
+	let scope=scopeSelect?.value||"all";
+	let difficulty=difficultySelect?.value||"medium";
 	let includeAnswers=answerKeyCheckbox?.checked||false;
 	let topicList: string[]=[];
-	if (topic==='all'){
+	if (topic==="all"){
 		let allowedIds=scopeTopics[scope as keyof typeof scopeTopics]||scopeTopics.all;
 		topicList=allowedIds;
 	}
@@ -131,24 +148,24 @@ async function generateWorksheet(): Promise<void>{
 		topicList=[topic];
 	}
 	if (topicList.length===0){
-		alert('No topics available in this scope.');
+		alert("No topics available in this scope.");
 		return;
 	}
 	let questions: Array<{ html: string; answerDisplay: string }>=[];
 	for (let i=0; i<count; i++){
 		let selectedTopic=topicList[Math.floor(Math.random()*topicList.length)];
-		let diff=difficulty==='mixed'
-			? ['easy', 'medium', 'hard'][Math.floor(Math.random()*3)]
+		let diff=difficulty==="mixed"
+			? ["easy", "medium", "hard"][Math.floor(Math.random()*3)]
 			: difficulty;
 		try{
 			let q=await generateQuestionText(selectedTopic, diff);
 			questions.push(q);
 		}
 		catch (err){
-			console.error('Question generation failed:', err);
+			console.error("Question generation failed:", err);
 			questions.push({
-				html: '<span class="question-line">[Error generating question]</span>',
-				answerDisplay: ''
+				html: "[Error generating question]",
+				answerDisplay: ""
 			});
 		}
 	}
@@ -157,6 +174,16 @@ async function generateWorksheet(): Promise<void>{
 <head>
 	<meta charset="UTF-8">
 	<title>Math Worksheet</title>
+	<script>
+		window.MathJax={
+			tex: {
+				inlineMath: [["$", "$"], ["\\\\(", "\\\\)"]],
+				displayMath: [["$$", "$$"], ["\\\\[", "\\\\]"]]
+			},
+			svg: { fontCache: "global" },
+			options: { ignoreHtmlClass: "tex2jax_ignore", processHtmlClass: "tex2jax_process" }
+		};
+	</script>
 	<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" defer></script>
 	<style>
 		body{
@@ -190,11 +217,7 @@ async function generateWorksheet(): Promise<void>{
 		}
 		.question-text{
 			margin-bottom: 12px;
-            display: inline-flex;
-		}
-		.question-line{
-			display: block;
-			margin: 3px 0;
+			display: inline-block;
 		}
 		.answer-space{
 			height: 1.4em;
@@ -213,20 +236,20 @@ async function generateWorksheet(): Promise<void>{
 <body>
 	<div class="worksheet">
 		<h1>Math Worksheet</h1>
-		<p>Topic: ${topic==='all'?`Scope: ${scope}`:(topics.find(t=>t.id===topic)?.name||topic)}</p>
+		<p>Topic: ${topic==="all"?`Scope: ${scope}`:(topics.find(t=>t.id===topic)?.name||topic)}</p>
 		<p>Difficulty: ${difficulty}</p>
 		<hr>
 		<ol class="questions-list">`;
 	for (let q of questions){
 		docHtml+=`
 			<li class="question-item">
-				<div class="question-text">${q.html}</div>
+				<div class="question-text tex2jax_process">${q.html}</div>
 				<div class="answer-space"></div>
 			</li>`;
 	}
 	docHtml+=`</ol>`;
 	if (includeAnswers){
-		docHtml+=`<div class="answer-key"><h2>Answer Key</h2><ol>`;
+		docHtml+=`<div class="answer-key"><h2>Answer Key</h2><ol class="tex2jax_process">`;
 		for (let q of questions){
 			docHtml+=`<li>${wrapLatexIfNeeded(q.answerDisplay)}</li>`;
 		}
@@ -235,8 +258,8 @@ async function generateWorksheet(): Promise<void>{
 	docHtml+=`
 	</div>
 	<script>
-		window.addEventListener('load', function(){
-			if (window.MathJax&&typeof window.MathJax.typesetPromise==='function'){
+		window.addEventListener("load", function(){
+			if (window.MathJax&&typeof window.MathJax.typesetPromise==="function"){
 				window.MathJax.typesetPromise()
 					.then(()=>{
 						setTimeout(()=>window.print(), 800);
@@ -252,7 +275,7 @@ async function generateWorksheet(): Promise<void>{
 	</script>
 </body>
 </html>`;
-	let printWindow=window.open('', '_blank', 'width=1200,height=900');
+	let printWindow=window.open("", "_blank", "width=1200,height=900");
 	if (printWindow){
 		printWindow.document.write(docHtml);
 		printWindow.document.close();
@@ -263,20 +286,20 @@ async function generateWorksheet(): Promise<void>{
 	}
 }
 export function openPrintModal(): void{
-	modal?.classList.add('show');
+	modal?.classList.add("show");
 }
 export function initPrintModal(): void{
-	modal=document.getElementById('print-modal');
+	modal=document.getElementById("print-modal");
 	if (!modal) return;
-	questionCountSelect=document.getElementById('print-question-count') as HTMLSelectElement;
-	topicSelect=document.getElementById('print-topic') as HTMLSelectElement;
-	scopeSelect=document.getElementById('print-scope') as HTMLSelectElement;
-	difficultySelect=document.getElementById('print-difficulty') as HTMLSelectElement;
-	answerKeyCheckbox=document.getElementById('print-answer-key') as HTMLInputElement;
-	let generateBtn=document.getElementById('print-generate');
-	let closeBtn=document.getElementById('print-close');
-	if (closeBtn) closeBtn.addEventListener('click', ()=>modal?.classList.remove('show'));
-	if (generateBtn) generateBtn.addEventListener('click', generateWorksheet);
-	scopeSelect?.addEventListener('change', updateTopicDropdown);
+	questionCountSelect=document.getElementById("print-question-count") as HTMLSelectElement;
+	topicSelect=document.getElementById("print-topic") as HTMLSelectElement;
+	scopeSelect=document.getElementById("print-scope") as HTMLSelectElement;
+	difficultySelect=document.getElementById("print-difficulty") as HTMLSelectElement;
+	answerKeyCheckbox=document.getElementById("print-answer-key") as HTMLInputElement;
+	let generateBtn=document.getElementById("print-generate");
+	let closeBtn=document.getElementById("print-close");
+	if (closeBtn) closeBtn.addEventListener("click", ()=>modal?.classList.remove("show"));
+	if (generateBtn) generateBtn.addEventListener("click", generateWorksheet);
+	scopeSelect?.addEventListener("change", updateTopicDropdown);
 	updateTopicDropdown();
 }
