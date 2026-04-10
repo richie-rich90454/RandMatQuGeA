@@ -335,20 +335,20 @@ body{
 	flex-wrap: wrap;
 	gap: 6px;
 	padding-right: var(--spacing-xs);
-	max-height: 15dvh;
+	max-height: 20dvh;
 	overflow-y: auto;
-	padding-right: 1dvh;
+	padding-right: .5dvh;
 	padding-top: 0.4rem;
 	padding-bottom: 0.4rem;
 }
 .topic-pill{
-	padding: 2px var(--spacing-sm);
+	padding: 5px var(--spacing-sm);
 	background: var(--surface);
 	border: 1px solid var(--border);
 	border-radius: var(--radius-full);
 	cursor: pointer;
 	transition: all var(--transition-normal), background-color 0.3s ease, border-color 0.3s ease;
-	font-size: 0.7rem;
+	font-size: 0.6rem;
 	color: var(--text-primary);
 	display: flex;
 	align-items: center;
@@ -807,7 +807,7 @@ input[type="checkbox"]:hover{
 	padding: var(--spacing-md);
 }
 .question-display{
-	display: flexbox;
+	display: inline-flexbox;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
@@ -1177,10 +1177,14 @@ input[type="checkbox"]:hover{
 		overflow-x: auto;
 		padding-bottom: var(--spacing-xs);
 		-webkit-overflow-scrolling: touch;
+		display: block;
 	}
 	.topic-pills-container::after{
 		content: "";
 		flex: 0 0 var(--spacing-sm);
+	}
+	.topic-pill{
+		margin-bottom: .5dvh;
 	}
 }
 @media (max-width: 480px){
@@ -1188,8 +1192,9 @@ input[type="checkbox"]:hover{
 		font-size: 14px;
 	}
 	.topic-pill{
-		font-size: 0.65rem;
-		padding: 2px 4px;
+		font-size: 0.75rem;
+		padding: 5px 5px;
+		margin-bottom: .5dvh;
 	}
 	.primary-button, .secondary-button{
 		padding: var(--spacing-xs) var(--spacing-sm);
