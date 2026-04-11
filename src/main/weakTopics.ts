@@ -1,3 +1,4 @@
+// src/main/weakTopics.ts
 /**
  * @file weakTopics.ts - Shows popup with weak topics based on performance data.
  * @date 2026-04-12
@@ -5,8 +6,8 @@
  * Now triggered manually by the user via the "Recommend Topics" button.
  */
 import { invoke } from '@tauri-apps/api/core';
-import * as topics from './topics';
-import * as state from './state';
+import { selectTopic } from './topics';
+import { topics } from './constants';
 import { generateQuestion } from './generation';
 import * as settings from './settings';
 let weakTopicsModal: HTMLElement|null=null;
@@ -16,14 +17,14 @@ export async function checkAndShowWeakTopicsPopup() {
 	try {
 		const weakTopics = await invoke('get_weak_topics', { limit: 5 }) as Array<{topic_id: string, accuracy: number, attempts: number}>;
 		if (!weakTopics || weakTopics.length === 0) return;
-		const weak = weakTopics.filter(t => t.accuracy < 0.7 && t.attempts >= 3);
+		const weak = weakTopics.filter((t: {topic_id: string, accuracy: number, attempts: number}) => t.accuracy < 0.7 && t.attempts >= 3);
 		if (weak.length === 0) return;
 		weakTopicsModal = document.getElementById('weak-topics-modal');
 		weakTopicsList = document.getElementById('weak-topics-list');
 		if (!weakTopicsModal || !weakTopicsList) return;
 		weakTopicsList.innerHTML = '';
 		for (const topic of weak) {
-			const topicName = topics.topics.find(t => t.id === topic.topic_id)?.name || topic.topic_id;
+			const topicName = topics.find((t: {id: string, name: string}) => t.id === topic.topic_id)?.name || topic.topic_id;
 			const accuracyPercent = Math.round(topic.accuracy * 100);
 			const item = document.createElement('div');
 			item.className = 'weak-topic-item';
@@ -36,11 +37,11 @@ export async function checkAndShowWeakTopicsPopup() {
 			`;
 			weakTopicsList.appendChild(item);
 		}
-		document.querySelectorAll('.practice-topic-btn').forEach(btn => {
-			btn.addEventListener('click', (e) => {
+		document.querySelectorAll('.practice-topic-btn').forEach((btn: Element) => {
+			btn.addEventListener('click', (e: Event) => {
 				const topicId = (e.currentTarget as HTMLElement).getAttribute('data-topic');
 				if (topicId) {
-					topics.selectTopic(topicId);
+					selectTopic(topicId);
 					generateQuestion();
 					weakTopicsModal?.classList.remove('show');
 				}
@@ -50,9 +51,9 @@ export async function checkAndShowWeakTopicsPopup() {
 		if (dismissBtn) dismissBtn.onclick = () => weakTopicsModal?.classList.remove('show');
 		const practiceAllBtn = document.getElementById('weak-topics-practice-all');
 		if (practiceAllBtn) {
-			practiceAllBtn.onclick = async () => {
+			practiceAllBtn.onclick = () => {
 				if (weak.length > 0) {
-					topics.selectTopic(weak[0].topic_id);
+					selectTopic(weak[0].topic_id);
 					generateQuestion();
 				}
 				weakTopicsModal?.classList.remove('show');

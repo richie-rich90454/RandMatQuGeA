@@ -67,6 +67,6 @@ export function initDataModal() {
 	if (!modal) return;
 	const closeBtn = document.getElementById('data-close');
 	const refreshBtn = document.getElementById('data-refresh');
-	if (closeBtn) closeBtn.onclick = () => modal.classList.remove('show');
+	if (closeBtn) closeBtn.onclick = () => modal?.classList.remove('show');
 	if (refreshBtn) refreshBtn.onclick = loadData;
 }
