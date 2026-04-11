@@ -1,3 +1,11 @@
+/**
+ * @file settings.ts - Manages user settings and preferences, including adaptive learning toggle.
+ * @date 2026-04-12
+ * @description This module handles loading, saving, and applying user settings such as theme, difficulty,
+ * timer, font, performance flags, and now the adaptive learning toggle. It also provides functions to
+ * preview settings changes and reset to defaults. Updated to include the `adaptive` setting for enabling
+ * adaptive difficulty and weak topic recommendations, and `showWeakTopicsPopup` for controlling the weak topics modal.
+ */
 import * as dom from "./dom";
 import * as state from "./state";
 import {invoke} from "@tauri-apps/api/core";
@@ -26,7 +34,9 @@ export let settings={
 	vibration:false,
 	unlimitedMode:false,
 	mcqMode:false,
-	mcqChoicesCount:4
+	mcqChoicesCount:4,
+	adaptive:true,
+	showWeakTopicsPopup:true
 };
 export function loadSettings():void{
 	const saved=localStorage.getItem("appSettings");
@@ -34,6 +44,8 @@ export function loadSettings():void{
 		try{
 			const parsed=JSON.parse(saved);
 			settings={...settings, ...parsed};
+			if (parsed.adaptive === undefined) settings.adaptive = true;
+			if (parsed.showWeakTopicsPopup === undefined) settings.showWeakTopicsPopup = true;
 		}
 		catch(e){
 			console.warn("Failed to parse settings", e);
@@ -62,6 +74,8 @@ export function loadSettings():void{
 	if (dom.unlimitedToggle) dom.unlimitedToggle.checked=settings.unlimitedMode;
 	if (dom.mcqToggle) dom.mcqToggle.checked=settings.mcqMode;
 	if (dom.settingsMcqChoices) dom.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
+	if (dom.settingsAdaptive) dom.settingsAdaptive.checked=settings.adaptive;
+	if (dom.settingsShowWeakPopup) dom.settingsShowWeakPopup.checked = settings.showWeakTopicsPopup;
 	applySettingsToApp();
 }
 export function saveSettings():void{
@@ -96,6 +110,8 @@ export function saveSettings():void{
 			}
 		}
 	}
+	if (dom.settingsAdaptive) settings.adaptive=dom.settingsAdaptive.checked;
+	if (dom.settingsShowWeakPopup) settings.showWeakTopicsPopup = dom.settingsShowWeakPopup.checked;
 	localStorage.setItem("appSettings",JSON.stringify(settings));
 	applySettingsToApp();
 }
@@ -181,6 +197,9 @@ export function previewSetting(field:string,value:any):void{
 		case "mcqChoicesCount":
 			if (dom.settingsMcqChoices) dom.settingsMcqChoices.value=value;
 			break;
+		case "adaptive":
+			settings.adaptive=value;
+			break;
 	}
 }
 export function applySettingsToApp():void{
@@ -201,6 +220,8 @@ export function applySettingsToApp():void{
 	if (dom.unlimitedToggle) dom.unlimitedToggle.checked=settings.unlimitedMode;
 	if (dom.mcqToggle) dom.mcqToggle.checked=settings.mcqMode;
 	if (dom.settingsMcqChoices) dom.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
+	if (dom.settingsAdaptive) dom.settingsAdaptive.checked=settings.adaptive;
+	if (dom.settingsShowWeakPopup) dom.settingsShowWeakPopup.checked=settings.showWeakTopicsPopup;
 	if (settings.perfMaster){
 		applyPerformanceMaster(true);
 	}
@@ -236,6 +257,8 @@ export function resetSettings():void{
 	if (dom.unlimitedToggle) dom.unlimitedToggle.checked=false;
 	if (dom.mcqToggle) dom.mcqToggle.checked=false;
 	if (dom.settingsMcqChoices) dom.settingsMcqChoices.value="4";
+	if (dom.settingsAdaptive) dom.settingsAdaptive.checked=true;
+	if (dom.settingsShowWeakPopup) dom.settingsShowWeakPopup.checked=true;
 	saveSettings();
 }
 export function openSettings():void{

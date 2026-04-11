@@ -1,3 +1,9 @@
+/**
+ * @file events.ts - Sets up all event listeners for UI components.
+ * @date 2026-04-12
+ * @description Handles mode switching, keyboard shortcuts, settings, and button actions.
+ * Added event listeners for "Recommend Topics" and "Manage Data" buttons.
+ */
 import * as dom from "./dom";
 import * as state from "./state";
 import * as settings from "./settings";
@@ -10,10 +16,13 @@ import {check} from "@tauri-apps/plugin-updater";
 import {relaunch} from "@tauri-apps/plugin-process";
 import packageJson from "../../package.json";
 import semver from "semver";
+import { initPrintModal, openPrintModal } from "./printWorksheet";
+import { checkAndShowWeakTopicsPopup } from "./weakTopics";
+import { openDataModal, initDataModal } from "./dataManagement";
 function isVersionGreater(v1: string, v2: string): boolean{
-    const cleanV1=v1.replace(/^v/, "");
-    const cleanV2=v2.replace(/^v/, "");
-    return semver.gt(cleanV1, cleanV2);
+	const cleanV1=v1.replace(/^v/, "");
+	const cleanV2=v2.replace(/^v/, "");
+	return semver.gt(cleanV1, cleanV2);
 }
 export function switchToSingle(): void{
 	if (dom.modeSingleBtn?.classList.contains("disabled")) return;
@@ -408,4 +417,14 @@ export function setupEventListeners(): void{
 			}
 		});
 	}
+	initPrintModal();
+	const printWorksheetBtn=document.getElementById("print-worksheet-btn");
+	if (printWorksheetBtn) printWorksheetBtn.addEventListener("click", openPrintModal);
+	initDataModal();
+	const recommendBtn=document.getElementById("recommend-btn");
+	if (recommendBtn) recommendBtn.addEventListener("click", ()=>{
+		checkAndShowWeakTopicsPopup().catch(console.warn);
+	});
+	const manageDataBtn=document.getElementById("manage-data-btn");
+	if (manageDataBtn) manageDataBtn.addEventListener("click", openDataModal);
 }

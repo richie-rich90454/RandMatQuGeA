@@ -19,7 +19,12 @@ tauri-plugin-updater = { version = "2.10.0" }
 tauri-plugin-process = "2.3.1"
 tokio = { version = "1.50.0", features = ["macros", "rt-multi-thread"] }
 reqwest = { version = "0.13", default-features = false, features = ["rustls", "json"] }
-sqlx = { version = "0.8", features = ["sqlite", "runtime-tokio", "macros"] }
+sqlx = { version = "0.8", features = ["sqlite", "runtime-tokio", "macros", "migrate"] }
+anyhow = "1.0"
+thiserror = "1.0"
+derive_more = { version = "1.0", features = ["full"] }
+strum = "0.26"
+strum_macros = "0.26"
 
 [lib]
 crate-type = ["rlib", "staticlib", "cdylib"]
