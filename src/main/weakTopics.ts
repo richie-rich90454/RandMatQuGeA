@@ -5,10 +5,10 @@
  * @description Fetches weak topics from backend and displays a modal with practice buttons.
  * Now triggered manually by the user via the "Recommend Topics" button.
  */
-import{invoke}from"@tauri-apps/api/core";
-import{selectTopic}from"./topics";
-import{topics}from"./constants";
-import{generateQuestion}from"./generation";
+import {invoke} from"@tauri-apps/api/core";
+import {selectTopic} from"./topics";
+import {topics} from"./constants";
+import {generateQuestion} from"./generation";
 import*as settings from"./settings";
 let weakTopicsModal:HTMLElement|null=null;
 let weakTopicsList:HTMLElement|null=null;
