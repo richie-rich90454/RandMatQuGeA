@@ -1,4 +1,3 @@
-// src/main/dataManagement.ts
 /**
  * @file dataManagement.ts - Handles viewing and deleting performance records.
  * @date 2026-04-12
