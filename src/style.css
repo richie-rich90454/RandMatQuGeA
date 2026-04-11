@@ -1866,3 +1866,16 @@ hr.context-menu-divider{
 .print-content{
 	position: relative;
 }
+.data-item{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: var(--spacing-sm);
+	border-bottom: 1px solid var(--border);
+}
+.data-info{
+	flex: 1;
+}
+.delete-record{
+	margin-left: var(--spacing-sm);
+}
