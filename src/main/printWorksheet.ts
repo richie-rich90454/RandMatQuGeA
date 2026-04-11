@@ -1,5 +1,5 @@
 /**
- * @file printWorksheet.ts - Handles printable worksheet generation (Kuta-style)
+ * @file printWorksheet.ts - Handles printable worksheet generation
  * @date 2026-04-09
  * @description Generates a standalone HTML document with questions and optional answer key,
  * using MathJax for LaTeX rendering. Properly cleans up #question-area after each generation
