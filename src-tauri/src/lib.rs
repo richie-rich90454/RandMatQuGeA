@@ -1,10 +1,4 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-/**
- * @file lib.rs - Tauri backend with adaptive learning, performance tracking, and data management.
- * @date 2026-04-12
- * @description Provides Tauri commands for math checking, score storage, adaptive recommendations,
- * weak topics analysis, and deletion of performance records. Uses strongly‑typed models and error handling.
- */
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 #[cfg(desktop)]
@@ -26,6 +20,7 @@ mod models;
 use models::{Difficulty, TopicId};
 #[derive(Serialize, Deserialize, Clone, sqlx::FromRow)]
 struct ScoreEntry {
+    id: i32,
     topic: String,
     score: i32,
     total: i32,
@@ -64,7 +59,7 @@ async fn save_score(entry: ScoreEntry, db_state: tauri::State<'_, DbState>) -> R
 #[tauri::command]
 async fn load_scores(db_state: tauri::State<'_, DbState>) -> Result<Vec<ScoreEntry>, String> {
     sqlx::query_as::<_, ScoreEntry>(
-        "SELECT topic, score, total, difficulty, date FROM scores ORDER BY date DESC",
+        "SELECT id, topic, score, total, difficulty, date FROM scores ORDER BY date DESC",
     )
     .fetch_all(&db_state.pool)
     .await
@@ -187,12 +182,12 @@ async fn get_performance_stats(
     let pool = &state.pool;
     let mut query = String::from(
         "SELECT topic_id, difficulty, 
-                SUM(attempts) as total_attempts,
-                SUM(correct) as total_correct,
-                CAST(SUM(correct) AS REAL) / SUM(attempts) as accuracy,
-                AVG(total_response_time_ms) as avg_response_time
-         FROM user_topic_stats
-         WHERE 1=1",
+				SUM(attempts) as total_attempts,
+				SUM(correct) as total_correct,
+				CAST(SUM(correct) AS REAL) / SUM(attempts) as accuracy,
+				AVG(total_response_time_ms) as avg_response_time
+		 FROM user_topic_stats
+		 WHERE 1=1",
     );
     let mut params: Vec<String> = Vec::new();
     if let Some(diff) = difficulty {
@@ -250,7 +245,6 @@ async fn delete_score(state: tauri::State<'_, DbState>, id: i32) -> Result<(), S
         .map_err(|e| e.to_string())?;
     Ok(())
 }
-
 #[tauri::command]
 async fn reset_all_data(state: tauri::State<'_, DbState>) -> Result<(), String> {
     let pool = &state.pool;
