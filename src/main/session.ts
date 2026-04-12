@@ -393,8 +393,8 @@ export async function promptSaveScore(): Promise<void>{
 				date:new Date().toISOString()
 			}
 		});
-		await updateLeaderboard();
 		ui.showNotification("Score saved!","info");
+		await updateLeaderboard();
 	}
 	catch(err){
 		console.error("Failed to save score:",err);
@@ -426,17 +426,27 @@ export async function updateLeaderboard(): Promise<void>{
 		}
 		html+="</div>";
 		dom.leaderboardContent.innerHTML=html;
-		document.querySelectorAll(".delete-score-btn").forEach(btn=>{
-			btn.addEventListener("click",async(e)=>{
+		const deleteButtons = document.querySelectorAll(".delete-score-btn");
+		for(const btn of deleteButtons){
+			btn.removeEventListener("click", (window as any).__deleteHandler);
+			const handler = async (e: Event) => {
 				e.stopPropagation();
-				const id=parseInt((e.currentTarget as HTMLElement).getAttribute("data-id")||"0");
-				if(id&&confirm("Delete this score entry?")){
-					await invoke("delete_score",{id});
-					await updateLeaderboard();
-					ui.showNotification("Score deleted","info");
+				const id = parseInt((e.currentTarget as HTMLElement).getAttribute("data-id")||"0");
+				if(id && confirm("Delete this score entry?")){
+					try{
+						await invoke("delete_score",{id});
+						ui.showNotification("Score deleted","info");
+						await updateLeaderboard();
+					}
+					catch(err){
+						console.error("Delete failed:",err);
+						ui.showNotification("Failed to delete score","warning");
+					}
 				}
-			});
-		});
+			};
+			btn.addEventListener("click", handler);
+			(window as any).__deleteHandler = handler;
+		}
 		if(dom.leaderboardCard){
 			dom.leaderboardCard.classList.remove("hidden");
 			dom.leaderboardCard.style.display="block";
