@@ -14,6 +14,14 @@ let topicSelect: HTMLSelectElement|null=null;
 let scopeSelect: HTMLSelectElement|null=null;
 let difficultySelect: HTMLSelectElement|null=null;
 let answerKeyCheckbox: HTMLInputElement|null=null;
+function escapeHtml(text: string): string{
+	return text
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
+}
 function wrapLatexIfNeeded(text: string): string{
 	if (!text) return "";
 	if (text.match(/\\\(.*\\\)/)||text.match(/\$\$.*\$\$/)||text.match(/\$.*\$/)) return text;
@@ -184,6 +192,11 @@ async function generateWorksheet(): Promise<void>{
 		}
 		answersHtml+=`</ol></div>`;
 	}
+	const topicDisplay=topic==="all"
+		? `Scope: ${scope}`
+		: (topics.find(t=>t.id===topic)?.name||topic);
+	const topicDisplaySafe=escapeHtml(topicDisplay);
+	const difficultySafe=escapeHtml(difficulty);
 	let fullHtml=`<!DOCTYPE html>
 <html>
 <head>
@@ -255,8 +268,8 @@ async function generateWorksheet(): Promise<void>{
 <body>
 	<div class="worksheet">
 		<h1>Math Worksheet</h1>
-		<p>Topic: ${topic==="all"?`Scope: ${scope}`:(topics.find(t=>t.id===topic)?.name||topic)}</p>
-		<p>Difficulty: ${difficulty}</p>
+		<p>Topic: ${topicDisplaySafe}</p>
+		<p>Difficulty: ${difficultySafe}</p>
 		<hr>
 		<ol class="questions-list mathjax-process">
 			${questionsHtml}
