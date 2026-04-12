@@ -1,10 +1,4 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-/**
- * @file lib.rs - Tauri backend with adaptive learning, performance tracking, and data management.
- * @date 2026-04-12
- * @description Provides Tauri commands for math checking, score storage, adaptive recommendations,
- * weak topics analysis, and deletion of performance records. Uses strongly‑typed models and error handling.
- */
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 #[cfg(desktop)]
@@ -26,6 +20,15 @@ mod models;
 use models::{Difficulty, TopicId};
 #[derive(Serialize, Deserialize, Clone, sqlx::FromRow)]
 struct ScoreEntry {
+    id: i32,
+    topic: String,
+    score: i32,
+    total: i32,
+    difficulty: String,
+    date: String,
+}
+#[derive(Serialize, Deserialize)]
+struct NewScoreEntry {
     topic: String,
     score: i32,
     total: i32,
@@ -47,7 +50,10 @@ fn check_math(user_expr: String, correct_expr: String) -> bool {
     user_expr.replace(' ', "").to_lowercase() == correct_expr.replace(' ', "").to_lowercase()
 }
 #[tauri::command]
-async fn save_score(entry: ScoreEntry, db_state: tauri::State<'_, DbState>) -> Result<(), String> {
+async fn save_score(
+    entry: NewScoreEntry,
+    db_state: tauri::State<'_, DbState>,
+) -> Result<(), String> {
     sqlx::query(
         "INSERT INTO scores (topic, score, total, difficulty, date) VALUES (?, ?, ?, ?, ?)",
     )
@@ -64,7 +70,7 @@ async fn save_score(entry: ScoreEntry, db_state: tauri::State<'_, DbState>) -> R
 #[tauri::command]
 async fn load_scores(db_state: tauri::State<'_, DbState>) -> Result<Vec<ScoreEntry>, String> {
     sqlx::query_as::<_, ScoreEntry>(
-        "SELECT topic, score, total, difficulty, date FROM scores ORDER BY date DESC",
+        "SELECT id, topic, score, total, difficulty, date FROM scores ORDER BY date DESC",
     )
     .fetch_all(&db_state.pool)
     .await
@@ -127,7 +133,7 @@ async fn get_next_question_recommendation(
     state: tauri::State<'_, DbState>,
     current_topic: String,
     current_difficulty: String,
-) -> Result<serde_json::Value, String> {
+) -> Result<adaptive::Recommendation, String> {
     let pool = &state.pool;
     let topic_id = TopicId::from(current_topic.as_str());
     let diff = Difficulty::from(current_difficulty.as_str());
@@ -143,10 +149,10 @@ async fn get_next_question_recommendation(
     let weak_topic = adaptive::find_weakest_topic(pool)
         .await
         .map_err(|e| e.to_string())?;
-    Ok(serde_json::json!({
-        "difficulty": new_difficulty.as_str(),
-        "weak_topic": weak_topic,
-    }))
+    Ok(adaptive::Recommendation {
+        difficulty: new_difficulty,
+        weak_topic: weak_topic.as_deref().map(TopicId::from),
+    })
 }
 #[tauri::command]
 async fn get_weak_topics(
@@ -179,6 +185,53 @@ async fn get_weak_topics(
     Ok(result)
 }
 #[tauri::command]
+async fn get_performance_stats(
+    state: tauri::State<'_, DbState>,
+    difficulty: Option<String>,
+    days: Option<i32>,
+) -> Result<Vec<serde_json::Value>, String> {
+    let pool = &state.pool;
+    let mut query = String::from(
+        "SELECT topic_id, difficulty, 
+				SUM(attempts) as total_attempts,
+				SUM(correct) as total_correct,
+				CAST(SUM(correct) AS REAL) / SUM(attempts) as accuracy,
+				AVG(total_response_time_ms) as avg_response_time
+		 FROM user_topic_stats
+		 WHERE 1=1",
+    );
+    let mut params: Vec<String> = Vec::new();
+    if let Some(diff) = difficulty {
+        query.push_str(" AND difficulty = ?");
+        params.push(diff);
+    }
+    if let Some(d) = days {
+        query.push_str(" AND last_updated >= datetime('now', ?)");
+        params.push(format!("-{} days", d));
+    }
+    query.push_str(" GROUP BY topic_id, difficulty ORDER BY accuracy ASC");
+    let mut rows_query = sqlx::query_as::<_, (String, String, i64, i64, f64, f64)>(&query);
+    for p in params {
+        rows_query = rows_query.bind(p);
+    }
+    let results = rows_query
+        .fetch_all(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    let mut out = Vec::new();
+    for (topic_id, difficulty, attempts, correct, accuracy, avg_time) in results {
+        out.push(serde_json::json!({
+            "topic_id": topic_id,
+            "difficulty": difficulty,
+            "attempts": attempts,
+            "correct": correct,
+            "accuracy": accuracy,
+            "avg_time_ms": avg_time
+        }));
+    }
+    Ok(out)
+}
+#[tauri::command]
 async fn delete_performance_record(
     state: tauri::State<'_, DbState>,
     topic_id: String,
@@ -188,6 +241,29 @@ async fn delete_performance_record(
     sqlx::query("DELETE FROM user_topic_stats WHERE topic_id = ? AND difficulty = ?")
         .bind(&topic_id)
         .bind(&difficulty)
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+#[tauri::command]
+async fn delete_score(state: tauri::State<'_, DbState>, id: i32) -> Result<(), String> {
+    let pool = &state.pool;
+    sqlx::query("DELETE FROM scores WHERE id = ?")
+        .bind(id)
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+#[tauri::command]
+async fn reset_all_data(state: tauri::State<'_, DbState>) -> Result<(), String> {
+    let pool = &state.pool;
+    sqlx::query("DELETE FROM user_topic_stats")
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    sqlx::query("DELETE FROM scores")
         .execute(pool)
         .await
         .map_err(|e| e.to_string())?;
@@ -206,7 +282,10 @@ pub fn run() {
             save_performance,
             get_next_question_recommendation,
             get_weak_topics,
+            get_performance_stats,
             delete_performance_record,
+            delete_score,
+            reset_all_data,
         ])
         .setup(|app| {
             let handle = app.handle().clone();

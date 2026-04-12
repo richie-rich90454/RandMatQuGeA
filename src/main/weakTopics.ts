@@ -1,4 +1,3 @@
-// src/main/weakTopics.ts
 /**
  * @file weakTopics.ts - Shows popup with weak topics based on performance data.
  * @date 2026-04-12
