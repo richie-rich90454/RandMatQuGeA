@@ -127,7 +127,7 @@ async fn get_next_question_recommendation(
     state: tauri::State<'_, DbState>,
     current_topic: String,
     current_difficulty: String,
-) -> Result<serde_json::Value, String> {
+) -> Result<adaptive::Recommendation, String> {
     let pool = &state.pool;
     let topic_id = TopicId::from(current_topic.as_str());
     let diff = Difficulty::from(current_difficulty.as_str());
@@ -143,10 +143,10 @@ async fn get_next_question_recommendation(
     let weak_topic = adaptive::find_weakest_topic(pool)
         .await
         .map_err(|e| e.to_string())?;
-    Ok(serde_json::json!({
-        "difficulty": new_difficulty.as_str(),
-        "weak_topic": weak_topic,
-    }))
+    Ok(adaptive::Recommendation {
+        difficulty: new_difficulty,
+        weak_topic: weak_topic.as_deref().map(TopicId::from),
+    })
 }
 #[tauri::command]
 async fn get_weak_topics(
