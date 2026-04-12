@@ -609,6 +609,23 @@
                 </div>
             </div>
         </div>
+        <div id="weak-topics-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="weak-topics-title">
+            <div class="modal-content weak-topics-content">
+                <div class="modal-header">
+                    <h2 id="weak-topics-title">Your Recommended Practice Topics</h2>
+                    <button class="icon-button modal-close" id="weak-topics-close" aria-label="Close">✕</button>
+                </div>
+                <div class="modal-body">
+                    <p>Based on your past performance, you should focus on these topics:</p>
+                    <div id="weak-topics-list" class="weak-topics-list"></div>
+                    <p class="weak-topics-note">Click "Practice" to start a session on that topic.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="secondary-button" id="weak-topics-dismiss">Dismiss</button>
+                    <button class="primary-button" id="weak-topics-practice-all">Practice All (5 questions each)</button>
+                </div>
+            </div>
+        </div>
         <div id="data-modal" class="modal hidden" role="dialog">
             <div class="modal-content">
                 <div class="modal-header">

@@ -1879,3 +1879,30 @@ hr.context-menu-divider{
 .delete-record{
 	margin-left: var(--spacing-sm);
 }
+.weak-topics-list{
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+	margin: var(--spacing-md) 0;
+}
+.weak-topic-item{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: var(--spacing-sm);
+	background: var(--surface-2);
+	border-radius: var(--radius-md);
+}
+.weak-topic-info{
+	flex: 1;
+}
+.weak-topic-name{
+	font-weight: bold;
+}
+.weak-topic-stats{
+	font-size: 0.85em;
+	color: var(--text-secondary);
+}
+.practice-topic-btn{
+	margin-left: var(--spacing-sm);
+}
