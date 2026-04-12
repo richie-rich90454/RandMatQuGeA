@@ -383,6 +383,10 @@ export async function endMentalSession(): Promise<void>{
 	await updateLeaderboard();
 }
 export async function promptSaveScore(): Promise<void>{
+	if(!state.selectedTopic){
+		ui.showNotification("No topic selected. Score not saved.","warning");
+		return;
+	}
 	try{
 		await invoke("save_score",{
 			entry:{
@@ -397,8 +401,11 @@ export async function promptSaveScore(): Promise<void>{
 		await updateLeaderboard();
 	}
 	catch(err){
-		console.error("Failed to save score:",err);
-		ui.showNotification("Failed to save score","warning");
+		console.error("Save score error details:",err);
+		let errorMsg="Failed to save score";
+		if(typeof err==="string") errorMsg = err;
+		else if(err && typeof err==="object" && "message" in err) errorMsg = (err as any).message;
+		ui.showNotification(errorMsg,"warning");
 	}
 }
 export async function updateLeaderboard(): Promise<void>{
