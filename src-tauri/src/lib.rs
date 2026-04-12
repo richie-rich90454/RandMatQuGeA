@@ -240,6 +240,30 @@ async fn delete_performance_record(
         .map_err(|e| e.to_string())?;
     Ok(())
 }
+#[tauri::command]
+async fn delete_score(state: tauri::State<'_, DbState>, id: i32) -> Result<(), String> {
+    let pool = &state.pool;
+    sqlx::query("DELETE FROM scores WHERE id = ?")
+        .bind(id)
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+async fn reset_all_data(state: tauri::State<'_, DbState>) -> Result<(), String> {
+    let pool = &state.pool;
+    sqlx::query("DELETE FROM user_topic_stats")
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    sqlx::query("DELETE FROM scores")
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -255,6 +279,8 @@ pub fn run() {
             get_weak_topics,
             get_performance_stats,
             delete_performance_record,
+            delete_score,
+            reset_all_data,
         ])
         .setup(|app| {
             let handle = app.handle().clone();
