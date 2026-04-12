@@ -179,6 +179,53 @@ async fn get_weak_topics(
     Ok(result)
 }
 #[tauri::command]
+async fn get_performance_stats(
+    state: tauri::State<'_, DbState>,
+    difficulty: Option<String>,
+    days: Option<i32>,
+) -> Result<Vec<serde_json::Value>, String> {
+    let pool = &state.pool;
+    let mut query = String::from(
+        "SELECT topic_id, difficulty, 
+                SUM(attempts) as total_attempts,
+                SUM(correct) as total_correct,
+                CAST(SUM(correct) AS REAL) / SUM(attempts) as accuracy,
+                AVG(total_response_time_ms) as avg_response_time
+         FROM user_topic_stats
+         WHERE 1=1",
+    );
+    let mut params: Vec<String> = Vec::new();
+    if let Some(diff) = difficulty {
+        query.push_str(" AND difficulty = ?");
+        params.push(diff);
+    }
+    if let Some(d) = days {
+        query.push_str(" AND last_updated >= datetime('now', ?)");
+        params.push(format!("-{} days", d));
+    }
+    query.push_str(" GROUP BY topic_id, difficulty ORDER BY accuracy ASC");
+    let mut rows_query = sqlx::query_as::<_, (String, String, i64, i64, f64, f64)>(&query);
+    for p in params {
+        rows_query = rows_query.bind(p);
+    }
+    let results = rows_query
+        .fetch_all(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    let mut out = Vec::new();
+    for (topic_id, difficulty, attempts, correct, accuracy, avg_time) in results {
+        out.push(serde_json::json!({
+            "topic_id": topic_id,
+            "difficulty": difficulty,
+            "attempts": attempts,
+            "correct": correct,
+            "accuracy": accuracy,
+            "avg_time_ms": avg_time
+        }));
+    }
+    Ok(out)
+}
+#[tauri::command]
 async fn delete_performance_record(
     state: tauri::State<'_, DbState>,
     topic_id: String,
@@ -206,6 +253,7 @@ pub fn run() {
             save_performance,
             get_next_question_recommendation,
             get_weak_topics,
+            get_performance_stats,
             delete_performance_record,
         ])
         .setup(|app| {
