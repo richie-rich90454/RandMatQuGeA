@@ -27,6 +27,14 @@ struct ScoreEntry {
     difficulty: String,
     date: String,
 }
+#[derive(Serialize, Deserialize)]
+struct NewScoreEntry {
+    topic: String,
+    score: i32,
+    total: i32,
+    difficulty: String,
+    date: String,
+}
 struct DbState {
     pool: SqlitePool,
 }
@@ -42,7 +50,10 @@ fn check_math(user_expr: String, correct_expr: String) -> bool {
     user_expr.replace(' ', "").to_lowercase() == correct_expr.replace(' ', "").to_lowercase()
 }
 #[tauri::command]
-async fn save_score(entry: ScoreEntry, db_state: tauri::State<'_, DbState>) -> Result<(), String> {
+async fn save_score(
+    entry: NewScoreEntry,
+    db_state: tauri::State<'_, DbState>,
+) -> Result<(), String> {
     sqlx::query(
         "INSERT INTO scores (topic, score, total, difficulty, date) VALUES (?, ?, ?, ?, ?)",
     )
