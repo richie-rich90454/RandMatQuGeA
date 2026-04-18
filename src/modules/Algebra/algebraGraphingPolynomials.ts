@@ -3,27 +3,28 @@
  * Function concepts: domain, range, notation, evaluation.
  * Graphing: linear (slope, intercepts, equation from points, parallel/perpendicular), nonlinear (parabola vertex, absolute value, sqrt, transformations).
  * @fileoverview Generates algebra questions with MCQ distractors.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
 import {questionArea} from "../../script.js";
 import {getMaxForDifficulty} from "./algebraUtils.js";
 
 export function generatePolynomial(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["add","subtract","multiply"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxCoeff=getMaxForDifficulty(difficulty,5);
-	let hint="";
+	let expectedFormat="";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
 	let a=Math.floor(Math.random()*maxCoeff)+1;
 	let b=Math.floor(Math.random()*maxCoeff)+1;
 	let c=Math.floor(Math.random()*maxCoeff)+1;
 	let d=Math.floor(Math.random()*maxCoeff)+1;
-	switch (type){
+	switch(type){
 		case "add":{
 			let p1=`${a}x^2 + ${b}x + ${c}`;
 			let p2=`${d}x^2 + ${a}x + ${b}`;
@@ -34,12 +35,13 @@ export function generatePolynomial(difficulty?: string): void{
 			correct=result;
 			alternate=result.replace(/\s+/g,"");
 			display=result;
-			questionArea.innerHTML=`Add: \\( (${p1}) + (${p2}) \\)`;
+			mathExpression=`Add: \\( (${p1}) + (${p2}) \\)`;
 			choices=[correct];
 			choices.push(`${sumA}x^2 + ${sumB+1}x + ${sumC}`);
 			choices.push(`${sumA}x^2 + ${sumB}x + ${sumC+1}`);
 			choices.push(`${sumA+1}x^2 + ${sumB}x + ${sumC}`);
 			choices.push(`${sumA}x^2 + ${sumB-1}x + ${sumC}`);
+			expectedFormat="Enter polynomial";
 			break;
 		}
 		case "subtract":{
@@ -52,12 +54,13 @@ export function generatePolynomial(difficulty?: string): void{
 			correct=result;
 			alternate=result.replace(/\s+/g,"");
 			display=result;
-			questionArea.innerHTML=`Subtract: \\( (${p1}) - (${p2}) \\)`;
+			mathExpression=`Subtract: \\( (${p1}) - (${p2}) \\)`;
 			choices=[correct];
 			choices.push(`${diffA}x^2 + ${diffB+1}x + ${diffC}`);
 			choices.push(`${diffA}x^2 + ${diffB}x + ${diffC+1}`);
 			choices.push(`${diffA+1}x^2 + ${diffB}x + ${diffC}`);
 			choices.push(`${diffA}x^2 + ${diffB-1}x + ${diffC}`);
+			expectedFormat="Enter polynomial";
 			break;
 		}
 		case "multiply":{
@@ -70,22 +73,31 @@ export function generatePolynomial(difficulty?: string): void{
 			correct=result;
 			alternate=result.replace(/\s+/g,"");
 			display=result;
-			questionArea.innerHTML=`Multiply: \\( (${p1})(${p2}) \\)`;
+			mathExpression=`Multiply: \\( (${p1})(${p2}) \\)`;
 			choices=[correct];
 			choices.push(`${term1}x^2 + ${term2+1}x + ${term3}`);
 			choices.push(`${term1}x^2 + ${term2}x + ${term3+1}`);
 			choices.push(`${term1+1}x^2 + ${term2}x + ${term3}`);
 			choices.push(`${term1}x^2 + ${term2-1}x + ${term3}`);
+			expectedFormat="Enter polynomial";
 			break;
 		}
 		default:
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -93,24 +105,24 @@ export function generatePolynomial(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
 
 export function generatePolynomialDivision(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["simple","with_remainder"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,5);
-	let hint="";
+	let expectedFormat="";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
 	let a=Math.floor(Math.random()*maxVal)+1;
 	let b=Math.floor(Math.random()*maxVal)+1;
-	switch (type){
+	switch(type){
 		case "simple":{
 			let dividend=`${a}x^2 + ${b}x`;
 			let divisor=`x`;
@@ -118,12 +130,13 @@ export function generatePolynomialDivision(difficulty?: string): void{
 			correct=quotient;
 			alternate=quotient.replace(/\s+/g,"");
 			display=quotient;
-			questionArea.innerHTML=`Divide: \\( \\frac{${dividend}}{${divisor}} \\)`;
+			mathExpression=`Divide: \\( \\frac{${dividend}}{${divisor}} \\)`;
 			choices=[correct];
 			choices.push(`${a}x + ${b+1}`);
 			choices.push(`${a}x + ${b-1}`);
 			choices.push(`${a+1}x + ${b}`);
 			choices.push(`${a-1}x + ${b}`);
+			expectedFormat="Enter polynomial";
 			break;
 		}
 		case "with_remainder":{
@@ -134,30 +147,40 @@ export function generatePolynomialDivision(difficulty?: string): void{
 			let remainder=2*a - b;
 			let quotientStr=`${quotientCoef}x + ${quotientConst}`;
 			let answer;
-			if (remainder===0){
+			if(remainder===0){
 				answer=quotientStr;
-			}else{
+			}
+			else{
 				answer=`${quotientStr} + \\frac{${remainder}}{${divisor}}`;
 			}
 			correct=answer;
 			alternate=answer.replace(/\s+/g,"").replace(/\\\\frac/g,"frac");
 			display=answer;
-			questionArea.innerHTML=`Divide: \\( \\frac{${dividend}}{${divisor}} \\)`;
+			mathExpression=`Divide: \\( \\frac{${dividend}}{${divisor}} \\)`;
 			choices=[correct];
 			choices.push(`${quotientCoef}x + ${quotientConst+1} + \\frac{${remainder}}{${divisor}}`);
 			choices.push(`${quotientCoef}x + ${quotientConst-1} + \\frac{${remainder}}{${divisor}}`);
 			choices.push(`${quotientCoef+1}x + ${quotientConst} + \\frac{${remainder}}{${divisor}}`);
 			choices.push(`${quotientCoef}x + ${quotientConst} + \\frac{${remainder+1}}{${divisor}}`);
+			expectedFormat="Enter expression";
 			break;
 		}
 		default:
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -165,37 +188,38 @@ export function generatePolynomialDivision(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
 
 export function generateFactoring(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["gcf","trinomial","difference_squares","sum_cubes","difference_cubes"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,10);
-	let hint="";
+	let expectedFormat="";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
 	let a=Math.floor(Math.random()*maxVal)+1;
 	let b=Math.floor(Math.random()*maxVal)+1;
 	let c=Math.floor(Math.random()*maxVal)+1;
-	switch (type){
+	switch(type){
 		case "gcf":{
 			let expr=`${a*b}x + ${a*c}`;
 			let ans=`${a}(${b}x + ${c})`;
 			correct=ans;
 			alternate=ans.replace(/\s+/g,"");
 			display=ans;
-			questionArea.innerHTML=`Factor: \\( ${expr} \\)`;
+			mathExpression=`Factor: \\( ${expr} \\)`;
 			choices=[correct];
 			choices.push(`${a+1}(${b}x + ${c})`);
 			choices.push(`${a-1}(${b}x + ${c})`);
 			choices.push(`${a}(${b+1}x + ${c})`);
 			choices.push(`${a}(${b}x + ${c+1})`);
+			expectedFormat="Enter factored form";
 			break;
 		}
 		case "trinomial":{
@@ -205,12 +229,13 @@ export function generateFactoring(difficulty?: string): void{
 			correct=ans;
 			alternate=ans.replace(/\s+/g,"");
 			display=ans;
-			questionArea.innerHTML=`Factor: \\( x^2 + ${q}x + ${p} \\)`;
+			mathExpression=`Factor: \\( x^2 + ${q}x + ${p} \\)`;
 			choices=[correct];
 			choices.push(`(x + ${a+1})(x + ${c})`);
 			choices.push(`(x + ${a})(x + ${c+1})`);
 			choices.push(`(x + ${a-1})(x + ${c})`);
 			choices.push(`(x + ${a})(x + ${c-1})`);
+			expectedFormat="Enter factored form";
 			break;
 		}
 		case "difference_squares":{
@@ -219,12 +244,13 @@ export function generateFactoring(difficulty?: string): void{
 			correct=ans;
 			alternate=ans.replace(/\s+/g,"");
 			display=ans;
-			questionArea.innerHTML=`Factor: \\( ${expr} \\)`;
+			mathExpression=`Factor: \\( ${expr} \\)`;
 			choices=[correct];
 			choices.push(`(${a+1}x - ${b})(${a+1}x + ${b})`);
 			choices.push(`(${a}x - ${b+1})(${a}x + ${b+1})`);
 			choices.push(`(${a-1}x - ${b})(${a-1}x + ${b})`);
 			choices.push(`(${a}x - ${b-1})(${a}x + ${b-1})`);
+			expectedFormat="Enter factored form";
 			break;
 		}
 		case "sum_cubes":{
@@ -233,12 +259,13 @@ export function generateFactoring(difficulty?: string): void{
 			correct=ans;
 			alternate=ans.replace(/\s+/g,"");
 			display=ans;
-			questionArea.innerHTML=`Factor: \\( ${expr} \\)`;
+			mathExpression=`Factor: \\( ${expr} \\)`;
 			choices=[correct];
 			choices.push(`(x + ${a+1})(x^2 - ${a+1}x + ${(a+1)*(a+1)})`);
 			choices.push(`(x + ${a-1})(x^2 - ${a-1}x + ${(a-1)*(a-1)})`);
 			choices.push(`(x - ${a})(x^2 + ${a}x + ${a*a})`);
 			choices.push(`(x + ${a})(x^2 + ${a}x + ${a*a})`);
+			expectedFormat="Enter factored form";
 			break;
 		}
 		case "difference_cubes":{
@@ -247,22 +274,31 @@ export function generateFactoring(difficulty?: string): void{
 			correct=ans;
 			alternate=ans.replace(/\s+/g,"");
 			display=ans;
-			questionArea.innerHTML=`Factor: \\( ${expr} \\)`;
+			mathExpression=`Factor: \\( ${expr} \\)`;
 			choices=[correct];
 			choices.push(`(x - ${a+1})(x^2 + ${a+1}x + ${(a+1)*(a+1)})`);
 			choices.push(`(x - ${a-1})(x^2 + ${a-1}x + ${(a-1)*(a-1)})`);
 			choices.push(`(x + ${a})(x^2 - ${a}x + ${a*a})`);
 			choices.push(`(x - ${a})(x^2 - ${a}x + ${a*a})`);
+			expectedFormat="Enter factored form";
 			break;
 		}
 		default:
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -270,26 +306,26 @@ export function generateFactoring(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
 
 export function generateFunctionConcepts(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["domain","range","notation","evaluate"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,10);
-	let hint="";
+	let expectedFormat="";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
 	let a=Math.floor(Math.random()*maxVal)+1;
 	let x=Math.floor(Math.random()*maxVal)+1;
-	switch (type){
+	switch(type){
 		case "domain":{
-			questionArea.innerHTML=`Find the domain of \\( f(x)=\\sqrt{x-${a}} \\). (Enter interval)`;
+			mathExpression=`Find the domain of \\( f(x)=\\sqrt{x-${a}} \\). (Enter interval)`;
 			correct=`[${a}, ∞)`;
 			alternate=correct;
 			display=correct;
@@ -298,10 +334,11 @@ export function generateFunctionConcepts(difficulty?: string): void{
 			choices.push(`(-∞, ${a}]`);
 			choices.push(`(-∞, ${a})`);
 			choices.push(`[${a+1}, ∞)`);
+			expectedFormat="Enter interval";
 			break;
 		}
 		case "range":{
-			questionArea.innerHTML=`Find the range of \\( f(x)=x^2 + ${a} \\). (Enter interval)`;
+			mathExpression=`Find the range of \\( f(x)=x^2 + ${a} \\). (Enter interval)`;
 			correct=`[${a}, ∞)`;
 			alternate=correct;
 			display=correct;
@@ -310,10 +347,11 @@ export function generateFunctionConcepts(difficulty?: string): void{
 			choices.push(`(-∞, ${a}]`);
 			choices.push(`(-∞, ${a})`);
 			choices.push(`[${a+1}, ∞)`);
+			expectedFormat="Enter interval";
 			break;
 		}
 		case "notation":{
-			questionArea.innerHTML=`If \\( f(x)=${a}x + 3 \\), find \\( f(${x}) \\).`;
+			mathExpression=`If \\( f(x)=${a}x + 3 \\), find \\( f(${x}) \\).`;
 			let ans=(a*x+3).toString();
 			correct=ans;
 			alternate=ans;
@@ -324,10 +362,11 @@ export function generateFunctionConcepts(difficulty?: string): void{
 			choices.push((numAns-1).toString());
 			choices.push((a*x).toString());
 			choices.push((a*x+4).toString());
+			expectedFormat="Enter a number";
 			break;
 		}
 		case "evaluate":{
-			questionArea.innerHTML=`Given \\( f(x)=x^2 - ${a} \\), evaluate \\( f(${x}) \\).`;
+			mathExpression=`Given \\( f(x)=x^2 - ${a} \\), evaluate \\( f(${x}) \\).`;
 			let ans=(x*x - a).toString();
 			correct=ans;
 			alternate=ans;
@@ -338,16 +377,25 @@ export function generateFunctionConcepts(difficulty?: string): void{
 			choices.push((numAns-1).toString());
 			choices.push((x*x).toString());
 			choices.push((x*x - a + 1).toString());
+			expectedFormat="Enter a number";
 			break;
 		}
 		default:
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -355,20 +403,20 @@ export function generateFunctionConcepts(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
 
 export function generateLinearGraphing(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["slope","intercepts","equation_from_points","parallel_perpendicular"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,10);
-	let hint="";
+	let expectedFormat="";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
 	let a=Math.floor(Math.random()*maxVal)+1;
 	let b=Math.floor(Math.random()*maxVal)+1;
@@ -376,21 +424,22 @@ export function generateLinearGraphing(difficulty?: string): void{
 	let y1=Math.floor(Math.random()*maxVal)+1;
 	let x2=Math.floor(Math.random()*maxVal)+1;
 	let y2=Math.floor(Math.random()*maxVal)+1;
-	while (x1===x2) x2=Math.floor(Math.random()*maxVal)+1;
-	switch (type){
+	while(x1===x2) x2=Math.floor(Math.random()*maxVal)+1;
+	switch(type){
 		case "slope":{
 			let slope=(y2-y1)/(x2-x1);
 			let ans=slope.toFixed(2);
 			correct=ans;
 			alternate=slope.toString();
 			display=ans;
-			questionArea.innerHTML=`Find the slope between (${x1},${y1}) and (${x2},${y2}).`;
+			mathExpression=`Find the slope between (${x1},${y1}) and (${x2},${y2}).`;
 			let slopeNum=parseFloat(ans);
 			choices=[correct];
 			choices.push((slopeNum+0.1).toFixed(2));
 			choices.push((slopeNum-0.1).toFixed(2));
 			choices.push(((y2-y1)).toString());
 			choices.push(((x2-x1)).toString());
+			expectedFormat="Enter a decimal number";
 			break;
 		}
 		case "intercepts":{
@@ -401,12 +450,13 @@ export function generateLinearGraphing(difficulty?: string): void{
 			correct=ans;
 			alternate=ans.replace(/\s+/g,"");
 			display=ans;
-			questionArea.innerHTML=`Find the x- and y-intercepts of \\( ${eq} \\).`;
+			mathExpression=`Find the x- and y-intercepts of \\( ${eq} \\).`;
 			choices=[correct];
 			choices.push(`(${xInt+1},0) and (0,${yInt})`);
 			choices.push(`(${xInt},0) and (0,${yInt+1})`);
 			choices.push(`(${xInt-1},0) and (0,${yInt})`);
 			choices.push(`(${xInt},0) and (0,${yInt-1})`);
+			expectedFormat="Enter as (x,0) and (0,y)";
 			break;
 		}
 		case "equation_from_points":{
@@ -416,7 +466,7 @@ export function generateLinearGraphing(difficulty?: string): void{
 			correct=ans;
 			alternate=ans.replace(/\s+/g,"");
 			display=ans;
-			questionArea.innerHTML=`Find the equation of the line through (${x1},${y1}) and (${x2},${y2}).`;
+			mathExpression=`Find the equation of the line through (${x1},${y1}) and (${x2},${y2}).`;
 			choices=[correct];
 			let slopeNum=parseFloat(slope.toFixed(2));
 			let intNum=parseFloat(intercept.toFixed(2));
@@ -424,6 +474,7 @@ export function generateLinearGraphing(difficulty?: string): void{
 			choices.push(`y=${slopeNum}x + ${(intNum+0.1).toFixed(2)}`);
 			choices.push(`y=${(slopeNum-0.1).toFixed(2)}x + ${intNum}`);
 			choices.push(`y=${slopeNum}x + ${(intNum-0.1).toFixed(2)}`);
+			expectedFormat="Enter equation like y = mx + b";
 			break;
 		}
 		case "parallel_perpendicular":{
@@ -433,22 +484,31 @@ export function generateLinearGraphing(difficulty?: string): void{
 			correct=ans;
 			alternate=ans.replace(/\s+/g,"");
 			display=ans;
-			questionArea.innerHTML=`Line L has slope ${slope}. What is the slope of a line parallel to L? Perpendicular?`;
+			mathExpression=`Line L has slope ${slope}. What is the slope of a line parallel to L? Perpendicular?`;
 			choices=[correct];
 			choices.push(`parallel: ${slope+1}, perpendicular: ${perp.toFixed(2)}`);
 			choices.push(`parallel: ${slope}, perpendicular: ${(perp+0.1).toFixed(2)}`);
 			choices.push(`parallel: ${slope-1}, perpendicular: ${perp.toFixed(2)}`);
 			choices.push(`parallel: ${slope}, perpendicular: ${(perp-0.1).toFixed(2)}`);
+			expectedFormat="Enter 'parallel: m, perpendicular: n'";
 			break;
 		}
 		default:
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -456,27 +516,27 @@ export function generateLinearGraphing(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
 
 export function generateNonLinearGraphing(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["parabola_vertex","abs_value","sqrt","transform"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,5);
-	let hint="";
+	let expectedFormat="";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
 	let a=Math.floor(Math.random()*maxVal)+1;
 	let h=Math.floor(Math.random()*maxVal)-2;
 	let k=Math.floor(Math.random()*maxVal)-2;
-	switch (type){
+	switch(type){
 		case "parabola_vertex":{
-			questionArea.innerHTML=`Find the vertex of \\( y=${a}(x - ${h})^2 + ${k} \\).`;
+			mathExpression=`Find the vertex of \\( y=${a}(x - ${h})^2 + ${k} \\).`;
 			let ans=`(${h}, ${k})`;
 			correct=ans;
 			alternate=ans.replace(/\s+/g,"");
@@ -486,6 +546,7 @@ export function generateNonLinearGraphing(difficulty?: string): void{
 			choices.push(`(${h}, ${k+1})`);
 			choices.push(`(${h-1}, ${k})`);
 			choices.push(`(${h}, ${k-1})`);
+			expectedFormat="Enter as (h,k)";
 			break;
 		}
 		case "abs_value":{
@@ -495,7 +556,7 @@ export function generateNonLinearGraphing(difficulty?: string): void{
 			correct=ans;
 			alternate=ans;
 			display=ans;
-			questionArea.innerHTML=`Describe the transformation of \\( y=|x| \\) to \\( y=|x - ${h}| + ${k} \\).`;
+			mathExpression=`Describe the transformation of \\( y=|x| \\) to \\( y=|x - ${h}| + ${k} \\).`;
 			let wrongShift1=h>0?`left ${h}`:`right ${-h}`;
 			let wrongShift2=k>0?`down ${k}`:`up ${-k}`;
 			choices=[correct];
@@ -503,10 +564,11 @@ export function generateNonLinearGraphing(difficulty?: string): void{
 			choices.push(`${rightShift}, ${wrongShift2}`);
 			choices.push(`${wrongShift1}, ${wrongShift2}`);
 			choices.push(`no shift`);
+			expectedFormat="Enter description like 'right 3, up 2'";
 			break;
 		}
 		case "sqrt":{
-			questionArea.innerHTML=`Find the domain of \\( y=\\sqrt{x - ${a}} \\).`;
+			mathExpression=`Find the domain of \\( y=\\sqrt{x - ${a}} \\).`;
 			let ans=`x ≥ ${a}`;
 			correct=ans;
 			alternate=`[${a},∞)`;
@@ -516,10 +578,11 @@ export function generateNonLinearGraphing(difficulty?: string): void{
 			choices.push(`x ≤ ${a}`);
 			choices.push(`x > ${a}`);
 			choices.push(`x < ${a}`);
+			expectedFormat="Enter inequality like x ≥ a";
 			break;
 		}
 		case "transform":{
-			questionArea.innerHTML=`If the graph of \\( y=x^2 \\) is shifted left ${h} and down ${k}, what is the new equation?`;
+			mathExpression=`If the graph of \\( y=x^2 \\) is shifted left ${h} and down ${k}, what is the new equation?`;
 			let newEq=`y=(x + ${h})^2 - ${k}`;
 			correct=newEq;
 			alternate=newEq.replace(/\s+/g,"");
@@ -529,16 +592,25 @@ export function generateNonLinearGraphing(difficulty?: string): void{
 			choices.push(`y=(x + ${h})^2 + ${k}`);
 			choices.push(`y=(x - ${h})^2 + ${k}`);
 			choices.push(`y=(x + ${h+1})^2 - ${k}`);
+			expectedFormat="Enter equation";
 			break;
 		}
 		default:
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -546,6 +618,5 @@ export function generateNonLinearGraphing(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
