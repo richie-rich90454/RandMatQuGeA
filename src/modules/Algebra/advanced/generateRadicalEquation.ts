@@ -1,22 +1,23 @@
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Radical equations: one radical or two radicals.
  * @fileoverview Generates radical equation questions with MCQ distractors. Sets window.correctAnswer with correct value and display.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
 export function generateRadicalEquation(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["one_radical","two_radicals"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,10);
-	let hint="";
+	let expectedFormat="Enter a number";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
-	switch (type){
+	switch(type){
 		case "one_radical":{
 			let a=Math.floor(Math.random()*maxVal)+1;
 			let b=Math.floor(Math.random()*maxVal)+1;
@@ -24,7 +25,7 @@ export function generateRadicalEquation(difficulty?: string): void{
 			correct=sol.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Solve: \\( \\sqrt{x + ${a}}=${b} \\)`;
+			mathExpression=`\\( \\sqrt{x + ${a}} = ${b} \\)`;
 			let numSol=parseInt(correct);
 			choices=[correct];
 			choices.push((numSol+1).toString());
@@ -41,7 +42,7 @@ export function generateRadicalEquation(difficulty?: string): void{
 			correct=sol.toFixed(2);
 			alternate=sol.toString();
 			display=correct;
-			questionArea.innerHTML=`Solve: \\( \\sqrt{x + ${a}} - \\sqrt{x}=${b} \\) (Enter solution)`;
+			mathExpression=`\\( \\sqrt{x + ${a}} - \\sqrt{x} = ${b} \\)`;
 			let numSol=parseFloat(correct);
 			choices=[correct];
 			choices.push((numSol+0.5).toFixed(2));
@@ -54,10 +55,18 @@ export function generateRadicalEquation(difficulty?: string): void{
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -65,6 +74,5 @@ export function generateRadicalEquation(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
