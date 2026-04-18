@@ -1,23 +1,23 @@
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Function properties: continuity, extrema, symmetry, asymptotes, end behavior.
  * @fileoverview Generates function property questions with MCQ distractors.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
-
 export function generateFunctionProperties(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	const types=["continuity","extrema","symmetry","asymptotes","endbehavior"];
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
-	let hint="";
+	let expectedFormat="";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
-	switch (type){
+	switch(type){
 		case "continuity":{
 			const a=Math.floor(Math.random()*max)+1;
 			const functions=[
@@ -26,35 +26,35 @@ export function generateFunctionProperties(difficulty?: string): void{
 				`f(x)=x^2+${a}`
 			];
 			const chosen=functions[Math.floor(Math.random()*functions.length)];
-			questionArea.innerHTML=`Where is \\( ${chosen} \\) discontinuous? (Enter x-value or 'none' or interval)`;
+			mathExpression=`Where is \\( ${chosen} \\) discontinuous? (Enter x-value or 'none' or interval)`;
 			let answer="";
-			if (chosen.includes("frac")) answer=`x = ${a}`;
-			else if (chosen.includes("sqrt")) answer=`x < ${a}`;
+			if(chosen.includes("frac")) answer=`x = ${a}`;
+			else if(chosen.includes("sqrt")) answer=`x < ${a}`;
 			else answer="none";
 			correct=answer;
 			alternate=answer;
 			display=answer;
-			if (answer==="none"){
+			if(answer==="none"){
 				choices=["none","x=0","x=1","all reals"];
 			}
-			else if (answer.includes("x =")){
+			else if(answer.includes("x =")){
 				choices=[answer,`x = ${a+1}`,`x = ${a-1}`,`x = 0`];
 			}
 			else{
 				choices=[answer,`x ≤ ${a}`,`x > ${a}`,`x ≥ ${a}`];
 			}
-			hint="Enter x value, interval, or 'none'";
+			expectedFormat="Enter x value, interval, or 'none'";
 			break;
 		}
 		case "extrema":{
 			const a=Math.floor(Math.random()*max)+1;
 			const b=Math.floor(Math.random()*max)+1;
-			questionArea.innerHTML=`Does \\( f(x)=x^2 - ${a}x + ${b} \\) have a local minimum or maximum? (Enter 'min' or 'max')`;
+			mathExpression=`Does \\( f(x)=x^2 - ${a}x + ${b} \\) have a local minimum or maximum? (Enter 'min' or 'max')`;
 			correct="min";
 			alternate="minimum";
 			display="min";
 			choices=["min","max","neither","both"];
-			hint="Enter 'min' or 'max'";
+			expectedFormat="Enter 'min' or 'max'";
 			break;
 		}
 		case "symmetry":{
@@ -64,25 +64,25 @@ export function generateFunctionProperties(difficulty?: string): void{
 				{expr:"f(x)=x^2+x",type:"neither"}
 			];
 			const chosen=functions[Math.floor(Math.random()*functions.length)];
-			questionArea.innerHTML=`Is \\( ${chosen.expr} \\) even, odd, or neither?`;
+			mathExpression=`Is \\( ${chosen.expr} \\) even, odd, or neither?`;
 			correct=chosen.type;
 			alternate=chosen.type;
 			display=chosen.type;
 			choices=["even","odd","neither"];
-			hint="Enter 'even', 'odd', or 'neither'";
+			expectedFormat="Enter 'even', 'odd', or 'neither'";
 			break;
 		}
 		case "asymptotes":{
 			const a=Math.floor(Math.random()*max)+1;
 			const b=Math.floor(Math.random()*max)+1;
 			const expr=`\\frac{${a}x+${b}}{x-${a}}`;
-			questionArea.innerHTML=`Find the vertical asymptote of \\( ${expr} \\). (Enter x=value)`;
+			mathExpression=`Find the vertical asymptote of \\( ${expr} \\). (Enter x=value)`;
 			const ans=`x=${a}`;
 			correct=ans;
 			alternate=ans;
 			display=ans;
 			choices=[ans,`x=${a+1}`,`x=${a-1}`,`y=0`];
-			hint="Enter x = number";
+			expectedFormat="Enter x = number";
 			break;
 		}
 		case "endbehavior":{
@@ -91,12 +91,12 @@ export function generateFunctionProperties(difficulty?: string): void{
 			const sign=aSign===1?"positive":"negative";
 			const evenOdd=deg%2===0?"even":"odd";
 			let desc="";
-			if (evenOdd==="even"){
+			if(evenOdd==="even"){
 				desc=sign==="positive"?"both ends up":"both ends down";
 			}else{
 				desc=sign==="positive"?"left down, right up":"left up, right down";
 			}
-			questionArea.innerHTML=`Describe the end behavior of a polynomial with leading coefficient ${sign} and degree ${deg}.`;
+			mathExpression=`Describe the end behavior of a polynomial with leading coefficient ${sign} and degree ${deg}.`;
 			correct=desc;
 			alternate=desc;
 			display=desc;
@@ -105,21 +105,29 @@ export function generateFunctionProperties(difficulty?: string): void{
 			let wrong3="left down, right up";
 			let wrong4="left up, right down";
 			choices=[desc];
-			for (let w of [wrong1,wrong2,wrong3,wrong4]){
-				if (w!==desc) choices.push(w);
-				if (choices.length>=4) break;
+			for(let w of [wrong1,wrong2,wrong3,wrong4]){
+				if(w!==desc) choices.push(w);
+				if(choices.length>=4) break;
 			}
-			hint="Enter description like 'both ends up'";
+			expectedFormat="Enter description like 'both ends up'";
 			break;
 		}
 		default:
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -127,8 +135,5 @@ export function generateFunctionProperties(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
-	}
+	window.expectedFormat=expectedFormat;
 }
