@@ -1,12 +1,12 @@
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Exponent rules: product, quotient, power, negative, zero.
  * @fileoverview Generates questions on exponent rules with MCQ distractors. Sets window.correctAnswer with correct expression and display.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
 export function generateExponentRules(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["product","quotient","power","negative","zero"];
 	let type=types[Math.floor(Math.random()*types.length)];
@@ -14,17 +14,18 @@ export function generateExponentRules(difficulty?: string): void{
 	let base=Math.floor(Math.random()*maxBase)+2;
 	let m=Math.floor(Math.random()*3)+1;
 	let n=Math.floor(Math.random()*3)+1;
-	let hint="";
+	let expectedFormat="Enter an expression like 2^3 or 1/2^3";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
-	switch (type){
+	switch(type){
 		case "product":{
-			correct=`${base}^${m+n}`;
+			correct=`${base}^{${m+n}}`;
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Simplify: \\( ${base}^{${m}} \\times ${base}^{${n}} \\)`;
+			mathExpression=`\\( ${base}^{${m}} \\times ${base}^{${n}} \\)`;
 			choices=[correct];
 			choices.push(`${base}^${m}`);
 			choices.push(`${base}^${n}`);
@@ -33,10 +34,10 @@ export function generateExponentRules(difficulty?: string): void{
 			break;
 		}
 		case "quotient":{
-			correct=`${base}^${m}`;
+			correct=`${base}^{${m}}`;
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Simplify: \\( \\frac{${base}^{${m+n}}}{${base}^{${n}}} \\)`;
+			mathExpression=`\\( \\frac{${base}^{${m+n}}}{${base}^{${n}}} \\)`;
 			choices=[correct];
 			choices.push(`${base}^${m+n}`);
 			choices.push(`${base}^${m-1}`);
@@ -45,10 +46,10 @@ export function generateExponentRules(difficulty?: string): void{
 			break;
 		}
 		case "power":{
-			correct=`${base}^${m*n}`;
+			correct=`${base}^{${m*n}}`;
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Simplify: \\( (${base}^{${m}})^{${n}} \\)`;
+			mathExpression=`\\( (${base}^{${m}})^{${n}} \\)`;
 			choices=[correct];
 			choices.push(`${base}^${m+n}`);
 			choices.push(`${base}^${m}`);
@@ -60,7 +61,7 @@ export function generateExponentRules(difficulty?: string): void{
 			correct=`\\frac{1}{${base}^{${m}}}`;
 			alternate=`1/${base}^${m}`;
 			display=correct;
-			questionArea.innerHTML=`Write with a positive exponent: \\( ${base}^{-${m}} \\)`;
+			mathExpression=`\\( ${base}^{-${m}} \\)`;
 			choices=[correct];
 			choices.push(`${base}^${-m}`);
 			choices.push(`${base}^${m}`);
@@ -72,7 +73,7 @@ export function generateExponentRules(difficulty?: string): void{
 			correct="1";
 			alternate="1";
 			display="1";
-			questionArea.innerHTML=`Evaluate: \\( ${base}^{0} \\)`;
+			mathExpression=`\\( ${base}^{0} \\)`;
 			choices=["1","0","-1","undefined"];
 			break;
 		}
@@ -80,10 +81,18 @@ export function generateExponentRules(difficulty?: string): void{
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -91,6 +100,5 @@ export function generateExponentRules(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
