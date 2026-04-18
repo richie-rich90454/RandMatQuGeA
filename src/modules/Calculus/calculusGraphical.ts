@@ -223,8 +223,10 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 			break;
 		}
 		case "accumBehavior":{
-			let a=Math.floor(Math.random()*3)+1;
-			canvas=drawAccumGraph2(a);
+			let a=Math.floor(Math.random()*2)+1;
+			let xMin=-2;
+			let xMax=a+3;
+			canvas=drawAccumGraph2(a, xMin, xMax);
 			mathExpression=`\\[ g(x)=\\int_0^x f(t)\\,dt, \\text{ where increasing?} \\]`;
 			plainCorrectAnswer=`(${a}, ${a+2})`;
 			latexAnswer=`(${a},${a+2})`;
@@ -257,14 +259,14 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 		case "longDivision":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\int \\frac{x^3}{x^2+${a}} \\,dx \\]`;
-			plainCorrectAnswer=`(1/2)x^2 - ${a}ln|x^2+${a}| + C`;
-			latexAnswer=`\\frac{1}{2}x^{2} - ${a}\\ln|x^{2}+${a}| + C`;
+			plainCorrectAnswer=`(1/2)x^2 - ${a/2}ln|x^2+${a}| + C`;
+			latexAnswer=`\\frac{1}{2}x^{2} - \\frac{${a}}{2}\\ln|x^{2}+${a}| + C`;
 			expectedFormat="Enter expression";
 			choices=[plainCorrectAnswer];
-			choices.push(`(1/2)x^2 + ${a}ln|x^2+${a}| + C`);
+			choices.push(`(1/2)x^2 + ${a/2}ln|x^2+${a}| + C`);
 			choices.push(`x - ${a}ln|x^2+${a}| + C`);
 			choices.push(`(1/2)x^2 - ${a}ln|x^2| + C`);
-			choices.push(`x^2 - ${a}ln|x^2+${a}| + C`);
+			choices.push(`x^2 - ${a/2}ln|x^2+${a}| + C`);
 			break;
 		}
 		case "flowAccum":{
@@ -323,15 +325,8 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 		}
 		case "matchSlopeField":{
 			let eqs=["dy/dx = y(2-y)", "dy/dx = y", "dy/dx = x", "dy/dx = -y"];
-			let correctIdx=0;
-			let correctLetter="A";
-			for(let i=0;i<eqs.length;i++){
-				if(eqs[i]==="dy/dx = y(2-y)"){
-					correctIdx=i;
-					correctLetter=String.fromCharCode(65+i);
-					break;
-				}
-			}
+			let correctIdx=Math.floor(Math.random()*eqs.length);
+			let correctLetter=String.fromCharCode(65+correctIdx);
 			plainCorrectAnswer=correctLetter;
 			latexAnswer=`\\text{${eqs[correctIdx]}}`;
 			mathExpression=`\\[ \\text{Which DE matches slope field with horizontal lines at y=0 and y=2?} \\] A) ${eqs[0]} B) ${eqs[1]} C) ${eqs[2]} D) ${eqs[3]}`;
@@ -363,11 +358,11 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 		case "phaseLine":{
 			let a=Math.floor(Math.random()*maxCoeff)+2;
 			mathExpression=`\\[ \\frac{dy}{dt}=y^2-${a}y \\] Draw phase line.`;
-			plainCorrectAnswer=`equilibria at y=0 and y=${a}; 0 unstable, ${a} stable`;
-			latexAnswer=`y=0\\text{ unstable}, y=${a}\\text{ stable}`;
+			plainCorrectAnswer=`equilibria at y=0 and y=${a}; 0 stable, ${a} unstable`;
+			latexAnswer=`y=0\\text{ stable}, y=${a}\\text{ unstable}`;
 			expectedFormat="Describe phase line";
 			choices=[plainCorrectAnswer];
-			choices.push(`0 stable, ${a} unstable`);
+			choices.push(`0 unstable, ${a} stable`);
 			choices.push(`0 semi-stable, ${a} stable`);
 			choices.push(`both unstable`);
 			break;
@@ -781,14 +776,13 @@ function drawAccumGraph(a: number, x0: number): HTMLCanvasElement{
 	ctx.stroke();
 	return canvas;
 }
-function drawAccumGraph2(a: number): HTMLCanvasElement{
+function drawAccumGraph2(a: number, xMin: number, xMax: number): HTMLCanvasElement{
 	let canvas=document.createElement("canvas");
 	canvas.width=300;
 	canvas.height=200;
 	let ctx=canvas.getContext("2d");
 	if(!ctx) return canvas;
 	ctx.clearRect(0,0,300,200);
-	let xMin=-2, xMax=4;
 	let scaleX=200/(xMax-xMin);
 	let yMin=-1, yMax=1;
 	let k=Math.min(150/yMax, 50/Math.abs(yMin));

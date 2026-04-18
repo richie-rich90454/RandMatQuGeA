@@ -135,6 +135,15 @@ export function generateDerivative(difficulty?: string): void{
 						let coeffNum=parseInt(coeffMatch[1]);
 						altTerms[0]=`${coeffNum+1}${firstTerm.slice(coeffMatch[1].length)}`;
 					}
+					else if(firstTerm==="x"){
+						altTerms[0]=`2x`;
+					}
+					else if(firstTerm==="-x"){
+						altTerms[0]=`-2x`;
+					}
+					else if(firstTerm.match(/^x\^/)){
+						altTerms[0]=`2${firstTerm}`;
+					}
 					choices.push(altTerms.join("+"));
 				}
 				altTerms=[...plainDerivativeTerms];
@@ -143,9 +152,23 @@ export function generateDerivative(difficulty?: string): void{
 					let coeffMatch=firstTerm.match(/^(\d+)/);
 					if(coeffMatch){
 						let coeffNum=parseInt(coeffMatch[1]);
-						altTerms[0]=`${coeffNum-1}${firstTerm.slice(coeffMatch[1].length)}`;
+						let newCoeff=coeffNum-1;
+						if(newCoeff>0){
+							altTerms[0]=`${newCoeff}${firstTerm.slice(coeffMatch[1].length)}`;
+						}
+						else if(newCoeff===0){
+							altTerms.shift();
+						}
 					}
-					choices.push(altTerms.join("+"));
+					else if(firstTerm==="x"){
+						altTerms[0]=``;
+						altTerms.shift();
+					}
+					else if(firstTerm==="-x"){
+						altTerms[0]=``;
+						altTerms.shift();
+					}
+					if(altTerms.length>0) choices.push(altTerms.join("+"));
 				}
 				choices.push(plainDerivativeTerms.map(t=>t.replace(/x\^\d+/, "x")).join("+"));
 				let lastTerm=plainDerivativeTerms[plainDerivativeTerms.length-1];
@@ -374,6 +397,12 @@ export function generateDerivative(difficulty?: string): void{
 			let x0=1;
 			let y0=Math.floor(Math.random()*3)+1;
 			let constant=a*x0*x0+b*x0*y0+c*y0*y0;
+			let denominator=b*x0+2*c*y0;
+			while(denominator===0){
+				y0=Math.floor(Math.random()*3)+1;
+				constant=a*x0*x0+b*x0*y0+c*y0*y0;
+				denominator=b*x0+2*c*y0;
+			}
 			polynomial=`${a}x^{2}+${b}xy+${c}y^{2}=${constant}`;
 			correctDerivative=`\\frac{dy}{dx}=-\\frac{${2*a}x+${b}y}{${b}x+${2*c}y}`;
 			plainCorrectDerivative=`-(${2*a}x+${b}y)/(${b}x+${2*c}y)`;
