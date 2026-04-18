@@ -1,19 +1,7 @@
-/**
- * @fileoverview Generates random integral calculus questions for AP Calculus practice.
- * Provides a wide variety of integration problems including polynomial, trigonometric,
- * exponential, logarithmic, substitution, definite integrals, initial value problems,
- * area under curves, motion, inverse trigonometric integrals, completing the square,
- * logistic models, improper integrals with vertical asymptotes, polar arc length,
- * and parametric arc length. Each question is presented with LaTeX formatting and
- * includes multiple‑choice distractors for MCQ mode.
- *
- * @module calculusIntegral
- * @date 2026-04-02
- */
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
 function gcd(a: number, b: number): number{
-	while (b){
+	while(b){
 		let t=b;
 		b=a%b;
 		a=t;
@@ -27,7 +15,7 @@ function formatFraction(num: number, den: number): string{
 	let g=gcd(num,den);
 	num/=g;
 	den/=g;
-	if (den===1){
+	if(den===1){
 		return `${num}`;
 	}
 	else{
@@ -35,30 +23,19 @@ function formatFraction(num: number, den: number): string{
 	}
 }
 /**
- * Generates and displays a random integral question in the global `questionArea`.
- * Includes custom multiple‑choice options for MCQ mode.
+ * @fileoverview Generates random integral calculus questions for AP Calculus practice.
+ * Provides a wide variety of integration problems including polynomial, trigonometric,
+ * exponential, logarithmic, substitution, definite integrals, initial value problems,
+ * area under curves, motion, inverse trigonometric integrals, completing the square,
+ * logistic models, improper integrals with vertical asymptotes, polar arc length,
+ * and parametric arc length. Each question is presented with LaTeX formatting and
+ * includes multiple‑choice distractors for MCQ mode.
  *
- * The function randomly selects a question type from a comprehensive list covering
- * basic antiderivatives, substitution, definite integrals, applications, and advanced
- * topics (inverse trig, completing the square, logistic model, improper integrals,
- * polar/parametric arc length). It constructs a LaTeX expression for the problem,
- * computes the correct antiderivative or definite integral result (as a plain‑text
- * string), and appends the formatted question to the DOM. It triggers MathJax
- * rendering and sets global variables for answer validation.
- *
- * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that
- *                     influences the maximum coefficient value used in generated
- *                     expressions. If omitted, a default moderate value is used
- *                     (via `getMaxCoeff`).
- * @returns void
- * @date 2026-04-02
- *
- * @example
- * generateIntegral();
- * generateIntegral("hard");
+ * @module calculusIntegral
+ * @date 2026-04-18
  */
 export function generateIntegral(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	const questionTypes=[
 		"polynomial","trigonometric","exponential","logarithmic",
@@ -73,21 +50,21 @@ export function generateIntegral(difficulty?: string): void{
 	let latexAnswer="";
 	let alternateAnswer:string|undefined=undefined;
 	let choices: string[]=[];
-	switch (questionType){
+	switch(questionType){
 		case "polynomial":{
 			const numTerms=Math.floor(Math.random()*4)+2;
 			const exponents=new Set<number>();
-			while (exponents.size<numTerms){
+			while(exponents.size<numTerms){
 				exponents.add(Math.floor(Math.random()*11));
 			}
 			const exponentsArray=Array.from(exponents).sort((a,b)=>b-a);
 			const coefficients: number[]=[];
-			for (const exp of exponentsArray){
+			for(const exp of exponentsArray){
 				let coeff;
-				if (exp===0){
+				if(exp===0){
 					coeff=Math.floor(Math.random()*100)+1;
 				}
-				else if (exp===1){
+				else if(exp===1){
 					coeff=Math.floor(Math.random()*maxCoeff)+1;
 				}
 				else{
@@ -96,13 +73,13 @@ export function generateIntegral(difficulty?: string): void{
 				coefficients.push(coeff);
 			}
 			const terms: string[]=[];
-			for (let i=0;i<exponentsArray.length;i++){
+			for(let i=0;i<exponentsArray.length;i++){
 				const exp=exponentsArray[i];
 				const coeff=coefficients[i];
-				if (exp===0){
+				if(exp===0){
 					terms.push(`${coeff}`);
 				}
-				else if (exp===1){
+				else if(exp===1){
 					terms.push(`${coeff}x`);
 				}
 				else{
@@ -112,13 +89,13 @@ export function generateIntegral(difficulty?: string): void{
 			const polynomial=`(${terms.join("+")})`;
 			mathExpression=`\\[ \\int ${polynomial} \\,dx=? \\]`;
 			const integralTerms: string[]=[];
-			for (let i=0;i<exponentsArray.length;i++){
+			for(let i=0;i<exponentsArray.length;i++){
 				const exp=exponentsArray[i];
 				const coeff=coefficients[i];
 				const newExp=exp+1;
 				const newCoeff=coeff/newExp;
 				let xPart;
-				if (newExp===1){
+				if(newExp===1){
 					xPart="x";
 				}
 				else{
@@ -132,10 +109,11 @@ export function generateIntegral(difficulty?: string): void{
 			const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
 			choices=[normalizedCorrect];
 			const wrongTerms=[...integralTerms];
-			if (wrongTerms.length>1){
-				wrongTerms[0]=`${parseFloat(wrongTerms[0])+1}${wrongTerms[0].match(/[a-z]/)?.[0]||""}`;
+			if(wrongTerms.length>1){
+				let firstNum=parseFloat(wrongTerms[0]);
+				wrongTerms[0]=`${(firstNum+1).toFixed(2)}${wrongTerms[0].match(/[a-z]/)?.[0]||""}`;
 				choices.push(wrongTerms.join("+").replace(/\s/g,"").toLowerCase());
-				wrongTerms[0]=`${parseFloat(wrongTerms[0])-2}${wrongTerms[0].match(/[a-z]/)?.[0]||""}`;
+				wrongTerms[0]=`${(firstNum-1).toFixed(2)}${wrongTerms[0].match(/[a-z]/)?.[0]||""}`;
 				choices.push(wrongTerms.join("+").replace(/\s/g,"").toLowerCase());
 			}
 			choices.push(integralTerms.map(t=>t.replace(/\^(\d+)/,"^$1")).join("+").replace(/\s/g,"").toLowerCase());
@@ -160,7 +138,7 @@ export function generateIntegral(difficulty?: string): void{
 			plainCorrectIntegral=`${formatNumber(chosen.sign*decimalCoeff)} ${chosen.target}(${a}x)+C`;
 			const fractionStr=formatFraction(coeff,a);
 			let signStr;
-			if (chosen.sign===1){
+			if(chosen.sign===1){
 				signStr='';
 			}
 			else{
@@ -171,14 +149,14 @@ export function generateIntegral(difficulty?: string): void{
 			const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
 			choices=[normalizedCorrect];
 			let wrongSign;
-			if (chosen.sign===1){
+			if(chosen.sign===1){
 				wrongSign=-1;
 			}
 			else{
 				wrongSign=1;
 			}
 			let wrongSignStr;
-			if (wrongSign===1){
+			if(wrongSign===1){
 				wrongSignStr='';
 			}
 			else{
@@ -194,7 +172,7 @@ export function generateIntegral(difficulty?: string): void{
 			const base=Math.random()<0.5?"e":Math.floor(Math.random()*3)+2;
 			const a=Math.floor(Math.random()*maxCoeff)+1;
 			const coeff=Math.floor(Math.random()*maxCoeff)+1;
-			if (base==="e"){
+			if(base==="e"){
 				mathExpression=`\\[ \\int ${coeff}e^{${a}x} \\,dx=? \\]`;
 				plainCorrectIntegral=`${formatNumber(coeff/a)}e^(${a}x)+C`;
 				latexAnswer=`\\frac{${coeff}}{${a}}e^{${a}x}+C`;
@@ -261,7 +239,7 @@ export function generateIntegral(difficulty?: string): void{
 			const polynomial=polyTerms.join("+");
 			mathExpression=`\\[ \\int_{${lower}}^{${upper}} (${polynomial}) \\,dx=? \\]`;
 			let result=0;
-			for (let i=0;i<numTerms;i++){
+			for(let i=0;i<numTerms;i++){
 				const exp=exponents[i];
 				const coeff=coefficients[i];
 				const antideriv=coeff/(exp+1);
@@ -274,7 +252,7 @@ export function generateIntegral(difficulty?: string): void{
 			choices.push((correctNum+1).toFixed(2));
 			choices.push((correctNum-1).toFixed(2));
 			let wrongResult=0;
-			for (let i=0;i<numTerms;i++){
+			for(let i=0;i<numTerms;i++){
 				const exp=exponents[i];
 				const coeff=coefficients[i];
 				const antideriv=coeff/(exp+1);
@@ -342,7 +320,7 @@ export function generateIntegral(difficulty?: string): void{
 			const subtypes=["arcsin","arctan","arcsec"];
 			const sub=subtypes[Math.floor(Math.random()*subtypes.length)];
 			const a=Math.floor(Math.random()*maxCoeff)+1;
-			if (sub==="arcsin"){
+			if(sub==="arcsin"){
 				mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{${a*a}-x^2}} \\]`;
 				plainCorrectIntegral=`arcsin(x/${a})+C`;
 				latexAnswer=`\\arcsin\\left(\\frac{x}{${a}}\\right)+C`;
@@ -352,7 +330,7 @@ export function generateIntegral(difficulty?: string): void{
 				choices.push(`arctan(x/${a})+C`.replace(/\s/g,"").toLowerCase());
 				choices.push(`(1/${a})arcsin(x/${a})+C`.replace(/\s/g,"").toLowerCase());
 			}
-			else if (sub==="arctan"){
+			else if(sub==="arctan"){
 				mathExpression=`\\[ \\int \\frac{dx}{${a*a}+x^2} \\]`;
 				plainCorrectIntegral=`(1/${a})arctan(x/${a})+C`;
 				latexAnswer=`\\frac{1}{${a}}\\arctan\\left(\\frac{x}{${a}}\\right)+C`;
@@ -441,7 +419,7 @@ export function generateIntegral(difficulty?: string): void{
 	const mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
 	questionArea.appendChild(mathContainer);
-	if (window.MathJax&&window.MathJax.typesetPromise){
+	if(window.MathJax&&window.MathJax.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
 			console.log("MathJax typeset error:", err)
 		);
@@ -454,9 +432,9 @@ export function generateIntegral(difficulty?: string): void{
 	let correctNorm=normalize(plainCorrectIntegral);
 	let altNorm=alternateAnswer ? normalize(alternateAnswer) : correctNorm;
 	let uniqueChoices=[...new Set(choices.map(normalize))];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correctNorm)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctNorm;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correctNorm)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctNorm;
 		else uniqueChoices=[correctNorm];
 	}
 	window.correctAnswer={
