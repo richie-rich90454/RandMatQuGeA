@@ -1,12 +1,11 @@
+import {questionArea} from "../../../script.js";
 /**
  * Basic functions: identify or give property.
  * @fileoverview Generates basic function questions with MCQ distractors.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-
 export function generateBasicFunctions(): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	const functions=[
 		{name:"identity",expr:"f(x)=x",props:"linear, odd, increasing"},
@@ -25,50 +24,59 @@ export function generateBasicFunctions(): void{
 	const chosen=functions[Math.floor(Math.random()*functions.length)];
 	const types=["identify","properties"];
 	const type=types[Math.floor(Math.random()*types.length)];
-	let hint="";
+	let expectedFormat="";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
-	if (type==="identify"){
-		questionArea.innerHTML=`Identify the function: \\( ${chosen.expr} \\). (Enter name)`;
+	if(type==="identify"){
+		mathExpression=`Identify the function: \\( ${chosen.expr} \\). (Enter name)`;
 		correct=chosen.name;
 		alternate=chosen.name;
 		display=chosen.name;
 		choices=[correct];
-		for (let f of functions){
-			if (f.name!==chosen.name){
+		for(let f of functions){
+			if(f.name!==chosen.name){
 				choices.push(f.name);
-				if (choices.length>=4) break;
+				if(choices.length>=4) break;
 			}
 		}
-		hint="Enter the function name";
+		expectedFormat="Enter the function name";
 	}
 	else{
-		questionArea.innerHTML=`Give one key property of \\( ${chosen.expr} \\).`;
+		mathExpression=`Give one key property of \\( ${chosen.expr} \\).`;
 		correct=chosen.props;
 		alternate=chosen.props;
 		display=chosen.props;
 		let wrongProps: string[]=[];
-		for (let f of functions){
-			if (f.name!==chosen.name){
+		for(let f of functions){
+			if(f.name!==chosen.name){
 				let firstProp=f.props.split(", ")[0];
-				if (!wrongProps.includes(firstProp)) wrongProps.push(firstProp);
-				if (wrongProps.length>=3) break;
+				if(!wrongProps.includes(firstProp)) wrongProps.push(firstProp);
+				if(wrongProps.length>=3) break;
 			}
 		}
 		choices=[correct];
 		choices.push(...wrongProps.slice(0,3));
-		if (choices.length<4){
-			choices.push("increasing", "decreasing", "even", "odd", "periodic");
+		if(choices.length<4){
+			choices.push("increasing","decreasing","even","odd","periodic");
 		}
-		hint="Enter a property (e.g., 'even', 'increasing')";
+		expectedFormat="Enter a property (e.g., 'even', 'increasing')";
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -76,8 +84,5 @@ export function generateBasicFunctions(): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
-	}
+	window.expectedFormat=expectedFormat;
 }
