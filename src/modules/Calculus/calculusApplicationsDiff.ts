@@ -8,7 +8,7 @@ import {getMaxCoeff} from "./calculusUtils.js";
  *                     Influences the maximum coefficient value used in generated expressions
  *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
  * @returns void
- * @date 2026-04-02
+ * @date 2026-04-18
  *
  * @remarks
  * The function performs the following steps:
@@ -45,7 +45,7 @@ import {getMaxCoeff} from "./calculusUtils.js";
  * generateApplicationsDiff("hard");
  */
 export function generateApplicationsDiff(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let questionTypes=["linearization","lhopital","mvt","evt","incDec","firstDerivativeTest","candidatesTest","concavity","secondDerivativeTest","graphSketch","connecting","optimization","implicitBehavior","rectangleOptimization","boxOptimization","cylinderOptimization","fencingOptimization","ladderOptimization"];
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
@@ -55,7 +55,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 	let expectedFormat="Enter your answer";
 	let maxCoeff=getMaxCoeff(difficulty);
 	let choices: string[]=[];
-	switch (questionType){
+	switch(questionType){
 		case "linearization":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
@@ -107,41 +107,51 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			mathExpression=`\\[ \\text{Find critical points of } f(x)=x^3-${a}x^2+2 \\text{ on } [0,3]. \\]`;
 			let cp1=0;
 			let cp2=(2*a)/3;
-			plainCorrectAnswer=`${cp1}, ${cp2.toFixed(2)}`;
-			latexAnswer=`${cp1},\\ ${cp2.toFixed(2)}`;
+			let criticalPoints: number[]=[cp1];
+			if(cp2>=0&&cp2<=3) criticalPoints.push(cp2);
+			plainCorrectAnswer=criticalPoints.map(v=>v.toFixed(2)).join(", ");
+			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter numbers separated by commas";
 			choices=[plainCorrectAnswer];
-			choices.push(`${cp1}, ${(cp2+0.5).toFixed(2)}`);
-			choices.push(`${(cp1+0.5).toFixed(2)}, ${cp2.toFixed(2)}`);
-			choices.push(`${(cp2/2).toFixed(2)}, ${cp2.toFixed(2)}`);
-			choices.push(`${cp1}`);
+			if(criticalPoints.length===1){
+				choices.push(`${(cp1+0.5).toFixed(2)}`);
+				choices.push(`${(cp2).toFixed(2)}`);
+				choices.push(`${(cp2/2).toFixed(2)}`);
+				choices.push(`${(cp1-0.5).toFixed(2)}`);
+			}
+			else{
+				choices.push(`${cp1}, ${(cp2+0.5).toFixed(2)}`);
+				choices.push(`${(cp1+0.5).toFixed(2)}, ${cp2.toFixed(2)}`);
+				choices.push(`${(cp2/2).toFixed(2)}, ${cp2.toFixed(2)}`);
+				choices.push(`${cp1}`);
+			}
 			break;
 		}
 		case "incDec":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Intervals where } f(x)=x^3-${a}x^2+1 \\text{ is increasing.} \\]`;
 			let cp=2*a/3;
-			plainCorrectAnswer=`(${cp.toFixed(2)}, \\infty)`;
+			plainCorrectAnswer=`(-\\infty, 0) \\text{ and } (${cp.toFixed(2)}, \\infty)`;
 			latexAnswer=plainCorrectAnswer;
-			expectedFormat="Enter interval like (1, infinity)";
+			expectedFormat="Enter intervals like (-inf, 0) and (1, inf)";
 			choices=[plainCorrectAnswer];
 			choices.push(`(-\\infty, ${cp.toFixed(2)})`);
-			choices.push(`(${cp.toFixed(2)}, ${(cp+1).toFixed(2)})`);
+			choices.push(`(${cp.toFixed(2)}, \\infty)`);
 			choices.push(`(-\\infty, \\infty)`);
-			choices.push(`(${cp.toFixed(2)}, 0)`);
+			choices.push(`(0, ${cp.toFixed(2)})`);
 			break;
 		}
 		case "firstDerivativeTest":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ f(x)=x^4-${a}x^3. \\text{ Classify critical points.} \\]`;
 			let cp2=(3*a)/4;
-			plainCorrectAnswer=`x=0 local max, x=${cp2.toFixed(2)} local min`;
-			latexAnswer=`x=0\\text{ local max},\\ x=${cp2.toFixed(2)}\\text{ local min}`;
+			plainCorrectAnswer=`x=0 saddle, x=${cp2.toFixed(2)} local min`;
+			latexAnswer=`x=0\\text{ saddle},\\ x=${cp2.toFixed(2)}\\text{ local min}`;
 			expectedFormat="Describe";
 			choices=[plainCorrectAnswer];
 			choices.push(`x=0 local min, x=${cp2.toFixed(2)} local max`);
 			choices.push(`x=0 local max, x=${cp2.toFixed(2)} saddle`);
-			choices.push(`x=0 saddle, x=${cp2.toFixed(2)} local min`);
+			choices.push(`x=0 saddle, x=${cp2.toFixed(2)} local max`);
 			choices.push(`x=0 local min, x=${cp2.toFixed(2)} local min`);
 			break;
 		}
@@ -149,7 +159,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ f(x)=x^3-${a}x \\text{ on } [0,3]. \\text{ Find absolute max.} \\]`;
 			let maxVal=Math.max(0, 27-3*a, Math.pow(Math.sqrt(a/3),3)-a*Math.sqrt(a/3));
-			if (isNaN(maxVal)){
+			if(isNaN(maxVal)){
 				maxVal=Math.max(0,27-3*a);
 			}
 			plainCorrectAnswer=maxVal.toFixed(2);
@@ -231,11 +241,8 @@ export function generateApplicationsDiff(difficulty?: string): void{
 		}
 		case "implicitBehavior":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
+			if(a<2) a=2;
 			let yVal=Math.sqrt(a-1);
-			if (isNaN(yVal)){
-				a=Math.max(a,2);
-				yVal=Math.sqrt(a-1);
-			}
 			mathExpression=`\\[ \\text{Slope of tangent to } x^2+y^2=${a} \\text{ at } (1,${yVal.toFixed(2)}). \\]`;
 			let slope=(-1/yVal).toFixed(2);
 			plainCorrectAnswer=slope;
@@ -252,8 +259,8 @@ export function generateApplicationsDiff(difficulty?: string): void{
 		case "rectangleOptimization":{
 			let fencing=Math.floor(Math.random()*maxCoeff*20)+100;
 			mathExpression=`\\[ \\text{A farmer has ${fencing} ft of fencing to enclose a rectangular field and subdivide it into two equal plots with a fence parallel to one side. Find dimensions that maximize total area.} \\]`;
-			let width=fencing/4;
-			let length=fencing/2;
+			let width=fencing/6;
+			let length=fencing/4;
 			let maxArea=width*length;
 			plainCorrectAnswer=`width=${width.toFixed(1)} ft, length=${length.toFixed(1)} ft, area=${maxArea.toFixed(1)} sq ft`;
 			latexAnswer=`\\text{width}=${width.toFixed(1)}\\text{ ft},\\ \\text{length}=${length.toFixed(1)}\\text{ ft},\\ \\text{area}=${maxArea.toFixed(1)}\\text{ ft}^2`;
@@ -268,13 +275,13 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			let side=Math.floor(Math.random()*maxCoeff*10)+10;
 			mathExpression=`\\[ \\text{An open‑top box is made from a ${side}-in by ${side}-in square by cutting equal squares from each corner and folding up. Find the cut‑out side length that maximizes volume.} \\]`;
 			let optimalCut=side/6;
-			let maxVol=2*optimalCut*optimalCut*optimalCut;
+			let maxVol=2*Math.pow(side,3)/27;
 			plainCorrectAnswer=`cut=${optimalCut.toFixed(2)} in, volume=${maxVol.toFixed(2)} cubic in`;
 			latexAnswer=`\\text{cut}=${optimalCut.toFixed(2)}\\text{ in},\\ \\text{volume}=${maxVol.toFixed(2)}\\text{ in}^3`;
 			expectedFormat="Enter cut length and volume";
 			choices=[plainCorrectAnswer];
-			choices.push(`cut=${(optimalCut+0.5).toFixed(2)} in, volume=${(2*Math.pow(optimalCut+0.5,3)).toFixed(2)} cubic in`);
-			choices.push(`cut=${(optimalCut-0.5).toFixed(2)} in, volume=${(2*Math.pow(optimalCut-0.5,3)).toFixed(2)} cubic in`);
+			choices.push(`cut=${(optimalCut+0.5).toFixed(2)} in, volume=${(2*Math.pow(side/6+0.5,3)).toFixed(2)} cubic in`);
+			choices.push(`cut=${(optimalCut-0.5).toFixed(2)} in, volume=${(2*Math.pow(side/6-0.5,3)).toFixed(2)} cubic in`);
 			choices.push(`cut=${(side/5).toFixed(2)} in, volume=${(2*Math.pow(side/5,3)).toFixed(2)} cubic in`);
 			break;
 		}
@@ -326,16 +333,16 @@ export function generateApplicationsDiff(difficulty?: string): void{
 		}
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	let found=false;
-	for (let i=0;i<uniqueChoices.length;i++){
-		if (uniqueChoices[i]===plainCorrectAnswer){
+	for(let i=0;i<uniqueChoices.length;i++){
+		if(uniqueChoices[i]===plainCorrectAnswer){
 			found=true;
 			break;
 		}
 	}
-	if (!found){
-		if (uniqueChoices.length>0){
+	if(!found){
+		if(uniqueChoices.length>0){
 			let randomIndex=Math.floor(Math.random()*uniqueChoices.length);
 			uniqueChoices[randomIndex]=plainCorrectAnswer;
 		}
@@ -346,7 +353,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
 	questionArea.appendChild(mathContainer);
-	if (window.MathJax&&window.MathJax.typesetPromise){
+	if(window.MathJax&&window.MathJax.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
 			console.log("MathJax typeset error:", err)
 		);
