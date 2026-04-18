@@ -1,12 +1,12 @@
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Complex number operations: addition, subtraction, multiplication, division, powers of i.
  * @fileoverview Generates complex number arithmetic questions with MCQ distractors. Sets window.correctAnswer with correct result and display.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
 export function generateComplex(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["add","subtract","multiply","divide","powers_i"];
 	let type=types[Math.floor(Math.random()*types.length)];
@@ -15,19 +15,20 @@ export function generateComplex(difficulty?: string): void{
 	let b=Math.floor(Math.random()*maxVal)+1;
 	let c=Math.floor(Math.random()*maxVal)+1;
 	let d=Math.floor(Math.random()*maxVal)+1;
-	let hint="";
+	let expectedFormat="Enter your answer in a+bi form (e.g., 3+2i or 3-2i)";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices: string[]=[];
-	switch (type){
+	switch(type){
 		case "add":{
 			let real=a+c;
 			let imag=b+d;
 			correct=imag>=0?`${real} + ${imag}i`:`${real} - ${-imag}i`;
 			alternate=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
 			display=correct;
-			questionArea.innerHTML=`Add: \\( (${a} + ${b}i) + (${c} + ${d}i) \\)`;
+			mathExpression=`\\( (${a} + ${b}i) + (${c} + ${d}i) \\)`;
 			choices=[correct];
 			let wrongReal1=real+1;
 			let wrongImag1=imag+1;
@@ -45,7 +46,7 @@ export function generateComplex(difficulty?: string): void{
 			correct=imag>=0?`${real} + ${imag}i`:`${real} - ${-imag}i`;
 			alternate=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
 			display=correct;
-			questionArea.innerHTML=`Subtract: \\( (${a} + ${b}i) - (${c} + ${d}i) \\)`;
+			mathExpression=`\\( (${a} + ${b}i) - (${c} + ${d}i) \\)`;
 			choices=[correct];
 			let wrongReal1=real+1;
 			let wrongImag1=imag+1;
@@ -63,7 +64,7 @@ export function generateComplex(difficulty?: string): void{
 			correct=imag>=0?`${real} + ${imag}i`:`${real} - ${-imag}i`;
 			alternate=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
 			display=correct;
-			questionArea.innerHTML=`Multiply: \\( (${a} + ${b}i)(${c} + ${d}i) \\)`;
+			mathExpression=`\\( (${a} + ${b}i)(${c} + ${d}i) \\)`;
 			choices=[correct];
 			let wrongReal1=real+1;
 			let wrongImag1=imag+1;
@@ -81,7 +82,7 @@ export function generateComplex(difficulty?: string): void{
 			let imag=(b*c-a*d)/denom;
 			let realFixed=real.toFixed(2);
 			let absImag=Math.abs(imag).toFixed(2);
-			if (imag>=0){
+			if(imag>=0){
 				correct=`${realFixed} + ${absImag}i`;
 			}
 			else{
@@ -89,7 +90,7 @@ export function generateComplex(difficulty?: string): void{
 			}
 			alternate=imag>=0?`${realFixed}+${absImag}i`:`${realFixed}-${absImag}i`;
 			display=correct;
-			questionArea.innerHTML=`Divide: \\( \\frac{${a} + ${b}i}{${c} + ${d}i} \\)`;
+			mathExpression=`\\( \\frac{${a} + ${b}i}{${c} + ${d}i} \\)`;
 			choices=[correct];
 			let wrongRealNum=(a*c+b*d)/(denom+1);
 			let wrongImagNum=(b*c-a*d)/(denom+1);
@@ -113,11 +114,11 @@ export function generateComplex(difficulty?: string): void{
 			correct=ans;
 			alternate=ans;
 			display=ans;
-			questionArea.innerHTML=`Simplify: \\( i^{${n}} \\)`;
+			mathExpression=`\\( i^{${n}} \\)`;
 			let all=["i","-1","-i","1"];
 			choices=[correct];
-			for (let opt of all){
-				if (opt!==correct) choices.push(opt);
+			for(let opt of all){
+				if(opt!==correct) choices.push(opt);
 			}
 			break;
 		}
@@ -125,10 +126,18 @@ export function generateComplex(difficulty?: string): void{
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -136,6 +145,5 @@ export function generateComplex(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
