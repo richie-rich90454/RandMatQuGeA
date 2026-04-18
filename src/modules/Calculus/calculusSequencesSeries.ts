@@ -1,6 +1,5 @@
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
-
 /**
  * Generates and displays a random sequences and series question in the global `questionArea`.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -9,7 +8,7 @@ import {getMaxCoeff} from "./calculusUtils.js";
  *                     Influences the maximum coefficient value used in generated expressions
  *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
  * @returns void
- * @date 2026-04-02
+ * @date 2026-04-18
  *
  * @remarks
  * The function performs the following steps:
@@ -39,14 +38,14 @@ import {getMaxCoeff} from "./calculusUtils.js";
  * - `limitComparison`   – use limit comparison test on a rational series.
  * - `taylorCos`         – Maclaurin series for cos x.
  * - `taylorLn`          – Maclaurin series for ln(1+x) by integrating geometric series.
- * - `seriesOperations`  – multiply or integrate known power series (e.g., x·eˣ or ∫x·eˣ dx).
+ * - `seriesOperations`  – find power series for x·e^{ax} by multiplying known series.
  *
  * @example
  * generateSequencesSeries();
  * generateSequencesSeries("hard");
  */
 export function generateSequencesSeries(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let questionTypes=["integralTest","pSeries","comparisonTest","alternatingTest","ratioTest","absCond","altError","taylorPoly","lagrangeError","radiusInterval","maclaurin","powerSeries","geometricSeries","nthTermTest","limitComparison","taylorCos","taylorLn","seriesOperations"];
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
@@ -56,7 +55,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 	let expectedFormat="Enter your answer";
 	let maxCoeff=getMaxCoeff(difficulty);
 	let choices: string[]=[];
-	switch (questionType){
+	switch(questionType){
 		case "integralTest":{
 			let p=Math.floor(Math.random()*3)+2;
 			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{1}{n^2+${p}} \\text{ use integral test.} \\]`;
@@ -70,7 +69,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			let pVal=(Math.random()*2).toFixed(1);
 			let pNum=parseFloat(pVal);
 			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{1}{n^{${pVal}}} \\text{ converges for?} \\]`;
-			if (pNum>1){
+			if(pNum>1){
 				plainCorrectAnswer="converges";
 				latexAnswer="\\text{converges}";
 			}
@@ -80,10 +79,6 @@ export function generateSequencesSeries(difficulty?: string): void{
 			}
 			expectedFormat="Enter converges or diverges";
 			choices=["converges","diverges"];
-			if (pNum>1) choices.push("diverges");
-			else choices.push("converges");
-			choices.push("converges only if p>2");
-			choices.push("converges only if p<1");
 			break;
 		}
 		case "comparisonTest":{
@@ -270,30 +265,30 @@ export function generateSequencesSeries(difficulty?: string): void{
 		}
 		case "seriesOperations":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
-			mathExpression=`\\[ \\text{Given } e^x = \\sum_{n=0}^\\infty \\frac{x^n}{n!}, \\text{ find series for } x e^{${a}x} \\text{ and } \\int x e^{${a}x} dx. \\]`;
-			let series1=`∑ (${a}^(n-1)/(n-1)!) x^n`;
-			let series2=`∑ (${a}^(n-1)/(n!*n)) x^(n+1) + C`;
-			plainCorrectAnswer=`x e^(${a}x) = ${series1}, integral = ${series2}`;
-			latexAnswer=`xe^{${a}x} = \\sum_{n=1}^\\infty \\frac{${a}^{n-1}}{(n-1)!}x^n,\\ \\int xe^{${a}x}dx = \\sum_{n=0}^\\infty \\frac{${a}^{n}}{n!(n+2)}x^{n+2}+C`;
-			expectedFormat="Enter series expressions";
-			choices=[plainCorrectAnswer];
-			choices.push(`x e^(${a}x) = ∑ ${a}^n x^n/n!, integral = ∑ ${a}^n x^(n+1)/(n+1)!+C`);
-			choices.push(`x e^(${a}x) = ∑ ${a}^(n-1) x^n/(n-1)!, integral = ∑ ${a}^(n-1) x^(n+1)/(n-1)!n +C`);
-			choices.push(`x e^(${a}x) = ∑ x^(n+1)/n!, integral = ∑ x^(n+2)/(n+2)n! +C`);
+			mathExpression=`\\[ \\text{Given } e^x = \\sum_{n=0}^\\infty \\frac{x^n}{n!}, \\text{ find the power series for } x e^{${a}x}. \\]`;
+			plainCorrectAnswer=`∑_{n=0}^∞ ${a}^n x^{n+1}/n!`;
+			latexAnswer=`\\sum_{n=0}^{\\infty} \\frac{${a}^{n}}{n!}x^{n+1}`;
+			expectedFormat="Enter series";
+			let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
+			choices=[normalizedCorrect];
+			choices.push(`∑_{n=0}^∞ ${a}^n x^n/n!`.replace(/\s/g,"").toLowerCase());
+			choices.push(`∑_{n=1}^∞ ${a}^{n-1} x^n/(n-1)!`.replace(/\s/g,"").toLowerCase());
+			choices.push(`∑_{n=0}^∞ ${a}^{n+1} x^{n+1}/n!`.replace(/\s/g,"").toLowerCase());
+			choices.push(`∑_{n=0}^∞ x^{n+1}/n!`.replace(/\s/g,"").toLowerCase());
 			break;
 		}
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	let found=false;
-	for (let i=0;i<uniqueChoices.length;i++){
-		if (uniqueChoices[i]===plainCorrectAnswer){
+	for(let i=0;i<uniqueChoices.length;i++){
+		if(uniqueChoices[i]===plainCorrectAnswer){
 			found=true;
 			break;
 		}
 	}
-	if (!found){
-		if (uniqueChoices.length>0){
+	if(!found){
+		if(uniqueChoices.length>0){
 			uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
 		}
 		else{
@@ -303,7 +298,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
 	questionArea.appendChild(mathContainer);
-	if (window.MathJax&&window.MathJax.typesetPromise){
+	if(window.MathJax&&window.MathJax.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
 			console.log("MathJax typeset error:", err)
 		);
