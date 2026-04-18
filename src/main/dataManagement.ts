@@ -7,6 +7,7 @@
 import {invoke} from"@tauri-apps/api/core";
 import {topics} from"./constants";
 import*as ui from"./ui";
+import {updateLeaderboard} from "./session";
 let modal:HTMLElement|null=null;
 let dataList:HTMLElement|null=null;
 export async function openDataModal(){
@@ -49,7 +50,6 @@ async function loadData(){
 					}
 					ui.showNotification("All performance data deleted.","info");
 					await loadData();
-					const{updateLeaderboard}=await import("./session");
 					updateLeaderboard();
 				}
 			};
@@ -61,7 +61,6 @@ async function loadData(){
 					await invoke("reset_all_data");
 					ui.showNotification("All data has been reset.","info");
 					await loadData();
-					const{updateLeaderboard}=await import("./session");
 					updateLeaderboard();
 				}
 			};
