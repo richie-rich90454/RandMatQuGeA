@@ -1,26 +1,27 @@
+import {questionArea} from "../../../script.js";
+import {gcd, getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Generates a fraction arithmetic question (add, subtract, multiply, divide, simplify, or convert decimal to fraction) with MCQ distractors.
  * @fileoverview Fraction operations. Sets window.correctAnswer with plain fraction string and LaTeX display, plus plausible wrong answers.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-import {gcd, getMaxForDifficulty} from "../algebraUtils.js";
 export function generateFraction(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["add","subtract","multiply","divide","simplify","convert"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,12);
-	let hint="";
+	let expectedFormat="Enter a fraction in simplest form like 3/4";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
 	let num1=Math.floor(Math.random()*maxVal)+1;
 	let den1=Math.floor(Math.random()*(maxVal-1))+2;
 	let num2=Math.floor(Math.random()*maxVal)+1;
 	let den2=Math.floor(Math.random()*(maxVal-1))+2;
-	switch (type){
+	switch(type){
 		case "add":{
 			let commonDen=den1*den2;
 			let newNum1=num1*den2;
@@ -34,7 +35,7 @@ export function generateFraction(difficulty?: string): void{
 			correct=plain;
 			alternate=`${sumNum}/${commonDen}`;
 			display=latex;
-			questionArea.innerHTML=`Add: \\( \\frac{${num1}}{${den1}} + \\frac{${num2}}{${den2}} \\)`;
+			mathExpression=`Add: \\( \\frac{${num1}}{${den1}} + \\frac{${num2}}{${den2}} \\)`;
 			choices=[correct];
 			choices.push(`${(simplifiedNum+1)}/${simplifiedDen}`);
 			choices.push(`${simplifiedNum}/${(simplifiedDen+1)}`);
@@ -55,7 +56,7 @@ export function generateFraction(difficulty?: string): void{
 			correct=plain;
 			alternate=`${diffNum}/${commonDen}`;
 			display=latex;
-			questionArea.innerHTML=`Subtract: \\( \\frac{${num1}}{${den1}} - \\frac{${num2}}{${den2}} \\)`;
+			mathExpression=`Subtract: \\( \\frac{${num1}}{${den1}} - \\frac{${num2}}{${den2}} \\)`;
 			choices=[correct];
 			choices.push(`${(simplifiedNum+1)}/${simplifiedDen}`);
 			choices.push(`${simplifiedNum}/${(simplifiedDen+1)}`);
@@ -74,7 +75,7 @@ export function generateFraction(difficulty?: string): void{
 			correct=plain;
 			alternate=`${prodNum}/${prodDen}`;
 			display=latex;
-			questionArea.innerHTML=`Multiply: \\( \\frac{${num1}}{${den1}} \\times \\frac{${num2}}{${den2}} \\)`;
+			mathExpression=`Multiply: \\( \\frac{${num1}}{${den1}} \\times \\frac{${num2}}{${den2}} \\)`;
 			choices=[correct];
 			choices.push(`${(simplifiedNum+1)}/${simplifiedDen}`);
 			choices.push(`${simplifiedNum}/${(simplifiedDen+1)}`);
@@ -93,7 +94,7 @@ export function generateFraction(difficulty?: string): void{
 			correct=plain;
 			alternate=`${quotNum}/${quotDen}`;
 			display=latex;
-			questionArea.innerHTML=`Divide: \\( \\frac{${num1}}{${den1}} \\div \\frac{${num2}}{${den2}} \\)`;
+			mathExpression=`Divide: \\( \\frac{${num1}}{${den1}} \\div \\frac{${num2}}{${den2}} \\)`;
 			choices=[correct];
 			choices.push(`${(simplifiedNum+1)}/${simplifiedDen}`);
 			choices.push(`${simplifiedNum}/${(simplifiedDen+1)}`);
@@ -112,7 +113,7 @@ export function generateFraction(difficulty?: string): void{
 			correct=plain;
 			alternate=plain;
 			display=latex;
-			questionArea.innerHTML=`Simplify: \\( \\frac{${num}}{${den}} \\)`;
+			mathExpression=`Simplify: \\( \\frac{${num}}{${den}} \\)`;
 			choices=[correct];
 			choices.push(`${(simplifiedNum+1)}/${simplifiedDen}`);
 			choices.push(`${simplifiedNum}/${(simplifiedDen+1)}`);
@@ -132,7 +133,7 @@ export function generateFraction(difficulty?: string): void{
 			correct=plain;
 			alternate=plain;
 			display=latex;
-			questionArea.innerHTML=`Convert \\( ${decimal} \\) to a fraction in simplest form.`;
+			mathExpression=`Convert \\( ${decimal} \\) to a fraction in simplest form.`;
 			choices=[correct];
 			choices.push(`${(simplifiedNum+1)}/${simplifiedDen}`);
 			choices.push(`${simplifiedNum}/${(simplifiedDen+1)}`);
@@ -144,10 +145,18 @@ export function generateFraction(difficulty?: string): void{
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -155,6 +164,5 @@ export function generateFraction(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
