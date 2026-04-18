@@ -8,9 +8,9 @@ import {getRange} from "./linearAlgebraUtils.js";
 
 function generate3x3Matrix(range: number): number[][]{
 	let mat: number[][]=[];
-	for (let i=0; i<3; i++){
+	for(let i=0;i<3;i++){
 		let row: number[]=[];
-		for (let j=0; j<3; j++){
+		for(let j=0;j<3;j++){
 			row.push(+(Math.random()*range*2-range).toFixed(2));
 		}
 		mat.push(row);
@@ -24,12 +24,12 @@ function generateRandomVector3D(range: number): { x: number; y: number; z: numbe
 		x=Math.random()*range*2-range;
 		y=Math.random()*range*2-range;
 		z=Math.random()*range*2-range;
-	}while (Math.abs(x)<0.01&&Math.abs(y)<0.01&&Math.abs(z)<0.01);
-	return { x, y, z };
+	}while(Math.abs(x)<0.01&&Math.abs(y)<0.01&&Math.abs(z)<0.01);
+	return{ x, y, z };
 }
 
 export function generateSystem3x3(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	const range=getRange(difficulty)*2;
 	let x=Math.floor(Math.random()*range)+1;
@@ -37,11 +37,11 @@ export function generateSystem3x3(difficulty?: string): void{
 	let z=Math.floor(Math.random()*range)+1;
 	let A=generate3x3Matrix(range);
 	let b: number[]=[];
-	for (let i=0; i<3; i++){
+	for(let i=0;i<3;i++){
 		let sum=A[i][0]*x+A[i][1]*y+A[i][2]*z;
 		b.push(+(sum).toFixed(2));
 	}
-	questionArea.innerHTML=`Solve the system using Gaussian elimination:<br>
+	let mathExpression=`Solve the system using Gaussian elimination:<br>
         \\( \\begin{cases}
         ${A[0][0].toFixed(2)}x + ${A[0][1].toFixed(2)}y + ${A[0][2].toFixed(2)}z = ${b[0]} \\\\
         ${A[1][0].toFixed(2)}x + ${A[1][1].toFixed(2)}y + ${A[1][2].toFixed(2)}z = ${b[1]} \\\\
@@ -54,10 +54,16 @@ export function generateSystem3x3(difficulty?: string): void{
 	choices.push(`x=${x}, y=${y}, z=${z+1}`);
 	choices.push(`x=${x-1}, y=${y}, z=${z}`);
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correctLaTeX)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctLaTeX;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correctLaTeX)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctLaTeX;
 		else uniqueChoices=[correctLaTeX];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
 	window.correctAnswer={
 		correct: correctLaTeX,
@@ -66,15 +72,14 @@ export function generateSystem3x3(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as x=..., y=..., z=... or (x,y,z)";
-	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
 
 export function generateRowEchelon3x3(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	const range=getRange(difficulty);
 	let A=generate3x3Matrix(range);
-	if (Math.abs(A[0][0])<0.1) A[0][0]=1;
+	if(Math.abs(A[0][0])<0.1) A[0][0]=1;
 	let factor1=A[1][0]/A[0][0];
 	let factor2=A[2][0]/A[0][0];
 	let result=[
@@ -82,7 +87,7 @@ export function generateRowEchelon3x3(difficulty?: string): void{
 		[0,+(A[1][1]-factor1*A[0][1]).toFixed(2),+(A[1][2]-factor1*A[0][2]).toFixed(2)],
 		[0,+(A[2][1]-factor2*A[0][1]).toFixed(2),+(A[2][2]-factor2*A[0][2]).toFixed(2)]
 	];
-	questionArea.innerHTML=`Find the row echelon form of the matrix:<br>
+	let mathExpression=`Find the row echelon form of the matrix:<br>
         \\( \\begin{bmatrix}
         ${A[0][0].toFixed(2)} & ${A[0][1].toFixed(2)} & ${A[0][2].toFixed(2)} \\\\
         ${A[1][0].toFixed(2)} & ${A[1][1].toFixed(2)} & ${A[1][2].toFixed(2)} \\\\
@@ -102,10 +107,16 @@ export function generateRowEchelon3x3(difficulty?: string): void{
 	let wrongLaTeX3=`\\begin{bmatrix} ${wrongRow3[0][0].toFixed(2)} & ${wrongRow3[0][1].toFixed(2)} & ${wrongRow3[0][2].toFixed(2)} \\\\ ${wrongRow3[1][0].toFixed(2)} & ${wrongRow3[1][1].toFixed(2)} & ${wrongRow3[1][2].toFixed(2)} \\\\ ${wrongRow3[2][0].toFixed(2)} & ${wrongRow3[2][1].toFixed(2)} & ${wrongRow3[2][2].toFixed(2)} \\end{bmatrix}`;
 	choices.push(wrongLaTeX3);
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correctLaTeX)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctLaTeX;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correctLaTeX)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctLaTeX;
 		else uniqueChoices=[correctLaTeX];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
 	window.correctAnswer={
 		correct: correctLaTeX,
@@ -114,22 +125,21 @@ export function generateRowEchelon3x3(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as [a,b,c;d,e,f;g,h,i]";
-	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
 
 export function generatePartialFractions(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	const types=["distinct","repeated","quadratic"];
 	let type: string;
-	if (difficulty==="easy") type="distinct";
-	else if (difficulty==="hard") type=types[Math.floor(Math.random()*types.length)];
+	if(difficulty==="easy") type="distinct";
+	else if(difficulty==="hard") type=types[Math.floor(Math.random()*types.length)];
 	else type=types[Math.floor(Math.random()*2)];
 	let numerator=Math.floor(Math.random()*5)+1;
 	let a=Math.floor(Math.random()*3)+1;
 	let b=Math.floor(Math.random()*3)+1;
-	if (type==="distinct"){
-		while (b===a){
+	if(type==="distinct"){
+		while(b===a){
 			b=Math.floor(Math.random()*3)+1;
 		}
 	}
@@ -138,7 +148,7 @@ export function generatePartialFractions(difficulty?: string): void{
 	let answer="";
 	let alternate="";
 	let choices: string[]=[];
-	if (type==="distinct"){
+	if(type==="distinct"){
 		question=`Decompose into partial fractions: \\( \\frac{${numerator}}{(x+${a})(x+${b})} \\)`;
 		let A=numerator/(b-a);
 		let B=-numerator/(b-a);
@@ -150,7 +160,7 @@ export function generatePartialFractions(difficulty?: string): void{
 		choices.push(`\\frac{${numerator}}{x+${a}} + \\frac{0}{x+${b}}`);
 		choices.push(`\\frac{${A.toFixed(2)}}{x+${b}} + \\frac{${B.toFixed(2)}}{x+${a}}`);
 	}
-	else if (type==="repeated"){
+	else if(type==="repeated"){
 		question=`Decompose into partial fractions: \\( \\frac{${numerator}}{(x+${a})^2} \\)`;
 		answer=`\\frac{${numerator}}{(x+${a})^2}`;
 		alternate=`${numerator}/(x+${a})^2`;
@@ -171,19 +181,23 @@ export function generatePartialFractions(difficulty?: string): void{
 		choices.push(`\\frac{${numerator}}{x^2 + ${b}x + ${c}}`);
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(answer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=answer;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(answer)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=answer;
 		else uniqueChoices=[answer];
 	}
-	questionArea.innerHTML=question;
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=question;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
+	}
 	window.correctAnswer={ correct: answer, alternate: alternate, display: answer, choices: uniqueChoices };
 	window.expectedFormat="Enter the partial fractions expression";
-	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
 
 export function generateLinearProgramming(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	const range=getRange(difficulty);
 	let a1=Math.floor(Math.random()*3)+1;
@@ -197,50 +211,50 @@ export function generateLinearProgramming(difficulty?: string): void{
 	let opt=Math.random()<0.5?"maximize":"minimize";
 	let corners: { x: number; y: number }[]=[];
 	let det=a1*b2-a2*b1;
-	if (Math.abs(det)>0.001){
+	if(Math.abs(det)>0.001){
 		let x1=(c1*b2-c2*b1)/det;
 		let y1=(a1*c2-a2*c1)/det;
-		if (x1>=0 && y1>=0) corners.push({ x: x1, y: y1 });
+		if(x1>=0&&y1>=0) corners.push({ x: x1, y: y1 });
 	}
-	if (a1!==0){
+	if(a1!==0){
 		let x=c1/a1;
-		if (x>=0) corners.push({ x: x, y: 0 });
+		if(x>=0) corners.push({ x: x, y: 0 });
 	}
-	if (b1!==0){
+	if(b1!==0){
 		let y=c1/b1;
-		if (y>=0) corners.push({ x: 0, y: y });
+		if(y>=0) corners.push({ x: 0, y: y });
 	}
-	if (a2!==0){
+	if(a2!==0){
 		let x=c2/a2;
-		if (x>=0) corners.push({ x: x, y: 0 });
+		if(x>=0) corners.push({ x: x, y: 0 });
 	}
-	if (b2!==0){
+	if(b2!==0){
 		let y=c2/b2;
-		if (y>=0) corners.push({ x: 0, y: y });
+		if(y>=0) corners.push({ x: 0, y: y });
 	}
 	corners.push({ x: 0, y: 0 });
 	let uniqueCorners: { x: number; y: number }[]=[];
-	for (let pt of corners){
-		if (!uniqueCorners.some(p=>Math.abs(p.x-pt.x)<0.01&&Math.abs(p.y-pt.y)<0.01)){
+	for(let pt of corners){
+		if(!uniqueCorners.some(p=>Math.abs(p.x-pt.x)<0.01&&Math.abs(p.y-pt.y)<0.01)){
 			uniqueCorners.push(pt);
 		}
 	}
 	let bestVal=opt==="maximize"?-Infinity:Infinity;
 	let bestPoint: { x: number; y: number }|null=null;
-	for (let pt of uniqueCorners){
-		if (a1*pt.x+b1*pt.y<=c1+0.001 && a2*pt.x+b2*pt.y<=c2+0.001 && pt.x>=-0.001 && pt.y>=-0.001){
+	for(let pt of uniqueCorners){
+		if(a1*pt.x+b1*pt.y<=c1+0.001&&a2*pt.x+b2*pt.y<=c2+0.001&&pt.x>=-0.001&&pt.y>=-0.001){
 			let val=p*pt.x+q*pt.y;
-			if (opt==="maximize" && val>bestVal){
+			if(opt==="maximize"&&val>bestVal){
 				bestVal=val;
 				bestPoint=pt;
 			}
-			else if (opt==="minimize" && val<bestVal){
+			else if(opt==="minimize"&&val<bestVal){
 				bestVal=val;
 				bestPoint=pt;
 			}
 		}
 	}
-	questionArea.innerHTML=`Consider the linear programming problem:<br>
+	let mathExpression=`Consider the linear programming problem:<br>
         ${opt} \\( z = ${p}x + ${q}y \\) subject to:<br>
         \\( ${a1}x + ${b1}y \\le ${c1} \\)<br>
         \\( ${a2}x + ${b2}y \\le ${c2} \\)<br>
@@ -248,7 +262,7 @@ export function generateLinearProgramming(difficulty?: string): void{
         Find the optimal value and the point where it occurs.`;
 	let answer=bestPoint?`z = ${bestVal.toFixed(2)} at (${bestPoint.x.toFixed(2)}, ${bestPoint.y.toFixed(2)})`:"No feasible region";
 	let choices=[answer];
-	if (bestPoint){
+	if(bestPoint){
 		choices.push(`z = ${(bestVal+1).toFixed(2)} at (${bestPoint.x.toFixed(2)}, ${bestPoint.y.toFixed(2)})`);
 		choices.push(`z = ${(bestVal-1).toFixed(2)} at (${bestPoint.x.toFixed(2)}, ${bestPoint.y.toFixed(2)})`);
 		choices.push(`z = ${bestVal.toFixed(2)} at (${(bestPoint.x+1).toFixed(2)}, ${bestPoint.y.toFixed(2)})`);
@@ -260,18 +274,23 @@ export function generateLinearProgramming(difficulty?: string): void{
 		choices.push("Unbounded");
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(answer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=answer;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(answer)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=answer;
 		else uniqueChoices=[answer];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
 	window.correctAnswer={ correct: answer, alternate: answer, display: answer, choices: uniqueChoices };
 	window.expectedFormat="Enter as 'z = value at (x,y)'";
-	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
 
 export function generateVector3D(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	const range=getRange(difficulty)*2;
 	const v=generateRandomVector3D(range);
@@ -282,7 +301,7 @@ export function generateVector3D(difficulty?: string): void{
 	let alternate="";
 	let hint="";
 	let choices: string[]=[];
-	if (type==="magnitude"){
+	if(type==="magnitude"){
 		let mag=Math.sqrt(v.x*v.x+v.y*v.y+v.z*v.z).toFixed(2);
 		question=`Find the magnitude of \\( \\langle ${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)} \\rangle \\).`;
 		answer=mag;
@@ -295,7 +314,7 @@ export function generateVector3D(difficulty?: string): void{
 		choices.push((Math.abs(v.x)+Math.abs(v.y)+Math.abs(v.z)).toFixed(2));
 		choices.push((Math.sqrt(v.x*v.x+v.y*v.y)).toFixed(2));
 	}
-	else if (type==="unit"){
+	else if(type==="unit"){
 		let mag=Math.sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
 		let ux=(v.x/mag).toFixed(2);
 		let uy=(v.y/mag).toFixed(2);
@@ -310,7 +329,7 @@ export function generateVector3D(difficulty?: string): void{
 		choices.push(`\\langle ${(v.x/mag).toFixed(2)}, ${(v.y/mag+0.1).toFixed(2)}, ${(v.z/mag).toFixed(2)} \\rangle`);
 		choices.push(`\\langle ${(v.x/mag).toFixed(2)}, ${(v.y/mag).toFixed(2)}, ${(v.z/mag+0.1).toFixed(2)} \\rangle`);
 	}
-	else if (type==="dot"){
+	else if(type==="dot"){
 		const w=generateRandomVector3D(range);
 		let dot=(v.x*w.x+v.y*w.y+v.z*w.z).toFixed(2);
 		question=`Calculate the dot product of \\( \\langle ${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)} \\rangle \\) and \\( \\langle ${w.x.toFixed(2)}, ${w.y.toFixed(2)}, ${w.z.toFixed(2)} \\rangle \\).`;
@@ -324,14 +343,14 @@ export function generateVector3D(difficulty?: string): void{
 		choices.push((v.x*w.x+v.y*w.y).toFixed(2));
 		choices.push((v.x*w.x).toFixed(2));
 	}
-	else if (type==="angle"){
+	else if(type==="angle"){
 		const w=generateRandomVector3D(range);
 		let dot=v.x*w.x+v.y*w.y+v.z*w.z;
 		let magV=Math.sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
 		let magW=Math.sqrt(w.x*w.x+w.y*w.y+w.z*w.z);
 		let cosTheta=dot/(magV*magW);
-		if (cosTheta>1) cosTheta=1;
-		if (cosTheta<-1) cosTheta=-1;
+		if(cosTheta>1) cosTheta=1;
+		if(cosTheta<-1) cosTheta=-1;
 		let angle=(Math.acos(cosTheta)*180/Math.PI).toFixed(1);
 		question=`Find the angle (in degrees) between \\( \\langle ${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)} \\rangle \\) and \\( \\langle ${w.x.toFixed(2)}, ${w.y.toFixed(2)}, ${w.z.toFixed(2)} \\rangle \\).`;
 		answer=`${angle}^{\\circ}`;
@@ -365,25 +384,29 @@ export function generateVector3D(difficulty?: string): void{
 		choices.push(`\\langle ${projx}, ${projy}, ${(parseFloat(projz)+0.1).toFixed(2)} \\rangle`);
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(answer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=answer;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(answer)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=answer;
 		else uniqueChoices=[answer];
 	}
-	questionArea.innerHTML=question;
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=question;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
+	}
 	window.correctAnswer={ correct: answer, alternate: alternate, display: answer, choices: uniqueChoices };
 	window.expectedFormat=hint;
-	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
 
 export function generateLine3D(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	const range=getRange(difficulty)*2;
 	const point=generateRandomVector3D(range);
 	const dir=generateRandomVector3D(range);
 	const t=Math.floor(Math.random()*3)+1;
-	questionArea.innerHTML=`A line is given by parametric equations:<br>
+	let mathExpression=`A line is given by parametric equations:<br>
         \\( x = ${point.x.toFixed(2)} + ${dir.x.toFixed(2)}t, \\quad y = ${point.y.toFixed(2)} + ${dir.y.toFixed(2)}t, \\quad z = ${point.z.toFixed(2)} + ${dir.z.toFixed(2)}t \\)<br>
         Find the point on the line when \\( t = ${t} \\).`;
 	let px=point.x+dir.x*t;
@@ -396,63 +419,86 @@ export function generateLine3D(difficulty?: string): void{
 	choices.push(`(${px.toFixed(2)}, ${py.toFixed(2)}, ${(pz+1).toFixed(2)})`);
 	choices.push(`(${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)})`);
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(answer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=answer;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(answer)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=answer;
 		else uniqueChoices=[answer];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
 	window.correctAnswer={ correct: answer, alternate: answer, display: answer, choices: uniqueChoices };
 	window.expectedFormat="Enter as (x, y, z)";
-	if (window.MathJax?.typeset) window.MathJax.typeset();
 }
-
 export function generatePlane3D(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	const range=getRange(difficulty)*2;
 	const normal=generateRandomVector3D(range);
 	const point=generateRandomVector3D(range);
 	let d=normal.x*point.x+normal.y*point.y+normal.z*point.z;
 	const type=Math.random()<0.5?"point-distance":"equation";
-	if (type==="point-distance"){
+	let mathExpression="";
+	let answer="";
+	let alternate="";
+	let choices: string[]=[];
+	if(type==="point-distance"){
 		const q=generateRandomVector3D(range);
 		let numerator=Math.abs(normal.x*q.x+normal.y*q.y+normal.z*q.z-d);
 		let denom=Math.sqrt(normal.x*normal.x+normal.y*normal.y+normal.z*normal.z);
 		let dist=(numerator/denom).toFixed(2);
-		questionArea.innerHTML=`Find the distance from the point \\( (${q.x.toFixed(2)}, ${q.y.toFixed(2)}, ${q.z.toFixed(2)}) \\) to the plane \\( ${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)} \\).`;
+		mathExpression=`Find the distance from the point \\( (${q.x.toFixed(2)}, ${q.y.toFixed(2)}, ${q.z.toFixed(2)}) \\) to the plane \\( ${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)} \\).`;
 		let correct=dist;
-		let choices=[correct];
+		answer=correct;
+		alternate=correct;
+		let choicesArr=[correct];
 		let distNum=parseFloat(dist);
-		choices.push((distNum+0.5).toFixed(2));
-		choices.push((distNum-0.5).toFixed(2));
-		choices.push((numerator/denom).toFixed(2));
-		choices.push((Math.abs(normal.x*q.x+normal.y*q.y+normal.z*q.z-d)/denom).toFixed(2));
-		let uniqueChoices=[...new Set(choices)];
-		if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-		if (!uniqueChoices.includes(correct)){
-			if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		choicesArr.push((distNum+0.5).toFixed(2));
+		choicesArr.push((distNum-0.5).toFixed(2));
+		choicesArr.push((numerator/denom).toFixed(2));
+		choicesArr.push((Math.abs(normal.x*q.x+normal.y*q.y+normal.z*q.z-d)/denom).toFixed(2));
+		let uniqueChoices=[...new Set(choicesArr)];
+		if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+		if(!uniqueChoices.includes(correct)){
+			if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 			else uniqueChoices=[correct];
 		}
-		window.correctAnswer={ correct: correct, alternate: correct, display: correct, choices: uniqueChoices };
+		choices=uniqueChoices;
 		window.expectedFormat="Enter a number";
 	}
 	else{
-		questionArea.innerHTML=`Find the equation of the plane that passes through \\( (${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)}) \\) and has normal vector \\( \\langle ${normal.x.toFixed(2)}, ${normal.y.toFixed(2)}, ${normal.z.toFixed(2)} \\rangle \\).`;
+		mathExpression=`Find the equation of the plane that passes through \\( (${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)}) \\) and has normal vector \\( \\langle ${normal.x.toFixed(2)}, ${normal.y.toFixed(2)}, ${normal.z.toFixed(2)} \\rangle \\).`;
 		let eq=`${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)}`;
 		let correct=eq;
-		let choices=[correct];
-		choices.push(`${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${(d+1).toFixed(2)}`);
-		choices.push(`${(normal.x+1).toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)}`);
-		choices.push(`${normal.x.toFixed(2)}x + ${(normal.y+1).toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)}`);
-		choices.push(`${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${(normal.z+1).toFixed(2)}z = ${d.toFixed(2)}`);
-		let uniqueChoices=[...new Set(choices)];
-		if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-		if (!uniqueChoices.includes(correct)){
-			if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		answer=correct;
+		alternate=correct;
+		let choicesArr=[correct];
+		choicesArr.push(`${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${(d+1).toFixed(2)}`);
+		choicesArr.push(`${(normal.x+1).toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)}`);
+		choicesArr.push(`${normal.x.toFixed(2)}x + ${(normal.y+1).toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)}`);
+		choicesArr.push(`${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${(normal.z+1).toFixed(2)}z = ${d.toFixed(2)}`);
+		let uniqueChoices=[...new Set(choicesArr)];
+		if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+		if(!uniqueChoices.includes(correct)){
+			if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 			else uniqueChoices=[correct];
 		}
-		window.correctAnswer={ correct: correct, alternate: correct, display: correct, choices: uniqueChoices };
+		choices=uniqueChoices;
 		window.expectedFormat="Enter as ax + by + cz = d";
 	}
-	if (window.MathJax?.typeset) window.MathJax.typeset();
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
+	}
+	window.correctAnswer={
+		correct: answer,
+		alternate: alternate,
+		display: answer,
+		choices: choices
+	};
 }
