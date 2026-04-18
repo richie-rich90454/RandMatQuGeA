@@ -1,3 +1,8 @@
+/**
+ * Matrix operations: addition, subtraction, multiplication, inverse, transpose, scalar multiplication, power, row echelon, 2x2 system.
+ * @fileoverview Generates 2x2 matrix questions with MCQ distractors.
+ * @date 2026-03-29
+ */
 import {questionArea} from "../../script.js";
 import {Matrix2x2, getRange, matrixToString} from "./linearAlgebraUtils.js";
 
