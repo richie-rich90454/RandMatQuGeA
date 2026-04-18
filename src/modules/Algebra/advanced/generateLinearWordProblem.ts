@@ -1,29 +1,30 @@
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Linear word problems: consecutive integers, money, distance, age, mixture.
  * @fileoverview Generates linear word problems with MCQ distractors. Sets window.correctAnswer with correct result and display.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
 export function generateLinearWordProblem(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["consecutive_integers","money","distance","age","mixture"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,20);
-	let hint="";
+	let expectedFormat="Enter a number";
 	let correct="";
 	let alternate="";
 	let display="";
+	let problemText="";
 	let choices:string[]=[];
-	switch (type){
+	switch(type){
 		case "consecutive_integers":{
 			let n=Math.floor(Math.random()*maxVal)+1;
 			let sum=n+(n+1);
 			correct=n.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`The sum of two consecutive integers is ${sum}. Find the smaller integer.`;
+			problemText=`The sum of two consecutive integers is ${sum}. Find the smaller integer.`;
 			choices=[correct];
 			choices.push((n+1).toString());
 			choices.push((n-1).toString());
@@ -38,7 +39,7 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			correct=total.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`You have ${quarters} quarters and ${dimes} dimes. How much money do you have in cents?`;
+			problemText=`You have ${quarters} quarters and ${dimes} dimes. How much money do you have in cents?`;
 			choices=[correct];
 			choices.push((total+5).toString());
 			choices.push((total-5).toString());
@@ -53,7 +54,7 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			correct=dist.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`A car travels at ${rate} mph for ${time} hours. How far does it travel?`;
+			problemText=`A car travels at ${rate} mph for ${time} hours. How far does it travel?`;
 			choices=[correct];
 			choices.push((dist+rate).toString());
 			choices.push((dist-rate).toString());
@@ -68,7 +69,7 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			correct=ago.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`A person is ${now} years old. How old were they ${past} years ago?`;
+			problemText=`A person is ${now} years old. How old were they ${past} years ago?`;
 			choices=[correct];
 			choices.push((now).toString());
 			choices.push((ago+1).toString());
@@ -83,7 +84,7 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			correct=amount.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`A ${total} gallon mixture contains ${percent}% alcohol. How many gallons of alcohol are in it?`;
+			problemText=`A ${total} gallon mixture contains ${percent}% alcohol. How many gallons of alcohol are in it?`;
 			choices=[correct];
 			choices.push((amount+1).toString());
 			choices.push((amount-1).toString());
@@ -95,10 +96,22 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let textContainer=document.createElement("div");
+	textContainer.textContent=problemText;
+	textContainer.classList.add("problem-text");
+	questionArea.appendChild(textContainer);
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=`\\[ \\text{Answer: } \\]`;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -106,6 +119,5 @@ export function generateLinearWordProblem(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
