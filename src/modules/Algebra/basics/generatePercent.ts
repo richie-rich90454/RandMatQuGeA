@@ -1,30 +1,31 @@
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Generates a percentage question (percent of, increase, decrease, simple interest, or markup) with MCQ distractors.
  * @fileoverview Percentage calculations. Sets window.correctAnswer with numeric result and plausible wrong answers.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
 export function generatePercent(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["percent_of","increase","decrease","interest","markup"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,100);
-	let hint="";
+	let expectedFormat="Enter a number";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
 	let percent=Math.floor(Math.random()*50)+10;
 	let whole=Math.floor(Math.random()*maxVal)+10;
 	let part=Math.round(whole*percent/100);
-	switch (type){
+	switch(type){
 		case "percent_of":{
-			questionArea.innerHTML=`What is \\( ${percent}\\% \\) of \\( ${whole} \\)?`;
 			correct=part.toString();
 			alternate=correct;
 			display=correct;
+			mathExpression=`What is \\( ${percent}\\% \\) of \\( ${whole} \\)?`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -39,7 +40,7 @@ export function generatePercent(difficulty?: string): void{
 			correct=newVal.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`If \\( ${whole} \\) increases by \\( ${increase}\\% \\), what is the new value?`;
+			mathExpression=`If \\( ${whole} \\) increases by \\( ${increase}\\% \\), what is the new value?`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -54,7 +55,7 @@ export function generatePercent(difficulty?: string): void{
 			correct=newVal.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`If \\( ${whole} \\) decreases by \\( ${decrease}\\% \\), what is the new value?`;
+			mathExpression=`If \\( ${whole} \\) decreases by \\( ${decrease}\\% \\), what is the new value?`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -71,7 +72,7 @@ export function generatePercent(difficulty?: string): void{
 			correct=interest.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Simple interest on \\( $${principal} \\) at \\( ${rate}\\% \\) for \\( ${time} \\) years?`;
+			mathExpression=`Simple interest on \\( $${principal} \\) at \\( ${rate}\\% \\) for \\( ${time} \\) years?`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -87,7 +88,7 @@ export function generatePercent(difficulty?: string): void{
 			correct=price.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`A store buys an item for \\( $${cost} \\) and marks it up \\( ${markup}\\% \\). What is the selling price?`;
+			mathExpression=`A store buys an item for \\( $${cost} \\) and marks it up \\( ${markup}\\% \\). What is the selling price?`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -100,10 +101,18 @@ export function generatePercent(difficulty?: string): void{
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -111,6 +120,5 @@ export function generatePercent(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }

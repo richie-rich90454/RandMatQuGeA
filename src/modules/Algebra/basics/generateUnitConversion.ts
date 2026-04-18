@@ -1,23 +1,24 @@
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Generates a unit conversion question (US length, metric length, area, volume, or multi‑step) with MCQ distractors.
  * @fileoverview Unit conversions. Sets window.correctAnswer with numeric result and plausible wrong answers.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
 export function generateUnitConversion(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["length_us","length_metric","area","volume","multi_step"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,50);
-	let hint="";
+	let expectedFormat="Enter a number";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
 	let value=Math.floor(Math.random()*maxVal)+1;
-	switch (type){
+	switch(type){
 		case "length_us":{
 			let conversions=[
 				{from:"ft",to:"in",factor:12},
@@ -29,7 +30,7 @@ export function generateUnitConversion(difficulty?: string): void{
 			correct=result.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Convert \\( ${value} \\text{ ${c.from}} \\) to \\( \\text{${c.to}} \\).`;
+			mathExpression=`Convert \\( ${value} \\text{ ${c.from}} \\) to \\( \\text{${c.to}} \\).`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -49,7 +50,7 @@ export function generateUnitConversion(difficulty?: string): void{
 			correct=result.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Convert \\( ${value} \\text{ ${c.from}} \\) to \\( \\text{${c.to}} \\).`;
+			mathExpression=`Convert \\( ${value} \\text{ ${c.from}} \\) to \\( \\text{${c.to}} \\).`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -64,7 +65,7 @@ export function generateUnitConversion(difficulty?: string): void{
 			correct=result.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Convert \\( ${value2} \\text{ yd}^2 \\) to \\( \\text{ft}^2 \\). (1 yd=3 ft)`;
+			mathExpression=`Convert \\( ${value2} \\text{ yd}^2 \\) to \\( \\text{ft}^2 \\). (1 yd=3 ft)`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -79,7 +80,7 @@ export function generateUnitConversion(difficulty?: string): void{
 			correct=result.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Convert \\( ${value2} \\text{ L} \\) to \\( \\text{mL} \\).`;
+			mathExpression=`Convert \\( ${value2} \\text{ L} \\) to \\( \\text{mL} \\).`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -94,7 +95,7 @@ export function generateUnitConversion(difficulty?: string): void{
 			correct=result.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Convert \\( ${value2} \\text{ yd} \\) to \\( \\text{in} \\). (1 yd=3 ft, 1 ft=12 in)`;
+			mathExpression=`Convert \\( ${value2} \\text{ yd} \\) to \\( \\text{in} \\). (1 yd=3 ft, 1 ft=12 in)`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -107,10 +108,18 @@ export function generateUnitConversion(difficulty?: string): void{
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -118,6 +127,5 @@ export function generateUnitConversion(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }

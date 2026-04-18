@@ -1,22 +1,23 @@
+import {questionArea} from "../../../script.js";
+import {gcd, getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Generates a ratio/proportion question (simplify ratio, solve proportion, map scale, or unit rate) with MCQ distractors.
  * @fileoverview Ratios, proportions, scales, unit rates. Sets window.correctAnswer with numeric or plain ratio and plausible wrong answers.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-import {gcd, getMaxForDifficulty} from "../algebraUtils.js";
 export function generateRatioProportion(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["ratio","proportion","scale","unit_rate"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,20);
-	let hint="";
+	let expectedFormat="Enter a number or ratio like 2:3";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
-	switch (type){
+	switch(type){
 		case "ratio":{
 			let a=Math.floor(Math.random()*maxVal)+1;
 			let b=Math.floor(Math.random()*maxVal)+1;
@@ -25,7 +26,7 @@ export function generateRatioProportion(difficulty?: string): void{
 			correct=plain;
 			alternate=`${a/g}/${b/g}`;
 			display=plain;
-			questionArea.innerHTML=`Simplify the ratio \\( ${a}:${b} \\) to lowest terms.`;
+			mathExpression=`Simplify the ratio \\( ${a}:${b} \\) to lowest terms.`;
 			choices=[correct];
 			choices.push(`${a/g+1}:${b/g}`);
 			choices.push(`${a/g}:${b/g+1}`);
@@ -41,7 +42,7 @@ export function generateRatioProportion(difficulty?: string): void{
 			correct=x.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Solve for x: \\( \\frac{${a}}{${b}}=\\frac{${c}}{x} \\)`;
+			mathExpression=`Solve for x: \\( \\frac{${a}}{${b}}=\\frac{${c}}{x} \\)`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -57,7 +58,7 @@ export function generateRatioProportion(difficulty?: string): void{
 			correct=actual.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`On a map with scale 1:${map}, a distance measures ${scaled} cm. What is the actual distance in cm?`;
+			mathExpression=`On a map with scale 1:${map}, a distance measures ${scaled} cm. What is the actual distance in cm?`;
 			let numRes=parseInt(correct);
 			choices=[correct];
 			choices.push((numRes+1).toString());
@@ -74,7 +75,7 @@ export function generateRatioProportion(difficulty?: string): void{
 			correct=ans;
 			alternate=rate.toString();
 			display=ans;
-			questionArea.innerHTML=`If ${quantity} items cost $${units}, what is the unit price? (nearest cent)`;
+			mathExpression=`If ${quantity} items cost $${units}, what is the unit price? (nearest cent)`;
 			let numRes=parseFloat(correct);
 			choices=[correct];
 			choices.push((numRes+0.1).toFixed(2));
@@ -87,10 +88,18 @@ export function generateRatioProportion(difficulty?: string): void{
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -98,6 +107,5 @@ export function generateRatioProportion(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
