@@ -1,27 +1,27 @@
-/**
- * Series: arithmetic sum, geometric sum, convergence, nth term.
- * @fileoverview Generates series questions with MCQ distractors. Sets window.correctAnswer with correct value and display.
- * @date 2026-03-29
- */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty, getOrdinal} from "../algebraUtils.js";
 interface SeriesType{
 	expr: string;
 	conv: string;
 }
+/**
+ * Series: arithmetic sum, geometric sum, convergence, nth term.
+ * @fileoverview Generates series questions with MCQ distractors. Sets window.correctAnswer with correct value and display.
+ * @date 2026-04-18
+ */
 export function generateSeries(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["arithmetic_sum","geometric_sum","convergence","nth_term"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
-	let hint="";
+	let expectedFormat="";
 	let maxVal=getMaxForDifficulty(difficulty,10);
 	let alternate="";
 	let display="";
 	let choices:string[]=[];
-	switch (type){
+	switch(type){
 		case "arithmetic_sum":{
 			let a1=Math.floor(Math.random()*maxVal)+1;
 			let d=Math.floor(Math.random()*(maxVal/2))+1;
@@ -31,6 +31,7 @@ export function generateSeries(difficulty?: string): void{
 			plainCorrectAnswer=sum.toString();
 			alternate=plainCorrectAnswer;
 			display=plainCorrectAnswer;
+			expectedFormat="Enter a number";
 			let numSum=parseInt(plainCorrectAnswer);
 			choices=[plainCorrectAnswer];
 			choices.push((numSum+1).toString());
@@ -49,6 +50,7 @@ export function generateSeries(difficulty?: string): void{
 			plainCorrectAnswer=sum.toFixed(2);
 			alternate=`(${a1}*(1-${r}^${n}))/(1-${r})`;
 			display=plainCorrectAnswer;
+			expectedFormat="Enter a decimal number";
 			let numSum=parseFloat(plainCorrectAnswer);
 			choices=[plainCorrectAnswer];
 			choices.push((numSum+0.5).toFixed(2));
@@ -64,6 +66,7 @@ export function generateSeries(difficulty?: string): void{
 			plainCorrectAnswer=chosen.conv;
 			alternate=chosen.conv==="converges"?"converge":"diverge";
 			display=plainCorrectAnswer;
+			expectedFormat="Enter 'converges' or 'diverges'";
 			choices=[plainCorrectAnswer];
 			choices.push(chosen.conv==="converges"?"diverges":"converges");
 			choices.push("absolutely convergent");
@@ -80,6 +83,7 @@ export function generateSeries(difficulty?: string): void{
 			plainCorrectAnswer=an.toString();
 			alternate=plainCorrectAnswer;
 			display=plainCorrectAnswer;
+			expectedFormat="Enter a number";
 			let numAn=parseInt(plainCorrectAnswer);
 			choices=[plainCorrectAnswer];
 			choices.push((numAn+1).toString());
@@ -92,10 +96,18 @@ export function generateSeries(difficulty?: string): void{
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(plainCorrectAnswer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(plainCorrectAnswer)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
 		else uniqueChoices=[plainCorrectAnswer];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: plainCorrectAnswer,
@@ -103,13 +115,5 @@ export function generateSeries(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if (window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
+	window.expectedFormat=expectedFormat;
 }
