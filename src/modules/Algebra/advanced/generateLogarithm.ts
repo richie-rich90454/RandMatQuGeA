@@ -1,12 +1,12 @@
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Logarithm questions: basic, change of base, equations, properties, exponential form.
  * @fileoverview Generates logarithm questions with MCQ distractors. Sets window.correctAnswer with correct value and display.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
 export function generateLogarithm(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["basic","change_base","equation","properties","exponential_form"];
 	let type=types[Math.floor(Math.random()*types.length)];
@@ -14,18 +14,19 @@ export function generateLogarithm(difficulty?: string): void{
 	let base=Math.floor(Math.random()*maxBase)+2;
 	let arg=Math.pow(base,Math.floor(Math.random()*4)+1);
 	let newBase=Math.floor(Math.random()*3)+2;
-	let hint="";
+	let expectedFormat="Enter a number or expression";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
-	switch (type){
+	switch(type){
 		case "basic":{
 			let answer=(Math.log(arg)/Math.log(base)).toFixed(2);
 			correct=answer;
 			alternate=answer;
 			display=answer;
-			questionArea.innerHTML=`Evaluate: \\( \\log_{${base}} ${arg} \\)`;
+			mathExpression=`\\( \\log_{${base}} ${arg} \\)`;
 			let numAns=parseFloat(answer);
 			choices=[answer];
 			choices.push((numAns+0.1).toFixed(2));
@@ -38,17 +39,17 @@ export function generateLogarithm(difficulty?: string): void{
 			let numerator=Math.log(arg)/Math.log(newBase);
 			let denominator=Math.log(base)/Math.log(newBase);
 			let numericAnswer=(numerator/denominator).toFixed(2);
-			let expr=`log${newBase}(${arg})/log${newBase}(${base})`;
+			let expr=`\\frac{\\log_{${newBase}} ${arg}}{\\log_{${newBase}} ${base}}`;
 			correct=numericAnswer;
 			alternate=expr;
 			display=numericAnswer;
-			questionArea.innerHTML=`Express \\( \\log_{${base}} ${arg} \\) in base \\( ${newBase} \\)`;
+			mathExpression=`Express \\( \\log_{${base}} ${arg} \\) in base \\( ${newBase} \\)`;
 			let numAns=parseFloat(numericAnswer);
 			choices=[numericAnswer];
 			choices.push((numAns+0.1).toFixed(2));
 			choices.push((numAns-0.1).toFixed(2));
-			choices.push(`log${newBase}(${arg+1})/log${newBase}(${base})`);
-			choices.push(`log${newBase}(${arg})/log${newBase}(${base+1})`);
+			choices.push(`\\frac{\\log_{${newBase}} ${arg+1}}{\\log_{${newBase}} ${base}}`);
+			choices.push(`\\frac{\\log_{${newBase}} ${arg}}{\\log_{${newBase}} ${base+1}}`);
 			break;
 		}
 		case "equation":{
@@ -56,7 +57,7 @@ export function generateLogarithm(difficulty?: string): void{
 			correct=exponent.toString();
 			alternate=correct;
 			display=correct;
-			questionArea.innerHTML=`Solve for \\( x \\): \\( ${base}^{x}=${Math.pow(base,exponent)} \\)`;
+			mathExpression=`\\( ${base}^{x}=${Math.pow(base,exponent)} \\)`;
 			choices=[correct];
 			choices.push((exponent+1).toString());
 			choices.push((exponent-1).toString());
@@ -71,7 +72,7 @@ export function generateLogarithm(difficulty?: string): void{
 			correct=logSum;
 			alternate=`\\log_{${base}} ${a}+\\log_{${base}} ${b}=${(Math.log(a)/Math.log(base)).toFixed(2)}+${(Math.log(b)/Math.log(base)).toFixed(2)}=${logSum}`;
 			display=logSum;
-			questionArea.innerHTML=`Evaluate: \\( \\log_{${base}} (${a} \\times ${b}) \\)`;
+			mathExpression=`\\( \\log_{${base}} (${a} \\times ${b}) \\)`;
 			let numAns=parseFloat(logSum);
 			choices=[logSum];
 			choices.push((numAns+0.1).toFixed(2));
@@ -86,7 +87,7 @@ export function generateLogarithm(difficulty?: string): void{
 			correct=result.toString();
 			alternate=`${base}^${exponent}`;
 			display=correct;
-			questionArea.innerHTML=`If \\( \\log_{${base}} x=${exponent} \\), find \\( x \\)`;
+			mathExpression=`If \\( \\log_{${base}} x=${exponent} \\), find \\( x \\)`;
 			let numAns=parseInt(correct);
 			choices=[correct];
 			choices.push((numAns+1).toString());
@@ -99,10 +100,18 @@ export function generateLogarithm(difficulty?: string): void{
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -110,6 +119,5 @@ export function generateLogarithm(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	window.expectedFormat=expectedFormat;
 }
