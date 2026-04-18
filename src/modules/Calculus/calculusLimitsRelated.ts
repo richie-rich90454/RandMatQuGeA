@@ -155,7 +155,7 @@ export function generateLimit(difficulty?: string): void{
  *                     Scales the numerical values in the problem (ladder length, distances,
  *                     rates, etc.) via `getMaxCoeff`. If omitted, a moderate default is used.
  * @returns void
- * @date 2026-04-02
+ * @date 2026-04-18
  *
  * @remarks
  * The function performs the following steps:
@@ -182,7 +182,7 @@ export function generateLimit(difficulty?: string): void{
  * generateRelatedRates("easy");
  */
 export function generateRelatedRates(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let types=["sphere","circleArea","ladder","ladderAdvanced","trough","shadow","invertedCone","twoVehicles"];
 	let type=types[Math.floor(Math.random()*types.length)];
@@ -192,7 +192,7 @@ export function generateRelatedRates(difficulty?: string): void{
 	let problemText="";
 	let scale=getMaxCoeff(difficulty);
 	let choices: string[]=[];
-	switch (type){
+	switch(type){
 		case "sphere":{
 			let dV_dt=10*scale/5;
 			let diam=50*scale/5;
@@ -347,9 +347,9 @@ export function generateRelatedRates(difficulty?: string): void{
 		}
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(plainCorrectAnswer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(plainCorrectAnswer)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
 		else uniqueChoices=[plainCorrectAnswer];
 	}
 	let textContainer=document.createElement("div");
@@ -359,7 +359,7 @@ export function generateRelatedRates(difficulty?: string): void{
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
 	questionArea.appendChild(mathContainer);
-	if (window.MathJax&&window.MathJax.typesetPromise){
+	if(window.MathJax&&window.MathJax.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
 			console.log("MathJax typeset error:", err)
 		);

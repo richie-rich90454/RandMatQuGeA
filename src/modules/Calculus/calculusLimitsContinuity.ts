@@ -1,3 +1,6 @@
+import {questionArea} from "../../script.js";
+// @ts-expect-error - latexToPlain is imported for potential future use
+import {getMaxCoeff, latexToPlain} from "./calculusUtils.js";
 /**
  * Generates a random limits and continuity question and displays it in the global question area.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -15,17 +18,14 @@
  *                     the maximum coefficient value used in generated expressions. If omitted,
  *                     a default moderate value is used (via `getMaxCoeff` from `./calculusUtils.js`).
  * @returns void
- * @date 2026-04-02
+ * @date 2026-04-18
  *
  * @example
  * generateLimitsContinuity();
  * generateLimitsContinuity("hard");
  */
-import {questionArea} from "../../script.js";
-// @ts-expect-error - latexToPlain is imported for potential future use
-import {getMaxCoeff, latexToPlain} from "./calculusUtils.js";
 export function generateLimitsContinuity(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let questionTypes=["limitNotation","limitFromTable","limitProperties","limitManipulation","limitSqueeze","discontinuityType","continuityConditions","continuityInterval","removeDiscontinuity","verticalAsymptote","horizontalAsymptote","ivt","selectProcedure","instantaneousRateConceptual"];
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
@@ -35,7 +35,7 @@ export function generateLimitsContinuity(difficulty?: string): void{
 	let expectedFormat="Enter your answer";
 	let maxCoeff=getMaxCoeff(difficulty);
 	let choices: string[]=[];
-	switch (questionType){
+	switch(questionType){
 		case "limitNotation":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let c=Math.floor(Math.random()*5)+1;
@@ -55,11 +55,11 @@ export function generateLimitsContinuity(difficulty?: string): void{
 		case "limitFromTable":{
 			let x0=Math.floor(Math.random()*3)+2;
 			let values: number[]=[];
-			for (let i=0; i<5; i++){
+			for(let i=0;i<5;i++){
 				values.push(Math.random()*10);
 			}
 			let tableStr="";
-			for (let i=0; i<5; i++){
+			for(let i=0;i<5;i++){
 				tableStr+=`${x0-2+i} & ${values[i].toFixed(2)}\\\\`;
 			}
 			mathExpression=`\\[ \\text{Given the table:} \\begin{array}{c|c} x & f(x) \\\\ ${tableStr} \\end{array} \\text{ estimate } \\lim_{x\\to ${x0}} f(x). \\]`;
@@ -200,13 +200,19 @@ export function generateLimitsContinuity(difficulty?: string): void{
 		case "ivt":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
-			mathExpression=`\\[ \\text{Show that } f(x)=x^3-${a}x-${b} \\text{ has a root in } [1,2]. \\]`;
-			plainCorrectAnswer="f(1)<0, f(2)>0, so IVT applies";
-			latexAnswer="f(1)<0,\\ f(2)>0,\\ \\text{so IVT applies}";
-			expectedFormat="Explain briefly";
 			let f1=1-a-b;
 			let f2=8-2*a-b;
-			let desc=f1<0 && f2>0 ? "f(1)<0, f(2)>0" : (f1>0 && f2<0 ? "f(1)>0, f(2)<0" : "f(1) and f(2) have opposite signs");
+			while(f1*f2>=0){
+				a=Math.floor(Math.random()*maxCoeff)+1;
+				b=Math.floor(Math.random()*maxCoeff)+1;
+				f1=1-a-b;
+				f2=8-2*a-b;
+			}
+			mathExpression=`\\[ \\text{Show that } f(x)=x^3-${a}x-${b} \\text{ has a root in } [1,2]. \\]`;
+			let desc=f1<0 && f2>0 ? "f(1)<0, f(2)>0" : "f(1)>0, f(2)<0";
+			plainCorrectAnswer=desc;
+			latexAnswer=desc;
+			expectedFormat="Explain briefly";
 			choices=[desc];
 			choices.push("f(1)>0, f(2)>0");
 			choices.push("f(1)<0, f(2)<0");
@@ -215,14 +221,14 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "selectProcedure":{
-			let options=["Factoring", "Rationalizing", "Squeeze theorem", "Direct substitution"];
+			let options=["Factoring","Rationalizing","Squeeze theorem","Direct substitution"];
 			let correctIdx=2;
 			plainCorrectAnswer=options[correctIdx];
 			latexAnswer=`\\text{${options[correctIdx]}}`;
 			mathExpression=`\\[ \\lim_{x\\to 0} \\frac{\\sin ${maxCoeff}x}{x} \\] Which procedure is most efficient? A) ${options[0]} B) ${options[1]} C) ${options[2]} D) ${options[3]}`;
 			expectedFormat="Enter the letter of the correct option (A, B, C, or D)";
 			choices=[options[correctIdx]];
-			for (let i=0;i<options.length;i++) if (i!==correctIdx) choices.push(options[i]);
+			for(let i=0;i<options.length;i++) if(i!==correctIdx) choices.push(options[i]);
 			break;
 		}
 		case "instantaneousRateConceptual":{
@@ -244,15 +250,15 @@ export function generateLimitsContinuity(difficulty?: string): void{
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
 	questionArea.appendChild(mathContainer);
-	if (window.MathJax&&window.MathJax.typesetPromise){
+	if(window.MathJax&&window.MathJax.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
 			console.log("MathJax typeset error:", err)
 		);
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(plainCorrectAnswer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(plainCorrectAnswer)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
 		else uniqueChoices=[plainCorrectAnswer];
 	}
 	window.correctAnswer={

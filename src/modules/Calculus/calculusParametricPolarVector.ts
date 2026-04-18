@@ -1,3 +1,5 @@
+import {questionArea} from "../../script.js";
+import {getMaxCoeff} from "./calculusUtils.js";
 /**
  * Generates and displays a random question involving parametric equations, polar coordinates, or vector-valued functions.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -6,7 +8,7 @@
  *                     Influences the maximum coefficient value used in generated expressions
  *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
  * @returns void
- * @date 2026-04-02
+ * @date 2026-04-18
  *
  * @remarks
  * The function performs the following steps:
@@ -37,10 +39,8 @@
  * generateParametricPolarVector();
  * generateParametricPolarVector("hard");
  */
-import {questionArea} from "../../script.js";
-import {getMaxCoeff} from "./calculusUtils.js";
 export function generateParametricPolarVector(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	let questionTypes=["parametricDeriv","parametricSecond","arcLengthParam","vectorDeriv","vectorIntegral","motionParam","polarDeriv","polarArea","polarAreaBetween","polarArcLength","parametricArcLengthGeneral","polarAreaBetweenGeneral","vectorDotDeriv"];
 	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
@@ -50,7 +50,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 	let expectedFormat="Enter your answer";
 	let maxCoeff=getMaxCoeff(difficulty);
 	let choices: string[]=[];
-	switch (questionType){
+	switch(questionType){
 		case "parametricDeriv":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
@@ -227,8 +227,11 @@ export function generateParametricPolarVector(difficulty?: string): void{
 		case "polarAreaBetweenGeneral":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
+			while(b>=a){
+				b=Math.floor(Math.random()*maxCoeff)+1;
+			}
 			mathExpression=`\\[ \\text{Area inside } r=${a}+${b}\\cos\\theta \\text{ and outside } r=${a}. \\]`;
-			let area=Math.PI*a*a/2 + (Math.PI*b*b)/4;
+			let area=Math.PI*b*b/2;
 			plainCorrectAnswer=area.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
@@ -243,9 +246,9 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\mathbf{u}(t)=\\langle t, t^2 \\rangle,\\ \\mathbf{v}(t)=\\langle e^{${a}t}, \\sin(${b}t) \\rangle, \\text{ find } \\frac{d}{dt}(\\mathbf{u}\\cdot\\mathbf{v}). \\]`;
-			let dotDeriv=`e^(${a}t) + 2t*${a}e^(${a}t) + 2t*${b}cos(${b}t) + t^2*${b}cos(${b}t)`;
+			let dotDeriv=`e^(${a}t) + ${a}*t*e^(${a}t) + 2*t*sin(${b}t) + ${b}*t^2*cos(${b}t)`;
 			plainCorrectAnswer=dotDeriv;
-			latexAnswer=`e^{${a}t} + 2t${a}e^{${a}t} + 2t${b}\\cos(${b}t) + t^2${b}\\cos(${b}t)`;
+			latexAnswer=`e^{${a}t} + ${a}te^{${a}t} + 2t\\sin(${b}t) + ${b}t^{2}\\cos(${b}t)`;
 			expectedFormat="Enter expression";
 			let correctNorm=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
 			choices=[correctNorm];
@@ -256,16 +259,16 @@ export function generateParametricPolarVector(difficulty?: string): void{
 		}
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	let found=false;
-	for (let i=0;i<uniqueChoices.length;i++){
-		if (uniqueChoices[i]===plainCorrectAnswer){
+	for(let i=0;i<uniqueChoices.length;i++){
+		if(uniqueChoices[i]===plainCorrectAnswer){
 			found=true;
 			break;
 		}
 	}
-	if (!found){
-		if (uniqueChoices.length>0){
+	if(!found){
+		if(uniqueChoices.length>0){
 			uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
 		}
 		else{
@@ -275,7 +278,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
 	questionArea.appendChild(mathContainer);
-	if (window.MathJax&&window.MathJax.typesetPromise){
+	if(window.MathJax&&window.MathJax.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
 			console.log("MathJax typeset error:", err)
 		);
