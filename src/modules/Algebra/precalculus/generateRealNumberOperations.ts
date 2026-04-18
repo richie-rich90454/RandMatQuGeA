@@ -1,27 +1,26 @@
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Real number operations: absolute, distance, order, interval.
  * @fileoverview Generates real number operation questions with MCQ distractors.
- * @date 2026-03-29
+ * @date 2026-04-18
  */
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
-
 export function generateRealNumberOperations(difficulty?: string): void{
-	if (!questionArea) return;
+	if(!questionArea) return;
 	questionArea.innerHTML="";
 	const types=["absolute","distance","order","interval"];
 	const type=types[Math.floor(Math.random()*types.length)];
 	const max=getMaxForDifficulty(difficulty,10);
-	let hint="";
+	let expectedFormat="";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
-	switch (type){
+	switch(type){
 		case "absolute":{
 			const a=Math.floor(Math.random()*max*2)-max;
-			const expr=`|${a}|`;
-			questionArea.innerHTML=`Evaluate: \\( ${expr} \\)`;
+			mathExpression=`Evaluate: \\( |${a}| \\)`;
 			const ans=Math.abs(a).toString();
 			correct=ans;
 			alternate=ans;
@@ -31,13 +30,13 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			choices.push((Math.abs(a)-1).toString());
 			choices.push(a.toString());
 			choices.push((a+1).toString());
-			hint="Enter a number";
+			expectedFormat="Enter a number";
 			break;
 		}
 		case "distance":{
 			const a=Math.floor(Math.random()*max);
 			const b=Math.floor(Math.random()*max);
-			questionArea.innerHTML=`Find the distance between \\( ${a} \\) and \\( ${b} \\) on the number line.`;
+			mathExpression=`Find the distance between \\( ${a} \\) and \\( ${b} \\) on the number line.`;
 			const dist=Math.abs(a-b).toString();
 			correct=dist;
 			alternate=dist;
@@ -48,7 +47,7 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			choices.push((numDist-1).toString());
 			choices.push((Math.abs(a)+Math.abs(b)).toString());
 			choices.push((a+b).toString());
-			hint="Enter a number";
+			expectedFormat="Enter a number";
 			break;
 		}
 		case "order":{
@@ -61,12 +60,12 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			correct=correctBool;
 			alternate=correctBool;
 			display=correctBool;
-			questionArea.innerHTML=`Is the statement \\( ${a} ${op} ${b} \\) true or false?`;
+			mathExpression=`Is the statement \\( ${a} ${op} ${b} \\) true or false?`;
 			choices=[correctBool];
 			choices.push(correctBool==="true"?"false":"true");
 			choices.push("maybe");
 			choices.push("cannot determine");
-			hint="Enter 'true' or 'false'";
+			expectedFormat="Enter 'true' or 'false'";
 			break;
 		}
 		case "interval":{
@@ -76,7 +75,7 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			const intervalType=types[Math.floor(Math.random()*types.length)];
 			let interval="";
 			let desc="";
-			switch (intervalType){
+			switch(intervalType){
 				case "open":
 					interval=`(${a}, ${b})`;
 					desc=`all x such that ${a} < x < ${b}`;
@@ -86,32 +85,34 @@ export function generateRealNumberOperations(difficulty?: string): void{
 					desc=`all x such that ${a} ≤ x ≤ ${b}`;
 					break;
 				case "half-open":
-					if (Math.random()<0.5){
+					if(Math.random()<0.5){
 						interval=`[${a}, ${b})`;
 						desc=`all x such that ${a} ≤ x < ${b}`;
-					}else{
+					}
+					else{
 						interval=`(${a}, ${b}]`;
 						desc=`all x such that ${a} < x ≤ ${b}`;
 					}
 					break;
 				case "unbounded":
-					if (Math.random()<0.5){
+					if(Math.random()<0.5){
 						interval=`(${a}, ∞)`;
 						desc=`all x such that x > ${a}`;
-					}else{
+					}
+					else{
 						interval=`(-∞, ${b})`;
 						desc=`all x such that x < ${b}`;
 					}
 					break;
 			}
-			questionArea.innerHTML=`Write the interval \\( ${interval} \\) in set-builder notation.`;
+			mathExpression=`Write the interval \\( ${interval} \\) in set-builder notation.`;
 			correct=desc;
 			alternate=desc;
 			display=desc;
 			choices=[desc];
 			let wrongDesc1="";
 			let wrongDesc2="";
-			if (interval.includes("∞")){
+			if(interval.includes("∞")){
 				wrongDesc1=interval.includes("(")?`x ≥ ${a}`:`x ≤ ${b}`;
 				wrongDesc2=interval.includes("(")?`x > ${a+1}`:`x < ${b-1}`;
 			}
@@ -122,17 +123,25 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			choices.push(wrongDesc1);
 			choices.push(wrongDesc2);
 			choices.push(interval);
-			hint="Enter a description like 'x > 3' or interval";
+			expectedFormat="Enter a description like 'x > 3' or interval";
 			break;
 		}
 		default:
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
+	}
+	let mathContainer=document.createElement("div");
+	mathContainer.innerHTML=mathExpression;
+	questionArea.appendChild(mathContainer);
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
 	}
 	window.correctAnswer={
 		correct: correct,
@@ -140,8 +149,5 @@ export function generateRealNumberOperations(difficulty?: string): void{
 		display: display,
 		choices: uniqueChoices
 	};
-	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
-	}
+	window.expectedFormat=expectedFormat;
 }
