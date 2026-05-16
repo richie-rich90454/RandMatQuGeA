@@ -26,74 +26,74 @@ export let mcqMode: boolean=false;
 export let mcqChoices: string[]=[];
 
 export function setSelectedTopic(topicId: string|null): void{
-	selectedTopic=topicId;
+    selectedTopic=topicId;
 }
 export function setCurrentMode(mode: "single"|"mental"): void{
-	currentMode=mode;
+    currentMode=mode;
 }
 export function setSessionActive(active: boolean): void{
-	sessionActive=active;
+    sessionActive=active;
 }
 export function setSessionPaused(paused: boolean): void{
-	sessionPaused=paused;
+    sessionPaused=paused;
 }
 export function setSessionScore(score: {correct:number,total:number}): void{
-	sessionScore=score;
+    sessionScore=score;
 }
 export function setSessionTimer(timer: ReturnType<typeof setInterval>|null): void{
-	sessionTimer=timer;
+    sessionTimer=timer;
 }
 export function setTimeLeft(time: number): void{
-	timeLeft=time;
+    timeLeft=time;
 }
 export function setMaxQuestions(max: number): void{
-	maxQuestions=max;
+    maxQuestions=max;
 }
 export function setCurrentDifficulty(diff: string): void{
-	currentDifficulty=diff;
+    currentDifficulty=diff;
 }
 export function setMentalNextQuestionTimeout(timeout: ReturnType<typeof setTimeout>|null): void{
-	mentalNextQuestionTimeout=timeout;
+    mentalNextQuestionTimeout=timeout;
 }
 export function setAutocontinue(value: boolean): void{
-	autocontinue=value;
+    autocontinue=value;
 }
 export function setScope(value: string): void{
-	scope=value;
+    scope=value;
 }
 export function setShuffle(value: boolean): void{
-	shuffle=value;
+    shuffle=value;
 }
 export function setMentalScope(value: string): void{
-	mentalScope=value;
+    mentalScope=value;
 }
 export function setMentalShuffle(value: boolean): void{
-	mentalShuffle=value;
+    mentalShuffle=value;
 }
 export function setAutoTimeout(timeout: ReturnType<typeof setTimeout>|null): void{
-	autoTimeout=timeout;
+    autoTimeout=timeout;
 }
 export function setGenerateDebounceTimeout(timeout: ReturnType<typeof setTimeout>|null): void{
-	generateDebounceTimeout=timeout;
+    generateDebounceTimeout=timeout;
 }
 export function setPreviewTimeout(timeout: ReturnType<typeof setTimeout>|null): void{
-	previewTimeout=timeout;
+    previewTimeout=timeout;
 }
 export function setUnlimitedMode(value: boolean): void{
-	unlimitedMode=value;
+    unlimitedMode=value;
 }
 export function setTotalTimeSpent(value: number): void{
-	totalTimeSpent=value;
+    totalTimeSpent=value;
 }
 export function setAnsweredQuestionsCount(value: number): void{
-	answeredQuestionsCount=value;
+    answeredQuestionsCount=value;
 }
 export function setCurrentQuestionStartTime(value: number|null): void{
-	currentQuestionStartTime=value;
+    currentQuestionStartTime=value;
 }
 export function setMcqMode(value: boolean): void{
-	mcqMode=value;
+    mcqMode=value;
 }
 export function setMcqChoices(choices: string[]): void{
-	mcqChoices=choices;
+    mcqChoices=choices;
 }

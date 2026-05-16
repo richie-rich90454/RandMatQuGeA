@@ -90,8 +90,8 @@ export let settingsMcqChoices: HTMLInputElement|null=document.getElementById("se
 export let settingsAdaptive: HTMLInputElement|null=document.getElementById("settings-adaptive") as HTMLInputElement|null;
 export let settingsShowWeakPopup: HTMLInputElement|null = document.getElementById("settings-show-weak-popup") as HTMLInputElement|null;
 try{
-	appWindow=getCurrentWindow();
+    appWindow=getCurrentWindow();
 }
 catch(e){
-	console.log("Not running in Tauri environment, theme sync disabled.");
+    console.log("Not running in Tauri environment, theme sync disabled.");
 }
