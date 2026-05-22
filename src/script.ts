@@ -16,25 +16,25 @@ window.correctAnswer={correct:""};
 window.expectedFormat="";
 window.hasQuestion=false;
 function initApp(): void{
-	settings.loadSettings();
-	ui.syncSettingsToState();
-	if (settings.settings.defaultMode==="mental"){
-		events.switchToMental();
-	}
-	else{
-		events.switchToSingle();
-	}
-	events.setupEventListeners();
-	theme.initializeTheme();
-	ui.updateUIState();
-	session.restoreSessionSnapshot();
-	topicsModule.renderTopicGrid();
-	session.updateLeaderboard();
-	ui.showOnboarding();
+    settings.loadSettings();
+    ui.syncSettingsToState();
+    if (settings.settings.defaultMode==="mental"){
+        events.switchToMental();
+    }
+    else{
+        events.switchToSingle();
+    }
+    events.setupEventListeners();
+    theme.initializeTheme();
+    ui.updateUIState();
+    session.restoreSessionSnapshot();
+    topicsModule.renderTopicGrid();
+    session.updateLeaderboard();
+    ui.showOnboarding();
 }
 if (document.readyState==="loading"){
-	document.addEventListener("DOMContentLoaded",initApp);
+    document.addEventListener("DOMContentLoaded",initApp);
 }
 else{
-	initApp();
+    initApp();
 }
