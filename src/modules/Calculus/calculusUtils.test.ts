@@ -1,0 +1,82 @@
+import {describe,it,expect} from "vitest";
+import {getMaxCoeff,latexToPlain,trigFunctions,expFunctions,logFunctions,trigIntegrals} from "./calculusUtils";
+describe("getMaxCoeff",()=>{
+    it("returns3foreasy",()=>{
+        expect(getMaxCoeff("easy")).toBe(3);
+    });
+    it("returns5formedium",()=>{
+        expect(getMaxCoeff("medium")).toBe(5);
+    });
+    it("returns10forhard",()=>{
+        expect(getMaxCoeff("hard")).toBe(10);
+    });
+    it("returns5bydefault",()=>{
+        expect(getMaxCoeff()).toBe(5);
+    });
+    it("returns5forunknown",()=>{
+        expect(getMaxCoeff("unknown")).toBe(5);
+    });
+});
+describe("latexToPlain",()=>{
+    it("stripsbackslashes",()=>{
+        expect(latexToPlain("\\sin")).toBe("sin");
+    });
+    it("stripscurlybraces",()=>{
+        expect(latexToPlain("{x}")).toBe("x");
+    });
+    it("convertscdottoasterisk",()=>{
+        expect(latexToPlain("\\cdot")).toBe("*");
+    });
+    it("convertsfractobracesstripped",()=>{
+        expect(latexToPlain("\\frac{1}{2}")).toBe("frac12");
+    });
+    it("handlescompletexpression",()=>{
+        expect(latexToPlain("\\frac{1}{x\\ln(2)}")).toBe("frac1xln(2)");
+    });
+    it("handlesemptystring",()=>{
+        expect(latexToPlain("")).toBe("");
+    });
+});
+describe("trigFunctions",()=>{
+    it("has6entries",()=>{
+        expect(trigFunctions.length).toBe(6);
+    });
+    it("sinderivativeiscos",()=>{
+        expect(trigFunctions[0].deriv).toBe("\\cos(x)");
+        expect(trigFunctions[0].plainDeriv).toBe("cos(x)");
+    });
+    it("cosderivativeisminussin",()=>{
+        expect(trigFunctions[1].deriv).toBe("-\\sin(x)");
+        expect(trigFunctions[1].plainDeriv).toBe("-sin(x)");
+    });
+});
+describe("expFunctions",()=>{
+    it("has2entries",()=>{
+        expect(expFunctions.length).toBe(2);
+    });
+    it("firstentryise^x",()=>{
+        expect(expFunctions[0].func).toBe("e^{x}");
+        expect(expFunctions[0].deriv).toBe("e^{x}");
+        expect(expFunctions[0].plainDeriv).toBe("e^x");
+    });
+});
+describe("logFunctions",()=>{
+    it("has2entries",()=>{
+        expect(logFunctions.length).toBe(2);
+    });
+    it("firstentryisln(x)",()=>{
+        expect(logFunctions[0].func).toBe("\\ln(x)");
+        expect(logFunctions[0].deriv).toBe("\\frac{1}{x}");
+        expect(logFunctions[0].plainDeriv).toBe("1/x");
+    });
+});
+describe("trigIntegrals",()=>{
+    it("has3entries",()=>{
+        expect(trigIntegrals.length).toBe(3);
+    });
+    it("firstentryissin(ax)",()=>{
+        expect(trigIntegrals[0].func).toBe("\\sin(ax)");
+        expect(trigIntegrals[0].integral).toBe("-\\frac{1}{a}\\cos(ax)");
+        expect(trigIntegrals[0].plain).toBe("-1/a cos(ax)");
+    });
+});

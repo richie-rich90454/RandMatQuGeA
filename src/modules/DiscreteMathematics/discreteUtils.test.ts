@@ -1,0 +1,126 @@
+import {describe,it,expect} from "vitest";
+import {factorial,nPr,nCr,getMaxN,getDataRange,mean,median,mode,range,stdDev,getOrdinal} from "./discreteUtils";
+describe("factorial",()=>{
+    it("returns1for0",()=>{
+        expect(factorial(0)).toBe(1);
+    });
+    it("returns1for1",()=>{
+        expect(factorial(1)).toBe(1);
+    });
+    it("returns120for5",()=>{
+        expect(factorial(5)).toBe(120);
+    });
+    it("returns5040for7",()=>{
+        expect(factorial(7)).toBe(5040);
+    });
+    it("returnsNaNfornegative",()=>{
+        expect(factorial(-1)).toBeNaN();
+    });
+});
+describe("nPr",()=>{
+    it("returns20for5P2",()=>{
+        expect(nPr(5,2)).toBe(20);
+    });
+    it("returns120for5P5",()=>{
+        expect(nPr(5,5)).toBe(120);
+    });
+    it("returns0whenRgreaterThanN",()=>{
+        expect(nPr(3,5)).toBe(0);
+    });
+    it("returns720for10P3",()=>{
+        expect(nPr(10,3)).toBe(720);
+    });
+});
+describe("nCr",()=>{
+    it("returns10for5C2",()=>{
+        expect(nCr(5,2)).toBe(10);
+    });
+    it("returns1for5C5",()=>{
+        expect(nCr(5,5)).toBe(1);
+    });
+    it("returns0whenRgreaterThanN",()=>{
+        expect(nCr(3,5)).toBe(0);
+    });
+    it("returns120for10C3",()=>{
+        expect(nCr(10,3)).toBe(120);
+    });
+});
+describe("getMaxN",()=>{
+    it("returns6foreasy",()=>{
+        expect(getMaxN("easy")).toBe(6);
+    });
+    it("returns8formedium",()=>{
+        expect(getMaxN("medium")).toBe(8);
+    });
+    it("returns12forhard",()=>{
+        expect(getMaxN("hard")).toBe(12);
+    });
+    it("returns8bydefault",()=>{
+        expect(getMaxN()).toBe(8);
+    });
+});
+describe("getDataRange",()=>{
+    it("returnseasysetup",()=>{
+        expect(getDataRange("easy")).toEqual({min:1,max:20,count:5});
+    });
+    it("returnsmediumsetup",()=>{
+        expect(getDataRange()).toEqual({min:0,max:50,count:10});
+    });
+    it("returnshardsetup",()=>{
+        expect(getDataRange("hard")).toEqual({min:-50,max:100,count:15});
+    });
+});
+describe("mean",()=>{
+    it("returns3for1to5",()=>{
+        expect(mean([1,2,3,4,5])).toBe(3);
+    });
+    it("returns1fortwo1s",()=>{
+        expect(mean([1,1])).toBe(1);
+    });
+});
+describe("median",()=>{
+    it("returns2forodd",()=>{
+        expect(median([1,2,3])).toBe(2);
+    });
+    it("returns2.5foreven",()=>{
+        expect(median([1,2,3,4])).toBe(2.5);
+    });
+});
+describe("mode",()=>{
+    it("returns1forsinglemode",()=>{
+        expect(mode([1,1,2])).toEqual([1]);
+    });
+    it("returnsbothforbimodal",()=>{
+        expect(mode([1,2])).toEqual([1,2]);
+    });
+});
+describe("range",()=>{
+    it("returns4for1to5",()=>{
+        expect(range([1,5])).toBe(4);
+    });
+});
+describe("stdDev",()=>{
+    it("returns0forconstant",()=>{
+        expect(stdDev([1,1,1])).toBe(0);
+    });
+    it("returns1for1and3",()=>{
+        expect(stdDev([1,3])).toBe(1);
+    });
+});
+describe("getOrdinal",()=>{
+    it("returnsstfor1",()=>{
+        expect(getOrdinal(1)).toBe("st");
+    });
+    it("returnsndfor2",()=>{
+        expect(getOrdinal(2)).toBe("nd");
+    });
+    it("returnsrdfor3",()=>{
+        expect(getOrdinal(3)).toBe("rd");
+    });
+    it("returnsthnfor11",()=>{
+        expect(getOrdinal(11)).toBe("th");
+    });
+    it("returnsstfor21",()=>{
+        expect(getOrdinal(21)).toBe("st");
+    });
+});
