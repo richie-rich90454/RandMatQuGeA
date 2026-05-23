@@ -46,3 +46,41 @@ impl fmt::Display for Difficulty {
         write!(f, "{}", self.as_str())
     }
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_difficulty_as_str() {
+        assert_eq!(Difficulty::Easy.as_str(), "easy");
+        assert_eq!(Difficulty::Medium.as_str(), "medium");
+        assert_eq!(Difficulty::Hard.as_str(), "hard");
+    }
+    #[test]
+    fn test_difficulty_from_str() {
+        assert_eq!(Difficulty::from("easy"), Difficulty::Easy);
+        assert_eq!(Difficulty::from("medium"), Difficulty::Medium);
+        assert_eq!(Difficulty::from("hard"), Difficulty::Hard);
+        assert_eq!(Difficulty::from("unknown"), Difficulty::Medium);
+    }
+    #[test]
+    fn test_difficulty_display() {
+        assert_eq!(format!("{}", Difficulty::Easy), "easy");
+        assert_eq!(format!("{}", Difficulty::Medium), "medium");
+        assert_eq!(format!("{}", Difficulty::Hard), "hard");
+    }
+    #[test]
+    fn test_topic_id_creation_and_as_str() {
+        let topic = TopicId("algebra".to_string());
+        assert_eq!(topic.as_str(), "algebra");
+        let topic2 = TopicId("geometry".to_string());
+        assert_eq!(topic2.as_str(), "geometry");
+    }
+    #[test]
+    fn test_topic_id_from_str() {
+        let topic = TopicId::from("trigonometry");
+        assert_eq!(topic.0, "trigonometry");
+        assert_eq!(topic.as_str(), "trigonometry");
+        let topic2 = TopicId::from("calculus");
+        assert_eq!(topic2.as_str(), "calculus");
+    }
+}

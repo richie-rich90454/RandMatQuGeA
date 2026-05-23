@@ -191,7 +191,7 @@ async fn get_performance_stats(
     days: Option<i32>,
 ) -> Result<Vec<serde_json::Value>, String> {
     let pool = &state.pool;
-    let mut query = String::from(
+    let mut builder = sqlx::QueryBuilder::new(
         "SELECT topic_id, difficulty, 
 				SUM(attempts) as total_attempts,
 				SUM(correct) as total_correct,
@@ -200,21 +200,18 @@ async fn get_performance_stats(
 		 FROM user_topic_stats
 		 WHERE 1=1",
     );
-    let mut params: Vec<String> = Vec::new();
     if let Some(diff) = difficulty {
-        query.push_str(" AND difficulty = ?");
-        params.push(diff);
+        builder.push(" AND difficulty = ");
+        builder.push_bind(diff);
     }
     if let Some(d) = days {
-        query.push_str(" AND last_updated >= datetime('now', ?)");
-        params.push(format!("-{} days", d));
+        builder.push(" AND last_updated >= datetime('now', ");
+        builder.push_bind(format!("-{} days", d));
+        builder.push(")");
     }
-    query.push_str(" GROUP BY topic_id, difficulty ORDER BY accuracy ASC");
-    let mut rows_query = sqlx::query_as::<_, (String, String, i64, i64, f64, f64)>(&query);
-    for p in params {
-        rows_query = rows_query.bind(p);
-    }
-    let results = rows_query
+    builder.push(" GROUP BY topic_id, difficulty ORDER BY accuracy ASC");
+    let results = builder
+        .build_query_as::<(String, String, i64, i64, f64, f64)>()
         .fetch_all(pool)
         .await
         .map_err(|e| e.to_string())?;
@@ -392,4 +389,111 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sqlx::SqlitePool;
+    #[tokio::test]
+    async fn test_save_performance_logic() {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        sqlx::query(
+            "CREATE TABLE user_topic_stats (
+                topic_id TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                attempts INTEGER DEFAULT 0,
+                correct INTEGER DEFAULT 0,
+                total_response_time_ms INTEGER DEFAULT 0,
+                last_error_type TEXT,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (topic_id, difficulty)
+            )",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        let update_result = sqlx::query(
+            "UPDATE user_topic_stats SET attempts = attempts + 1, correct = correct + ?,
+             total_response_time_ms = total_response_time_ms + ? WHERE topic_id = ? AND difficulty = ?",
+        )
+        .bind(1)
+        .bind(100i64)
+        .bind("algebra")
+        .bind("easy")
+        .execute(&pool)
+        .await
+        .unwrap();
+        assert_eq!(update_result.rows_affected(), 0);
+        sqlx::query(
+            "INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms)
+             VALUES (?, ?, 1, 1, 100)",
+        )
+        .bind("algebra")
+        .bind("easy")
+        .execute(&pool)
+        .await
+        .unwrap();
+        let row: (String, String, i32, i32) = sqlx::query_as(
+            "SELECT topic_id, difficulty, attempts, correct FROM user_topic_stats WHERE topic_id = ? AND difficulty = ?",
+        )
+        .bind("algebra")
+        .bind("easy")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+        assert_eq!(row.0, "algebra");
+        assert_eq!(row.1, "easy");
+        assert_eq!(row.2, 1);
+        assert_eq!(row.3, 1);
+    }
+    #[tokio::test]
+    async fn test_reset_all_data_logic() {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        sqlx::query(
+            "CREATE TABLE user_topic_stats (
+                topic_id TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                PRIMARY KEY (topic_id, difficulty)
+            )",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        sqlx::query("INSERT INTO user_topic_stats (topic_id, difficulty) VALUES (?, ?)")
+            .bind("algebra")
+            .bind("easy")
+            .execute(&pool)
+            .await
+            .unwrap();
+        let count_before: (i64,) =
+            sqlx::query_as("SELECT COUNT(*) FROM user_topic_stats")
+                .fetch_one(&pool)
+                .await
+                .unwrap();
+        assert_eq!(count_before.0, 1);
+        sqlx::query("DELETE FROM user_topic_stats")
+            .execute(&pool)
+            .await
+            .unwrap();
+        let count_after: (i64,) =
+            sqlx::query_as("SELECT COUNT(*) FROM user_topic_stats")
+                .fetch_one(&pool)
+                .await
+                .unwrap();
+        assert_eq!(count_after.0, 0);
+    }
+    #[test]
+    fn test_model_round_trips() {
+        let topic = TopicId::from("geometry");
+        assert_eq!(topic.as_str(), "geometry");
+        let topic2 = TopicId("trigonometry".to_string());
+        assert_eq!(topic2.as_str(), "trigonometry");
+        assert_eq!(Difficulty::from("easy"), Difficulty::Easy);
+        assert_eq!(Difficulty::from("medium"), Difficulty::Medium);
+        assert_eq!(Difficulty::from("hard"), Difficulty::Hard);
+        assert_eq!(Difficulty::from("unknown"), Difficulty::Medium);
+        assert_eq!(Difficulty::Easy.as_str(), "easy");
+        assert_eq!(Difficulty::Medium.as_str(), "medium");
+        assert_eq!(Difficulty::Hard.as_str(), "hard");
+    }
 }

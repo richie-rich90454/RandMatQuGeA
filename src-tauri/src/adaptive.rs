@@ -49,9 +49,9 @@ pub async fn fetch_stats_for_topic(
 }
 pub fn recommend_next_difficulty(accuracy: f64) -> Difficulty {
     if accuracy < 0.4 {
-        Difficulty::Hard
-    } else if accuracy > 0.8 {
         Difficulty::Easy
+    } else if accuracy > 0.8 {
+        Difficulty::Hard
     } else {
         Difficulty::Medium
     }
@@ -68,4 +68,36 @@ pub async fn find_weakest_topic(pool: &SqlitePool) -> Result<Option<String>, sql
     .fetch_optional(pool)
     .await?;
     Ok(row.map(|(id, _)| id))
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_recommend_easy_low_accuracy() {
+        assert_eq!(recommend_next_difficulty(0.3), Difficulty::Easy);
+    }
+    #[test]
+    fn test_recommend_medium_accuracy() {
+        assert_eq!(recommend_next_difficulty(0.5), Difficulty::Medium);
+    }
+    #[test]
+    fn test_recommend_hard_high_accuracy() {
+        assert_eq!(recommend_next_difficulty(0.9), Difficulty::Hard);
+    }
+    #[test]
+    fn test_recommend_boundary_below_medium() {
+        assert_eq!(recommend_next_difficulty(0.4), Difficulty::Medium);
+    }
+    #[test]
+    fn test_recommend_boundary_below_hard() {
+        assert_eq!(recommend_next_difficulty(0.8), Difficulty::Medium);
+    }
+    #[test]
+    fn test_recommend_zero_accuracy() {
+        assert_eq!(recommend_next_difficulty(0.0), Difficulty::Easy);
+    }
+    #[test]
+    fn test_recommend_perfect_accuracy() {
+        assert_eq!(recommend_next_difficulty(1.0), Difficulty::Hard);
+    }
 }
