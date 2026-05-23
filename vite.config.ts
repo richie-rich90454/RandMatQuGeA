@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import {defineConfig} from "vite";
 import {readFileSync} from "fs";
 import {join} from "path";
@@ -6,6 +7,10 @@ let packageJson=JSON.parse(readFileSync(join(__dirname,"package.json"),"utf-8"))
 let version=packageJson.version;
 
 export default defineConfig({
+	test:{
+		setupFiles:["./src/vitest.setup.ts"],
+		environment:"jsdom",
+	},
 	root: "src",
 	publicDir: "../public",
 	build: {

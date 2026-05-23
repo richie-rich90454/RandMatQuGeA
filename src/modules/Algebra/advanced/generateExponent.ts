@@ -24,6 +24,7 @@ export function generateExponent(difficulty?: string): void{
 			correct=val;
 			alternate=val;
 			display=val;
+			hint="Enter a number";
 			questionArea.innerHTML=`Evaluate: \\( ${base}^{${exponent}} \\)`;
 			let numVal=parseInt(val);
 			choices=[val];
@@ -38,6 +39,7 @@ export function generateExponent(difficulty?: string): void{
 			correct=exponent.toString();
 			alternate=correct;
 			display=correct;
+			hint="Enter a whole number";
 			questionArea.innerHTML=`Solve for \\( x \\): \\( ${base}^{x}=${power} \\)`;
 			choices=[correct];
 			choices.push((exponent+1).toString());
@@ -55,6 +57,7 @@ export function generateExponent(difficulty?: string): void{
 			correct=ansStr;
 			alternate=altExpr;
 			display=ansStr;
+			hint="Enter a number (e.g., 32) or an expression (e.g., 2^5)";
 			questionArea.innerHTML=`Simplify: \\( (${base}^{${a}}) \\times (${base}^{${b}}) \\)`;
 			let numVal=parseInt(ansStr);
 			choices=[ansStr];
@@ -70,6 +73,7 @@ export function generateExponent(difficulty?: string): void{
 			correct=factor;
 			alternate=factor;
 			display=factor;
+			hint="Enter a decimal (e.g., 1.05)";
 			questionArea.innerHTML=`A population grows at \\( ${rate}\\% \\) annually. What is the growth factor?`;
 			let factorNum=parseFloat(factor);
 			choices=[factor];
@@ -91,6 +95,7 @@ export function generateExponent(difficulty?: string): void{
 			correct=largerVal.toString();
 			alternate=largerExpr;
 			display=correct;
+			hint="Enter the larger value (e.g., 32) or the expression (e.g., 2^5)";
 			questionArea.innerHTML=`Which is larger: \\( ${b1}^{${e1}} \\) or \\( ${b2}^{${e2}} \\)?`;
 			let smaller=Math.min(val1,val2);
 			choices=[correct];

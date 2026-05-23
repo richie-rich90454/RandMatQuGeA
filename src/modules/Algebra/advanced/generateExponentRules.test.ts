@@ -41,7 +41,7 @@ describe("generateExponentRules", () => {
 			.mockReturnValueOnce(0.8); // n -> 3 (floor(0.8*3)+1 = 2+1=3)
 		generateExponentRules();
 		expect(mockDiv.innerHTML).toBe("Simplify: \\( 4^{1} \\times 4^{3} \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "4^4",
 			alternate: "4^4",
 			display: "4^4"
@@ -57,7 +57,7 @@ describe("generateExponentRules", () => {
 			.mockReturnValueOnce(0.8); // n -> 3
 		generateExponentRules();
 		expect(mockDiv.innerHTML).toBe("Simplify: \\( \\frac{4^{4}}{4^{3}} \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "4^1",
 			alternate: "4^1",
 			display: "4^1"
@@ -71,7 +71,7 @@ describe("generateExponentRules", () => {
 			.mockReturnValueOnce(0.8); // n -> 3
 		generateExponentRules();
 		expect(mockDiv.innerHTML).toBe("Simplify: \\( (4^{1})^{3} \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "4^3",
 			alternate: "4^3",
 			display: "4^3"
@@ -85,7 +85,7 @@ describe("generateExponentRules", () => {
 			.mockReturnValueOnce(0.8); // n (unused)
 		generateExponentRules();
 		expect(mockDiv.innerHTML).toBe("Write with a positive exponent: \\( 4^{-1} \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "\\frac{1}{4^{1}}",
 			alternate: "1/4^1",
 			display: "\\frac{1}{4^{1}}"
@@ -100,7 +100,7 @@ describe("generateExponentRules", () => {
 			.mockReturnValueOnce(0.8); // n (unused)
 		generateExponentRules();
 		expect(mockDiv.innerHTML).toBe("Evaluate: \\( 4^{0} \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "1",
 			alternate: "1",
 			display: "1"

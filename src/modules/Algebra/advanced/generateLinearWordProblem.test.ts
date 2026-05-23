@@ -39,7 +39,7 @@ describe("generateLinearWordProblem", ()=>{
 			.mockReturnValueOnce(0.3); // n -> floor(0.3*20)+1=6+1=7
 		generateLinearWordProblem();
 		expect(mockDiv.innerHTML).toBe("The sum of two consecutive integers is 15. Find the smaller integer.");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "7",
 			alternate: "7",
 			display: "7"
@@ -54,7 +54,7 @@ describe("generateLinearWordProblem", ()=>{
 			.mockReturnValueOnce(0.8); // dimes -> floor(0.8*5)+2=4+2=6
 		generateLinearWordProblem();
 		expect(mockDiv.innerHTML).toBe("You have 3 quarters and 6 dimes. How much money do you have in cents?");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "135",
 			alternate: "135",
 			display: "135"
@@ -68,7 +68,7 @@ describe("generateLinearWordProblem", ()=>{
 			.mockReturnValueOnce(0.8); // time -> floor(0.8*3)+2=2+2=4
 		generateLinearWordProblem();
 		expect(mockDiv.innerHTML).toBe("A car travels at 35 mph for 4 hours. How far does it travel?");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "140",
 			alternate: "140",
 			display: "140"
@@ -82,7 +82,7 @@ describe("generateLinearWordProblem", ()=>{
 			.mockReturnValueOnce(0.4); // past -> floor(0.4*5)+2=2+2=4
 		generateLinearWordProblem();
 		expect(mockDiv.innerHTML).toBe("A person is 20 years old. How old were they 4 years ago?");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "16",
 			alternate: "16",
 			display: "16"
@@ -96,7 +96,7 @@ describe("generateLinearWordProblem", ()=>{
 			.mockReturnValueOnce(0.6); // percent -> floor(0.6*30)+20=18+20=38
 		generateLinearWordProblem();
 		expect(mockDiv.innerHTML).toBe("A 20 gallon mixture contains 38% alcohol. How many gallons of alcohol are in it?");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "8",
 			alternate: "8",
 			display: "8"

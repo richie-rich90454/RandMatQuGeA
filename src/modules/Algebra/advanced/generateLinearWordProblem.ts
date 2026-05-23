@@ -12,6 +12,13 @@ export function generateLinearWordProblem(difficulty?: string): void{
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,20);
 	let expectedFormat="Enter a number";
+	let expectedFormats: Record<string,string>={
+		consecutive_integers: "Enter a whole number",
+		money: "Enter a number (cents)",
+		distance: "Enter a number (miles)",
+		age: "Enter a number",
+		mixture: "Enter a number (gallons)"
+	};
 	let correct="";
 	let alternate="";
 	let display="";
@@ -101,18 +108,9 @@ export function generateLinearWordProblem(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let textContainer=document.createElement("div");
-	textContainer.textContent=problemText;
-	textContainer.classList.add("problem-text");
-	questionArea.appendChild(textContainer);
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=`\\[ \\text{Answer: } \\]`;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
+	expectedFormat=expectedFormats[type]||"Enter a number";
+	questionArea.innerHTML=problemText;
+	if(window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
 	window.correctAnswer={
 		correct: correct,
 		alternate: alternate,

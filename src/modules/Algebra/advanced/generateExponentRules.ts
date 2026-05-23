@@ -18,14 +18,14 @@ export function generateExponentRules(difficulty?: string): void{
 	let correct="";
 	let alternate="";
 	let display="";
-	let mathExpression="";
 	let choices:string[]=[];
 	switch(type){
 		case "product":{
-			correct=`${base}^{${m+n}}`;
+			correct=base+"^"+(m+n);
 			alternate=correct;
 			display=correct;
-			mathExpression=`\\( ${base}^{${m}} \\times ${base}^{${n}} \\)`;
+			expectedFormat="Enter as a^b";
+			questionArea.innerHTML="Simplify: \\( " + base + "^{" + m + "} \\times " + base + "^{" + n + "} \\)";
 			choices=[correct];
 			choices.push(`${base}^${m}`);
 			choices.push(`${base}^${n}`);
@@ -34,10 +34,10 @@ export function generateExponentRules(difficulty?: string): void{
 			break;
 		}
 		case "quotient":{
-			correct=`${base}^{${m}}`;
+			correct=base+"^"+m;
 			alternate=correct;
 			display=correct;
-			mathExpression=`\\( \\frac{${base}^{${m+n}}}{${base}^{${n}}} \\)`;
+			questionArea.innerHTML="Simplify: \\( \\frac{" + base + "^{" + (m+n) + "}}{" + base + "^{" + n + "}} \\)";
 			choices=[correct];
 			choices.push(`${base}^${m+n}`);
 			choices.push(`${base}^${m-1}`);
@@ -46,10 +46,10 @@ export function generateExponentRules(difficulty?: string): void{
 			break;
 		}
 		case "power":{
-			correct=`${base}^{${m*n}}`;
+			correct=base+"^"+(m*n);
 			alternate=correct;
 			display=correct;
-			mathExpression=`\\( (${base}^{${m}})^{${n}} \\)`;
+			questionArea.innerHTML="Simplify: \\( (" + base + "^{" + m + "})^{" + n + "} \\)";
 			choices=[correct];
 			choices.push(`${base}^${m+n}`);
 			choices.push(`${base}^${m}`);
@@ -61,7 +61,8 @@ export function generateExponentRules(difficulty?: string): void{
 			correct=`\\frac{1}{${base}^{${m}}}`;
 			alternate=`1/${base}^${m}`;
 			display=correct;
-			mathExpression=`\\( ${base}^{-${m}} \\)`;
+			expectedFormat="Enter as 1/a^b";
+			questionArea.innerHTML="Write with a positive exponent: \\( " + base + "^{-" + m + "} \\)";
 			choices=[correct];
 			choices.push(`${base}^${-m}`);
 			choices.push(`${base}^${m}`);
@@ -73,7 +74,8 @@ export function generateExponentRules(difficulty?: string): void{
 			correct="1";
 			alternate="1";
 			display="1";
-			mathExpression=`\\( ${base}^{0} \\)`;
+			expectedFormat="Enter 1";
+			questionArea.innerHTML="Evaluate: \\( " + base + "^{0} \\)";
 			choices=["1","0","-1","undefined"];
 			break;
 		}
@@ -86,14 +88,7 @@ export function generateExponentRules(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
+	if(window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
 	window.correctAnswer={
 		correct: correct,
 		alternate: alternate,

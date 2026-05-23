@@ -17,7 +17,6 @@ export function generateFactorial(difficulty?: string): void{
 	let correct="";
 	let alternate="";
 	let display="";
-	let mathExpression="";
 	let choices:string[]=[];
 	switch(type){
 		case "basic":{
@@ -25,7 +24,8 @@ export function generateFactorial(difficulty?: string): void{
 			correct=ans;
 			alternate=ans;
 			display=ans;
-			mathExpression=`\\( ${n}! \\)`;
+			expectedFormat="Enter a whole number";
+			questionArea.innerHTML="Calculate \\( "+n+"! \\)";
 			let numVal=parseInt(ans);
 			choices=[ans];
 			choices.push((numVal+1).toString());
@@ -39,7 +39,7 @@ export function generateFactorial(difficulty?: string): void{
 			correct=result.toString();
 			alternate=(factorial(n)/factorial(k)).toString();
 			display=correct;
-			mathExpression=`\\( \\frac{${n}!}{${k}!} \\)`;
+			questionArea.innerHTML="Simplify: \\( \\frac{"+n+"!}{"+k+"!} \\)";
 			let numVal=parseInt(correct);
 			choices=[correct];
 			choices.push((numVal+1).toString());
@@ -53,7 +53,8 @@ export function generateFactorial(difficulty?: string): void{
 			correct=n.toString();
 			alternate=correct;
 			display=correct;
-			mathExpression=`\\( n! = ${factVal} \\)`;
+			expectedFormat="Enter a whole number";
+			questionArea.innerHTML="Solve for \\( n \\): \\( n!="+factVal+" \\)";
 			choices=[correct];
 			choices.push((n+1).toString());
 			choices.push((n-1).toString());
@@ -66,7 +67,8 @@ export function generateFactorial(difficulty?: string): void{
 			correct=stirling.toFixed(0);
 			alternate=Math.round(stirling).toString();
 			display=correct;
-			mathExpression=`Estimate \\( ${n}! \\) using Stirling's approximation`;
+			expectedFormat="Enter a rounded whole number";
+			questionArea.innerHTML="Estimate \\( "+n+"! \\) using Stirling's approximation";
 			let numVal=parseInt(correct);
 			choices=[correct];
 			choices.push((numVal+100).toString());
@@ -87,7 +89,7 @@ export function generateFactorial(difficulty?: string): void{
 			correct=count.toString();
 			alternate=correct;
 			display=correct;
-			mathExpression=`Find the exponent of \\( ${prime} \\) in \\( ${n}! \\) (prime factorization)`;
+			questionArea.innerHTML="Find the exponent of \\( "+prime+" \\) in \\( "+n+"! \\) (prime factorization)";
 			let numVal=parseInt(correct);
 			choices=[correct];
 			choices.push((numVal+1).toString());
@@ -105,14 +107,7 @@ export function generateFactorial(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
+	if(window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
 	window.correctAnswer={
 		correct: correct,
 		alternate: alternate,

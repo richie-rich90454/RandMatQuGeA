@@ -44,7 +44,7 @@ describe("generateFactorial", () => {
 			.mockReturnValueOnce(0.5); // k (unused)
 		generateFactorial();
 		expect(mockDiv.innerHTML).toBe("Calculate \\( 8! \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "40320",
 			alternate: "40320",
 			display: "40320"
@@ -59,7 +59,7 @@ describe("generateFactorial", () => {
 			.mockReturnValueOnce(0.2); // k -> floor(0.2*6)+2 = 1+2=3
 		generateFactorial();
 		expect(mockDiv.innerHTML).toBe("Simplify: \\( \\frac{8!}{3!} \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "6720",
 			alternate: "6720",
 			display: "6720"
@@ -72,7 +72,7 @@ describe("generateFactorial", () => {
 			.mockReturnValueOnce(0.5); // k (unused)
 		generateFactorial();
 		expect(mockDiv.innerHTML).toBe("Solve for \\( n \\): \\( n!=40320 \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "8",
 			alternate: "8",
 			display: "8"
@@ -99,7 +99,7 @@ describe("generateFactorial", () => {
 			.mockReturnValueOnce(0.1); // prime index -> 0 -> prime 2
 		generateFactorial();
 		expect(mockDiv.innerHTML).toBe("Find the exponent of \\( 2 \\) in \\( 8! \\) (prime factorization)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "7",
 			alternate: "7",
 			display: "7"

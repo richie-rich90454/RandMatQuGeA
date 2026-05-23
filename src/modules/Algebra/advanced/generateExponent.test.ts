@@ -40,7 +40,7 @@ describe("generateExponent", ()=>{
 			.mockReturnValueOnce(0.3); // exponent -> 3
 		generateExponent();
 		expect(mockDiv.innerHTML).toBe("Evaluate: \\( 4^{3} \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "64",
 			alternate: "64",
 			display: "64"
@@ -55,7 +55,7 @@ describe("generateExponent", ()=>{
 			.mockReturnValueOnce(0.7); // exponent -> 5
 		generateExponent();
 		expect(mockDiv.innerHTML).toBe("Solve for \\( x \\): \\( 4^{x}=1024 \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "5",
 			alternate: "5",
 			display: "5"
@@ -71,7 +71,7 @@ describe("generateExponent", ()=>{
 			.mockReturnValueOnce(0.8); // b -> 4
 		generateExponent();
 		expect(mockDiv.innerHTML).toBe("Simplify: \\( (4^{2}) \\times (4^{4}) \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "4096",
 			alternate: "4^6",
 			display: "4096"
@@ -86,7 +86,7 @@ describe("generateExponent", ()=>{
 			.mockReturnValueOnce(0.5); // rate -> 15.0
 		generateExponent();
 		expect(mockDiv.innerHTML).toBe("A population grows at \\( 15.0\\% \\) annually. What is the growth factor?");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "1.150",
 			alternate: "1.150",
 			display: "1.150"
@@ -104,7 +104,7 @@ describe("generateExponent", ()=>{
 			.mockReturnValueOnce(0.3); // e2 -> 3
 		generateExponent();
 		expect(mockDiv.innerHTML).toBe("Which is larger: \\( 2^{5} \\) or \\( 4^{3} \\)?");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "64",
 			alternate: "4^3",
 			display: "64"

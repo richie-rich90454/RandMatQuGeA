@@ -44,7 +44,7 @@ describe("generateComplex", ()=>{
 			.mockReturnValueOnce(0.1); // d=1
 		generateComplex();
 		expect(mockDiv.innerHTML).toBe("Add: \\( (1 + 1i) + (1 + 1i) \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "2 + 2i",
 			alternate: "2+2i",
 			display: "2 + 2i"
@@ -61,7 +61,7 @@ describe("generateComplex", ()=>{
 			.mockReturnValueOnce(0.8); // d=5
 		generateComplex();
 		expect(mockDiv.innerHTML).toBe("Subtract: \\( (2 + 3i) - (4 + 5i) \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "-2 - 2i",
 			alternate: "-2-2i",
 			display: "-2 - 2i"
@@ -77,7 +77,7 @@ describe("generateComplex", ()=>{
 			.mockReturnValueOnce(0.8); // d=5
 		generateComplex();
 		expect(mockDiv.innerHTML).toBe("Multiply: \\( (2 + 3i)(4 + 5i) \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "-7 + 22i",
 			alternate: "-7+22i",
 			display: "-7 + 22i"
@@ -92,7 +92,7 @@ describe("generateComplex", ()=>{
 			.mockReturnValueOnce(0.7); // d=4 (0.7*5=3.5 floor=3+1=4)
 		generateComplex();
 		expect(mockDiv.innerHTML).toBe("Divide: \\( \\frac{1 + 2i}{3 + 4i} \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "0.44 + 0.08i",
 			alternate: "0.44+0.08i",
 			display: "0.44 + 0.08i"
@@ -111,7 +111,7 @@ describe("generateComplex", ()=>{
 			.mockReturnValueOnce(0.0); // n=1
 		generateComplex();
 		expect(mockDiv.innerHTML).toBe("Simplify: \\( i^{1} \\)");
-		expect((window as any).correctAnswer).toEqual({
+		expect((window as any).correctAnswer).toMatchObject({
 			correct: "i",
 			alternate: "i",
 			display: "i"

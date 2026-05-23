@@ -101,7 +101,7 @@ function detectErrorType(userAnswer: string, correctAnswer: string, topicId: str
  *
  * @throws No exceptions are thrown; errors are caught and logged, with user‑friendly notifications.
  */
-export async function checkAnswer(userInput?: string): Promise<void>{
+export function checkAnswer(userInput?: string): void{
     if (!state.selectedTopic){
         ui.showNotification("Please select a topic and generate a question first","warning");
         return;
@@ -514,18 +514,17 @@ export async function checkAnswer(userInput?: string): Promise<void>{
         responseTimeMs: responseTime,
         errorType: errorType
     });
-    try{
-        await invoke('save_performance', {
-            topicId: state.selectedTopic,
-            difficulty: state.currentDifficulty,
-            correct: isCorrect,
-            responseTimeMs: responseTime,
-            errorType: errorType
-        });
+    invoke('save_performance', {
+        topicId: state.selectedTopic,
+        difficulty: state.currentDifficulty,
+        correct: isCorrect,
+        responseTimeMs: responseTime,
+        errorType: errorType
+    }).then(()=>{
         console.log("[Adaptive] Performance saved successfully");
-    }catch(e){
+    }).catch((e)=>{
         console.warn("[Adaptive] Failed to save performance:", e);
-    }
+    });
     if (settings.settings.sound){
         const audioCtx=new (window.AudioContext||(window as any).webkitAudioContext)();
         const oscillator=audioCtx.createOscillator();

@@ -15,7 +15,7 @@ export function generateComplex(difficulty?: string): void{
 	let b=Math.floor(Math.random()*maxVal)+1;
 	let c=Math.floor(Math.random()*maxVal)+1;
 	let d=Math.floor(Math.random()*maxVal)+1;
-	let expectedFormat="Enter your answer in a+bi form (e.g., 3+2i or 3-2i)";
+	let expectedFormat="Enter as a+bi (e.g., 3+2i)";
 	let correct="";
 	let alternate="";
 	let display="";
@@ -28,7 +28,7 @@ export function generateComplex(difficulty?: string): void{
 			correct=imag>=0?`${real} + ${imag}i`:`${real} - ${-imag}i`;
 			alternate=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
 			display=correct;
-			mathExpression=`\\( (${a} + ${b}i) + (${c} + ${d}i) \\)`;
+			mathExpression=`Add: \\( (${a} + ${b}i) + (${c} + ${d}i) \\)`;
 			choices=[correct];
 			let wrongReal1=real+1;
 			let wrongImag1=imag+1;
@@ -46,7 +46,7 @@ export function generateComplex(difficulty?: string): void{
 			correct=imag>=0?`${real} + ${imag}i`:`${real} - ${-imag}i`;
 			alternate=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
 			display=correct;
-			mathExpression=`\\( (${a} + ${b}i) - (${c} + ${d}i) \\)`;
+			mathExpression=`Subtract: \\( (${a} + ${b}i) - (${c} + ${d}i) \\)`;
 			choices=[correct];
 			let wrongReal1=real+1;
 			let wrongImag1=imag+1;
@@ -64,7 +64,7 @@ export function generateComplex(difficulty?: string): void{
 			correct=imag>=0?`${real} + ${imag}i`:`${real} - ${-imag}i`;
 			alternate=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
 			display=correct;
-			mathExpression=`\\( (${a} + ${b}i)(${c} + ${d}i) \\)`;
+			mathExpression=`Multiply: \\( (${a} + ${b}i)(${c} + ${d}i) \\)`;
 			choices=[correct];
 			let wrongReal1=real+1;
 			let wrongImag1=imag+1;
@@ -90,7 +90,8 @@ export function generateComplex(difficulty?: string): void{
 			}
 			alternate=imag>=0?`${realFixed}+${absImag}i`:`${realFixed}-${absImag}i`;
 			display=correct;
-			mathExpression=`\\( \\frac{${a} + ${b}i}{${c} + ${d}i} \\)`;
+			expectedFormat="Enter as a+bi decimals (e.g., 0.33+0.25i)";
+			mathExpression=`Divide: \\( \\frac{${a} + ${b}i}{${c} + ${d}i} \\)`;
 			choices=[correct];
 			let wrongRealNum=(a*c+b*d)/(denom+1);
 			let wrongImagNum=(b*c-a*d)/(denom+1);
@@ -114,7 +115,8 @@ export function generateComplex(difficulty?: string): void{
 			correct=ans;
 			alternate=ans;
 			display=ans;
-			mathExpression=`\\( i^{${n}} \\)`;
+			expectedFormat="Enter i, -1, -i, or 1";
+			mathExpression=`Simplify: \\( i^{${n}} \\)`;
 			let all=["i","-1","-i","1"];
 			choices=[correct];
 			for(let opt of all){
@@ -131,14 +133,9 @@ export function generateComplex(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
+	questionArea.innerHTML=mathExpression;
+	questionArea.style.whiteSpace="pre-wrap";
+	if(window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
 	window.correctAnswer={
 		correct: correct,
 		alternate: alternate,
