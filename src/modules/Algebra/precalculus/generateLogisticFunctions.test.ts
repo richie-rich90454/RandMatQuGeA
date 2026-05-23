@@ -1,0 +1,75 @@
+/**
+ * @vitest-environment jsdom
+ */
+import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
+import {generateLogisticFunctions} from "./generateLogisticFunctions";
+import {questionArea} from "../../../script.js";
+import {getMaxForDifficulty} from "../algebraUtils.js";
+vi.mock("../../../script.js", ()=>({
+	questionArea: null as HTMLElement|null
+}));
+vi.mock("../algebraUtils.js", ()=>({
+	getMaxForDifficulty: vi.fn(()=>10)
+}));
+describe("generateLogisticFunctions", ()=>{
+	let originalMathRandom: ()=>number;
+	let mockDiv: HTMLDivElement;
+	beforeEach(()=>{
+		originalMathRandom=Math.random;
+		mockDiv=document.createElement("div");
+		(questionArea as any)=mockDiv;
+		delete (window as any).correctAnswer;
+		delete (window as any).expectedFormat;
+		(window as any).MathJax={typesetPromise: vi.fn().mockResolvedValue(undefined)};
+	});
+	afterEach(()=>{
+		Math.random=originalMathRandom;
+		delete (window as any).MathJax;
+	});
+	it("returns early if questionArea is null", ()=>{
+		(questionArea as any)=null;
+		generateLogisticFunctions();
+		expect(mockDiv.innerHTML).toBe("");
+		expect((window as any).correctAnswer).toBeUndefined();
+		expect((window as any).expectedFormat).toBeUndefined();
+	});
+	it("generates identify question correctly", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0) // type "identify"
+			.mockReturnValueOnce(0.5) // c -> floor(0.5*10)+5=5+5=10
+			.mockReturnValueOnce(0.3) // a -> floor(0.3*5)+1=1+1=2
+			.mockReturnValueOnce(0.5) // k -> 0.50
+			.mockReturnValueOnce(0.5); // x (unused in identify)
+		generateLogisticFunctions();
+		expect(mockDiv.innerHTML).toContain("Identify the type");
+		expect((window as any).correctAnswer).toMatchObject({
+			correct: "logistic",
+			display: "logistic"
+		});
+	});
+	it("generates limit question correctly", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.35) // type "limit"
+			.mockReturnValueOnce(0.5) // c
+			.mockReturnValueOnce(0.3) // a
+			.mockReturnValueOnce(0.5) // k
+			.mockReturnValueOnce(0.5); // x
+		generateLogisticFunctions();
+		expect(mockDiv.innerHTML).toContain("carrying capacity");
+		expect((window as any).correctAnswer).toMatchObject({
+			correct: "10",
+			display: "10"
+		});
+	});
+	it("generates value question correctly", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.7) // type "value"
+			.mockReturnValueOnce(0.5) // c
+			.mockReturnValueOnce(0.3) // a
+			.mockReturnValueOnce(0.5) // k
+			.mockReturnValueOnce(0.5); // x
+		generateLogisticFunctions();
+		expect(mockDiv.innerHTML).toContain("Evaluate");
+		expect((window as any).expectedFormat).toBe("Enter decimal");
+	});
+});

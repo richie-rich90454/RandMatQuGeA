@@ -1,0 +1,17 @@
+{
+  "date": "2026-05-23",
+  "bundle": {
+    "total_js_raw_bytes": 1615000,
+    "total_js_gzip_bytes": 414000,
+    "chunks": {
+      "vendor-mathjs-lib": { "raw": 649800, "gzip": 181300 },
+      "vendor-three": { "raw": 535160, "gzip": 134120 },
+      "index_app_code": { "raw": 388120, "gzip": 86440 },
+      "vendor-other": { "raw": 23940, "gzip": 7260 },
+      "vendor-tauri-api": { "raw": 15680, "gzip": 4000 },
+      "vendor-other-small": { "raw": 2600, "gzip": 1450 }
+    },
+    "css_raw_bytes": 38640,
+    "html_raw_bytes": 64070
+  }
+}

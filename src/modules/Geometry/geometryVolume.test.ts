@@ -1,0 +1,57 @@
+/**
+ * @vitest-environment jsdom
+ */
+import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {questionArea} from "../../script.js";
+import {generateVolumeSphere,generateVolumeCylinder,generateVolumeCone} from "./geometryVolume.js";
+vi.mock("../../script.js",()=>({questionArea:null as HTMLElement|null}));
+vi.mock("./geometryUtils.js",()=>({
+	getMaxForDifficulty:vi.fn(()=>5),
+	cleanupVisualization:vi.fn()
+}));
+vi.mock("./geometryVisualization.js",()=>({
+	createVisualization:vi.fn()
+}));
+describe("generateVolumeSphere",()=>{
+	let originalMathRandom:()=>number;
+	let mockDiv:HTMLDivElement;
+	beforeEach(()=>{
+		originalMathRandom=Math.random;
+		mockDiv=document.createElement("div");
+		(questionArea as any)=mockDiv;
+		delete(window as any).correctAnswer;
+		delete(window as any).expectedFormat;
+		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	});
+	afterEach(()=>{
+		Math.random=originalMathRandom;
+		delete(window as any).MathJax;
+	});
+	it("returns early if questionArea is null",()=>{
+		(questionArea as any)=null;
+		generateVolumeSphere();
+		expect(mockDiv.innerHTML).toBe("");
+		expect((window as any).correctAnswer).toBeUndefined();
+	});
+	it("generates sphere volume correctly",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateVolumeSphere();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect(mockDiv.innerHTML).toContain("sphere");
+	});
+	it("generates cylinder volume correctly",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateVolumeCylinder();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("generates cone volume correctly",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateVolumeCone();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("sets correctAnswer with choices for sphere",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateVolumeSphere();
+		expect((window as any).correctAnswer.choices.length).toBeGreaterThanOrEqual(1);
+	});
+});

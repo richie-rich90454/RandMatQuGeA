@@ -1,0 +1,55 @@
+/**
+ * @vitest-environment jsdom
+ */
+import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {questionArea} from "../../script.js";
+import {generateDegreesToRadians,generateArcLength,generateReferenceAngle,generateASTCSign} from "./trigAnalytic.js";
+vi.mock("../../script.js",()=>({questionArea:null as HTMLElement|null}));
+vi.mock("../Algebra/algebraUtils.js",async()=>{
+	const actual=await vi.importActual("../Algebra/algebraUtils.js");
+	return{...actual,getMaxForDifficulty:vi.fn(()=>5)};
+});
+describe("generateDegreesToRadians",()=>{
+	let originalMathRandom:()=>number;
+	let mockDiv:HTMLDivElement;
+	beforeEach(()=>{
+		originalMathRandom=Math.random;
+		mockDiv=document.createElement("div");
+		(questionArea as any)=mockDiv;
+		delete(window as any).correctAnswer;
+		delete(window as any).expectedFormat;
+		(window as any).MathJax={typeset:vi.fn()};
+	});
+	afterEach(()=>{
+		Math.random=originalMathRandom;
+		delete(window as any).MathJax;
+	});
+	it("returns early if questionArea is null",()=>{
+		(questionArea as any)=null;
+		generateDegreesToRadians();
+		expect(mockDiv.innerHTML).toBe("");
+		expect((window as any).correctAnswer).toBeUndefined();
+	});
+	it("generates degrees to radians correctly",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateDegreesToRadians();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect(mockDiv.innerHTML).toContain("Convert");
+	});
+	it("generates arc length correctly",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateArcLength();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("generates reference angle correctly",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateReferenceAngle();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("generates ASTC sign correctly",()=>{
+		Math.random=vi.fn().mockReturnValue(0.2).mockReturnValueOnce(0.5);
+		generateASTCSign();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect(["positive","negative"]).toContain((window as any).correctAnswer.correct);
+	});
+});

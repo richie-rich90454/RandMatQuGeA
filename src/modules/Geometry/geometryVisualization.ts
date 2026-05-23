@@ -3,17 +3,26 @@
  * @fileoverview Renders 2D (parabola, ellipse, hyperbola, polar conic, circle, triangle) and 3D (sphere, cube, cylinder, cone, pyramid, torus, points, line, plane) shapes. Cleans up previous visualizations and creates new ones in a dedicated container.
  * @date 2026-03-15
  */
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { CSS2DRenderer, CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import { questionArea } from "../../script.js";
 
-let currentRenderer: THREE.WebGLRenderer|null=null;
-let currentLabelRenderer: CSS2DRenderer|null=null;
-let currentScene: THREE.Scene|null=null;
-//@ts-ignore
-let currentCamera: THREE.PerspectiveCamera|null=null;
-let currentControls: OrbitControls|null=null;
+let THREE: any=null;
+let OrbitControls: any=null;
+let CSS2DRenderer: any=null;
+let CSS2DObject: any=null;
+async function ensureThree(): Promise<void>{
+	if (THREE) return;
+	const t=await import("three");
+	const o=await import("three/examples/jsm/controls/OrbitControls.js");
+	const c=await import("three/examples/jsm/renderers/CSS2DRenderer.js");
+	THREE=t;
+	OrbitControls=o.OrbitControls;
+	CSS2DRenderer=c.CSS2DRenderer;
+	CSS2DObject=c.CSS2DObject;
+}
+let currentRenderer: any=null;
+let currentLabelRenderer: any=null;
+let currentScene: any=null;
+let currentControls: any=null;
 let currentAnimationFrame: number=0;
 
 /**
@@ -356,7 +365,7 @@ function createCanvas2DVisualization(shape: string, params: any, container: HTML
  * @param shape - shape type (parabola, ellipse, hyperbola, polarConic, circle, triangle, sphere, cube, cylinder, cone, pyramid, torus, points3D, line3D, plane3D)
  * @param params - parameters for the shape
  */
-export function createVisualization(shape: string, params: any): void{
+export async function createVisualization(shape: string, params: any): Promise<void>{
 	cleanupVisualization();
 	const container=document.createElement("div");
 	container.id="geometry-visualization";
@@ -399,6 +408,7 @@ export function createVisualization(shape: string, params: any): void{
 	container.appendChild(canvas);
 	const width=container.clientWidth;
 	const height=container.clientHeight;
+	await ensureThree();
 	const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
 	renderer.setSize(width,height);
 	renderer.setClearColor(0x1a1a2e);
@@ -409,7 +419,6 @@ export function createVisualization(shape: string, params: any): void{
 	const camera=new THREE.PerspectiveCamera(45,width/height,0.1,1000);
 	camera.position.set(8,8,15);
 	camera.lookAt(0,0,0);
-	currentCamera=camera;
 	const controls=new OrbitControls(camera,renderer.domElement);
 	controls.enableDamping=true;
 	controls.dampingFactor=0.05;
@@ -436,7 +445,7 @@ export function createVisualization(shape: string, params: any): void{
 	scene.add(gridHelper);
 	const axesHelper=new THREE.AxesHelper(5);
 	scene.add(axesHelper);
-	function createAxisLabel(text: string,color: string,position: THREE.Vector3): void{
+	function createAxisLabel(text: string,color: string,position: any): void{
 		const div=document.createElement("div");
 		div.textContent=text;
 		div.style.color=color;
@@ -450,7 +459,7 @@ export function createVisualization(shape: string, params: any): void{
 	createAxisLabel("X","#ff5555",new THREE.Vector3(6,0,0));
 	createAxisLabel("Y","#55ff55",new THREE.Vector3(0,6,0));
 	createAxisLabel("Z","#5555ff",new THREE.Vector3(0,0,6));
-	let mesh: THREE.Mesh|THREE.Line|THREE.Points|THREE.Group|null=null;
+	let mesh: any=null;
 	let infoText="";
 	switch (shape){
 		case "sphere":{
@@ -646,12 +655,12 @@ export function cleanupVisualization(): void{
 		currentControls=null;
 	}
 	if (currentScene){
-		currentScene.traverse((obj)=>{
-			if (obj instanceof THREE.Mesh){
+		currentScene.traverse((obj: any)=>{
+			if (THREE&&obj instanceof THREE.Mesh){
 				if (obj.geometry) obj.geometry.dispose();
 				if (obj.material){
 					if (Array.isArray(obj.material)){
-						obj.material.forEach(m=>m.dispose());
+						obj.material.forEach((m: any)=>m.dispose());
 					}else{
 						obj.material.dispose();
 					}
@@ -660,7 +669,6 @@ export function cleanupVisualization(): void{
 		});
 		currentScene=null;
 	}
-	currentCamera=null;
 	const container=document.getElementById("geometry-visualization");
 	if (container) container.remove();
 	const info=document.getElementById("geometry-info");

@@ -1,0 +1,157 @@
+/** @vitest-environment jsdom */
+import{describe,it,expect,vi}from"vitest";
+vi.mock("../modules/Algebra/index.js",()=>({
+    generateLinearEquation:vi.fn(),
+    generateQuadraticEquation:vi.fn(),
+    generateLinearInequality:vi.fn(),
+    generateQuadraticInequality:vi.fn(),
+    generateRationalInequality:vi.fn(),
+    generateSystem2x2:vi.fn(),
+    generateSystem3x3:vi.fn(),
+    generatePolynomial:vi.fn(),
+    generatePolynomialDivision:vi.fn(),
+    generateFactoring:vi.fn(),
+    generateFunctionConcepts:vi.fn(),
+    generateLinearGraphing:vi.fn(),
+    generateNonLinearGraphing:vi.fn(),
+    generateFraction:vi.fn(),
+    generatePercent:vi.fn(),
+    generateRatioProportion:vi.fn(),
+    generateUnitConversion:vi.fn(),
+    generateExpressionEvaluation:vi.fn(),
+    generateNumberSets:vi.fn(),
+    generateProperties:vi.fn(),
+    generateOrderOfOperations:vi.fn(),
+    generateLinearWordProblem:vi.fn(),
+    generateRadicalSimplify:vi.fn(),
+    generateRadicalEquation:vi.fn(),
+    generateRationalExponents:vi.fn(),
+    generateExponentRules:vi.fn(),
+    generateScientificNotation:vi.fn(),
+    generateComplex:vi.fn(),
+    generateVariation:vi.fn(),
+    generateLogarithm:vi.fn(),
+    generateExponent:vi.fn(),
+    generateFactorial:vi.fn(),
+    generateSeries:vi.fn(),
+    generateRoot:vi.fn(),
+    generateRealNumberOperations:vi.fn(),
+    generateCartesianConcepts:vi.fn(),
+    generateCircleEquations:vi.fn(),
+    generateLinearEquationSpecial:vi.fn(),
+    generateRationalEquation:vi.fn(),
+    generatePolynomialInequality:vi.fn(),
+    generateFunctionProperties:vi.fn(),
+    generateBasicFunctions:vi.fn(),
+    generateFunctionOperations:vi.fn(),
+    generateInverseFunctions:vi.fn(),
+    generateTransformations:vi.fn(),
+    generatePowerFunctionModeling:vi.fn(),
+    generatePolynomialEndBehavior:vi.fn(),
+    generateSyntheticDivision:vi.fn(),
+    generateComplexZeros:vi.fn(),
+    generateRationalGraphAnalysis:vi.fn(),
+    generateLogisticFunctions:vi.fn(),
+    generateExponentialModeling:vi.fn(),
+    generateLogarithmicModeling:vi.fn(),
+    generateFinance:vi.fn(),
+}));
+vi.mock("../modules/Arithmetic/index.js",()=>({
+    generateAddition:vi.fn(),
+    generateSubtraction:vi.fn(),
+    generateMultiplication:vi.fn(),
+    generateDivision:vi.fn(),
+}));
+vi.mock("../modules/Calculus/index.js",()=>({
+    generateDerivative:vi.fn(),
+    generateIntegral:vi.fn(),
+    generateLimit:vi.fn(),
+    generateRelatedRates:vi.fn(),
+    generateLimitsContinuity:vi.fn(),
+    generateApplicationsDiff:vi.fn(),
+    generateIntegrationAdvanced:vi.fn(),
+    generateGraphicalCalculus:vi.fn(),
+    generateParametricPolarVector:vi.fn(),
+    generateSequencesSeries:vi.fn(),
+}));
+vi.mock("../modules/DiscreteMathematics/index.js",()=>({
+    generatePermutation:vi.fn(),
+    generateCombination:vi.fn(),
+    generateProbability:vi.fn(),
+    generateStatistics:vi.fn(),
+    generateArithmeticSequence:vi.fn(),
+    generateGeometricSequence:vi.fn(),
+    generateSequenceLimit:vi.fn(),
+    generateInfiniteGeometricSeries:vi.fn(),
+    generateMathematicalInduction:vi.fn(),
+    generateBinomialTheorem:vi.fn(),
+}));
+vi.mock("../modules/LinearAlgebra/index.js",()=>({
+    generateMatrix:vi.fn(),
+    generateVector:vi.fn(),
+    generateSystem3x3:vi.fn(),
+    generateRowEchelon3x3:vi.fn(),
+    generatePartialFractions:vi.fn(),
+    generateLinearProgramming:vi.fn(),
+    generateVector3D:vi.fn(),
+    generateLine3D:vi.fn(),
+    generatePlane3D:vi.fn(),
+}));
+vi.mock("../modules/Trigonometry/index.js",()=>({
+    generateSin:vi.fn(),
+    generateCosine:vi.fn(),
+    generateTangent:vi.fn(),
+    generateCosecant:vi.fn(),
+    generateSecant:vi.fn(),
+    generateCotangent:vi.fn(),
+    generateTrigGraphs:vi.fn(),
+    generateDegreesToRadians:vi.fn(),
+    generateRadiansToDegrees:vi.fn(),
+    generateArcLength:vi.fn(),
+    generateAngularLinearSpeed:vi.fn(),
+    generateRightTriangleDefs:vi.fn(),
+    generateSpecialTriangle:vi.fn(),
+    generateElevationDepression:vi.fn(),
+    generateReferenceAngle:vi.fn(),
+    generateASTCSign:vi.fn(),
+    generateSumDifference:vi.fn(),
+    generateDoubleAngle:vi.fn(),
+    generateHalfAngle:vi.fn(),
+    generatePolarToRectangular:vi.fn(),
+    generateRectangularToPolar:vi.fn(),
+    generatePolarDistance:vi.fn(),
+    generatePolarGraphEquation:vi.fn(),
+    generateParametricToCartesian:vi.fn(),
+    generateParametricMotion:vi.fn(),
+    generateComplexPolarForm:vi.fn(),
+    generateComplexMultiplyDivide:vi.fn(),
+    generateDeMoivre:vi.fn(),
+    generateComplexRoots:vi.fn(),
+}));
+vi.mock("../modules/Geometry/index.js",()=>({
+    generateAreaCircle:vi.fn(),
+    generatePythagorean:vi.fn(),
+    generateVolumeSphere:vi.fn(),
+    generateParabola:vi.fn(),
+    generateEllipse:vi.fn(),
+    generateHyperbola:vi.fn(),
+    generatePolarConic:vi.fn(),
+    generate3DDistanceMidpoint:vi.fn(),
+    generateSphereEquation:vi.fn(),
+    generateLinePlane3D:vi.fn(),
+}));
+vi.mock("./dom.js",()=>({
+    questionArea:{innerHTML:""},
+}));
+import{generateQuestion}from"./questionGenerator.js";
+describe("questionGenerator",()=>{
+    it("should export generateQuestion",()=>{
+        expect(typeof generateQuestion).toBe("function");
+    });
+    it("generateQuestion should not throw for valid topic",()=>{
+        expect(()=>generateQuestion("add","easy")).not.toThrow();
+    });
+    it("generateQuestion should not throw for unknown topic",()=>{
+        expect(()=>generateQuestion("nonexistent","easy")).not.toThrow();
+    });
+});

@@ -1,0 +1,34 @@
+/** @vitest-environment jsdom */
+import{describe,it,expect,vi}from"vitest";
+vi.mock("./main/settings.js",()=>({
+    loadSettings:vi.fn(),
+    settings:{defaultMode:"single",adaptive:true},
+}));
+vi.mock("./main/ui.js",()=>({
+    syncSettingsToState:vi.fn(),
+    updateUIState:vi.fn(),
+    showOnboarding:vi.fn(),
+}));
+vi.mock("./main/topics.js",()=>({
+    renderTopicGrid:vi.fn(),
+}));
+vi.mock("./main/session.js",()=>({
+    restoreSessionSnapshot:vi.fn(),
+    updateLeaderboard:vi.fn(),
+}));
+vi.mock("./main/events.js",()=>({
+    switchToSingle:vi.fn(),
+    switchToMental:vi.fn(),
+    setupEventListeners:vi.fn(),
+}));
+vi.mock("./main/theme.js",()=>({
+    initializeTheme:vi.fn(),
+}));
+import"./script.js";
+describe("script",()=>{
+    it("should set window globals on load",()=>{
+        expect(window.correctAnswer).toEqual({correct:""});
+        expect(window.expectedFormat).toBe("");
+        expect(window.hasQuestion).toBe(false);
+    });
+});
