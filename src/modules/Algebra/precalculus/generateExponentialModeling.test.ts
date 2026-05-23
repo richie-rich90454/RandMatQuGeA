@@ -4,7 +4,7 @@
 import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
 import {generateExponentialModeling} from "./generateExponentialModeling";
 import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+
 vi.mock("../../../script.js", ()=>({
 	questionArea: null as HTMLElement|null
 }));

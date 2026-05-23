@@ -11,9 +11,13 @@ import * as state from "./state";
 import * as settings from "./settings";
 import * as ui from "./ui";
 import * as generation from "./generation";
-import {evaluate, simplify, parse} from "mathjs";
 import {invoke} from "@tauri-apps/api/core";
 
+let mathjs: any=null;
+async function ensureMathjs(): Promise<void>{
+	if(mathjs) return;
+	mathjs=await import("mathjs");
+}
 let questionStartTime: number = 0;
 export function startQuestionTimer(): void{
     questionStartTime = performance.now();
@@ -101,7 +105,8 @@ function detectErrorType(userAnswer: string, correctAnswer: string, topicId: str
  *
  * @throws No exceptions are thrown; errors are caught and logged, with user‑friendly notifications.
  */
-export function checkAnswer(userInput?: string): void{
+export async function checkAnswer(userInput?: string): Promise<void>{
+    await ensureMathjs();
     if (!state.selectedTopic){
         ui.showNotification("Please select a topic and generate a question first","warning");
         return;
@@ -222,7 +227,7 @@ export function checkAnswer(userInput?: string): void{
             let normalized=expr.replace(/<([^>]*)>/g,'[$1]');
             normalized=normalized.replace(/−/g,'-');
             try{
-                return evaluate(normalized);
+                return mathjs.evaluate(normalized);
             }catch{
                 return null;
             }
@@ -249,10 +254,10 @@ export function checkAnswer(userInput?: string): void{
         // Math.js if available
         if (useFullPipeline){
             try{
-                let simpA=simplify(funcA).toString().replace(/\s+/g,'');
-                let simpB=simplify(funcB).toString().replace(/\s+/g,'');
+let simpA=mathjs.simplify(funcA).toString().replace(/\s+/g,'');
+let simpB=mathjs.simplify(funcB).toString().replace(/\s+/g,'');
                 if (simpA===simpB) return true;
-                let vars=parse(funcA).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
+                let vars=mathjs.parse(funcA).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
                 if (vars.length===1){
                     let varName=vars[0];
                     let points=[0.5,1,2,3,Math.PI/4,Math.E];
@@ -262,8 +267,8 @@ export function checkAnswer(userInput?: string): void{
                     for (let x of points){
                         try{
                             let scope={[varName]:x};
-                            let valA=evaluate(funcA,scope);
-                            let valB=evaluate(funcB,scope);
+let valA=mathjs.evaluate(funcA,scope);
+let valB=mathjs.evaluate(funcB,scope);
                             valuesA.push(valA);
                             valuesB.push(valB);
                         }catch(e){
@@ -282,8 +287,8 @@ export function checkAnswer(userInput?: string): void{
                 }
                 else if (vars.length===0){
                     try{
-                        let numA=evaluate(funcA);
-                        let numB=evaluate(funcB);
+let numA=mathjs.evaluate(funcA);
+let numB=mathjs.evaluate(funcB);
                         if (Math.abs(numA-numB)<1e-8) return true;
                     }catch(e){}
                 }
@@ -307,11 +312,11 @@ export function checkAnswer(userInput?: string): void{
         if (leftOk){
             // Try numeric evaluation first
             try{
-                let varsRightUser=parse(userRight).filter((node:any)=>node.isSymbolNode).length;
-                let varsRightCorrect=parse(correctRight).filter((node:any)=>node.isSymbolNode).length;
+let varsRightUser=mathjs.parse(userRight).filter((node:any)=>node.isSymbolNode).length;
+let varsRightCorrect=mathjs.parse(correctRight).filter((node:any)=>node.isSymbolNode).length;
                 if (varsRightUser===0 && varsRightCorrect===0){
-                    let valUser=evaluate(userRight);
-                    let valCorrect=evaluate(correctRight);
+let valUser=mathjs.evaluate(userRight);
+let valCorrect=mathjs.evaluate(correctRight);
                     if (Math.abs(valUser-valCorrect)<1e-8){
                         rightOk=true;
                     }
@@ -414,7 +419,7 @@ export function checkAnswer(userInput?: string): void{
                         let normalized=expr.replace(/<([^>]*)>/g,'[$1]');
                         normalized=normalized.replace(/−/g,'-');
                         try{
-                            return evaluate(normalized);
+                            return mathjs.evaluate(normalized);
                         }catch{
                             return null;
                         }
@@ -444,13 +449,13 @@ export function checkAnswer(userInput?: string): void{
                     }
                     if (!isCorrect){
                         try{
-                            let simpUser=simplify(funcUser).toString().replace(/\s+/g,'');
-                            let simpCorrect=simplify(funcCorrect).toString().replace(/\s+/g,'');
+let simpUser=mathjs.simplify(funcUser).toString().replace(/\s+/g,'');
+let simpCorrect=mathjs.simplify(funcCorrect).toString().replace(/\s+/g,'');
                             if (simpUser===simpCorrect){
                                 isCorrect=true;
                             }
                             else{
-                                let vars=parse(funcCorrect).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
+                                let vars=mathjs.parse(funcCorrect).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
                                 if (vars.length===1){
                                     let varName=vars[0];
                                     let points=[0.5,1,2,3,Math.PI/4,Math.E];
@@ -460,8 +465,8 @@ export function checkAnswer(userInput?: string): void{
                                     for (let x of points){
                                         try{
                                             let scope={[varName]:x};
-                                            let valUser=evaluate(funcUser,scope);
-                                            let valCorrect=evaluate(funcCorrect,scope);
+let valUser=mathjs.evaluate(funcUser,scope);
+let valCorrect=mathjs.evaluate(funcCorrect,scope);
                                             valuesUser.push(valUser);
                                             valuesCorrect.push(valCorrect);
                                         }catch(e){
@@ -486,8 +491,8 @@ export function checkAnswer(userInput?: string): void{
                                 }
                                 else if (vars.length===0){
                                     try{
-                                        let numUser=evaluate(funcUser);
-                                        let numCorrect=evaluate(funcCorrect);
+let numUser=mathjs.evaluate(funcUser);
+let numCorrect=mathjs.evaluate(funcCorrect);
                                         if (Math.abs(numUser-numCorrect)<1e-8){
                                             isCorrect=true;
                                         }

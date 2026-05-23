@@ -165,161 +165,161 @@ describe('checkAnswer', () => {
 		window.hasQuestion=true;
 		(settings.isAnswerCorrect as any).mockImplementation(() => true);
 	});
-	it('should show notification if no topic selected', () => {
+	it('should show notification if no topic selected', async () => {
 		state.setSelectedTopic(null);
-		checkAnswer();
+		await checkAnswer();
 		expect(ui.showNotification).toHaveBeenCalledWith(expect.stringContaining('select a topic'), 'warning');
 	});
-	it('should show notification if answer empty', () => {
-		checkAnswer();
+	it('should show notification if answer empty', async () => {
+		await checkAnswer();
 		expect(ui.showNotification).toHaveBeenCalledWith(expect.stringContaining('enter an answer'), 'warning');
 	});
-	it('should accept identical numbers', () => {
+	it('should accept identical numbers', async () => {
 		dom.userAnswer!.value='42';
 		window.correctAnswer.correct='42';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept numbers with whitespace', () => {
+	it('should accept numbers with whitespace', async () => {
 		dom.userAnswer!.value='  42  ';
 		window.correctAnswer.correct='42';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should reject different numbers', () => {
+	it('should reject different numbers', async () => {
 		dom.userAnswer!.value='42';
 		window.correctAnswer.correct='43';
 		(settings.isAnswerCorrect as any).mockImplementationOnce(() => false);
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('incorrect');
 	});
-	it('should accept fraction equal to decimal', () => {
+	it('should accept fraction equal to decimal', async () => {
 		dom.userAnswer!.value='0.5';
 		window.correctAnswer.correct='1/2';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept decimal equal to fraction', () => {
+	it('should accept decimal equal to fraction', async () => {
 		dom.userAnswer!.value='1/2';
 		window.correctAnswer.correct='0.5';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept polynomial with term reorder', () => {
+	it('should accept polynomial with term reorder', async () => {
 		dom.userAnswer!.value='x^2+2x+1';
 		window.correctAnswer.correct='2x+1+x^2';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept implicit multiplication', () => {
+	it('should accept implicit multiplication', async () => {
 		dom.userAnswer!.value='2x';
 		window.correctAnswer.correct='2*x';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept different exponent notation', () => {
+	it('should accept different exponent notation', async () => {
 		dom.userAnswer!.value='x^{2}';
 		window.correctAnswer.correct='x^2';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept x**2', () => {
+	it('should accept x**2', async () => {
 		dom.userAnswer!.value='x**2';
 		window.correctAnswer.correct='x^2';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept sin and sin', () => {
+	it('should accept sin and sin', async () => {
 		dom.userAnswer!.value='sin(x)';
 		window.correctAnswer.correct='\\sin(x)';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept sin x without parentheses', () => {
+	it('should accept sin x without parentheses', async () => {
 		dom.userAnswer!.value='sin x';
 		window.correctAnswer.correct='sin(x)';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept arcsin and asin', () => {
+	it('should accept arcsin and asin', async () => {
 		dom.userAnswer!.value='arcsin(x)';
 		window.correctAnswer.correct='asin(x)';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept optional +C', () => {
+	it('should accept optional +C', async () => {
 		dom.userAnswer!.value='x^3/3';
 		window.correctAnswer.correct='x^3/3 + C';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept +c', () => {
+	it('should accept +c', async () => {
 		dom.userAnswer!.value='x^3/3 + c';
 		window.correctAnswer.correct='x^3/3 + C';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept angle‑bracket vectors', () => {
+	it('should accept angle‑bracket vectors', async () => {
 		dom.userAnswer!.value='< -0.72, 0.77 >';
 		window.correctAnswer.correct='<-0.72,0.77>';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept LaTeX matrix', () => {
+	it('should accept LaTeX matrix', async () => {
 		dom.userAnswer!.value='\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}';
 		window.correctAnswer.correct='[[1,2],[3,4]]';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept equivalent equations', () => {
+	it('should accept equivalent equations', async () => {
 		dom.userAnswer!.value='x+3=5';
 		window.correctAnswer.correct='x=2';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept \frac', () => {
+	it('should accept \frac', async () => {
 		dom.userAnswer!.value='\\frac{1}{2}';
 		window.correctAnswer.correct='1/2';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept \sqrt', () => {
+	it('should accept \sqrt', async () => {
 		dom.userAnswer!.value='\\sqrt{2}';
 		window.correctAnswer.correct='sqrt(2)';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept \sqrt[n]', () => {
+	it('should accept \sqrt[n]', async () => {
 		dom.userAnswer!.value='\\sqrt[3]{8}';
 		window.correctAnswer.correct='8^(1/3)';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept \pi', () => {
+	it('should accept \pi', async () => {
 		dom.userAnswer!.value='\\pi';
 		window.correctAnswer.correct='pi';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept \infty', () => {
+	it('should accept \infty', async () => {
 		dom.userAnswer!.value='\\infty';
 		window.correctAnswer.correct='inf';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should accept expanded vs factored', () => {
+	it('should accept expanded vs factored', async () => {
 		dom.userAnswer!.value='x^2+2x+1';
 		window.correctAnswer.correct='(x+1)^2';
-		checkAnswer();
+		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
 	});
-	it('should call generateQuestion if autocontinue true', () => {
+	it('should call generateQuestion if autocontinue true', async () => {
 		vi.useFakeTimers();
 		state.setAutocontinue(true);
 		settings.settings.autoCheckDelay=800;
 		dom.userAnswer!.value='42';
 		window.correctAnswer.correct='42';
-		checkAnswer();
+		await checkAnswer();
 		vi.advanceTimersByTime(800);
 		expect(generation.generateQuestion).toHaveBeenCalled();
 		vi.useRealTimers();

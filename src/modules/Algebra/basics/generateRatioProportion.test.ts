@@ -10,7 +10,7 @@ vi.mock("../../../script.js",()=>({
 }));
 vi.mock("../algebraUtils.js",()=>({
 	getMaxForDifficulty: vi.fn(()=>20),
-	gcd: vi.fn((a:number,b:number)=>1)
+	gcd: vi.fn(()=>1)
 }));
 describe("generateRatioProportion",()=>{
 	let originalMathRandom:()=>number;

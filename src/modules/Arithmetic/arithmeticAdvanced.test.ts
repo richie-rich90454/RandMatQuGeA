@@ -3,7 +3,7 @@
  */
 import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
 import {questionArea} from "../../script.js";
-import {getMaxForDifficulty,isPrime,gcd} from "./arithmeticUtils.js";
+import {getMaxForDifficulty} from "./arithmeticUtils.js";
 import {generateWholeNumberPlaceValue,generateNumberLineOrdering,generateDivisibility,generateGCFLCM} from "./arithmeticAdvanced.js";
 vi.mock("../../script.js",()=>({
     questionArea: null as HTMLElement|null
@@ -17,7 +17,7 @@ vi.mock("./arithmeticUtils.js",()=>({
         for (let i=3;i*i<=n;i+=2){if (n%i===0) return false;}
         return true;
     }),
-    gcd: vi.fn(function g(a:number,b:number){
+	gcd: vi.fn(function g(a:number,b:number):number{
         return b===0?Math.abs(a):g(b,a%b);
     })
 }));
