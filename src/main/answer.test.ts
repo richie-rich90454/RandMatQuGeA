@@ -324,4 +324,127 @@ describe('checkAnswer', () => {
 		expect(generation.generateQuestion).toHaveBeenCalled();
 		vi.useRealTimers();
 	});
+	it('should reject answer when no question generated (window.hasQuestion = false)', async () => {
+		window.hasQuestion=false;
+		dom.userAnswer!.value='42';
+		window.correctAnswer.correct='42';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('incorrect');
+	});
+	it('should accept alternate answer form', async () => {
+		dom.userAnswer!.value='sqrt(2)';
+		window.correctAnswer.correct='2^(1/2)';
+		window.correctAnswer.alternate='sqrt(2)';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept \\left and \\right LaTeX wrappers', async () => {
+		dom.userAnswer!.value='\\left(x+1\\right)';
+		window.correctAnswer.correct='(x+1)';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept \\cdot for multiplication', async () => {
+		dom.userAnswer!.value='2\\cdot3';
+		window.correctAnswer.correct='6';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept \\times for multiplication', async () => {
+		dom.userAnswer!.value='2\\times3';
+		window.correctAnswer.correct='6';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept \\div for division', async () => {
+		dom.userAnswer!.value='6\\div3';
+		window.correctAnswer.correct='2';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept \\leq and \\geq symbols', async () => {
+		dom.userAnswer!.value='x\\leq5';
+		window.correctAnswer.correct='x<=5';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept \\neq symbol', async () => {
+		dom.userAnswer!.value='x\\neq0';
+		window.correctAnswer.correct='x!=0';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept \\approx symbol', async () => {
+		dom.userAnswer!.value='x\\approx3.14';
+		window.correctAnswer.correct='x=3.14';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should handle fancy minus character (−)', async () => {
+		dom.userAnswer!.value='−5';
+		window.correctAnswer.correct='-5';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept \\langle and \\rangle for vectors', async () => {
+		dom.userAnswer!.value='\\langle1,2\\rangle';
+		window.correctAnswer.correct='[1,2]';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept matrix with pmatrix environment', async () => {
+		dom.userAnswer!.value='\\begin{pmatrix}5&6\\\\7&8\\end{pmatrix}';
+		window.correctAnswer.correct='[[5,6],[7,8]]';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should reject answer with only whitespace', async () => {
+		dom.userAnswer!.value='   ';
+		window.correctAnswer.correct='42';
+		await checkAnswer();
+		expect(ui.showNotification).toHaveBeenCalledWith(expect.stringContaining('enter an answer'), 'warning');
+	});
+	it('should handle Unicode π character', async () => {
+		dom.userAnswer!.value='π';
+		window.correctAnswer.correct='pi';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should handle Unicode √ character', async () => {
+		dom.userAnswer!.value='√(9)';
+		window.correctAnswer.correct='3';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept \\log for log', async () => {
+		dom.userAnswer!.value='\\log(x)';
+		window.correctAnswer.correct='log(x)';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept \\ln for natural log', async () => {
+		dom.userAnswer!.value='\\ln(x)';
+		window.correctAnswer.correct='ln(x)';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should accept \\exp for exponential', async () => {
+		dom.userAnswer!.value='\\exp(x)';
+		window.correctAnswer.correct='exp(x)';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
+	it('should handle empty correct answer gracefully', async () => {
+		dom.userAnswer!.value='42';
+		window.correctAnswer.correct='';
+		(settings.isAnswerCorrect as any).mockImplementationOnce(() => false);
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('incorrect');
+	});
+	it('should accept \\cdot between numbers', async () => {
+		dom.userAnswer!.value='3\\cdot4';
+		window.correctAnswer.correct='12';
+		await checkAnswer();
+		expect(dom.answerResults!.className).toContain('correct');
+	});
 });
