@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import{describe,it,expect,vi}from"vitest";
+import{describe,it,expect,vi,beforeEach}from"vitest";
 vi.mock("./dom.js",()=>({
     modeSingleBtn:{setAttribute:vi.fn()},
     modeMentalBtn:{setAttribute:vi.fn()},
@@ -110,6 +110,7 @@ vi.mock("./session.js",()=>({
 vi.mock("./answer.js",()=>({
     checkAnswer:vi.fn(),
 }));
+import*as state from"./state.js";
 import*as ui from"./ui.js";
 describe("ui",()=>{
     it("should export clearAllTimeouts",()=>{
@@ -203,5 +204,164 @@ describe("ui",()=>{
     });
     it("renderMcqChoices should not throw",()=>{
         expect(()=>ui.renderMcqChoices(["a","b"])).not.toThrow();
+    });
+    describe("showNotification",()=>{
+        beforeEach(()=>{
+            document.body.innerHTML="";
+        });
+        it("should create notification with \"info\" type",()=>{
+            ui.showNotification("info msg","info");
+            let notif=document.querySelector(".notification-info");
+            expect(notif).toBeTruthy();
+            expect(notif?.textContent).toBe("info msg");
+        });
+        it("should create notification with \"warning\" type",()=>{
+            ui.showNotification("warn msg","warning");
+            let notif=document.querySelector(".notification-warning");
+            expect(notif).toBeTruthy();
+            expect(notif?.textContent).toBe("warn msg");
+        });
+        it("should create notification with \"error\" type",()=>{
+            ui.showNotification("err msg","error" as any);
+            let notif=document.querySelector(".notification-error");
+            expect(notif).toBeTruthy();
+            expect(notif?.textContent).toBe("err msg");
+        });
+        it("should create notification with \"success\" type",()=>{
+            ui.showNotification("ok msg","success" as any);
+            let notif=document.querySelector(".notification-success");
+            expect(notif).toBeTruthy();
+            expect(notif?.textContent).toBe("ok msg");
+        });
+        it("should auto-remove notification after timeout",()=>{
+            vi.useFakeTimers();
+            ui.showNotification("auto remove","info");
+            let notif=document.querySelector(".notification");
+            expect(notif).toBeTruthy();
+            vi.advanceTimersByTime(3000);
+            expect(notif?.classList.contains("fade-out")).toBe(true);
+            vi.advanceTimersByTime(300);
+            notif=document.querySelector(".notification");
+            expect(notif).toBeFalsy();
+            vi.useRealTimers();
+        });
+        it("should handle multiple notifications",()=>{
+            ui.showNotification("first","info");
+            ui.showNotification("second","warning");
+            let notifs=document.querySelectorAll(".notification");
+            expect(notifs.length).toBeGreaterThanOrEqual(2);
+        });
+    });
+    describe("updateTimerDisplay",()=>{
+        it("should not throw when called",()=>{
+            expect(()=>ui.updateTimerDisplay()).not.toThrow();
+        });
+        it("should be a function",()=>{
+            expect(typeof ui.updateTimerDisplay).toBe("function");
+        });
+    });
+    describe("updateScoreDisplay",()=>{
+        it("should not throw when called",()=>{
+            expect(()=>ui.updateScoreDisplay()).not.toThrow();
+        });
+        it("should be a function",()=>{
+            expect(typeof ui.updateScoreDisplay).toBe("function");
+        });
+    });
+    describe("updateProgressBar",()=>{
+        it("should not throw when called",()=>{
+            expect(()=>ui.updateProgressBar()).not.toThrow();
+        });
+        it("should be a function",()=>{
+            expect(typeof ui.updateProgressBar).toBe("function");
+        });
+    });
+    describe("clearAllTimeouts",()=>{
+        it("should clear autoTimeout if set",()=>{
+            let mockClearTimeout=vi.spyOn(window,"clearTimeout");
+            (state as any).autoTimeout=123;
+            ui.clearAllTimeouts();
+            expect(mockClearTimeout).toHaveBeenCalledWith(123);
+            mockClearTimeout.mockRestore();
+        });
+        it("should clear previewTimeout if set",()=>{
+            let mockClearTimeout=vi.spyOn(window,"clearTimeout");
+            (state as any).previewTimeout=456;
+            ui.clearAllTimeouts();
+            expect(mockClearTimeout).toHaveBeenCalledWith(456);
+            mockClearTimeout.mockRestore();
+        });
+        it("should clear generateDebounceTimeout if set",()=>{
+            let mockClearTimeout=vi.spyOn(window,"clearTimeout");
+            (state as any).generateDebounceTimeout=789;
+            ui.clearAllTimeouts();
+            expect(mockClearTimeout).toHaveBeenCalledWith(789);
+            mockClearTimeout.mockRestore();
+        });
+        it("should clear mentalNextQuestionTimeout if set",()=>{
+            let mockClearTimeout=vi.spyOn(window,"clearTimeout");
+            (state as any).mentalNextQuestionTimeout=101;
+            ui.clearAllTimeouts();
+            expect(mockClearTimeout).toHaveBeenCalledWith(101);
+            mockClearTimeout.mockRestore();
+        });
+        it("should clear sessionTimer if set",()=>{
+            let mockClearInterval=vi.spyOn(window,"clearInterval");
+            (state as any).sessionTimer=202;
+            ui.clearAllTimeouts();
+            expect(mockClearInterval).toHaveBeenCalledWith(202);
+            mockClearInterval.mockRestore();
+        });
+        it("should handle all timeouts being null",()=>{
+            expect(()=>ui.clearAllTimeouts()).not.toThrow();
+        });
+    });
+    describe("syncSettingsToState",()=>{
+        it("should not throw when called",()=>{
+            expect(()=>ui.syncSettingsToState()).not.toThrow();
+        });
+        it("should be a function",()=>{
+            expect(typeof ui.syncSettingsToState).toBe("function");
+        });
+    });
+    describe("insertSymbol",()=>{
+        it("should not throw with pi symbol",()=>{
+            expect(()=>ui.insertSymbol("\\pi")).not.toThrow();
+        });
+        it("should not throw with sqrt symbol",()=>{
+            expect(()=>ui.insertSymbol("\\sqrt{}")).not.toThrow();
+        });
+        it("should not throw with fraction symbol",()=>{
+            expect(()=>ui.insertSymbol("\\frac{}{}")).not.toThrow();
+        });
+        it("should not throw with empty string",()=>{
+            expect(()=>ui.insertSymbol("")).not.toThrow();
+        });
+    });
+    describe("copyCorrectAnswer",()=>{
+        it("should be a function",()=>{
+            expect(typeof ui.copyCorrectAnswer).toBe("function");
+        });
+        it("should not throw when called",()=>{
+            (window as any).correctAnswer={correct:"42"};
+            Object.defineProperty(navigator,"clipboard",{value:{writeText:vi.fn(()=>Promise.resolve())},configurable:true});
+            expect(()=>ui.copyCorrectAnswer()).not.toThrow();
+        });
+    });
+    describe("clearAnswer",()=>{
+        it("should be a function",()=>{
+            expect(typeof ui.clearAnswer).toBe("function");
+        });
+        it("should not throw when called",()=>{
+            expect(()=>ui.clearAnswer()).not.toThrow();
+        });
+    });
+    describe("updateStatistics",()=>{
+        it("should be a function",()=>{
+            expect(typeof ui.updateStatistics).toBe("function");
+        });
+        it("should not throw when called",()=>{
+            expect(()=>ui.updateStatistics()).not.toThrow();
+        });
     });
 });
