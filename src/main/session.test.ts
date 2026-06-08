@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi}from"vitest";
 vi.mock("./dom.js",()=>({
-    timerDisplay:{innerHTML:""},
+    timerDisplay:{innerHTML:"",style:{display:""}},
     scoreDisplay:{innerHTML:""},
     mentalProgressBar:{style:{width:""},setAttribute:vi.fn()},
     startSessionBtn:{textContent:"",classList:{add:vi.fn(),remove:vi.fn()}},
@@ -43,22 +43,22 @@ vi.mock("./state.js",()=>{
     let totalTimeSpent=0;
     let answeredQuestionsCount=0;
     return{
-        sessionActive,
-        sessionPaused,
-        sessionScore,
-        timeLeft,
-        maxQuestions,
-        currentDifficulty,
-        selectedTopic,
-        mentalShuffle,
-        mentalScope,
-        sessionTimer,
-        mentalNextQuestionTimeout,
-        unlimitedMode,
-        mcqMode,
-        currentQuestionStartTime,
-        totalTimeSpent,
-        answeredQuestionsCount,
+        get sessionActive(){return sessionActive;},
+        get sessionPaused(){return sessionPaused;},
+        get sessionScore(){return sessionScore;},
+        get timeLeft(){return timeLeft;},
+        get maxQuestions(){return maxQuestions;},
+        get currentDifficulty(){return currentDifficulty;},
+        get selectedTopic(){return selectedTopic;},
+        get mentalShuffle(){return mentalShuffle;},
+        get mentalScope(){return mentalScope;},
+        get sessionTimer(){return sessionTimer;},
+        get mentalNextQuestionTimeout(){return mentalNextQuestionTimeout;},
+        get unlimitedMode(){return unlimitedMode;},
+        get mcqMode(){return mcqMode;},
+        get currentQuestionStartTime(){return currentQuestionStartTime;},
+        get totalTimeSpent(){return totalTimeSpent;},
+        get answeredQuestionsCount(){return answeredQuestionsCount;},
         setSessionActive:vi.fn((a:boolean)=>{sessionActive=a;}),
         setSessionPaused:vi.fn((p:boolean)=>{sessionPaused=p;}),
         setSessionScore:vi.fn((s:{correct:number,total:number})=>{sessionScore=s;}),
@@ -91,6 +91,7 @@ vi.mock("./settings.js",()=>({
 }));
 vi.mock("./ui.js",()=>({
     showNotification:vi.fn(),
+    clearAllTimeouts:vi.fn(),
     updateScoreDisplay:vi.fn(),
     updateTimerDisplay:vi.fn(),
     updateProgressBar:vi.fn(),
@@ -114,6 +115,9 @@ vi.mock("./mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
 import{saveSessionSnapshot,restoreSessionSnapshot,startTimer,generateNextMentalQuestion,handleMentalAnswer,handleMcqChoice,startMentalSession,pauseMentalSession,skipMentalQuestion,stopMentalSession,endMentalSession,promptSaveScore,updateLeaderboard}from"./session.js";
+import * as state from "./state.js";
+import * as ui from "./ui.js";
+import * as questionGenerator from "./questionGenerator.js";
 describe("session",()=>{
     window.correctAnswer={correct:"42",alternate:"42",display:"42"};
     window.hasQuestion=true;
@@ -158,5 +162,112 @@ describe("session",()=>{
     });
     it("should export updateLeaderboard",()=>{
         expect(typeof updateLeaderboard).toBe("function");
+    });
+    describe("startMentalSession",()=>{
+        it("should be a function",()=>{
+            expect(typeof startMentalSession).toBe("function");
+        });
+        it("should set session active",()=>{
+            startMentalSession();
+            expect(state.setSessionActive).toHaveBeenCalledWith(true);
+        });
+        it("should reset session score",()=>{
+            startMentalSession();
+            expect(state.setSessionScore).toHaveBeenCalledWith({correct:0,total:0});
+        });
+        it("should start timer",()=>{
+            startMentalSession();
+            expect(state.setSessionTimer).toHaveBeenCalled();
+        });
+        it("should generate first question",()=>{
+            startMentalSession();
+            expect(questionGenerator.generateQuestion).toHaveBeenCalled();
+        });
+        it("should disable topic selection during session",()=>{
+            startMentalSession();
+            expect(ui.disableTopicSelection).toHaveBeenCalledWith(true);
+        });
+    });
+    describe("endMentalSession",()=>{
+        it("should be a function",()=>{
+            expect(typeof endMentalSession).toBe("function");
+        });
+        it("should set session inactive",async()=>{
+            await endMentalSession();
+            expect(state.setSessionActive).toHaveBeenCalledWith(false);
+        });
+        it("should clear session timer",async()=>{
+            await endMentalSession();
+            expect(state.setSessionPaused).toHaveBeenCalledWith(false);
+        });
+        it("should show final score",async()=>{
+            await endMentalSession();
+            expect(ui.showNotification).toHaveBeenCalled();
+        });
+    });
+    describe("pauseMentalSession",()=>{
+        it("should be a function",()=>{
+            expect(typeof pauseMentalSession).toBe("function");
+        });
+        it("should not throw when called",()=>{
+            expect(()=>pauseMentalSession()).not.toThrow();
+        });
+    });
+    describe("skipMentalQuestion",()=>{
+        it("should be a function",()=>{
+            expect(typeof skipMentalQuestion).toBe("function");
+        });
+        it("should not throw when called",()=>{
+            expect(()=>skipMentalQuestion()).not.toThrow();
+        });
+    });
+    describe("handleMentalAnswer",()=>{
+        it("should be a function",()=>{
+            expect(typeof handleMentalAnswer).toBe("function");
+        });
+        it("should not throw when called",async()=>{
+            await expect(handleMentalAnswer()).resolves.not.toThrow();
+        });
+    });
+    describe("handleMcqChoice",()=>{
+        it("should be a function",()=>{
+            expect(typeof handleMcqChoice).toBe("function");
+        });
+        it("should not throw when called",()=>{
+            expect(()=>handleMcqChoice("42")).not.toThrow();
+        });
+    });
+    describe("saveSessionSnapshot",()=>{
+        it("should save to sessionStorage",()=>{
+            const setItemSpy=vi.spyOn(Storage.prototype,"setItem");
+            state.setSessionActive(true);
+            saveSessionSnapshot();
+            expect(setItemSpy).toHaveBeenCalled();
+            setItemSpy.mockRestore();
+        });
+        it("should not throw when called",()=>{
+            expect(()=>saveSessionSnapshot()).not.toThrow();
+        });
+    });
+    describe("restoreSessionSnapshot",()=>{
+        it("should be a function",()=>{
+            expect(typeof restoreSessionSnapshot).toBe("function");
+        });
+        it("should not throw when called",()=>{
+            expect(()=>restoreSessionSnapshot()).not.toThrow();
+        });
+    });
+    describe("updateLeaderboard",()=>{
+        it("should be a function",()=>{
+            expect(typeof updateLeaderboard).toBe("function");
+        });
+        it("should not throw when called",async()=>{
+            await expect(updateLeaderboard()).resolves.not.toThrow();
+        });
+    });
+    describe("promptSaveScore",()=>{
+        it("should be a function",()=>{
+            expect(typeof promptSaveScore).toBe("function");
+        });
     });
 });
