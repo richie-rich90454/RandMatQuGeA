@@ -101,4 +101,130 @@ describe("settings",()=>{
         settings.openSettings();
         settings.closeSettings();
     });
+    describe("isAnswerCorrect",()=>{
+        it("should return false for empty input",()=>{
+            expect(settings.isAnswerCorrect("","42")).toBe(false);
+        });
+        it("should return true for exact numeric match",()=>{
+            expect(settings.isAnswerCorrect("42","42")).toBe(true);
+        });
+        it("should return true for numeric match within tolerance",()=>{
+            expect(settings.isAnswerCorrect("3.142","3.14")).toBe(true);
+        });
+        it("should return false for numeric match outside tolerance",()=>{
+            expect(settings.isAnswerCorrect("3.2","3.14")).toBe(false);
+        });
+        it("should handle degree symbol in input",()=>{
+            expect(settings.isAnswerCorrect("45°","45")).toBe(true);
+        });
+        it("should handle radian suffix in input",()=>{
+            expect(settings.isAnswerCorrect("1rad","1")).toBe(true);
+        });
+        it("should match alternate form numerically",()=>{
+            expect(settings.isAnswerCorrect("1+1","2","3")).toBe(true);
+        });
+        it("should match alternate form symbolically",()=>{
+            expect(settings.isAnswerCorrect("y","x","y")).toBe(true);
+        });
+        it("should handle pi symbol (π) in expressions",()=>{
+            expect(settings.isAnswerCorrect("2*π","2*pi")).toBe(true);
+        });
+        it("should handle Unicode π character",()=>{
+            expect(settings.isAnswerCorrect("π","pi")).toBe(true);
+        });
+        it("should handle expressions with spaces",()=>{
+            expect(settings.isAnswerCorrect("2 + 3","5")).toBe(true);
+        });
+        it("should handle case-insensitive comparison",()=>{
+            expect(settings.isAnswerCorrect("X","x")).toBe(true);
+        });
+        it("should return false for completely different answers",()=>{
+            expect(settings.isAnswerCorrect("hello","42")).toBe(false);
+        });
+        it("should handle negative numbers",()=>{
+            expect(settings.isAnswerCorrect("-5","-5")).toBe(true);
+        });
+        it("should handle decimal answers",()=>{
+            expect(settings.isAnswerCorrect("3.14","3.14")).toBe(true);
+        });
+    });
+    describe("previewSetting",()=>{
+        it("should preview theme change to dark",()=>{
+            settings.previewSetting("theme","dark");
+            expect(document.documentElement.classList.contains("dark")).toBe(true);
+        });
+        it("should preview theme change to light",()=>{
+            settings.previewSetting("theme","light");
+            expect(document.documentElement.classList.contains("light")).toBe(true);
+        });
+        it("should preview theme change to system",()=>{
+            settings.previewSetting("theme","system");
+        });
+        it("should preview font change to opendyslexic",()=>{
+            settings.previewSetting("font","opendyslexic");
+            expect(document.body.classList.contains("font-opendyslexic")).toBe(true);
+        });
+        it("should preview font change to default",()=>{
+            settings.previewSetting("font","opendyslexic");
+            settings.previewSetting("font","default");
+            expect(document.body.classList.contains("font-opendyslexic")).toBe(false);
+        });
+        it("should preview shuffle toggle",()=>{
+            settings.previewSetting("shuffle",true);
+        });
+        it("should preview scope change",()=>{
+            settings.previewSetting("scope","compound");
+        });
+        it("should preview difficulty change",()=>{
+            settings.previewSetting("difficulty","hard");
+        });
+        it("should preview perfMaster toggle",()=>{
+            settings.previewSetting("perfMaster",true);
+            expect(settings.settings.perfMaster).toBe(true);
+        });
+        it("should preview perfWave toggle",()=>{
+            settings.settings.perfMaster=false;
+            settings.previewSetting("perfWave",false);
+            expect(settings.settings.perfWave).toBe(false);
+        });
+        it("should preview perfBlur toggle",()=>{
+            settings.settings.perfMaster=false;
+            settings.previewSetting("perfBlur",false);
+            expect(settings.settings.perfBlur).toBe(false);
+        });
+        it("should preview perfPreview toggle",()=>{
+            settings.settings.perfMaster=false;
+            settings.previewSetting("perfPreview",false);
+            expect(settings.settings.perfPreview).toBe(false);
+        });
+        it("should preview perfAnimations toggle",()=>{
+            settings.settings.perfMaster=false;
+            settings.previewSetting("perfAnimations",false);
+            expect(settings.settings.perfAnimations).toBe(false);
+        });
+        it("should preview fpsCap change",()=>{
+            settings.previewSetting("fpsCap","30");
+            expect(settings.settings.fpsCap).toBe(30);
+        });
+        it("should preview notifications toggle",()=>{
+            settings.previewSetting("notifications",false);
+            expect(settings.settings.notifications).toBe(false);
+        });
+    });
+    describe("checkAnswerFast",()=>{
+        it("should fall back to isAnswerCorrect when not in Tauri",async()=>{
+            const saved=(window as any).__TAURI__;
+            delete (window as any).__TAURI__;
+            const result=await settings.checkAnswerFast("42","42");
+            expect(result).toBe(true);
+            (window as any).__TAURI__=saved;
+        });
+        it("should return result from isAnswerCorrect",async()=>{
+            const saved=(window as any).__TAURI__;
+            delete (window as any).__TAURI__;
+            const result=await settings.checkAnswerFast("hello","42");
+            expect(result).toBe(false);
+            (window as any).__TAURI__=saved;
+        });
+    });
 });
