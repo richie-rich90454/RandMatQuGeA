@@ -6,7 +6,10 @@ vi.mock("@tauri-apps/plugin-updater",()=>({
 vi.mock("@tauri-apps/plugin-process",()=>({
     relaunch:vi.fn(),
 }));
-vi.mock("semver",()=>({gt:vi.fn(()=>false)}));
+vi.mock("semver",()=>{
+    const gt=vi.fn(()=>false);
+    return{gt,default:{gt}};
+});
 vi.mock("../../package.json",()=>({default:{version:"1.0.0"},version:"1.0.0"}));
 vi.mock("./dom.js",()=>{
     const btnProps={addEventListener:vi.fn(),classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()},disabled:false,textContent:"",setAttribute:vi.fn(),click:vi.fn(),style:{display:""},value:"",checked:false,innerHTML:"",querySelectorAll:vi.fn(()=>[]),dataset:{}};
@@ -177,7 +180,11 @@ vi.mock("./dataManagement.js",()=>({
     openDataModal:vi.fn(),
     initDataModal:vi.fn(),
 }));
-import{switchToSingle,switchToMental,setupEventListeners}from"./events.js";
+import{switchToSingle,switchToMental,setupEventListeners,isVersionGreater}from"./events.js";
+import * as state from "./state.js";
+import * as dom from "./dom.js";
+import * as session from "./session.js";
+import{gt as semverGt}from"semver";
 describe("events",()=>{
     it("should export switchToSingle",()=>{
         expect(typeof switchToSingle).toBe("function");
@@ -196,5 +203,102 @@ describe("events",()=>{
     });
     it("setupEventListeners should not throw",()=>{
         expect(()=>setupEventListeners()).not.toThrow();
+    });
+});
+describe("switchToSingle",()=>{
+    it("should be a function",()=>{
+        expect(typeof switchToSingle).toBe("function");
+    });
+    it("should set current mode to single",()=>{
+        switchToSingle();
+        expect(state.setCurrentMode).toHaveBeenCalledWith("single");
+    });
+    it("should add active class to single button",()=>{
+        switchToSingle();
+        expect(dom.modeSingleBtn.classList.add).toHaveBeenCalledWith("active");
+    });
+    it("should remove active class from mental button",()=>{
+        switchToSingle();
+        expect(dom.modeMentalBtn.classList.remove).toHaveBeenCalledWith("active");
+    });
+    it("should end mental session if active",()=>{
+        (state as any).sessionActive=true;
+        switchToSingle();
+        expect(session.endMentalSession).toHaveBeenCalled();
+        (state as any).sessionActive=false;
+    });
+    it("should clear auto timeout",()=>{
+        (state as any).autoTimeout=12345;
+        switchToSingle();
+        expect(state.setAutoTimeout).toHaveBeenCalledWith(null);
+        (state as any).autoTimeout=null;
+    });
+});
+describe("switchToMental",()=>{
+    it("should be a function",()=>{
+        expect(typeof switchToMental).toBe("function");
+    });
+    it("should set current mode to mental",()=>{
+        switchToMental();
+        expect(state.setCurrentMode).toHaveBeenCalledWith("mental");
+    });
+    it("should add active class to mental button",()=>{
+        switchToMental();
+        expect(dom.modeMentalBtn.classList.add).toHaveBeenCalledWith("active");
+    });
+    it("should remove active class from single button",()=>{
+        switchToMental();
+        expect(dom.modeSingleBtn.classList.remove).toHaveBeenCalledWith("active");
+    });
+    it("should end mental session if active",()=>{
+        (state as any).sessionActive=true;
+        switchToMental();
+        expect(session.endMentalSession).toHaveBeenCalled();
+        (state as any).sessionActive=false;
+    });
+    it("should clear auto timeout",()=>{
+        (state as any).autoTimeout=12345;
+        switchToMental();
+        expect(state.setAutoTimeout).toHaveBeenCalledWith(null);
+        (state as any).autoTimeout=null;
+    });
+});
+describe("setupEventListeners",()=>{
+    it("should be a function",()=>{
+        expect(typeof setupEventListeners).toBe("function");
+    });
+    it("should not throw when called",()=>{
+        expect(()=>setupEventListeners()).not.toThrow();
+    });
+    it("should return early if required DOM elements missing",()=>{
+        const orig=dom.generateQuestionButton;
+        (dom as any).generateQuestionButton=null;
+        (dom.checkAnswerButton as any).addEventListener.mockClear();
+        setupEventListeners();
+        expect((dom.checkAnswerButton as any).addEventListener).not.toHaveBeenCalled();
+        (dom as any).generateQuestionButton=orig;
+    });
+});
+describe("isVersionGreater",()=>{
+    it("should compare version strings correctly",()=>{
+        (semverGt as any).mockReturnValueOnce(true);
+        expect(isVersionGreater("2.0.0","1.0.0")).toBe(true);
+    });
+    it("should handle v-prefixed versions",()=>{
+        (semverGt as any).mockReturnValueOnce(true);
+        isVersionGreater("v2.0.0","v1.0.0");
+        expect(semverGt).toHaveBeenCalledWith("2.0.0","1.0.0");
+    });
+    it("should return false for equal versions",()=>{
+        (semverGt as any).mockReturnValueOnce(false);
+        expect(isVersionGreater("1.0.0","1.0.0")).toBe(false);
+    });
+    it("should return true for newer version",()=>{
+        (semverGt as any).mockReturnValueOnce(true);
+        expect(isVersionGreater("2.0.0","1.0.0")).toBe(true);
+    });
+    it("should return false for older version",()=>{
+        (semverGt as any).mockReturnValueOnce(false);
+        expect(isVersionGreater("1.0.0","2.0.0")).toBe(false);
     });
 });

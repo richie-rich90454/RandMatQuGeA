@@ -19,7 +19,7 @@ import semver from "semver";
 import { initPrintModal, openPrintModal } from "./printWorksheet";
 import { checkAndShowWeakTopicsPopup } from "./weakTopics";
 import { openDataModal, initDataModal } from "./dataManagement";
-function isVersionGreater(v1: string, v2: string): boolean{
+export function isVersionGreater(v1: string, v2: string): boolean{
     const cleanV1=v1.replace(/^v/, "");
     const cleanV2=v2.replace(/^v/, "");
     return semver.gt(cleanV1, cleanV2);
