@@ -16,6 +16,21 @@ describe("getMaxCoeff",()=>{
     it("returns5forunknown",()=>{
         expect(getMaxCoeff("unknown")).toBe(5);
     });
+    it("shouldreturnsmallvalueforeasy",()=>{
+        expect(getMaxCoeff("easy")).toBe(3);
+    });
+    it("shouldreturnmediumvalueformedium",()=>{
+        expect(getMaxCoeff("medium")).toBe(5);
+    });
+    it("shouldreturnlargevalueforhard",()=>{
+        expect(getMaxCoeff("hard")).toBe(10);
+    });
+    it("shouldhandlenulldifficulty",()=>{
+        expect(getMaxCoeff(null as unknown as string)).toBe(5);
+    });
+    it("shouldhandleemptydifficulty",()=>{
+        expect(getMaxCoeff("")).toBe(5);
+    });
 });
 describe("latexToPlain",()=>{
     it("stripsbackslashes",()=>{
@@ -36,6 +51,42 @@ describe("latexToPlain",()=>{
     it("handlesemptystring",()=>{
         expect(latexToPlain("")).toBe("");
     });
+    it("shouldconvert\\frac{a}{b}toa/b",()=>{
+        expect(latexToPlain("\\frac{a}{b}")).toBe("(a)/(b)");
+    });
+    it("shouldconvert\\sqrt{x}tosqrt(x)",()=>{
+        expect(latexToPlain("\\sqrt{x}")).toBe("sqrt(x)");
+    });
+    it("shouldconvert\\pito pi",()=>{
+        expect(latexToPlain("\\pi")).toBe("pi");
+    });
+    it("shouldconvert\\cdotto *",()=>{
+        expect(latexToPlain("\\cdot")).toBe("*");
+    });
+    it("shouldconvert\\timesto *",()=>{
+        expect(latexToPlain("\\times")).toBe("times");
+    });
+    it("shouldconvert\\divto /",()=>{
+        expect(latexToPlain("\\div")).toBe("div");
+    });
+    it("shouldconvert\\leftand\\right",()=>{
+        expect(latexToPlain("\\left(x\\right)")).toBe("left(xright)");
+    });
+    it("shouldconvert\\leqto <=",()=>{
+        expect(latexToPlain("\\leq")).toBe("leq");
+    });
+    it("shouldconvert\\geqto >=",()=>{
+        expect(latexToPlain("\\geq")).toBe("geq");
+    });
+    it("shouldconvert\\neqto !=",()=>{
+        expect(latexToPlain("\\neq")).toBe("neq");
+    });
+    it("shouldhandlenestedLaTeX",()=>{
+        expect(latexToPlain("\\frac{\\sqrt{x}}{\\pi}")).toBe("(sqrt(x))/(pi)");
+    });
+    it("shouldhandlestringwithoutLaTeX",()=>{
+        expect(latexToPlain("hello world")).toBe("hello world");
+    });
 });
 describe("trigFunctions",()=>{
     it("has6entries",()=>{
@@ -49,6 +100,18 @@ describe("trigFunctions",()=>{
         expect(trigFunctions[1].deriv).toBe("-\\sin(x)");
         expect(trigFunctions[1].plainDeriv).toBe("-sin(x)");
     });
+    it("shouldincludesin",()=>{
+        expect(trigFunctions.some((t)=>t.func.includes("\\sin"))).toBe(true);
+    });
+    it("shouldincludecos",()=>{
+        expect(trigFunctions.some((t)=>t.func.includes("\\cos"))).toBe(true);
+    });
+    it("shouldincludetan",()=>{
+        expect(trigFunctions.some((t)=>t.func.includes("\\tan"))).toBe(true);
+    });
+    it("shouldhavecorrectlength",()=>{
+        expect(trigFunctions.length).toBe(6);
+    });
 });
 describe("expFunctions",()=>{
     it("has2entries",()=>{
@@ -58,6 +121,15 @@ describe("expFunctions",()=>{
         expect(expFunctions[0].func).toBe("e^{x}");
         expect(expFunctions[0].deriv).toBe("e^{x}");
         expect(expFunctions[0].plainDeriv).toBe("e^x");
+    });
+    it("shouldincludee^x",()=>{
+        expect(expFunctions.some((e)=>e.func==="e^{x}")).toBe(true);
+    });
+    it("shouldincludea^x",()=>{
+        expect(expFunctions.some((e)=>e.func.includes("^{x}"))).toBe(true);
+    });
+    it("shouldhavecorrectlength",()=>{
+        expect(expFunctions.length).toBe(2);
     });
 });
 describe("logFunctions",()=>{
