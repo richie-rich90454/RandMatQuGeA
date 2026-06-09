@@ -55,4 +55,35 @@ describe("generateArithmeticSequence",()=>{
 		generateBinomialTheorem();
 		expect((window as any).correctAnswer).toBeDefined();
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateArithmeticSequence();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+		expect(typeof (window as any).correctAnswer.correct).toBe("string");
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateArithmeticSequence();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateArithmeticSequence("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateArithmeticSequence("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateArithmeticSequence("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
 });
