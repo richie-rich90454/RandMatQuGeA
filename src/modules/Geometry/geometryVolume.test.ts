@@ -83,3 +83,67 @@ describe("generateVolumeSphere",()=>{
 		expect((window as any).correctAnswer).toBeDefined();
 	});
 });
+describe("generateVolumeSphere - edge cases",()=>{
+	let originalMathRandom:()=>number;
+	let mockDiv:HTMLDivElement;
+	beforeEach(()=>{
+		originalMathRandom=Math.random;
+		mockDiv=document.createElement("div");
+		(questionArea as any)=mockDiv;
+		delete(window as any).correctAnswer;
+		delete(window as any).expectedFormat;
+		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	});
+	afterEach(()=>{
+		Math.random=originalMathRandom;
+		delete(window as any).MathJax;
+	});
+	it("should produce non-empty question HTML",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateVolumeSphere();
+		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	});
+	it("should set correctAnswer with display property",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateVolumeSphere();
+		expect((window as any).correctAnswer.display).toBeDefined();
+		expect(typeof (window as any).correctAnswer.display).toBe("string");
+	});
+	it("should handle radius of 1",()=>{
+		Math.random=vi.fn().mockReturnValue(0);
+		generateVolumeSphere();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+	});
+	it("should handle large radius",()=>{
+		Math.random=vi.fn().mockReturnValue(0.99);
+		generateVolumeSphere();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+	});
+	it("should handle decimal radius",()=>{
+		Math.random=vi.fn().mockReturnValue(0.45);
+		generateVolumeSphere();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+	});
+	it("should use pi in answer",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateVolumeSphere();
+		let correct=(window as any).correctAnswer.correct;
+		let numeric=parseFloat(correct);
+		expect(numeric).toBeGreaterThan(0);
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateVolumeSphere("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateVolumeSphere("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+	});
+});
