@@ -36,3 +36,50 @@ describe("dom",()=>{
         expect("appWindow"in dom).toBe(true);
     });
 });
+describe("DOM element references",()=>{
+    it("should export questionArea",()=>{
+        expect("questionArea"in dom).toBe(true);
+    });
+    it("should export topicGrid",()=>{
+        expect("topicGrid"in dom).toBe(true);
+    });
+    it("should export userAnswer",()=>{
+        expect("userAnswer"in dom).toBe(true);
+    });
+    it("should export answerResults",()=>{
+        expect("answerResults"in dom).toBe(true);
+    });
+    it("should export generateBtn",()=>{
+        expect("generateBtn"in dom).toBe(true);
+    });
+    it("should export singleModeBtn",()=>{
+        expect("singleModeBtn"in dom).toBe(true);
+    });
+    it("should export mentalModeBtn",()=>{
+        expect("mentalModeBtn"in dom).toBe(true);
+    });
+    it("should export settingsBtn",()=>{
+        expect("settingsBtn"in dom).toBe(true);
+    });
+    it("should export timerDisplay",()=>{
+        expect("timerDisplay"in dom).toBe(true);
+    });
+    it("should export scoreDisplay",()=>{
+        expect("scoreDisplay"in dom).toBe(true);
+    });
+    it("should export progressBar",()=>{
+        expect("progressBar"in dom).toBe(true);
+    });
+    it("should export topicDisplay",()=>{
+        expect("topicDisplay"in dom).toBe(true);
+    });
+    it("should export expectedFormatDisplay",()=>{
+        expect("expectedFormatDisplay"in dom).toBe(true);
+    });
+    it("should export mcqContainer",()=>{
+        expect("mcqContainer"in dom).toBe(true);
+    });
+    it("should export notificationContainer",()=>{
+        expect("notificationContainer"in dom).toBe(true);
+    });
+});
