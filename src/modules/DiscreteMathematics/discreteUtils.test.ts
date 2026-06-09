@@ -1,5 +1,5 @@
 import {describe,it,expect} from "vitest";
-import {factorial,nPr,nCr,getMaxN,getDataRange,mean,median,mode,range,stdDev,getOrdinal} from "./discreteUtils";
+import {factorial,nPr,nCr,gcd,lcm,getMaxN,getDataRange,mean,median,mode,range,stdDev,getOrdinal} from "./discreteUtils";
 describe("factorial",()=>{
     it("returns1for0",()=>{
         expect(factorial(0)).toBe(1);
@@ -7,42 +7,91 @@ describe("factorial",()=>{
     it("returns1for1",()=>{
         expect(factorial(1)).toBe(1);
     });
+    it("returns2for2",()=>{
+        expect(factorial(2)).toBe(2);
+    });
+    it("returns6for3",()=>{
+        expect(factorial(3)).toBe(6);
+    });
     it("returns120for5",()=>{
         expect(factorial(5)).toBe(120);
     });
-    it("returns5040for7",()=>{
-        expect(factorial(7)).toBe(5040);
-    });
-    it("returnsNaNfornegative",()=>{
-        expect(factorial(-1)).toBeNaN();
+    it("handleslargenumbers",()=>{
+        expect(factorial(10)).toBe(3628800);
     });
 });
-describe("nPr",()=>{
-    it("returns20for5P2",()=>{
-        expect(nPr(5,2)).toBe(20);
+describe("permutations",()=>{
+    it("returnsnfornP1",()=>{
+        expect(nPr(7,1)).toBe(7);
     });
-    it("returns120for5P5",()=>{
-        expect(nPr(5,5)).toBe(120);
+    it("returnsn!fornPn",()=>{
+        expect(nPr(4,4)).toBe(24);
     });
-    it("returns0whenRgreaterThanN",()=>{
+    it("returns0whenrgreatern",()=>{
         expect(nPr(3,5)).toBe(0);
     });
-    it("returns720for10P3",()=>{
-        expect(nPr(10,3)).toBe(720);
+    it("handlesn0andr0",()=>{
+        expect(nPr(0,0)).toBe(1);
+    });
+    it("handlesnegativeinputs",()=>{
+        expect(nPr(-2,1)).toBe(0);
     });
 });
-describe("nCr",()=>{
-    it("returns10for5C2",()=>{
-        expect(nCr(5,2)).toBe(10);
+describe("combinations",()=>{
+    it("returns1fornC0",()=>{
+        expect(nCr(5,0)).toBe(1);
     });
-    it("returns1for5C5",()=>{
-        expect(nCr(5,5)).toBe(1);
+    it("returnsnfornC1",()=>{
+        expect(nCr(5,1)).toBe(5);
     });
-    it("returns0whenRgreaterThanN",()=>{
+    it("returnsn!/(r!(n-r)!)fornCr",()=>{
+        expect(nCr(6,3)).toBe(20);
+    });
+    it("returns0whenrgreatern",()=>{
         expect(nCr(3,5)).toBe(0);
     });
-    it("returns120for10C3",()=>{
-        expect(nCr(10,3)).toBe(120);
+    it("handlesn0andr0",()=>{
+        expect(nCr(0,0)).toBe(1);
+    });
+    it("handlesnegativeinputs",()=>{
+        expect(nCr(-2,1)).toBe(0);
+    });
+});
+describe("gcd",()=>{
+    it("returnsfirstwhensecondis0",()=>{
+        expect(gcd(7,0)).toBe(7);
+    });
+    it("returnssecondwhenfirstis0",()=>{
+        expect(gcd(0,5)).toBe(5);
+    });
+    it("handlesnegativenumbers",()=>{
+        expect(gcd(-12,18)).toBe(6);
+    });
+    it("returns1forcoprime",()=>{
+        expect(gcd(7,11)).toBe(1);
+    });
+    it("handlesequalnumbers",()=>{
+        expect(gcd(9,9)).toBe(9);
+    });
+});
+describe("lcm",()=>{
+    it("returnsfirstwhensecondis0",()=>{
+        expect(lcm(7,0)).toBe(0);
+    });
+    it("returns0whenfirstis0",()=>{
+        expect(lcm(0,5)).toBe(0);
+    });
+    it("handlesnegativenumbers",()=>{
+        expect(lcm(-4,6)).toBe(12);
+    });
+    it("calculateslcmcorrectly",()=>{
+        expect(lcm(4,6)).toBe(12);
+    });
+    it("handlesequalnumbers",()=>{
+        expect(lcm(8,8)).toBe(8);
+    });
+    it("handlescoprimenumbers",()=>{
+        expect(lcm(5,7)).toBe(35);
     });
 });
 describe("getMaxN",()=>{

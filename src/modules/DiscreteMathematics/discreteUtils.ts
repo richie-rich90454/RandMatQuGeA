@@ -15,6 +15,25 @@ export function factorial(n: number): number{
 	return res;
 }
 /**
+ * Computes the greatest common divisor of two integers.
+ * @param a - first integer
+ * @param b - second integer
+ * @returns gcd of a and b
+ */
+export function gcd(a: number, b: number): number{
+	return b===0 ? Math.abs(a) : gcd(b, a % b);
+}
+/**
+ * Computes the least common multiple of two integers.
+ * @param a - first integer
+ * @param b - second integer
+ * @returns lcm of a and b
+ */
+export function lcm(a: number, b: number): number{
+	if (a===0 || b===0) return 0;
+	return Math.abs(a*b)/gcd(a,b);
+}
+/**
  * Computes the number of permutations (nPr): n!/(n-r)!.
  * @param n - total items
  * @param r - selected items
