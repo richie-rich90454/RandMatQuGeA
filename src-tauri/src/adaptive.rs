@@ -100,4 +100,64 @@ mod tests {
     fn test_recommend_perfect_accuracy() {
         assert_eq!(recommend_next_difficulty(1.0), Difficulty::Hard);
     }
+    #[test]
+    fn test_very_low_accuracy_returns_easy() {
+        assert_eq!(recommend_next_difficulty(0.1), Difficulty::Easy);
+    }
+    #[test]
+    fn test_accuracy_twenty_percent_returns_easy() {
+        assert_eq!(recommend_next_difficulty(0.2), Difficulty::Easy);
+    }
+    #[test]
+    fn test_accuracy_forty_percent_boundary() {
+        assert_eq!(recommend_next_difficulty(0.4), Difficulty::Medium);
+    }
+    #[test]
+    fn test_accuracy_just_above_easy_boundary() {
+        assert_eq!(recommend_next_difficulty(0.41), Difficulty::Medium);
+    }
+    #[test]
+    fn test_accuracy_fifty_percent_returns_medium() {
+        assert_eq!(recommend_next_difficulty(0.5), Difficulty::Medium);
+    }
+    #[test]
+    fn test_accuracy_sixty_percent_returns_medium() {
+        assert_eq!(recommend_next_difficulty(0.6), Difficulty::Medium);
+    }
+    #[test]
+    fn test_accuracy_seventy_percent_returns_medium() {
+        assert_eq!(recommend_next_difficulty(0.7), Difficulty::Medium);
+    }
+    #[test]
+    fn test_accuracy_eighty_percent_boundary() {
+        assert_eq!(recommend_next_difficulty(0.8), Difficulty::Medium);
+    }
+    #[test]
+    fn test_accuracy_just_above_medium_boundary() {
+        assert_eq!(recommend_next_difficulty(0.81), Difficulty::Hard);
+    }
+    #[test]
+    fn test_accuracy_ninety_percent_returns_hard() {
+        assert_eq!(recommend_next_difficulty(0.9), Difficulty::Hard);
+    }
+    #[test]
+    fn test_accuracy_one_hundred_percent_returns_hard() {
+        assert_eq!(recommend_next_difficulty(1.0), Difficulty::Hard);
+    }
+    #[test]
+    fn test_accuracy_zero_returns_easy() {
+        assert_eq!(recommend_next_difficulty(0.0), Difficulty::Easy);
+    }
+    #[test]
+    fn test_very_small_positive_accuracy() {
+        assert_eq!(recommend_next_difficulty(0.001), Difficulty::Easy);
+    }
+    #[test]
+    fn test_accuracy_close_to_one() {
+        assert_eq!(recommend_next_difficulty(0.99), Difficulty::Hard);
+    }
+    #[test]
+    fn test_negative_accuracy_edge_case() {
+        assert_eq!(recommend_next_difficulty(-0.1), Difficulty::Easy);
+    }
 }
