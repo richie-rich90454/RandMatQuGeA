@@ -16,6 +16,21 @@ describe("getRangeForDifficulty",()=>{
     it("defaults to medium for unknown difficulty",()=>{
         expect(getRangeForDifficulty("extreme")).toEqual({min:-1000,max:1500});
     });
+    it("should return small range for easy",()=>{
+        expect(getRangeForDifficulty("easy")).toEqual({min:1,max:50});
+    });
+    it("should return medium range for medium",()=>{
+        expect(getRangeForDifficulty("medium")).toEqual({min:-1000,max:1500});
+    });
+    it("should return large range for hard",()=>{
+        expect(getRangeForDifficulty("hard")).toEqual({min:-1000,max:3000});
+    });
+    it("should handle null difficulty",()=>{
+        expect(getRangeForDifficulty(null as unknown as string)).toEqual({min:-1000,max:1500});
+    });
+    it("should handle empty difficulty",()=>{
+        expect(getRangeForDifficulty("")).toEqual({min:-1000,max:1500});
+    });
 });
 describe("getMaxForDifficulty",()=>{
     it("returns half baseMax for easy",()=>{
@@ -38,6 +53,21 @@ describe("getMaxForDifficulty",()=>{
     });
     it("floors double for odd hard",()=>{
         expect(getMaxForDifficulty("hard",7)).toBe(14);
+    });
+    it("should return small max for easy",()=>{
+        expect(getMaxForDifficulty("easy",100)).toBe(50);
+    });
+    it("should return medium max for medium",()=>{
+        expect(getMaxForDifficulty("medium",100)).toBe(100);
+    });
+    it("should return large max for hard",()=>{
+        expect(getMaxForDifficulty("hard",100)).toBe(200);
+    });
+    it("should handle null difficulty",()=>{
+        expect(getMaxForDifficulty(null as unknown as string,100)).toBe(100);
+    });
+    it("should handle empty difficulty",()=>{
+        expect(getMaxForDifficulty("",100)).toBe(100);
     });
 });
 describe("gcd",()=>{
@@ -64,6 +94,21 @@ describe("gcd",()=>{
     });
     it("returns 1 for consecutive numbers",()=>{
         expect(gcd(7,8)).toBe(1);
+    });
+    it("should return first when second is 0",()=>{
+        expect(gcd(5,0)).toBe(5);
+    });
+    it("should return second when first is 0",()=>{
+        expect(gcd(0,5)).toBe(5);
+    });
+    it("should handle negative numbers",()=>{
+        expect(gcd(-12,-18)).toBe(6);
+    });
+    it("should return 1 for coprime",()=>{
+        expect(gcd(7,13)).toBe(1);
+    });
+    it("should handle equal numbers",()=>{
+        expect(gcd(9,9)).toBe(9);
     });
 });
 describe("isPrime",()=>{
@@ -99,5 +144,35 @@ describe("isPrime",()=>{
     });
     it("returns false for 1 below prime",()=>{
         expect(isPrime(16)).toBe(false);
+    });
+    it("should return false for 0",()=>{
+        expect(isPrime(0)).toBe(false);
+    });
+    it("should return false for 1",()=>{
+        expect(isPrime(1)).toBe(false);
+    });
+    it("should return true for 2",()=>{
+        expect(isPrime(2)).toBe(true);
+    });
+    it("should return true for 3",()=>{
+        expect(isPrime(3)).toBe(true);
+    });
+    it("should return false for 4",()=>{
+        expect(isPrime(4)).toBe(false);
+    });
+    it("should return true for large prime",()=>{
+        expect(isPrime(101)).toBe(true);
+    });
+    it("should return false for large composite",()=>{
+        expect(isPrime(100)).toBe(false);
+    });
+    it("should handle negative numbers",()=>{
+        expect(isPrime(-5)).toBe(false);
+    });
+    it("should handle decimal numbers",()=>{
+        expect(isPrime(3.7)).toBe(true);
+    });
+    it("should return true for 97",()=>{
+        expect(isPrime(97)).toBe(true);
     });
 });
