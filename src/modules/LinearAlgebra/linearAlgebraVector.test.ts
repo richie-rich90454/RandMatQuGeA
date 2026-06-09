@@ -50,4 +50,34 @@ describe("generateVector",()=>{
 		generateVector();
 		expect((window as any).correctAnswer).toBeDefined();
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn().mockReturnValue(0.01);
+		generateVector();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn().mockReturnValue(0.01);
+		generateVector();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.01);
+		generateVector("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.01);
+		generateVector("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.01);
+		generateVector("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
 });

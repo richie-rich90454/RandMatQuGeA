@@ -51,4 +51,34 @@ describe("generateSystem3x3",()=>{
 		generateVector3D();
 		expect((window as any).correctAnswer).toBeDefined();
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateSystem3x3();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toContain("x=");
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateSystem3x3();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateSystem3x3("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateSystem3x3("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateSystem3x3("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
 });
