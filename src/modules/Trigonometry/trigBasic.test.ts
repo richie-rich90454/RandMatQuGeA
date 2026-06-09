@@ -75,3 +75,66 @@ describe("generateSin",()=>{
 		expect((window as any).correctAnswer).toBeDefined();
 	});
 });
+describe("generateSin - edge cases",()=>{
+	let originalMathRandom:()=>number;
+	let mockDiv:HTMLDivElement;
+	beforeEach(()=>{
+		originalMathRandom=Math.random;
+		mockDiv=document.createElement("div");
+		(questionArea as any)=mockDiv;
+		delete(window as any).correctAnswer;
+		delete(window as any).expectedFormat;
+		(window as any).MathJax={typeset:vi.fn()};
+	});
+	afterEach(()=>{
+		Math.random=originalMathRandom;
+		delete(window as any).MathJax;
+	});
+	it("should produce non-empty question HTML",()=>{
+		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
+		generateSin();
+		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	});
+	it("should set correctAnswer with display property",()=>{
+		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
+		generateSin();
+		expect((window as any).correctAnswer.display).toBeDefined();
+		expect(typeof (window as any).correctAnswer.display).toBe("string");
+	});
+	it("should handle 30 degree angle",()=>{
+		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(1/16);
+		generateSin();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+	});
+	it("should handle 45 degree angle",()=>{
+		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(2/16);
+		generateSin();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+	});
+	it("should handle 60 degree angle",()=>{
+		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(3/16);
+		generateSin();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+	});
+	it("should handle 90 degree angle",()=>{
+		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(4/16);
+		generateSin();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
+		generateSin("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
+		generateSin("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+	});
+});
