@@ -195,3 +195,115 @@ describe("generateLogarithm",()=>{
 		expect(mockGetMax).toHaveBeenCalledWith("hard", 4);
 	});
 });
+describe("generateLogarithm - edge cases",()=>{
+	let originalMathRandom:()=>number;
+	let mockDiv:HTMLDivElement;
+	beforeEach(()=>{
+		originalMathRandom=Math.random;
+		mockDiv=document.createElement("div");
+		(questionArea as any)=mockDiv;
+		delete(window as any).correctAnswer;
+		delete(window as any).expectedFormat;
+		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	});
+	afterEach(()=>{
+		Math.random=originalMathRandom;
+		delete(window as any).MathJax;
+	});
+	it("should produce non-empty question HTML",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0.25)
+			.mockReturnValueOnce(0);
+		generateLogarithm();
+		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	});
+	it("should set correctAnswer with display property",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0.25)
+			.mockReturnValueOnce(0);
+		generateLogarithm();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+		expect(typeof (window as any).correctAnswer.display).toBe("string");
+	});
+	it("should handle log base 10",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(9);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0.889)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0);
+		generateLogarithm();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBe("1.00");
+	});
+	it("should handle log base 2",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(4);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0.25)
+			.mockReturnValueOnce(0);
+		generateLogarithm();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBe("2.00");
+	});
+	it("should handle natural log",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(4);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0);
+		generateLogarithm();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBe("3.00");
+	});
+	it("should handle log of 1",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(4);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0);
+		generateLogarithm();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBe("1.00");
+	});
+	it("should handle easy difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(4);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0);
+		generateLogarithm("easy");
+		expect(mockGetMax).toHaveBeenCalledWith("easy",4);
+	});
+	it("should handle hard difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(10);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0);
+		generateLogarithm("hard");
+		expect(mockGetMax).toHaveBeenCalledWith("hard",4);
+	});
+});
