@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import{describe,it,expect,vi}from"vitest";
+import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 vi.mock("./dom.js",()=>({
     timerDisplay:{innerHTML:"",style:{display:""}},
     scoreDisplay:{innerHTML:""},
@@ -23,7 +23,7 @@ vi.mock("./dom.js",()=>({
     avgTimeStat:{textContent:""},
     unlimitedToggle:{checked:false},
     modeSingleBtn:{classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()}},
-    modeMentalBtn:{classList:{add:vi.fn(),remove:vi.fn()}},
+    modeMentalBtn:{classList:{add:vi.fn(),remove:vi.fn()},click:vi.fn()},
 }));
 vi.mock("./state.js",()=>{
     let sessionActive=false;
@@ -117,6 +117,7 @@ vi.mock("./mcq.js",()=>({
 import{saveSessionSnapshot,restoreSessionSnapshot,startTimer,generateNextMentalQuestion,handleMentalAnswer,handleMcqChoice,startMentalSession,pauseMentalSession,skipMentalQuestion,stopMentalSession,endMentalSession,promptSaveScore,updateLeaderboard}from"./session.js";
 import * as state from "./state.js";
 import * as ui from "./ui.js";
+import * as settings from "./settings.js";
 import * as questionGenerator from "./questionGenerator.js";
 describe("session",()=>{
     window.correctAnswer={correct:"42",alternate:"42",display:"42"};
@@ -268,6 +269,210 @@ describe("session",()=>{
     describe("promptSaveScore",()=>{
         it("should be a function",()=>{
             expect(typeof promptSaveScore).toBe("function");
+        });
+    });
+    describe("session scoring",()=>{
+        beforeEach(()=>{
+            vi.clearAllMocks();
+        });
+        it("should increment correct count on correct answer",async()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setSessionScore({correct:0,total:0});
+            state.setUnlimitedMode(true);
+            await handleMentalAnswer("42");
+            expect(state.setSessionScore).toHaveBeenLastCalledWith({correct:1,total:1});
+        });
+        it("should increment total count on any answer",async()=>{
+            vi.mocked(settings.checkAnswerFast).mockResolvedValueOnce(false);
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setSessionScore({correct:2,total:3});
+            state.setUnlimitedMode(true);
+            await handleMentalAnswer("wrong");
+            expect(state.setSessionScore).toHaveBeenLastCalledWith({correct:2,total:4});
+        });
+        it("should calculate accuracy percentage",()=>{
+            state.setSessionScore({correct:3,total:5});
+            let accuracy=(state.sessionScore.correct/state.sessionScore.total)*100;
+            expect(accuracy).toBe(60);
+        });
+        it("should handle zero correct answers",()=>{
+            state.setSessionScore({correct:0,total:5});
+            let accuracy=(state.sessionScore.correct/state.sessionScore.total)*100;
+            expect(accuracy).toBe(0);
+        });
+        it("should handle perfect score",()=>{
+            state.setSessionScore({correct:5,total:5});
+            let accuracy=(state.sessionScore.correct/state.sessionScore.total)*100;
+            expect(accuracy).toBe(100);
+        });
+        it("should handle mixed correct and incorrect",async()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setSessionScore({correct:1,total:2});
+            state.setUnlimitedMode(true);
+            await handleMentalAnswer("42");
+            expect(state.setSessionScore).toHaveBeenLastCalledWith({correct:2,total:3});
+        });
+    });
+    describe("session timer",()=>{
+        beforeEach(()=>{
+            vi.clearAllMocks();
+            vi.useFakeTimers();
+        });
+        afterEach(()=>{
+            vi.useRealTimers();
+        });
+        it("should count down from initial time",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setUnlimitedMode(false);
+            state.setTimeLeft(30);
+            startTimer();
+            vi.advanceTimersByTime(1000);
+            expect(state.setTimeLeft).toHaveBeenCalledWith(29);
+        });
+        it("should stop at zero",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setUnlimitedMode(false);
+            state.setTimeLeft(1);
+            startTimer();
+            vi.advanceTimersByTime(1000);
+            expect(state.setTimeLeft).toHaveBeenCalledWith(0);
+        });
+        it("should not go below zero",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setUnlimitedMode(false);
+            state.setTimeLeft(1);
+            startTimer();
+            vi.advanceTimersByTime(2000);
+            let calls=state.setTimeLeft.mock.calls.map((c: number[])=>c[0]);
+            let belowZero=calls.some((v: number)=>v<0);
+            expect(belowZero).toBe(false);
+        });
+        it("should handle unlimited mode",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setUnlimitedMode(true);
+            startTimer();
+            expect(state.setSessionTimer).not.toHaveBeenCalled();
+        });
+        it("should pause timer correctly",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(true);
+            state.setUnlimitedMode(false);
+            state.setTimeLeft(30);
+            startTimer();
+            vi.advanceTimersByTime(2000);
+            expect(state.setTimeLeft).not.toHaveBeenCalledWith(29);
+        });
+        it("should resume timer correctly",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(true);
+            state.setUnlimitedMode(false);
+            state.setTimeLeft(30);
+            startTimer();
+            state.setSessionPaused(false);
+            vi.advanceTimersByTime(1000);
+            expect(state.setTimeLeft).toHaveBeenCalled();
+        });
+    });
+    describe("session snapshot",()=>{
+        beforeEach(()=>{
+            vi.clearAllMocks();
+        });
+        it("should save topic to snapshot",()=>{
+            state.setSessionActive(true);
+            state.setSelectedTopic("subtract");
+            let setItemSpy=vi.spyOn(Storage.prototype,"setItem");
+            saveSessionSnapshot();
+            let savedCall=setItemSpy.mock.calls.find((c: string[])=>c[0]==="mentalSessionSnapshot");
+            expect(savedCall).toBeDefined();
+            let parsed=JSON.parse(savedCall![1]);
+            expect(parsed.selectedTopic).toBe("subtract");
+            setItemSpy.mockRestore();
+        });
+        it("should save score to snapshot",()=>{
+            state.setSessionActive(true);
+            state.setSessionScore({correct:3,total:7});
+            let setItemSpy=vi.spyOn(Storage.prototype,"setItem");
+            saveSessionSnapshot();
+            let savedCall=setItemSpy.mock.calls.find((c: string[])=>c[0]==="mentalSessionSnapshot");
+            expect(savedCall).toBeDefined();
+            let parsed=JSON.parse(savedCall![1]);
+            expect(parsed.sessionScore).toEqual({correct:3,total:7});
+            setItemSpy.mockRestore();
+        });
+        it("should save time remaining to snapshot",()=>{
+            state.setSessionActive(true);
+            state.setTimeLeft(15);
+            let setItemSpy=vi.spyOn(Storage.prototype,"setItem");
+            saveSessionSnapshot();
+            let savedCall=setItemSpy.mock.calls.find((c: string[])=>c[0]==="mentalSessionSnapshot");
+            expect(savedCall).toBeDefined();
+            let parsed=JSON.parse(savedCall![1]);
+            expect(parsed.timeLeft).toBe(15);
+            setItemSpy.mockRestore();
+        });
+        it("should restore topic from snapshot",()=>{
+            let snapshot={
+                sessionScore:{correct:2,total:4},
+                timeLeft:20,
+                maxQuestions:5,
+                currentDifficulty:"hard",
+                mentalShuffle:false,
+                mentalScope:"simple",
+                selectedTopic:"multiply",
+                timestamp:Date.now()
+            };
+            localStorage.setItem("mentalSessionSnapshot",JSON.stringify(snapshot));
+            restoreSessionSnapshot();
+            expect(state.setSelectedTopic).toHaveBeenCalledWith("multiply");
+            localStorage.removeItem("mentalSessionSnapshot");
+        });
+        it("should restore score from snapshot",()=>{
+            let snapshot={
+                sessionScore:{correct:4,total:6},
+                timeLeft:10,
+                maxQuestions:5,
+                currentDifficulty:"easy",
+                mentalShuffle:false,
+                mentalScope:"simple",
+                selectedTopic:"add",
+                timestamp:Date.now()
+            };
+            localStorage.setItem("mentalSessionSnapshot",JSON.stringify(snapshot));
+            restoreSessionSnapshot();
+            expect(state.setSessionScore).toHaveBeenCalledWith({correct:4,total:6});
+            localStorage.removeItem("mentalSessionSnapshot");
+        });
+        it("should handle corrupted snapshot",()=>{
+            localStorage.setItem("mentalSessionSnapshot","not-valid-json{{{");
+            expect(()=>restoreSessionSnapshot()).not.toThrow();
+            localStorage.removeItem("mentalSessionSnapshot");
+        });
+        it("should handle missing snapshot",()=>{
+            localStorage.removeItem("mentalSessionSnapshot");
+            expect(()=>restoreSessionSnapshot()).not.toThrow();
+        });
+        it("should clear snapshot after restore",()=>{
+            let snapshot={
+                sessionScore:{correct:1,total:3},
+                timeLeft:25,
+                maxQuestions:5,
+                currentDifficulty:"medium",
+                mentalShuffle:false,
+                mentalScope:"simple",
+                selectedTopic:"add",
+                timestamp:Date.now()
+            };
+            localStorage.setItem("mentalSessionSnapshot",JSON.stringify(snapshot));
+            restoreSessionSnapshot();
+            let remaining=localStorage.getItem("mentalSessionSnapshot");
+            expect(remaining).toBeNull();
         });
     });
 });
