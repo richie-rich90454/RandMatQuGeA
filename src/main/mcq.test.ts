@@ -244,3 +244,80 @@ describe("generateChoicesForCurrentQuestion - integration",()=>{
         expect(state.setMcqChoices).not.toHaveBeenCalled();
     });
 });
+describe("generateDistractors - boundary conditions",()=>{
+    it("should handle count of 1",()=>{
+        const result=generateDistractors("42",1);
+        expect(result.length).toBe(1);
+        expect(result).toContain("42");
+    });
+    it("should handle count of 0",()=>{
+        const result=generateDistractors("42",0);
+        expect(result.length).toBe(0);
+    });
+    it("should handle negative count",()=>{
+        const result=generateDistractors("42",-1);
+        expect(result.length).toBe(0);
+    });
+    it("should handle very large count",()=>{
+        const result=generateDistractors("42",100);
+        expect(result.length).toBe(100);
+        expect(result).toContain("42");
+    });
+    it("should handle answer of \"0\"",()=>{
+        const result=generateDistractors("0",4);
+        expect(result.length).toBe(4);
+        expect(result).toContain("0");
+    });
+    it("should handle answer of \"1\"",()=>{
+        const result=generateDistractors("1",4);
+        expect(result.length).toBe(4);
+        expect(result).toContain("1");
+    });
+    it("should handle answer of \"-1\"",()=>{
+        const result=generateDistractors("-1",4);
+        expect(result.length).toBe(4);
+        expect(result).toContain("-1");
+    });
+    it("should handle answer with many decimal places",()=>{
+        const result=generateDistractors("3.14159265358979",4);
+        expect(result.length).toBe(4);
+        expect(result).toContain("3.14159265358979");
+    });
+    it("should handle answer in scientific notation",()=>{
+        const result=generateDistractors("1e5",4);
+        expect(result.length).toBe(4);
+        expect(result).toContain("1e5");
+    });
+    it("should handle answer with leading plus sign",()=>{
+        const result=generateDistractors("+5",4);
+        expect(result.length).toBe(4);
+        expect(result).toContain("+5");
+    });
+});
+describe("generateDistractors - string patterns",()=>{
+    it("should handle answer with parentheses",()=>{
+        const result=generateDistractors("(test)",4);
+        expect(result.length).toBe(4);
+        expect(result).toContain("(test)");
+    });
+    it("should handle answer with brackets",()=>{
+        const result=generateDistractors("[1, 2]",4);
+        expect(result.length).toBe(4);
+        expect(result).toContain("[1, 2]");
+    });
+    it("should handle answer with braces",()=>{
+        const result=generateDistractors("{1, 2}",4);
+        expect(result.length).toBe(4);
+        expect(result).toContain("{1, 2}");
+    });
+    it("should handle answer with equals sign",()=>{
+        const result=generateDistractors("x=5",4);
+        expect(result.length).toBe(4);
+        expect(result).toContain("x=5");
+    });
+    it("should handle answer with comma",()=>{
+        const result=generateDistractors("a, b",4);
+        expect(result.length).toBe(4);
+        expect(result).toContain("a, b");
+    });
+});
