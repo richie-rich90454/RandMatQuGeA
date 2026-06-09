@@ -151,7 +151,8 @@ import * as state from './state';
 import * as settings from './settings';
 import * as ui from './ui';
 import * as generation from './generation';
-import { checkAnswer } from './answer';
+import { invoke } from '@tauri-apps/api/core';
+import { checkAnswer, startQuestionTimer } from './answer';
 describe('checkAnswer', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -446,5 +447,178 @@ describe('checkAnswer', () => {
 		window.correctAnswer.correct='12';
 		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('correct');
+	});
+	describe('checkAnswer - numeric edge cases', () => {
+		it('should accept 0 as answer', async () => {
+			dom.userAnswer!.value='0';
+			window.correctAnswer.correct='0';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept negative decimal answer', async () => {
+			dom.userAnswer!.value='-3.14';
+			window.correctAnswer.correct='-3.14';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept scientific notation answer', async () => {
+			dom.userAnswer!.value='1e3';
+			window.correctAnswer.correct='1000';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept answer with leading zeros', async () => {
+			dom.userAnswer!.value='007';
+			window.correctAnswer.correct='7';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept answer with trailing zeros after decimal', async () => {
+			dom.userAnswer!.value='1.00';
+			window.correctAnswer.correct='1';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should reject non-numeric when numeric expected', async () => {
+			dom.userAnswer!.value='abc';
+			window.correctAnswer.correct='42';
+			(settings.isAnswerCorrect as any).mockImplementationOnce(() => false);
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('incorrect');
+		});
+		it('should accept fraction format a/b', async () => {
+			dom.userAnswer!.value='3/4';
+			window.correctAnswer.correct='0.75';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept mixed number format', async () => {
+			dom.userAnswer!.value='1 1/2';
+			window.correctAnswer.correct='1.5';
+			(settings.isAnswerCorrect as any).mockImplementationOnce(() => true);
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept percentage format', async () => {
+			dom.userAnswer!.value='50%';
+			window.correctAnswer.correct='0.5';
+			(settings.isAnswerCorrect as any).mockImplementationOnce(() => true);
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept answer with units stripped', async () => {
+			dom.userAnswer!.value='5cm';
+			window.correctAnswer.correct='5';
+			(settings.isAnswerCorrect as any).mockImplementationOnce(() => true);
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+	});
+	describe('checkAnswer - algebraic edge cases', () => {
+		it('should accept x=5 format', async () => {
+			dom.userAnswer!.value='x=5';
+			window.correctAnswer.correct='x=5';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept 5=x format', async () => {
+			dom.userAnswer!.value='5=x';
+			window.correctAnswer.correct='5=x';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept y=mx+b format', async () => {
+			dom.userAnswer!.value='y=2*x+1';
+			window.correctAnswer.correct='y=2x+1';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept factored form (x+1)(x-1)', async () => {
+			dom.userAnswer!.value='(x+1)(x-1)';
+			window.correctAnswer.correct='x^2-1';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept expanded form x^2-1', async () => {
+			dom.userAnswer!.value='x^2-1';
+			window.correctAnswer.correct='(x+1)(x-1)';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept x^{2} LaTeX format', async () => {
+			dom.userAnswer!.value='x^{2}';
+			window.correctAnswer.correct='x^2';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept answer with spaces around equals', async () => {
+			dom.userAnswer!.value='x = 5';
+			window.correctAnswer.correct='x=5';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept answer with multiple variables', async () => {
+			dom.userAnswer!.value='3y+2x';
+			window.correctAnswer.correct='2x+3y';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept quadratic formula result', async () => {
+			dom.userAnswer!.value='(-b+sqrt(b^2-4*a*c))/(2*a)';
+			window.correctAnswer.correct='(-b+sqrt(b^2-4ac))/(2a)';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+		it('should accept simplified fraction over complex denominator', async () => {
+			dom.userAnswer!.value='1/(sqrt(2))';
+			window.correctAnswer.correct='sqrt(2)/2';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
+	});
+	describe('checkAnswer - timer and performance', () => {
+		it('should record response time', async () => {
+			startQuestionTimer();
+			dom.userAnswer!.value='42';
+			window.correctAnswer.correct='42';
+			await checkAnswer();
+			expect(invoke).toHaveBeenCalledWith('save_performance', expect.objectContaining({
+				responseTimeMs: expect.any(Number),
+			}));
+		});
+		it('should call save_performance on correct answer', async () => {
+			dom.userAnswer!.value='42';
+			window.correctAnswer.correct='42';
+			await checkAnswer();
+			expect(invoke).toHaveBeenCalledWith('save_performance', expect.objectContaining({
+				correct: true,
+			}));
+		});
+		it('should call save_performance on incorrect answer', async () => {
+			dom.userAnswer!.value='42';
+			window.correctAnswer.correct='43';
+			(settings.isAnswerCorrect as any).mockImplementationOnce(() => false);
+			await checkAnswer();
+			expect(invoke).toHaveBeenCalledWith('save_performance', expect.objectContaining({
+				correct: false,
+			}));
+		});
+		it('should include error type on wrong answer', async () => {
+			state.setSelectedTopic('linear_eq');
+			dom.userAnswer!.value='-5';
+			window.correctAnswer.correct='5';
+			(settings.isAnswerCorrect as any).mockImplementationOnce(() => false);
+			await checkAnswer();
+			expect(invoke).toHaveBeenCalledWith('save_performance', expect.objectContaining({
+				errorType: 'sign_error',
+			}));
+		});
+		it('should not throw on performance save failure', async () => {
+			(invoke as any).mockRejectedValueOnce(new Error('save failed'));
+			dom.userAnswer!.value='42';
+			window.correctAnswer.correct='42';
+			await checkAnswer();
+			expect(dom.answerResults!.className).toContain('correct');
+		});
 	});
 });
