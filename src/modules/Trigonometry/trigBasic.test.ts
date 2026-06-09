@@ -47,4 +47,31 @@ describe("generateSin",()=>{
 		generateTangent();
 		expect((window as any).correctAnswer.correct).toBe("\\sec^2\\theta");
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateSin();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+		expect((window as any).correctAnswer.choices).toBeDefined();
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateSin();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateSin("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateSin("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateSin("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
 });

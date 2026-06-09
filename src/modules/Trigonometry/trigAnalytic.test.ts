@@ -52,4 +52,31 @@ describe("generateDegreesToRadians",()=>{
 		expect((window as any).correctAnswer).toBeDefined();
 		expect(["positive","negative"]).toContain((window as any).correctAnswer.correct);
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateDegreesToRadians();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+		expect((window as any).correctAnswer.choices).toBeDefined();
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateDegreesToRadians();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateDegreesToRadians("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateDegreesToRadians("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateDegreesToRadians("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
 });

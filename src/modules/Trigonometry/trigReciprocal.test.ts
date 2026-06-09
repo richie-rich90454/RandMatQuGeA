@@ -49,4 +49,31 @@ describe("generateCosecant",()=>{
 		expect((window as any).correctAnswer).toBeDefined();
 		expect((window as any).correctAnswer.alternate).toContain("tan");
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateCosecant();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+		expect((window as any).correctAnswer.choices).toBeDefined();
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateCosecant();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateCosecant("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateCosecant("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.5);
+		generateCosecant("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
 });
