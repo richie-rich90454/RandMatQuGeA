@@ -54,4 +54,32 @@ describe("generateAreaCircle",()=>{
 		generateAreaCircle();
 		expect((window as any).correctAnswer.choices.length).toBeGreaterThanOrEqual(1);
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateAreaCircle();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+		expect((window as any).correctAnswer.choices).toBeDefined();
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateAreaCircle();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateAreaCircle("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateAreaCircle("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.3);
+		generateAreaCircle("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+	});
 });

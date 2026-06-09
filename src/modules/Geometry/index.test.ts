@@ -16,4 +16,16 @@ describe("Geometry index exports",()=>{
 	it("exports generatePerimeter",()=>{
 		expect(typeof geom.generatePerimeter).toBe("function");
 	});
+	it("exports generateArcLength",()=>{
+		expect(typeof geom.generateArcLength).toBe("function");
+	});
+	it("exports generateEllipse",()=>{
+		expect(typeof geom.generateEllipse).toBe("function");
+	});
+	it("exports generateVolumeCylinder",()=>{
+		expect(typeof geom.generateVolumeCylinder).toBe("function");
+	});
+	it("exports generateSectorArea",()=>{
+		expect(typeof geom.generateSectorArea).toBe("function");
+	});
 });
