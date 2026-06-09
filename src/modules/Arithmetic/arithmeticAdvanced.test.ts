@@ -267,6 +267,70 @@ describe("generateDivisibility",()=>{
         expect((window as any).correctAnswer).toBeDefined();
     });
 });
+describe("generateDivisibility - edge cases",()=>{
+    let mockDiv: HTMLDivElement;
+    let originalMathRandom: ()=>number;
+    beforeEach(()=>{
+        originalMathRandom=Math.random;
+        mockDiv=document.createElement("div");
+        (questionArea as any)=mockDiv;
+        delete (window as any).correctAnswer;
+        delete (window as any).expectedFormat;
+        (window as any).MathJax={typeset:vi.fn()};
+    });
+    afterEach(()=>{
+        Math.random=originalMathRandom;
+        delete (window as any).MathJax;
+    });
+    it("should produce non-empty question HTML",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateDivisibility();
+        expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+    });
+    it("should set correctAnswer with display property",()=>{
+        Math.random=vi.fn().mockReturnValue(0);
+        generateDivisibility();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer.display).toBeDefined();
+        expect(typeof (window as any).correctAnswer.display).toBe("string");
+    });
+    it("should handle divisibility by 2",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0).mockReturnValueOnce(0.5).mockReturnValueOnce(0);
+        generateDivisibility();
+        expect(mockDiv.innerHTML).toContain("divisibility rule for 2");
+        expect((window as any).correctAnswer.correct).toBe("A number is divisible by 2 if its last digit is even.");
+    });
+    it("should handle divisibility by 3",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0).mockReturnValueOnce(0.5).mockReturnValueOnce(0.2);
+        generateDivisibility();
+        expect(mockDiv.innerHTML).toContain("divisibility rule for 3");
+        expect((window as any).correctAnswer.correct).toBe("A number is divisible by 3 if the sum of its digits is divisible by 3.");
+    });
+    it("should handle divisibility by 5",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0).mockReturnValueOnce(0.5).mockReturnValueOnce(0.4);
+        generateDivisibility();
+        expect(mockDiv.innerHTML).toContain("divisibility rule for 5");
+        expect((window as any).correctAnswer.correct).toBe("A number is divisible by 5 if its last digit is 0 or 5.");
+    });
+    it("should handle prime numbers",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0.35).mockReturnValueOnce(0.05);
+        generateDivisibility();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer.correct).toBe("prime");
+    });
+    it("should handle easy difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateDivisibility("easy");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("easy",100);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle hard difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateDivisibility("hard");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("hard",100);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+});
 describe("generateGCFLCM",()=>{
     let mockDiv: HTMLDivElement;
     let originalMathRandom: ()=>number;
