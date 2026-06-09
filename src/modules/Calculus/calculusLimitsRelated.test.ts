@@ -157,3 +157,69 @@ describe("generateRelatedRates",()=>{
 		});
 	});
 });
+describe("generateRelatedRates - edge cases",()=>{
+    let originalMathRandom:()=>number;
+    let mockDiv:HTMLDivElement;
+    beforeEach(()=>{
+        originalMathRandom=Math.random;
+        mockDiv=document.createElement("div");
+        (questionArea as any)=mockDiv;
+        delete(window as any).correctAnswer;
+        delete(window as any).expectedFormat;
+        (window as any).MathJax={typeset:vi.fn()};
+    });
+    afterEach(()=>{
+        Math.random=originalMathRandom;
+        delete(window as any).MathJax;
+    });
+    it("should produce non-empty question HTML",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0.05);
+        generateRelatedRates();
+        expect(mockDiv.innerHTML).not.toBe("");
+    });
+    it("should set correctAnswer with display property",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0.05);
+        generateRelatedRates();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer).toHaveProperty("display");
+    });
+    it("should handle easy difficulty",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0.05);
+        generateRelatedRates("easy");
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer).toHaveProperty("correct");
+    });
+    it("should handle medium difficulty",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0.05);
+        generateRelatedRates("medium");
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer).toHaveProperty("correct");
+    });
+    it("should handle hard difficulty",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0.05);
+        generateRelatedRates("hard");
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer).toHaveProperty("correct");
+    });
+    it("should set expectedFormat",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0.05);
+        generateRelatedRates();
+        expect((window as any).expectedFormat).toBeDefined();
+        expect(typeof (window as any).expectedFormat).toBe("string");
+    });
+    it("should set hasQuestion to true",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0.05);
+        generateRelatedRates();
+        expect((window as any).hasQuestion).toBe(true);
+    });
+    it("should handle repeated calls",()=>{
+        Math.random=vi.fn().mockReturnValueOnce(0.05);
+        generateRelatedRates();
+        let first=(window as any).correctAnswer;
+        Math.random=vi.fn().mockReturnValueOnce(0.15);
+        generateRelatedRates();
+        let second=(window as any).correctAnswer;
+        expect(first).toBeDefined();
+        expect(second).toBeDefined();
+    });
+});
