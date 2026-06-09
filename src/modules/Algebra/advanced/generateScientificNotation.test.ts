@@ -173,3 +173,115 @@ describe("generateScientificNotation",()=>{
 		expect(mockGetMax).toHaveBeenCalledWith("hard", 1000);
 	});
 });
+describe("generateScientificNotation - edge cases",()=>{
+	let originalMathRandom:()=>number;
+	let mockDiv:HTMLDivElement;
+	beforeEach(()=>{
+		originalMathRandom=Math.random;
+		mockDiv=document.createElement("div");
+		(questionArea as any)=mockDiv;
+		delete(window as any).correctAnswer;
+		delete(window as any).expectedFormat;
+		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	});
+	afterEach(()=>{
+		Math.random=originalMathRandom;
+		delete(window as any).MathJax;
+	});
+	it("should produce non-empty question HTML",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateScientificNotation();
+		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	});
+	it("should set correctAnswer with display property",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateScientificNotation();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+		expect(typeof (window as any).correctAnswer.display).toBe("string");
+		expect((window as any).correctAnswer.display.length).toBeGreaterThan(0);
+	});
+	it("should handle easy difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(1000);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0);
+		generateScientificNotation("easy");
+		expect(mockGetMax).toHaveBeenCalledWith("easy",1000);
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(2000);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0);
+		generateScientificNotation("medium");
+		expect(mockGetMax).toHaveBeenCalledWith("medium",1000);
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(5000);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0);
+		generateScientificNotation("hard");
+		expect(mockGetMax).toHaveBeenCalledWith("hard",1000);
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should set expectedFormat",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateScientificNotation();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
+	});
+	it("should handle repeated calls consistently",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateScientificNotation();
+		let first=(window as any).correctAnswer;
+		delete(window as any).correctAnswer;
+		delete(window as any).expectedFormat;
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateScientificNotation();
+		let second=(window as any).correctAnswer;
+		expect(first.correct).toBe(second.correct);
+		expect(first.display).toBe(second.display);
+	});
+	it("should verify correctAnswer structure",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateScientificNotation();
+		let ans=(window as any).correctAnswer;
+		expect(ans).toHaveProperty("correct");
+		expect(ans).toHaveProperty("display");
+		expect(ans).toHaveProperty("choices");
+		expect(Array.isArray(ans.choices)).toBe(true);
+		expect(ans.choices.length).toBeGreaterThanOrEqual(1);
+	});
+});
