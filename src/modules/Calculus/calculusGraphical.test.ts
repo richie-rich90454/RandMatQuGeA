@@ -126,3 +126,96 @@ describe("generateGraphicalCalculus",()=>{
 		expect((window as any).correctAnswer).toHaveProperty("correct");
 	});
 });
+describe("generateGraphicalCalculus - edge cases",()=>{
+	let originalMathRandom:()=>number;
+	let mockDiv:HTMLDivElement;
+	beforeEach(()=>{
+		originalMathRandom=Math.random;
+		mockDiv=document.createElement("div");
+		(questionArea as any)=mockDiv;
+		delete(window as any).correctAnswer;
+		delete(window as any).expectedFormat;
+		(window as any).MathJax={typeset:vi.fn()};
+	});
+	afterEach(()=>{
+		Math.random=originalMathRandom;
+		delete(window as any).MathJax;
+	});
+	it("should produce non-empty question HTML",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.14)
+			.mockReturnValueOnce(0.3);
+		generateGraphicalCalculus();
+		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	});
+	it("should set correctAnswer with display property",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.14)
+			.mockReturnValueOnce(0.3);
+		generateGraphicalCalculus();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+		expect(typeof (window as any).correctAnswer.display).toBe("string");
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.14)
+			.mockReturnValueOnce(0.3);
+		generateGraphicalCalculus("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.14)
+			.mockReturnValueOnce(0.3);
+		generateGraphicalCalculus("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.14)
+			.mockReturnValueOnce(0.3);
+		generateGraphicalCalculus("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
+	it("should set expectedFormat",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.14)
+			.mockReturnValueOnce(0.3);
+		generateGraphicalCalculus();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
+	});
+	it("should handle repeated calls consistently",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.14)
+			.mockReturnValueOnce(0.3);
+		generateGraphicalCalculus();
+		let first=(window as any).correctAnswer;
+		delete(window as any).correctAnswer;
+		delete(window as any).expectedFormat;
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.14)
+			.mockReturnValueOnce(0.3);
+		generateGraphicalCalculus();
+		let second=(window as any).correctAnswer;
+		expect(first.correct).toBe(second.correct);
+		expect(first.display).toBe(second.display);
+	});
+	it("should verify correctAnswer structure",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.14)
+			.mockReturnValueOnce(0.3);
+		generateGraphicalCalculus();
+		let ans=(window as any).correctAnswer;
+		expect(ans).toHaveProperty("correct");
+		expect(ans).toHaveProperty("display");
+		expect(ans).toHaveProperty("choices");
+		expect(Array.isArray(ans.choices)).toBe(true);
+		expect(ans.choices.length).toBeGreaterThanOrEqual(1);
+	});
+});
