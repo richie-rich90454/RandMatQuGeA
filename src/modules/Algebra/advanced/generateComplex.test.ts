@@ -240,3 +240,129 @@ describe("generateComplex", ()=>{
 		expect(mockGetMax).toHaveBeenCalledWith("hard", 5);
 	});
 });
+describe("generateComplex - edge cases", ()=>{
+	let originalMathRandom: ()=>number;
+	let mockDiv: HTMLDivElement;
+	beforeEach(()=>{
+		originalMathRandom=Math.random;
+		mockDiv=document.createElement("div");
+		(questionArea as any)=mockDiv;
+		delete (window as any).correctAnswer;
+		delete (window as any).expectedFormat;
+		(window as any).MathJax={ typeset: vi.fn() };
+	});
+	afterEach(()=>{
+		Math.random=originalMathRandom;
+		delete (window as any).MathJax;
+	});
+	it("should produce non-empty question HTML", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1);
+		generateComplex();
+		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	});
+	it("should set correctAnswer with display property", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1);
+		generateComplex();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+		expect(typeof (window as any).correctAnswer.display).toBe("string");
+	});
+	it("should handle easy difficulty", ()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(5);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1);
+		generateComplex("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+	});
+	it("should handle medium difficulty", ()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(8);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1);
+		generateComplex("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+	});
+	it("should handle hard difficulty", ()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(12);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1);
+		generateComplex("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+	});
+	it("should set expectedFormat", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1);
+		generateComplex();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
+	});
+	it("should handle repeated calls consistently", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1);
+		generateComplex();
+		let first=(window as any).correctAnswer;
+		delete (window as any).correctAnswer;
+		delete (window as any).expectedFormat;
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1);
+		generateComplex();
+		let second=(window as any).correctAnswer;
+		expect(first.correct).toBe(second.correct);
+	});
+	it("should verify correctAnswer structure", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1);
+		generateComplex();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+		expect((window as any).correctAnswer).toHaveProperty("alternate");
+		expect((window as any).correctAnswer).toHaveProperty("display");
+		expect((window as any).correctAnswer).toHaveProperty("choices");
+	});
+});
