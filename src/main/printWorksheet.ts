@@ -311,8 +311,10 @@ export function initPrintModal(): void{
     scopeSelect=document.getElementById("print-scope") as HTMLSelectElement;
     difficultySelect=document.getElementById("print-difficulty") as HTMLSelectElement;
     answerKeyCheckbox=document.getElementById("print-answer-key") as HTMLInputElement;
+    let printBtn=document.getElementById("print-button");
     let generateBtn=document.getElementById("print-generate");
     let closeBtn=document.getElementById("print-close");
+    if (printBtn) printBtn.addEventListener("click", ()=>window.print());
     if (closeBtn) closeBtn.addEventListener("click", ()=>modal?.classList.remove("show"));
     if (generateBtn) generateBtn.addEventListener("click", generateWorksheet);
     scopeSelect?.addEventListener("change", updateTopicDropdown);
