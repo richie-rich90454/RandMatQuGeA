@@ -227,4 +227,106 @@ describe("settings",()=>{
             (window as any).__TAURI__=saved;
         });
     });
+    describe("settings persistence",()=>{
+        it("should persist theme to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({theme:"dark"}));
+            settings.loadSettings();
+            expect(settings.settings.theme).toBe("dark");
+        });
+        it("should persist font to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({font:"opendyslexic"}));
+            settings.loadSettings();
+            expect(settings.settings.font).toBe("opendyslexic");
+        });
+        it("should persist difficulty to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({difficulty:"hard"}));
+            settings.loadSettings();
+            expect(settings.settings.difficulty).toBe("hard");
+        });
+        it("should persist scope to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({scope:"compound"}));
+            settings.loadSettings();
+            expect(settings.settings.scope).toBe("compound");
+        });
+        it("should persist shuffle to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({shuffle:true}));
+            settings.loadSettings();
+            expect(settings.settings.shuffle).toBe(true);
+        });
+        it("should persist mcqMode to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({mcqMode:true}));
+            settings.loadSettings();
+            expect(settings.settings.mcqMode).toBe(true);
+        });
+        it("should persist mcqChoicesCount to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({mcqChoicesCount:6}));
+            settings.loadSettings();
+            expect(settings.settings.mcqChoicesCount).toBe(6);
+        });
+        it("should persist perfMaster to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({perfMaster:true}));
+            settings.loadSettings();
+            expect(settings.settings.perfMaster).toBe(true);
+        });
+        it("should persist perfWave to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({perfWave:false}));
+            settings.loadSettings();
+            expect(settings.settings.perfWave).toBe(false);
+        });
+        it("should persist perfBlur to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({perfBlur:false}));
+            settings.loadSettings();
+            expect(settings.settings.perfBlur).toBe(false);
+        });
+        it("should persist perfPreview to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({perfPreview:false}));
+            settings.loadSettings();
+            expect(settings.settings.perfPreview).toBe(false);
+        });
+        it("should persist perfAnimations to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({perfAnimations:false}));
+            settings.loadSettings();
+            expect(settings.settings.perfAnimations).toBe(false);
+        });
+        it("should persist fpsCap to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({fpsCap:30}));
+            settings.loadSettings();
+            expect(settings.settings.fpsCap).toBe(30);
+        });
+        it("should persist notifications to localStorage",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({notifications:false}));
+            settings.loadSettings();
+            expect(settings.settings.notifications).toBe(false);
+        });
+    });
+    describe("settings edge cases",()=>{
+        it("should handle corrupted localStorage gracefully",()=>{
+            localStorage.setItem("appSettings","{invalid json!!!");
+            expect(()=>settings.loadSettings()).not.toThrow();
+        });
+        it("should handle missing localStorage gracefully",()=>{
+            localStorage.removeItem("appSettings");
+            expect(()=>settings.loadSettings()).not.toThrow();
+        });
+        it("should handle invalid theme value",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({theme:"invalid"}));
+            expect(()=>settings.loadSettings()).not.toThrow();
+            expect(settings.settings.theme).toBe("invalid");
+        });
+        it("should handle invalid difficulty value",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({difficulty:"extreme"}));
+            expect(()=>settings.loadSettings()).not.toThrow();
+            expect(settings.settings.difficulty).toBe("extreme");
+        });
+        it("should handle invalid scope value",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({scope:"unknown"}));
+            expect(()=>settings.loadSettings()).not.toThrow();
+            expect(settings.settings.scope).toBe("unknown");
+        });
+        it("should handle invalid font value",()=>{
+            localStorage.setItem("appSettings",JSON.stringify({font:"nonexistent"}));
+            expect(()=>settings.loadSettings()).not.toThrow();
+            expect(settings.settings.font).toBe("nonexistent");
+        });
+    });
 });
