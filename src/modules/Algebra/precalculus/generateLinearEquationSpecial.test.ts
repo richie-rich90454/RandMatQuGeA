@@ -58,4 +58,44 @@ describe("generateLinearEquationSpecial", ()=>{
 			display: "contradiction"
 		});
 	});
+	it("should set window.correctAnswer", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6);
+		generateLinearEquationSpecial();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should set window.expectedFormat", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6);
+		generateLinearEquationSpecial();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6);
+		generateLinearEquationSpecial("easy");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle medium difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6);
+		generateLinearEquationSpecial("medium");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle hard difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6);
+		generateLinearEquationSpecial("hard");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
 });

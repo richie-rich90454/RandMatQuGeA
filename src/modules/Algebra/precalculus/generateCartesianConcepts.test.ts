@@ -90,4 +90,46 @@ describe("generateCartesianConcepts", ()=>{
 		generateCartesianConcepts("hard");
 		expect(mockGetMax).toHaveBeenCalledWith("hard",10);
 	});
+	it("should set window.correctAnswer", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.8);
+		generateCartesianConcepts();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should set window.expectedFormat", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.25)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.2)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.4);
+		generateCartesianConcepts();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.8);
+		generateCartesianConcepts("easy");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle medium difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.8);
+		generateCartesianConcepts("medium");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle hard difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.8);
+		generateCartesianConcepts("hard");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
 });

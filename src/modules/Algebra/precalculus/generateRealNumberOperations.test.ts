@@ -79,4 +79,41 @@ describe("generateRealNumberOperations", ()=>{
 			display: "all x such that 4 < x < 12"
 		});
 	});
+	it("should set window.correctAnswer", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3);
+		generateRealNumberOperations();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should set window.expectedFormat", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		generateRealNumberOperations();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3);
+		generateRealNumberOperations("easy");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle medium difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3);
+		generateRealNumberOperations("medium");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle hard difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3);
+		generateRealNumberOperations("hard");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
 });

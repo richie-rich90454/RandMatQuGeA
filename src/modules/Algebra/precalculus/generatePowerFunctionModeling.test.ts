@@ -67,4 +67,49 @@ describe("generatePowerFunctionModeling", ()=>{
 		expect(mockDiv.innerHTML).toContain("rd power");
 		expect((window as any).expectedFormat).toBe("Enter a number");
 	});
+	it("should set window.correctAnswer", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5);
+		generatePowerFunctionModeling();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should set window.expectedFormat", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5);
+		generatePowerFunctionModeling();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5);
+		generatePowerFunctionModeling("easy");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle medium difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5);
+		generatePowerFunctionModeling("medium");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle hard difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5);
+		generatePowerFunctionModeling("hard");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
 });

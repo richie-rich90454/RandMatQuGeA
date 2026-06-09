@@ -67,4 +67,49 @@ describe("generateTransformations", ()=>{
 			display: "y = 1|x|"
 		});
 	});
+	it("should set window.correctAnswer", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		generateTransformations();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should set window.expectedFormat", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		generateTransformations();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		generateTransformations("easy");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle medium difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		generateTransformations("medium");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle hard difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		generateTransformations("hard");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
 });

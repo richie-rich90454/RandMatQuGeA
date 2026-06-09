@@ -72,4 +72,54 @@ describe("generateLogisticFunctions", ()=>{
 		expect(mockDiv.innerHTML).toContain("Evaluate");
 		expect((window as any).expectedFormat).toBe("Enter decimal");
 	});
+	it("should set window.correctAnswer", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.5);
+		generateLogisticFunctions();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should set window.expectedFormat", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.7)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.5);
+		generateLogisticFunctions();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.5);
+		generateLogisticFunctions("easy");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle medium difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.5);
+		generateLogisticFunctions("medium");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle hard difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.5);
+		generateLogisticFunctions("hard");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
 });

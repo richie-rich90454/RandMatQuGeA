@@ -70,4 +70,44 @@ describe("generateInverseFunctions", ()=>{
 			display: "no"
 		});
 	});
+	it("should set window.correctAnswer", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6);
+		generateInverseFunctions();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should set window.expectedFormat", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6);
+		generateInverseFunctions();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6);
+		generateInverseFunctions("easy");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle medium difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6);
+		generateInverseFunctions("medium");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle hard difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6);
+		generateInverseFunctions("hard");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
 });

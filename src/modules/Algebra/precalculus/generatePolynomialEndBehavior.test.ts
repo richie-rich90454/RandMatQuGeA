@@ -74,4 +74,54 @@ describe("generatePolynomialEndBehavior", ()=>{
 			display: "yes"
 		});
 	});
+	it("should set window.correctAnswer", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.4);
+		generatePolynomialEndBehavior();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should set window.expectedFormat", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.4);
+		generatePolynomialEndBehavior();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.4);
+		generatePolynomialEndBehavior("easy");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle medium difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.4);
+		generatePolynomialEndBehavior("medium");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle hard difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.4);
+		generatePolynomialEndBehavior("hard");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
 });

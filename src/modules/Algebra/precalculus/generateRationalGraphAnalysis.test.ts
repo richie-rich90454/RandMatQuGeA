@@ -72,4 +72,49 @@ describe("generateRationalGraphAnalysis", ()=>{
 			display: "x = 2"
 		});
 	});
+	it("should set window.correctAnswer", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		generateRationalGraphAnalysis();
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should set window.expectedFormat", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		generateRationalGraphAnalysis();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle easy difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		generateRationalGraphAnalysis("easy");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle medium difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		generateRationalGraphAnalysis("medium");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
+	it("should handle hard difficulty", ()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		generateRationalGraphAnalysis("hard");
+		expect(mockDiv.innerHTML).not.toBe("");
+	});
 });
