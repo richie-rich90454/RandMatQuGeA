@@ -1,7 +1,21 @@
-import {describe,it,expect,vi} from "vitest";
-vi.mock("../../script.js",()=>({}));
+/**
+ * @vitest-environment jsdom
+ */
+import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {questionArea} from "../../script.js";
 import {getRangeForDifficulty,getMaxForDifficulty,gcd,isPrime,generateAddition,generateSubtraction,generateMultiplication,generateDivision,generateWholeNumberPlaceValue,generateNumberLineOrdering,generateDivisibility,generateGCFLCM} from "./index.js";
+vi.mock("../../script.js",()=>({
+    questionArea: null as HTMLElement|null
+}));
 describe("barrel exports",()=>{
+    let originalMathRandom: ()=>number;
+    beforeEach(()=>{
+        originalMathRandom=Math.random;
+    });
+    afterEach(()=>{
+        Math.random=originalMathRandom;
+        delete (window as any).MathJax;
+    });
     it("exports getRangeForDifficulty",()=>{
         expect(typeof getRangeForDifficulty).toBe("function");
     });
@@ -53,5 +67,57 @@ describe("barrel exports",()=>{
     it("isPrime works",()=>{
         expect(isPrime(7)).toBe(true);
         expect(isPrime(4)).toBe(false);
+    });
+    it("should set window.correctAnswer",()=>{
+        let mockDiv=document.createElement("div");
+        (questionArea as any)=mockDiv;
+        delete (window as any).correctAnswer;
+        delete (window as any).expectedFormat;
+        (window as any).MathJax={typeset:vi.fn()};
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateAddition();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer.correct).toBeDefined();
+        expect((window as any).correctAnswer.choices).toBeDefined();
+    });
+    it("should set window.expectedFormat",()=>{
+        let mockDiv=document.createElement("div");
+        (questionArea as any)=mockDiv;
+        delete (window as any).correctAnswer;
+        delete (window as any).expectedFormat;
+        (window as any).MathJax={typeset:vi.fn()};
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateAddition();
+        expect((window as any).expectedFormat).toBe("Enter a number (up to 3 decimals)");
+    });
+    it("should handle easy difficulty",()=>{
+        let mockDiv=document.createElement("div");
+        (questionArea as any)=mockDiv;
+        delete (window as any).correctAnswer;
+        delete (window as any).expectedFormat;
+        (window as any).MathJax={typeset:vi.fn()};
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateAddition("easy");
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle medium difficulty",()=>{
+        let mockDiv=document.createElement("div");
+        (questionArea as any)=mockDiv;
+        delete (window as any).correctAnswer;
+        delete (window as any).expectedFormat;
+        (window as any).MathJax={typeset:vi.fn()};
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateAddition("medium");
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle hard difficulty",()=>{
+        let mockDiv=document.createElement("div");
+        (questionArea as any)=mockDiv;
+        delete (window as any).correctAnswer;
+        delete (window as any).expectedFormat;
+        (window as any).MathJax={typeset:vi.fn()};
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateAddition("hard");
+        expect((window as any).correctAnswer).toBeDefined();
     });
 });

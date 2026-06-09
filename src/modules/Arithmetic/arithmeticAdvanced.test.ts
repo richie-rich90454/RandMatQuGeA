@@ -74,6 +74,39 @@ describe("generateWholeNumberPlaceValue",()=>{
         generateWholeNumberPlaceValue();
         expect((window as any).MathJax).toBeUndefined();
     });
+    it("should set window.correctAnswer",()=>{
+        Math.random=vi.fn().mockReturnValue(0);
+        generateWholeNumberPlaceValue();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer.correct).toBeDefined();
+        expect((window as any).correctAnswer.alternate).toBeDefined();
+        expect((window as any).correctAnswer.display).toBeDefined();
+        expect((window as any).correctAnswer.choices).toBeDefined();
+    });
+    it("should set window.expectedFormat",()=>{
+        Math.random=vi.fn().mockReturnValue(0);
+        generateWholeNumberPlaceValue();
+        expect((window as any).expectedFormat).toBeDefined();
+        expect(typeof (window as any).expectedFormat).toBe("string");
+    });
+    it("should handle easy difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateWholeNumberPlaceValue("easy");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("easy",9999);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle medium difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateWholeNumberPlaceValue("medium");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("medium",9999);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle hard difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateWholeNumberPlaceValue("hard");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("hard",9999);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
 });
 describe("generateNumberLineOrdering",()=>{
     let mockDiv: HTMLDivElement;
@@ -113,6 +146,38 @@ describe("generateNumberLineOrdering",()=>{
         Math.random=vi.fn().mockReturnValue(0.5);
         generateNumberLineOrdering("easy");
         expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("easy",20);
+    });
+    it("should set window.correctAnswer",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateNumberLineOrdering();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer.correct).toBeDefined();
+        expect((window as any).correctAnswer.alternate).toBeDefined();
+        expect((window as any).correctAnswer.display).toBeDefined();
+        expect((window as any).correctAnswer.choices).toBeDefined();
+    });
+    it("should set window.expectedFormat",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateNumberLineOrdering();
+        expect((window as any).expectedFormat).toBe("Enter numbers separated by commas, e.g., -3, 0, 5, 7");
+    });
+    it("should handle easy difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateNumberLineOrdering("easy");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("easy",20);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle medium difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateNumberLineOrdering("medium");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("medium",20);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle hard difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateNumberLineOrdering("hard");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("hard",20);
+        expect((window as any).correctAnswer).toBeDefined();
     });
 });
 describe("generateDivisibility",()=>{
@@ -168,6 +233,39 @@ describe("generateDivisibility",()=>{
         generateDivisibility("medium");
         expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("medium",100);
     });
+    it("should set window.correctAnswer",()=>{
+        Math.random=vi.fn().mockReturnValue(0);
+        generateDivisibility();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer.correct).toBeDefined();
+        expect((window as any).correctAnswer.alternate).toBeDefined();
+        expect((window as any).correctAnswer.display).toBeDefined();
+        expect((window as any).correctAnswer.choices).toBeDefined();
+    });
+    it("should set window.expectedFormat",()=>{
+        Math.random=vi.fn().mockReturnValue(0);
+        generateDivisibility();
+        expect((window as any).expectedFormat).toBeDefined();
+        expect(typeof (window as any).expectedFormat).toBe("string");
+    });
+    it("should handle easy difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateDivisibility("easy");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("easy",100);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle medium difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateDivisibility("medium");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("medium",100);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle hard difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateDivisibility("hard");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("hard",100);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
 });
 describe("generateGCFLCM",()=>{
     let mockDiv: HTMLDivElement;
@@ -214,5 +312,37 @@ describe("generateGCFLCM",()=>{
         Math.random=vi.fn().mockReturnValue(0.5);
         generateGCFLCM("hard");
         expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("hard",30);
+    });
+    it("should set window.correctAnswer",()=>{
+        Math.random=vi.fn().mockReturnValue(0);
+        generateGCFLCM();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer.correct).toBeDefined();
+        expect((window as any).correctAnswer.alternate).toBeDefined();
+        expect((window as any).correctAnswer.display).toBeDefined();
+        expect((window as any).correctAnswer.choices).toBeDefined();
+    });
+    it("should set window.expectedFormat",()=>{
+        Math.random=vi.fn().mockReturnValue(0);
+        generateGCFLCM();
+        expect((window as any).expectedFormat).toBe("Enter a number");
+    });
+    it("should handle easy difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateGCFLCM("easy");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("easy",30);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle medium difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateGCFLCM("medium");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("medium",30);
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle hard difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateGCFLCM("hard");
+        expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("hard",30);
+        expect((window as any).correctAnswer).toBeDefined();
     });
 });
