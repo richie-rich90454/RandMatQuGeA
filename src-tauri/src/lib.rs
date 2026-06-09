@@ -496,4 +496,318 @@ mod tests {
         assert_eq!(Difficulty::Medium.as_str(), "medium");
         assert_eq!(Difficulty::Hard.as_str(), "hard");
     }
+    #[test]
+    fn should_create_score_entry_with_correct_fields() {
+        let entry = ScoreEntry {
+            id: 1,
+            topic: "algebra".to_string(),
+            score: 8,
+            total: 10,
+            difficulty: "easy".to_string(),
+            date: "2025-01-01".to_string(),
+        };
+        assert_eq!(entry.id, 1);
+        assert_eq!(entry.topic, "algebra");
+        assert_eq!(entry.score, 8);
+        assert_eq!(entry.total, 10);
+        assert_eq!(entry.difficulty, "easy");
+        assert_eq!(entry.date, "2025-01-01");
+    }
+    #[test]
+    fn should_create_new_score_entry_with_correct_fields() {
+        let entry = NewScoreEntry {
+            topic: "calculus".to_string(),
+            score: 5,
+            total: 7,
+            difficulty: "hard".to_string(),
+            date: "2025-06-15".to_string(),
+        };
+        assert_eq!(entry.topic, "calculus");
+        assert_eq!(entry.score, 5);
+        assert_eq!(entry.total, 7);
+        assert_eq!(entry.difficulty, "hard");
+        assert_eq!(entry.date, "2025-06-15");
+    }
+    #[test]
+    fn should_serialize_score_entry_to_json() {
+        let entry = ScoreEntry {
+            id: 42,
+            topic: "geometry".to_string(),
+            score: 3,
+            total: 5,
+            difficulty: "medium".to_string(),
+            date: "2025-03-20".to_string(),
+        };
+        let json = serde_json::to_string(&entry).unwrap();
+        assert!(json.contains("\"id\":42"));
+        assert!(json.contains("\"topic\":\"geometry\""));
+        assert!(json.contains("\"score\":3"));
+        assert!(json.contains("\"total\":5"));
+        assert!(json.contains("\"difficulty\":\"medium\""));
+        assert!(json.contains("\"date\":\"2025-03-20\""));
+    }
+    #[test]
+    fn should_deserialize_score_entry_from_json() {
+        let json = r#"{"id":7,"topic":"trigonometry","score":9,"total":10,"difficulty":"easy","date":"2025-07-04"}"#;
+        let entry: ScoreEntry = serde_json::from_str(json).unwrap();
+        assert_eq!(entry.id, 7);
+        assert_eq!(entry.topic, "trigonometry");
+        assert_eq!(entry.score, 9);
+        assert_eq!(entry.total, 10);
+        assert_eq!(entry.difficulty, "easy");
+        assert_eq!(entry.date, "2025-07-04");
+    }
+    #[tokio::test]
+    async fn should_create_db_state_with_default_pool() {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        let _state = DbState { pool: pool.clone() };
+        let row: (i64,) = sqlx::query_as("SELECT 1")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(row.0, 1);
+    }
+    #[test]
+    fn should_handle_check_math_with_identical_expressions() {
+        assert!(check_math("x^2+1".to_string(), "x^2+1".to_string()));
+    }
+    #[test]
+    fn should_handle_check_math_with_different_expressions() {
+        assert!(!check_math("x^2+1".to_string(), "x^2+2".to_string()));
+    }
+    #[test]
+    fn should_handle_check_math_with_empty_strings() {
+        assert!(check_math("".to_string(), "".to_string()));
+    }
+    #[test]
+    fn should_handle_check_math_with_whitespace() {
+        assert!(check_math(" x + 1 ".to_string(), "x+1".to_string()));
+    }
+    #[test]
+    fn should_handle_check_math_with_numeric_strings() {
+        assert!(check_math("3.14".to_string(), "3.14".to_string()));
+        assert!(!check_math("3.14".to_string(), "2.71".to_string()));
+    }
+    #[tokio::test]
+    async fn should_handle_save_score_entry_creation() {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        sqlx::query(
+            "CREATE TABLE scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                topic TEXT,
+                score INTEGER,
+                total INTEGER,
+                difficulty TEXT,
+                date TEXT
+            )",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        let entry = NewScoreEntry {
+            topic: "algebra".to_string(),
+            score: 7,
+            total: 10,
+            difficulty: "easy".to_string(),
+            date: "2025-01-01".to_string(),
+        };
+        sqlx::query(
+            "INSERT INTO scores (topic, score, total, difficulty, date) VALUES (?, ?, ?, ?, ?)",
+        )
+        .bind(&entry.topic)
+        .bind(entry.score)
+        .bind(entry.total)
+        .bind(&entry.difficulty)
+        .bind(&entry.date)
+        .execute(&pool)
+        .await
+        .unwrap();
+        let row: (String, i32, i32, String, String) = sqlx::query_as(
+            "SELECT topic, score, total, difficulty, date FROM scores WHERE topic = ?",
+        )
+        .bind("algebra")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+        assert_eq!(row.0, "algebra");
+        assert_eq!(row.1, 7);
+        assert_eq!(row.2, 10);
+        assert_eq!(row.3, "easy");
+        assert_eq!(row.4, "2025-01-01");
+    }
+    #[tokio::test]
+    async fn should_handle_load_scores_returning_empty() {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        sqlx::query(
+            "CREATE TABLE scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                topic TEXT,
+                score INTEGER,
+                total INTEGER,
+                difficulty TEXT,
+                date TEXT
+            )",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        let rows: Vec<ScoreEntry> = sqlx::query_as::<_, ScoreEntry>(
+            "SELECT id, topic, score, total, difficulty, date FROM scores ORDER BY date DESC",
+        )
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+        assert!(rows.is_empty());
+    }
+    #[tokio::test]
+    async fn should_handle_delete_score_with_valid_id() {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        sqlx::query(
+            "CREATE TABLE scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                topic TEXT,
+                score INTEGER,
+                total INTEGER,
+                difficulty TEXT,
+                date TEXT
+            )",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        sqlx::query(
+            "INSERT INTO scores (topic, score, total, difficulty, date) VALUES (?, ?, ?, ?, ?)",
+        )
+        .bind("geometry")
+        .bind(5)
+        .bind(10)
+        .bind("medium")
+        .bind("2025-02-01")
+        .execute(&pool)
+        .await
+        .unwrap();
+        let count_before: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM scores")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(count_before.0, 1);
+        sqlx::query("DELETE FROM scores WHERE id = ?")
+            .bind(1)
+            .execute(&pool)
+            .await
+            .unwrap();
+        let count_after: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM scores")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(count_after.0, 0);
+    }
+    #[tokio::test]
+    async fn should_handle_reset_all_data_clearing_tables() {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        sqlx::query(
+            "CREATE TABLE user_topic_stats (
+                topic_id TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                PRIMARY KEY (topic_id, difficulty)
+            )",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        sqlx::query(
+            "CREATE TABLE scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                topic TEXT,
+                score INTEGER,
+                total INTEGER,
+                difficulty TEXT,
+                date TEXT
+            )",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        sqlx::query("INSERT INTO user_topic_stats (topic_id, difficulty) VALUES (?, ?)")
+            .bind("algebra")
+            .bind("easy")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO scores (topic, score, total, difficulty, date) VALUES (?, ?, ?, ?, ?)")
+            .bind("calculus")
+            .bind(3)
+            .bind(5)
+            .bind("hard")
+            .bind("2025-01-01")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("DELETE FROM user_topic_stats")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("DELETE FROM scores")
+            .execute(&pool)
+            .await
+            .unwrap();
+        let stats_count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM user_topic_stats")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        let scores_count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM scores")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(stats_count.0, 0);
+        assert_eq!(scores_count.0, 0);
+    }
+    #[tokio::test]
+    async fn should_handle_get_performance_stats_with_null_params() {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        sqlx::query(
+            "CREATE TABLE user_topic_stats (
+                topic_id TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                attempts INTEGER DEFAULT 0,
+                correct INTEGER DEFAULT 0,
+                total_response_time_ms INTEGER DEFAULT 0,
+                last_error_type TEXT,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (topic_id, difficulty)
+            )",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        sqlx::query("INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms) VALUES (?, ?, ?, ?, ?)")
+            .bind("algebra")
+            .bind("easy")
+            .bind(10)
+            .bind(8)
+            .bind(500i64)
+            .execute(&pool)
+            .await
+            .unwrap();
+        let mut builder = sqlx::QueryBuilder::new(
+            "SELECT topic_id, difficulty,
+                SUM(attempts) as total_attempts,
+                SUM(correct) as total_correct,
+                CAST(SUM(correct) AS REAL) / SUM(attempts) as accuracy,
+                AVG(total_response_time_ms) as avg_response_time
+             FROM user_topic_stats
+             WHERE 1=1",
+        );
+        builder.push(" GROUP BY topic_id, difficulty ORDER BY accuracy ASC");
+        let results = builder
+            .build_query_as::<(String, String, i64, i64, f64, f64)>()
+            .fetch_all(&pool)
+            .await
+            .unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].0, "algebra");
+        assert_eq!(results[0].1, "easy");
+        assert_eq!(results[0].2, 10);
+        assert_eq!(results[0].3, 8);
+    }
 }
