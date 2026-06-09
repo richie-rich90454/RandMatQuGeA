@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import{describe,it,expect,vi}from"vitest";
+import{describe,it,expect,vi,beforeEach}from"vitest";
 vi.mock("@tauri-apps/plugin-updater",()=>({
     check:vi.fn(),
 }));
@@ -185,6 +185,9 @@ import * as state from "./state.js";
 import * as dom from "./dom.js";
 import * as session from "./session.js";
 import{gt as semverGt}from"semver";
+import*as generation from"./generation.js";
+import*as answer from"./answer.js";
+import*as ui from"./ui.js";
 describe("events",()=>{
     it("should export switchToSingle",()=>{
         expect(typeof switchToSingle).toBe("function");
@@ -300,5 +303,86 @@ describe("isVersionGreater",()=>{
     it("should return false for older version",()=>{
         (semverGt as any).mockReturnValueOnce(false);
         expect(isVersionGreater("1.0.0","2.0.0")).toBe(false);
+    });
+});
+describe("keyboard shortcuts",()=>{
+    let keyupHandler:any;
+    let mathKeydownHandler:any;
+    let ctrlKeydownHandler:any;
+    let escapeKeydownHandler:any;
+    beforeEach(()=>{
+        vi.clearAllMocks();
+        let docAddSpy=vi.spyOn(document,"addEventListener");
+        setupEventListeners();
+        let userAnswerCalls=(dom.userAnswer.addEventListener as any).mock.calls;
+        let keyupCall=userAnswerCalls.find((c:any[])=>c[0]==="keyup");
+        keyupHandler=keyupCall?keyupCall[1]:null;
+        let keydownCall=userAnswerCalls.find((c:any[])=>c[0]==="keydown");
+        mathKeydownHandler=keydownCall?keydownCall[1]:null;
+        let docKeydownCalls=docAddSpy.mock.calls.filter((c:any[])=>c[0]==="keydown");
+        ctrlKeydownHandler=docKeydownCalls.length>0?docKeydownCalls[0][1]:null;
+        escapeKeydownHandler=docKeydownCalls.length>1?docKeydownCalls[1][1]:null;
+        docAddSpy.mockRestore();
+    });
+    it("should handle Enter key in answer box",()=>{
+        expect(keyupHandler).toBeDefined();
+        let mockEvent={shiftKey:true,key:"Enter",preventDefault:vi.fn(),ctrlKey:false,metaKey:false};
+        keyupHandler(mockEvent);
+        expect(answer.checkAnswer).toHaveBeenCalled();
+    });
+    it("should handle Escape key to close modals",()=>{
+        expect(escapeKeydownHandler).toBeDefined();
+        dom.settingsModal.classList.contains.mockReturnValue(true);
+        let mockEvent={key:"Escape",preventDefault:vi.fn()};
+        escapeKeydownHandler(mockEvent);
+        expect(dom.settingsModal.classList.remove).toHaveBeenCalledWith("show");
+    });
+    it("should handle keyboard shortcut for generate",()=>{
+        expect(ctrlKeydownHandler).toBeDefined();
+        let mockEvent={ctrlKey:true,key:"g",preventDefault:vi.fn(),metaKey:false};
+        ctrlKeydownHandler(mockEvent);
+        expect(generation.debounceGenerate).toHaveBeenCalled();
+    });
+    it("should not trigger shortcuts when typing in input",()=>{
+        expect(mathKeydownHandler).toBeDefined();
+        Object.defineProperty(document,"activeElement",{get:()=>dom.userAnswer,configurable:true});
+        let mockEvent={key:"a",preventDefault:vi.fn(),ctrlKey:false,metaKey:false};
+        mathKeydownHandler(mockEvent);
+        expect(ui.insertSymbol).not.toHaveBeenCalled();
+        Object.defineProperty(document,"activeElement",{get:()=>document.body,configurable:true});
+    });
+    it("should handle Tab key navigation",()=>{
+        expect(mathKeydownHandler).toBeDefined();
+        Object.defineProperty(document,"activeElement",{get:()=>dom.userAnswer,configurable:true});
+        let mockEvent={key:"Tab",preventDefault:vi.fn(),ctrlKey:false,metaKey:false};
+        mathKeydownHandler(mockEvent);
+        expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+        expect(ui.insertSymbol).not.toHaveBeenCalled();
+        Object.defineProperty(document,"activeElement",{get:()=>document.body,configurable:true});
+    });
+});
+describe("isVersionGreater - edge cases",()=>{
+    it("should handle pre-release versions",()=>{
+        (semverGt as any).mockReturnValueOnce(true);
+        expect(isVersionGreater("2.0.0-alpha","1.0.0")).toBe(true);
+        expect(semverGt).toHaveBeenCalledWith("2.0.0-alpha","1.0.0");
+    });
+    it("should handle build metadata",()=>{
+        (semverGt as any).mockReturnValueOnce(true);
+        expect(isVersionGreater("2.0.0+build.123","1.0.0")).toBe(true);
+        expect(semverGt).toHaveBeenCalledWith("2.0.0+build.123","1.0.0");
+    });
+    it("should handle single digit versions",()=>{
+        (semverGt as any).mockReturnValueOnce(true);
+        expect(isVersionGreater("2","1")).toBe(true);
+        expect(semverGt).toHaveBeenCalledWith("2","1");
+    });
+    it("should handle very long version strings",()=>{
+        (semverGt as any).mockReturnValueOnce(false);
+        let longVer="1.0."+("0".repeat(1000));
+        expect(()=>isVersionGreater(longVer,"1.0.0")).not.toThrow();
+    });
+    it("should handle null inputs gracefully",()=>{
+        expect(()=>isVersionGreater(null as any,"1.0.0")).toThrow();
     });
 });

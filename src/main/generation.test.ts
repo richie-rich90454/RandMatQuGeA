@@ -65,6 +65,8 @@ import{generateChoicesForCurrentQuestion as generateChoicesMock}from"./mcq.js";
 import{showNotification,updateUIState}from"./ui.js";
 import{startQuestionTimer as startTimerMock}from"./answer.js";
 import{pickRandomTopic as pickRandomTopicMock}from"./topics.js";
+import*as dom from"./dom.js";
+import*as settings from"./settings.js";
 describe("generation",()=>{
     it("should export debounceGenerate",()=>{
         expect(typeof debounceGenerate).toBe("function");
@@ -202,5 +204,84 @@ describe("practiceWeakAreas",()=>{
         state.setSelectedTopic("add");
         await practiceWeakAreas();
         expect(callGeneratorMock).toHaveBeenCalled();
+    });
+});
+describe("generateQuestion - edge cases",()=>{
+    beforeEach(()=>{
+        state.setSelectedTopic(null);
+        state.setCurrentDifficulty("medium");
+        state.setMcqMode(false);
+        state.setShuffle(false);
+        (settings as any).settings.adaptive=false;
+        (window as any).hasQuestion=false;
+        callGeneratorMock.mockReset();
+        vi.clearAllMocks();
+    });
+    it("should handle null topic gracefully",async()=>{
+        state.setSelectedTopic(null);
+        await generateQuestion();
+        expect(callGeneratorMock).not.toHaveBeenCalled();
+    });
+    it("should handle empty string topic",async()=>{
+        state.setSelectedTopic("");
+        await generateQuestion();
+        expect(showNotification).toHaveBeenCalledWith("Please select a topic first","warning");
+    });
+    it("should handle unknown topic id",async()=>{
+        state.setSelectedTopic("unknown_topic_xyz");
+        await generateQuestion();
+        expect(callGeneratorMock).toHaveBeenCalledWith("unknown_topic_xyz","medium");
+    });
+    it("should generate for every difficulty level",async()=>{
+        let difficulties=["easy","medium","hard"];
+        state.setSelectedTopic("add");
+        for(let i=0;i<difficulties.length;i++){
+            state.setCurrentDifficulty(difficulties[i]);
+            callGeneratorMock.mockClear();
+            await generateQuestion();
+            expect(callGeneratorMock).toHaveBeenCalledWith("add",difficulties[i]);
+        }
+    });
+    it("should update expected format display",async()=>{
+        state.setSelectedTopic("add");
+        (window as any).expectedFormat="decimal";
+        await generateQuestion();
+        expect(dom.expectedFormatDiv.textContent).toBe("Expected format: decimal");
+        delete (window as any).expectedFormat;
+    });
+    it("should clear previous answer state",async()=>{
+        state.setSelectedTopic("add");
+        dom.userAnswer.value="old answer";
+        await generateQuestion();
+        expect(dom.userAnswer.value).toBe("");
+    });
+    it("should set hasQuestion to true",async()=>{
+        state.setSelectedTopic("add");
+        await generateQuestion();
+        expect((window as any).hasQuestion).toBe(true);
+    });
+    it("should handle generator returning empty string",async()=>{
+        state.setSelectedTopic("add");
+        callGeneratorMock.mockReturnValue("");
+        await generateQuestion();
+        expect((window as any).hasQuestion).toBe(true);
+        callGeneratorMock.mockReset();
+    });
+    it("should handle generator throwing error",async()=>{
+        state.setSelectedTopic("add");
+        callGeneratorMock.mockImplementation(()=>{
+            throw new Error("Generator failed");
+        });
+        await generateQuestion();
+        expect((window as any).hasQuestion).toBe(false);
+        expect(updateUIState).toHaveBeenCalled();
+        callGeneratorMock.mockReset();
+    });
+    it("should work with adaptive difficulty",async()=>{
+        state.setSelectedTopic("add");
+        (settings as any).settings.adaptive=true;
+        await generateQuestion();
+        expect(invoke).toHaveBeenCalledWith("get_next_question_recommendation",expect.objectContaining({currentTopic:"add",currentDifficulty:expect.any(String)}));
+        (settings as any).settings.adaptive=false;
     });
 });
