@@ -134,4 +134,64 @@ describe("generateLogarithm",()=>{
 		generateLogarithm();
 		expect((window as any).MathJax).toBeUndefined();
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0.25)
+			.mockReturnValueOnce(0);
+		generateLogarithm();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+		expect((window as any).correctAnswer).toHaveProperty("alternate");
+		expect((window as any).correctAnswer).toHaveProperty("display");
+		expect((window as any).correctAnswer).toHaveProperty("choices");
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0.25)
+			.mockReturnValueOnce(0);
+		generateLogarithm();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
+	});
+	it("should handle easy difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(4);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0);
+		generateLogarithm("easy");
+		expect(mockGetMax).toHaveBeenCalledWith("easy", 4);
+	});
+	it("should handle medium difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(6);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0);
+		generateLogarithm("medium");
+		expect(mockGetMax).toHaveBeenCalledWith("medium", 4);
+	});
+	it("should handle hard difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(10);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.05)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0);
+		generateLogarithm("hard");
+		expect(mockGetMax).toHaveBeenCalledWith("hard", 4);
+	});
 });
