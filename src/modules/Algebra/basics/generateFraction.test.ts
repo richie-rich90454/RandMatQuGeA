@@ -241,3 +241,137 @@ describe("generateFraction",()=>{
 		expect((window as any).correctAnswer).toBeDefined();
 	});
 });
+describe("generateFraction - edge cases",()=>{
+	let originalMathRandom:()=>number;
+	let mockDiv:HTMLDivElement;
+	beforeEach(()=>{
+		originalMathRandom=Math.random;
+		mockDiv=document.createElement("div");
+		(questionArea as any)=mockDiv;
+		delete (window as any).correctAnswer;
+		delete (window as any).expectedFormat;
+		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	});
+	afterEach(()=>{
+		Math.random=originalMathRandom;
+		delete (window as any).MathJax;
+	});
+	it("should produce non-empty question HTML",()=>{
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(1);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateFraction();
+		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	});
+	it("should set correctAnswer with display property",()=>{
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(1);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateFraction();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+		expect(typeof (window as any).correctAnswer.display).toBe("string");
+	});
+	it("should handle fraction with denominator 1",()=>{
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(4);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.09)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0.09)
+			.mockReturnValueOnce(0);
+		generateFraction();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBe("2/1");
+	});
+	it("should handle fraction with numerator 0",()=>{
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(4);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.2)
+			.mockReturnValueOnce(0.09)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0.09)
+			.mockReturnValueOnce(0);
+		generateFraction();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBe("0/1");
+	});
+	it("should handle proper fractions",()=>{
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(1);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0.091)
+			.mockReturnValueOnce(0)
+			.mockReturnValueOnce(0.182);
+		generateFraction();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBe("7/12");
+	});
+	it("should handle improper fractions",()=>{
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(3);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.35)
+			.mockReturnValueOnce(0.091)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.091);
+		generateFraction();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBe("7/3");
+	});
+	it("should handle easy difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(8);
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(1);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateFraction("easy");
+		expect(mockGetMax).toHaveBeenCalledWith("easy",12);
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(20);
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(1);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateFraction("hard");
+		expect(mockGetMax).toHaveBeenCalledWith("hard",12);
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+});
