@@ -83,3 +83,73 @@ describe("generatePermutation",()=>{
 		expect((window as any).expectedFormat).toBeDefined();
 	});
 });
+describe("generatePermutation - edge cases",()=>{
+	let originalMathRandom:()=>number;
+	let mockDiv:HTMLDivElement;
+	beforeEach(()=>{
+		originalMathRandom=Math.random;
+		mockDiv=document.createElement("div");
+		(questionArea as any)=mockDiv;
+		delete(window as any).correctAnswer;
+		delete(window as any).expectedFormat;
+		(window as any).MathJax={typeset:vi.fn()};
+	});
+	afterEach(()=>{
+		Math.random=originalMathRandom;
+		delete(window as any).MathJax;
+	});
+	it("should produce non-empty question HTML",()=>{
+		Math.random=vi.fn().mockReturnValue(0.01);
+		generatePermutation();
+		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	});
+	it("should set correctAnswer with display property",()=>{
+		Math.random=vi.fn().mockReturnValue(0.18);
+		generatePermutation();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+		expect(typeof (window as any).correctAnswer.display).toBe("string");
+	});
+	it("should handle small values (n=2, r=1)",()=>{
+		Math.random=vi.fn().mockReturnValue(0.01);
+		generatePermutation();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+		expect((window as any).correctAnswer.choices.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should handle n=r permutation",()=>{
+		Math.random=vi.fn().mockReturnValue(0.52);
+		generatePermutation();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+		expect(typeof (window as any).correctAnswer.correct).toBe("string");
+	});
+	it("should handle large n values",()=>{
+		Math.random=vi.fn().mockReturnValue(0.85);
+		generatePermutation();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.correct).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.01);
+		generatePermutation("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.35);
+		generatePermutation("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn().mockReturnValue(0.68);
+		generatePermutation("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer.display).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
+	});
+});
