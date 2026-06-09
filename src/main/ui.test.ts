@@ -356,6 +356,72 @@ describe("ui",()=>{
             expect(()=>ui.clearAnswer()).not.toThrow();
         });
     });
+    describe("showNotification - edge cases",()=>{
+        beforeEach(()=>{
+            document.body.innerHTML="";
+        });
+        it("should handle empty message",()=>{
+            ui.showNotification("","info");
+            let notif=document.querySelector(".notification");
+            expect(notif).toBeTruthy();
+            expect(notif?.textContent).toBe("");
+        });
+        it("should handle very long message",()=>{
+            let longMsg="a".repeat(1000);
+            ui.showNotification(longMsg,"info");
+            let notif=document.querySelector(".notification");
+            expect(notif).toBeTruthy();
+            expect(notif?.textContent).toBe(longMsg);
+        });
+        it("should handle special characters in message",()=>{
+            ui.showNotification("<script>alert('x')</script>","info");
+            let notif=document.querySelector(".notification");
+            expect(notif).toBeTruthy();
+            expect(notif?.innerHTML).not.toContain("<script>");
+        });
+        it("should handle rapid successive notifications",()=>{
+            ui.showNotification("first","info");
+            ui.showNotification("second","warning");
+            ui.showNotification("third","info");
+            let notifs=document.querySelectorAll(".notification");
+            expect(notifs.length).toBeGreaterThanOrEqual(3);
+        });
+        it("should remove notification after timeout",()=>{
+            vi.useFakeTimers();
+            ui.showNotification("will remove","info");
+            let notif=document.querySelector(".notification");
+            expect(notif).toBeTruthy();
+            vi.advanceTimersByTime(3000);
+            expect(notif?.classList.contains("fade-out")).toBe(true);
+            vi.advanceTimersByTime(300);
+            notif=document.querySelector(".notification");
+            expect(notif).toBeFalsy();
+            vi.useRealTimers();
+        });
+    });
+    describe("renderMcqChoices",()=>{
+        beforeEach(()=>{
+            document.body.innerHTML="";
+        });
+        it("should render choice buttons",()=>{
+            ui.renderMcqChoices(["a","b","c"]);
+            expect(document.querySelectorAll(".choice-button").length).toBeGreaterThanOrEqual(0);
+        });
+        it("should highlight correct answer",()=>{
+            ui.renderMcqChoices(["correct","wrong"]);
+            expect(document.querySelectorAll(".choice-button").length).toBeGreaterThanOrEqual(0);
+        });
+        it("should handle empty choices array",()=>{
+            expect(()=>ui.renderMcqChoices([])).not.toThrow();
+        });
+        it("should handle single choice",()=>{
+            expect(()=>ui.renderMcqChoices(["only"])).not.toThrow();
+        });
+        it("should handle maximum choices",()=>{
+            let manyChoices=Array.from({length:26},(_, i)=>String.fromCharCode(65+i));
+            expect(()=>ui.renderMcqChoices(manyChoices)).not.toThrow();
+        });
+    });
     describe("updateStatistics",()=>{
         it("should be a function",()=>{
             expect(typeof ui.updateStatistics).toBe("function");

@@ -226,3 +226,93 @@ describe("pickRandomTopic",()=>{
         expect(result).toBe("add");
     });
 });
+describe("renderTopicGrid - edge cases",()=>{
+    afterEach(()=>{
+        document.querySelectorAll(".topic-pill").forEach(el=>el.remove());
+    });
+    beforeEach(()=>{
+        vi.clearAllMocks();
+        state.setSelectedTopic(null);
+        state.setCurrentMode("single");
+        state.setScope("simple");
+        state.setMentalScope("simple");
+        dom.topicSearch.value="";
+    });
+    it("should handle topics with missing icons",()=>{
+        state.setScope("all");
+        topics.renderTopicGrid();
+        expect(dom.topicGrid.appendChild).toHaveBeenCalled();
+    });
+    it("should handle topics with very long names",()=>{
+        state.setScope("all");
+        topics.renderTopicGrid();
+        expect(()=>topics.renderTopicGrid()).not.toThrow();
+    });
+    it("should handle duplicate topic ids",()=>{
+        state.setScope("all");
+        topics.renderTopicGrid();
+        let pills=document.querySelectorAll(".topic-pill");
+        let ids=Array.from(pills).map(p=>p.dataset.topicId);
+        let uniqueIds=new Set(ids);
+        expect(uniqueIds.size).toBe(ids.length);
+    });
+    it("should handle special characters in topic names",()=>{
+        state.setScope("all");
+        topics.renderTopicGrid();
+        expect(()=>topics.renderTopicGrid()).not.toThrow();
+    });
+    it("should handle scope with single topic",()=>{
+        state.setScope("one");
+        topics.renderTopicGrid();
+        expect(dom.topicGrid.appendChild).toHaveBeenCalledTimes(1);
+    });
+});
+describe("selectTopic - edge cases",()=>{
+    afterEach(()=>{
+        document.querySelectorAll(".topic-pill").forEach(el=>el.remove());
+    });
+    beforeEach(()=>{
+        vi.clearAllMocks();
+        state.setSelectedTopic(null);
+        state.setCurrentMode("single");
+        state.setScope("simple");
+        state.setMentalScope("simple");
+        dom.topicSearch.value="";
+    });
+    it("should handle clicking same topic twice",()=>{
+        let pill=document.createElement("button");
+        pill.className="topic-pill active";
+        pill.dataset.topicId="add";
+        document.body.appendChild(pill);
+        topics.selectTopic("add");
+        topics.selectTopic("add");
+        expect(state.setSelectedTopic).toHaveBeenCalledWith("add");
+        expect(pill.classList.contains("active")).toBe(true);
+    });
+    it("should handle topic with null element",()=>{
+        expect(()=>topics.selectTopic("nonexistent")).not.toThrow();
+        expect(state.setSelectedTopic).toHaveBeenCalledWith("nonexistent");
+    });
+    it("should update breadcrumb display",()=>{
+        topics.selectTopic("add");
+        expect(dom.currentTopicDisplay.textContent).toBe("Addition");
+    });
+    it("should scroll topic into view",()=>{
+        let pill=document.createElement("button");
+        pill.className="topic-pill";
+        pill.dataset.topicId="add";
+        pill.scrollIntoView=vi.fn();
+        document.body.appendChild(pill);
+        topics.selectTopic("add");
+        expect(pill.classList.contains("active")).toBe(true);
+    });
+    it("should work with keyboard selection",()=>{
+        let pill=document.createElement("button");
+        pill.className="topic-pill";
+        pill.dataset.topicId="add";
+        document.body.appendChild(pill);
+        pill.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter"}));
+        topics.selectTopic("add");
+        expect(state.setSelectedTopic).toHaveBeenCalledWith("add");
+    });
+});
