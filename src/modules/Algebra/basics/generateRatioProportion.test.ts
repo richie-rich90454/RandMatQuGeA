@@ -112,4 +112,75 @@ describe("generateRatioProportion",()=>{
 		generateRatioProportion();
 		expect((window as any).MathJax).toBeUndefined();
 	});
+	it("should set window.correctAnswer",()=>{
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(1);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3);
+		generateRatioProportion();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+		expect((window as any).correctAnswer).toHaveProperty("alternate");
+		expect((window as any).correctAnswer).toHaveProperty("display");
+		expect((window as any).correctAnswer).toHaveProperty("choices");
+	});
+	it("should set window.expectedFormat",()=>{
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(1);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3);
+		generateRatioProportion();
+		expect((window as any).expectedFormat).toBe("Enter a number or ratio like 2:3");
+	});
+	it("should handle easy difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(10);
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(1);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3);
+		generateRatioProportion("easy");
+		expect(mockGetMax).toHaveBeenCalledWith("easy",20);
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(20);
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(1);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3);
+		generateRatioProportion("medium");
+		expect(mockGetMax).toHaveBeenCalledWith("medium",20);
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(30);
+		const mockGcd=vi.mocked(gcd);
+		mockGcd.mockClear();
+		mockGcd.mockReturnValueOnce(1);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3);
+		generateRatioProportion("hard");
+		expect(mockGetMax).toHaveBeenCalledWith("hard",20);
+		expect((window as any).correctAnswer).toBeDefined();
+	});
 });

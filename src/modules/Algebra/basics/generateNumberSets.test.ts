@@ -108,4 +108,46 @@ describe("generateNumberSets",()=>{
 		generateNumberSets();
 		expect((window as any).MathJax).toBeUndefined();
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3);
+		generateNumberSets();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+		expect((window as any).correctAnswer).toHaveProperty("alternate");
+		expect((window as any).correctAnswer).toHaveProperty("display");
+		expect((window as any).correctAnswer).toHaveProperty("choices");
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3);
+		generateNumberSets();
+		expect((window as any).expectedFormat).toBe("Enter the set names separated by commas");
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3);
+		generateNumberSets("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBe("Enter the set names separated by commas");
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3);
+		generateNumberSets("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBe("Enter the set names separated by commas");
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3);
+		generateNumberSets("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBe("Enter the set names separated by commas");
+	});
 });

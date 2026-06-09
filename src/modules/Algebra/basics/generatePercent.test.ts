@@ -118,4 +118,60 @@ describe("generatePercent",()=>{
 		generatePercent("easy");
 		expect(mockGetMax).toHaveBeenCalledWith("easy",100);
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3);
+		generatePercent();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+		expect((window as any).correctAnswer).toHaveProperty("alternate");
+		expect((window as any).correctAnswer).toHaveProperty("display");
+		expect((window as any).correctAnswer).toHaveProperty("choices");
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3);
+		generatePercent();
+		expect((window as any).expectedFormat).toBe("Enter a number");
+	});
+	it("should handle easy difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(50);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3);
+		generatePercent("easy");
+		expect(mockGetMax).toHaveBeenCalledWith("easy",100);
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(100);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3);
+		generatePercent("medium");
+		expect(mockGetMax).toHaveBeenCalledWith("medium",100);
+		expect((window as any).correctAnswer).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const mockGetMax=vi.mocked(getMaxForDifficulty);
+		mockGetMax.mockClear();
+		mockGetMax.mockReturnValueOnce(200);
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.3);
+		generatePercent("hard");
+		expect(mockGetMax).toHaveBeenCalledWith("hard",100);
+		expect((window as any).correctAnswer).toBeDefined();
+	});
 });
