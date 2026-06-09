@@ -4,6 +4,7 @@
 import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
 import {questionArea} from "../../script.js";
 import {generatePythagorean,generateSimilarTriangles,generateTriangleClassification} from "./geometryTriangles.js";
+import {getMaxForDifficulty} from "./geometryUtils.js";
 vi.mock("../../script.js",()=>({questionArea:null as HTMLElement|null}));
 vi.mock("./geometryUtils.js",()=>({
 	getMaxForDifficulty:vi.fn(()=>5),
@@ -83,4 +84,76 @@ describe("generatePythagorean",()=>{
 		generatePythagorean("hard");
 		expect((window as any).correctAnswer).toBeDefined();
 	});
+});
+describe("generatePythagorean - edge cases",()=>{
+    let originalMathRandom:()=>number;
+    let mockDiv:HTMLDivElement;
+    beforeEach(()=>{
+        originalMathRandom=Math.random;
+        mockDiv=document.createElement("div");
+        (questionArea as any)=mockDiv;
+        delete(window as any).correctAnswer;
+        delete(window as any).expectedFormat;
+        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+    });
+    afterEach(()=>{
+        Math.random=originalMathRandom;
+        delete(window as any).MathJax;
+    });
+    it("should produce non-empty question HTML",()=>{
+        Math.random=vi.fn().mockReturnValue(0.3);
+        generatePythagorean();
+        expect(mockDiv.innerHTML).not.toBe("");
+    });
+    it("should set correctAnswer with display property",()=>{
+        Math.random=vi.fn().mockReturnValue(0.3);
+        generatePythagorean();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer).toHaveProperty("display");
+    });
+    it("should handle 3-4-5 triangle",()=>{
+        Math.random=vi.fn()
+            .mockReturnValueOnce(0.1)
+            .mockReturnValueOnce(0.3);
+        generatePythagorean();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer.correct).toBe("5.00");
+    });
+    it("should handle 5-12-13 triangle",()=>{
+        vi.mocked(getMaxForDifficulty).mockReturnValueOnce(12);
+        Math.random=vi.fn()
+            .mockReturnValueOnce(0.2)
+            .mockReturnValueOnce(0.8);
+        generatePythagorean();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer.correct).toBe("13.00");
+    });
+    it("should handle easy difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.3);
+        generatePythagorean("easy");
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer).toHaveProperty("correct");
+    });
+    it("should handle medium difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.3);
+        generatePythagorean("medium");
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer).toHaveProperty("correct");
+    });
+    it("should handle hard difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.3);
+        generatePythagorean("hard");
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer).toHaveProperty("correct");
+    });
+    it("should handle repeated calls",()=>{
+        Math.random=vi.fn().mockReturnValue(0.3);
+        generatePythagorean();
+        let first=(window as any).correctAnswer;
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generatePythagorean();
+        let second=(window as any).correctAnswer;
+        expect(first).toBeDefined();
+        expect(second).toBeDefined();
+    });
 });
