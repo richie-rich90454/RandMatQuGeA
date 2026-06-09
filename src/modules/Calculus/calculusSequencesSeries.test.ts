@@ -78,4 +78,45 @@ describe("generateSequencesSeries",()=>{
 			alternate:"diverges"
 		});
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.23)
+			.mockReturnValueOnce(0.3);
+		generateSequencesSeries();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+		expect((window as any).correctAnswer).toHaveProperty("alternate");
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.23)
+			.mockReturnValueOnce(0.3);
+		generateSequencesSeries();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.23)
+			.mockReturnValueOnce(0.3);
+		generateSequencesSeries("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.23)
+			.mockReturnValueOnce(0.3);
+		generateSequencesSeries("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.23)
+			.mockReturnValueOnce(0.3);
+		generateSequencesSeries("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
 });

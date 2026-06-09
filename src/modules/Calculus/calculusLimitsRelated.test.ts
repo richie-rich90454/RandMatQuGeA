@@ -61,6 +61,57 @@ describe("generateLimit",()=>{
 			alternate:"2"
 		});
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.5);
+		generateLimit();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+		expect((window as any).correctAnswer).toHaveProperty("alternate");
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.5);
+		generateLimit();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.5);
+		generateLimit("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.5);
+		generateLimit("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.5);
+		generateLimit("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
 });
 describe("generateRelatedRates",()=>{
 	let originalMathRandom:()=>number;

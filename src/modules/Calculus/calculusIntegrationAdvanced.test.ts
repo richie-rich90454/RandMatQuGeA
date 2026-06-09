@@ -81,4 +81,50 @@ describe("generateIntegrationAdvanced",()=>{
 			alternate:"slope 0"
 		});
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.01)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateIntegrationAdvanced();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+		expect((window as any).correctAnswer).toHaveProperty("alternate");
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.01)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateIntegrationAdvanced();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.01)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateIntegrationAdvanced("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.01)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateIntegrationAdvanced("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.01)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5);
+		generateIntegrationAdvanced("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
 });

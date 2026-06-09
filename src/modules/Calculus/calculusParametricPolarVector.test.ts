@@ -75,4 +75,55 @@ describe("generateParametricPolarVector",()=>{
 			alternate:"2"
 		});
 	});
+	it("should set window.correctAnswer",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.04)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.5);
+		generateParametricPolarVector();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+		expect((window as any).correctAnswer).toHaveProperty("alternate");
+	});
+	it("should set window.expectedFormat",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.04)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.5);
+		generateParametricPolarVector();
+		expect((window as any).expectedFormat).toBeDefined();
+		expect(typeof (window as any).expectedFormat).toBe("string");
+	});
+	it("should handle easy difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.04)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.5);
+		generateParametricPolarVector("easy");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
+	it("should handle medium difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.04)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.5);
+		generateParametricPolarVector("medium");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
+	it("should handle hard difficulty",()=>{
+		Math.random=vi.fn()
+			.mockReturnValueOnce(0.04)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.5)
+			.mockReturnValueOnce(0.5);
+		generateParametricPolarVector("hard");
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).correctAnswer).toHaveProperty("correct");
+	});
 });
