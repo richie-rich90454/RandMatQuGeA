@@ -93,6 +93,74 @@ describe("generateAddition",()=>{
         expect((window as any).correctAnswer).toBeDefined();
     });
 });
+describe("generateAddition - edge cases",()=>{
+    let mockDiv: HTMLDivElement;
+    let originalMathRandom: ()=>number;
+    beforeEach(()=>{
+        originalMathRandom=Math.random;
+        mockDiv=document.createElement("div");
+        (questionArea as any)=mockDiv;
+        delete (window as any).correctAnswer;
+        delete (window as any).expectedFormat;
+        (window as any).MathJax={typeset:vi.fn()};
+    });
+    afterEach(()=>{
+        Math.random=originalMathRandom;
+        delete (window as any).MathJax;
+    });
+    it("should produce non-empty question HTML",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateAddition();
+        expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+    });
+    it("should set correctAnswer with display property",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateAddition();
+        expect((window as any).correctAnswer).toBeDefined();
+        expect((window as any).correctAnswer.display).toBeDefined();
+        expect(typeof (window as any).correctAnswer.display).toBe("string");
+    });
+    it("should handle adding zero",()=>{
+        Math.random=vi.fn().mockReturnValue(0);
+        generateAddition();
+        expect((window as any).correctAnswer).toBeDefined();
+        let result=parseFloat((window as any).correctAnswer.correct);
+        expect(result).not.toBeNaN();
+    });
+    it("should handle adding negative numbers",()=>{
+        Math.random=vi.fn().mockReturnValue(0.01);
+        generateAddition();
+        expect((window as any).correctAnswer).toBeDefined();
+        let result=parseFloat((window as any).correctAnswer.correct);
+        expect(result).not.toBeNaN();
+    });
+    it("should handle large numbers",()=>{
+        Math.random=vi.fn().mockReturnValue(0.99);
+        generateAddition();
+        expect((window as any).correctAnswer).toBeDefined();
+        let result=parseFloat((window as any).correctAnswer.correct);
+        expect(result).not.toBeNaN();
+    });
+    it("should handle carry operations",()=>{
+        Math.random=vi.fn().mockReturnValue(0.95);
+        generateAddition();
+        expect((window as any).correctAnswer).toBeDefined();
+        let result=parseFloat((window as any).correctAnswer.correct);
+        expect(result).not.toBeNaN();
+    });
+    it("should handle easy difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateAddition("easy");
+        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+    it("should handle hard difficulty",()=>{
+        Math.random=vi.fn().mockReturnValue(0.5);
+        generateAddition("hard");
+        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
+        expect((window as any).correctAnswer).toBeDefined();
+    });
+});
 describe("generateSubtraction",()=>{
     let mockDiv: HTMLDivElement;
     let originalMathRandom: ()=>number;
