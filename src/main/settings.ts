@@ -9,8 +9,13 @@
 import * as dom from "./dom";
 import * as state from "./state";
 import {invoke} from "@tauri-apps/api/core";
-import {evaluate} from "mathjs";
 import {generateChoicesForCurrentQuestion} from "./mcq";
+let mathjsModule: any=null;
+async function ensureMathjs(): Promise<any>{
+    if(mathjsModule) return mathjsModule;
+    mathjsModule=await import("mathjs");
+    return mathjsModule;
+}
 export let settings={
     theme:"system",
     defaultMode:"single",
@@ -106,7 +111,7 @@ export function saveSettings():void{
         if (settings.mcqChoicesCount!==newCount){
             settings.mcqChoicesCount=newCount;
             if (state.mcqMode&&window.hasQuestion&&window.correctAnswer.correct){
-                generateChoicesForCurrentQuestion();
+                void generateChoicesForCurrentQuestion();
             }
         }
     }
@@ -343,14 +348,14 @@ function updateMathJaxColors():void{
         window.MathJax.typesetPromise().catch((_err:any)=>console.log("MathJax re-render error:",_err));
     }
 }
-export function isAnswerCorrect(userInput:string,correct:string,alternate?:string):boolean{
+export async function isAnswerCorrect(userInput:string,correct:string,alternate?:string):Promise<boolean>{
     function prepareForEval(expr:string):string{
         return expr.replace(/\\?π/g,"pi").replace(/[°˚]|deg(rees?)?/g,"").replace(/rad(ians?)?/g,"").replace(/\s+/g,"");
     }
-    function evaluateExpression(expr:string):number|null{
+    async function evaluateExpression(expr:string):Promise<number|null>{
         try{
             const cleaned=prepareForEval(expr);
-            const result=evaluate(cleaned);
+            const result=(await ensureMathjs()).evaluate(cleaned);
             if (typeof result==="number"&&!isNaN(result)){
                 return result;
             }
@@ -365,15 +370,15 @@ export function isAnswerCorrect(userInput:string,correct:string,alternate?:strin
     }
     const trimmedInput=userInput.trim();
     if (!trimmedInput) return false;
-    const userNum=evaluateExpression(trimmedInput);
+    const userNum=await evaluateExpression(trimmedInput);
     if (userNum!==null){
-        const correctNum=evaluateExpression(correct);
+        const correctNum=await evaluateExpression(correct);
         if (correctNum!==null){
             const tol=getTolerance();
             if (Math.abs(userNum-correctNum)<tol) return true;
         }
         if (alternate){
-            const altNum=evaluateExpression(alternate);
+            const altNum=await evaluateExpression(alternate);
             if (altNum!==null){
                 const tol=getTolerance();
                 if (Math.abs(userNum-altNum)<tol) return true;
@@ -411,5 +416,5 @@ export async function checkAnswerFast(userInput:string,correct:string,alternate?
             console.warn("Rust check failed, falling back to JS",e);
         }
     }
-    return isAnswerCorrect(userInput,correct,alternate);
+    return await isAnswerCorrect(userInput,correct,alternate);
 }

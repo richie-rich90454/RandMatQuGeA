@@ -255,7 +255,7 @@ export function toggleMcqMode(): void{
         if (dom.expectedFormatDiv) dom.expectedFormatDiv.style.display="none";
         if (dom.previewDiv) dom.previewDiv.style.display="none";
         if (window.hasQuestion&&window.correctAnswer.correct){
-            generateChoicesForCurrentQuestion();
+            void generateChoicesForCurrentQuestion();
         }
     }
     else{

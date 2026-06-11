@@ -98,10 +98,10 @@ export async function generateQuestion(): Promise<void>{
     </div>
   `;
     try {
-        callGenerator(state.selectedTopic,state.currentDifficulty);
+        await callGenerator(state.selectedTopic,state.currentDifficulty);
         window.hasQuestion=true;
         if (state.mcqMode){
-            generateChoicesForCurrentQuestion();
+            await generateChoicesForCurrentQuestion();
         }
         startQuestionTimer();
     } catch (error) {

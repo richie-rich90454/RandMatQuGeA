@@ -33,7 +33,7 @@ function wrapLatexIfNeeded(text: string): string{
 function escapeLatexForJs(latex: string): string{
     return latex.replace(/\\/g, "\\\\");
 }
-function captureRawLatexDuringGeneration(generator: ()=>void): string{
+async function captureRawLatexDuringGeneration(generator: ()=>Promise<void>): Promise<string>{
     let originalMathJaxTypesetPromise=(window as any).MathJax?.typesetPromise;
     let originalMathJaxTypeset=(window as any).MathJax?.typeset;
     let originalKatexRender=(window as any).katex?.render;
@@ -96,7 +96,7 @@ function captureRawLatexDuringGeneration(generator: ()=>void): string{
     }
     try{
         dom.questionArea!.innerHTML="";
-        generator();
+        await generator();
     }
     finally{
         if (originalMathJaxTypesetPromise) (window as any).MathJax.typesetPromise=originalMathJaxTypesetPromise;
@@ -122,7 +122,7 @@ async function generateQuestionText(topicId: string, difficulty: string): Promis
     let originalHtml=dom.questionArea.innerHTML;
     let originalCorrectAnswer=(window as any).correctAnswer;
     try{
-        let latexSource=captureRawLatexDuringGeneration(()=>callGenerator(topicId, difficulty));
+        let latexSource=await captureRawLatexDuringGeneration(()=>callGenerator(topicId, difficulty));
         let ansObj=(window as any).correctAnswer;
         let answerDisplay=wrapLatexIfNeeded(ansObj?.display||ansObj?.correct||"");
         return { html: latexSource, answerDisplay };
@@ -212,10 +212,10 @@ async function generateWorksheet(): Promise<void>{
             options: { ignoreHtmlClass: "no-mathjax", processHtmlClass: "mathjax-process" }
         };
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" defer></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    <script src="/mathjax/tex-chtml.js" defer></script>
+    <link rel="stylesheet" href="/katex.min.css">
+    <script defer src="/katex.min.js"></script>
+    <script defer src="/auto-render.min.js"
         onload="renderMathInElement(document.getElementById('answer-key'), { delimiters: [{left: '\\\\\\\\(', right: '\\\\\\\\)', display: false}] });"></script>
     <style>
         body{

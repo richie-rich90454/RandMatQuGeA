@@ -1,11 +1,16 @@
 import * as state from "./state";
 import * as settings from "./settings";
-import {evaluate} from "mathjs";
 import * as ui from "./ui";
-export function generateDistractors(correctAnswer: string, count: number): string[]{
+let mathjsModule: any=null;
+async function ensureMathjs(): Promise<any>{
+    if(mathjsModule) return mathjsModule;
+    mathjsModule=await import("mathjs");
+    return mathjsModule;
+}
+export async function generateDistractors(correctAnswer: string, count: number): Promise<string[]>{
     let num: number|null=null;
     try{
-        const evaluated=evaluate(correctAnswer);
+        const evaluated=(await ensureMathjs()).evaluate(correctAnswer);
         if (typeof evaluated==="number" && !isNaN(evaluated)){
             num=evaluated;
         }
@@ -133,7 +138,7 @@ function generateTextFallbackDistractors(answer: string, count: number): string[
     all.splice(correctPos,0,answer);
     return all.slice(0,count);
 }
-export function generateChoicesForCurrentQuestion(): void{
+export async function generateChoicesForCurrentQuestion(): Promise<void>{
     if (!state.mcqMode) return;
     const correctObj=window.correctAnswer;
     if (!correctObj || !correctObj.correct) return;
@@ -150,12 +155,12 @@ export function generateChoicesForCurrentQuestion(): void{
         }
         if (choices.length>count) choices=choices.slice(0,count);
         else if (choices.length<count){
-            const fallback=generateDistractors(correctObj.correct, count-choices.length);
+            const fallback=await generateDistractors(correctObj.correct, count-choices.length);
             choices.push(...fallback);
         }
     }
     else{
-        choices=generateDistractors(correctObj.correct, count);
+        choices=await generateDistractors(correctObj.correct, count);
     }
     state.setMcqChoices(choices);
     ui.renderMcqChoices(choices);

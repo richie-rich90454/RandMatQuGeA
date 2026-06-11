@@ -15,11 +15,8 @@ import * as session from "./session";
 import {check} from "@tauri-apps/plugin-updater";
 import {relaunch} from "@tauri-apps/plugin-process";
 import packageJson from "../../package.json";
-import semver from "semver";
-import { initPrintModal, openPrintModal } from "./printWorksheet";
-import { checkAndShowWeakTopicsPopup } from "./weakTopics";
-import { openDataModal, initDataModal } from "./dataManagement";
-export function isVersionGreater(v1: string, v2: string): boolean{
+export async function isVersionGreater(v1: string, v2: string): Promise<boolean>{
+    const semver=(await import("semver")).default;
     const cleanV1=v1.replace(/^v/, "");
     const cleanV2=v2.replace(/^v/, "");
     return semver.gt(cleanV1, cleanV2);
@@ -85,7 +82,7 @@ function handleMathShortcuts(e: KeyboardEvent): void{
             break;
     }
 }
-export function setupEventListeners(): void{
+export async function setupEventListeners(): Promise<void>{
     if (!dom.generateQuestionButton||!dom.checkAnswerButton||!dom.userAnswer||!dom.themeToggle||!dom.helpButton||!dom.settingsButton||!dom.modeSingleBtn||!dom.modeMentalBtn||!dom.mentalControls||!dom.singleControls||!dom.difficultySelect||!dom.timerDisplay||!dom.scoreDisplay||!dom.startSessionBtn) return;
     dom.generateQuestionButton.addEventListener("click",generation.debounceGenerate);
     dom.checkAnswerButton.addEventListener("click",()=>answer.checkAnswer());
@@ -253,7 +250,7 @@ export function setupEventListeners(): void{
                 if (update){
                     const currentVer=packageJson.version;
                     const updateVer=update.version.replace(/^v/, "");
-                    if (!isVersionGreater(updateVer, currentVer)) {
+                    if (!(await isVersionGreater(updateVer, currentVer))) {
                         alert("You are already using the latest version.");
                         return;
                     }
@@ -273,8 +270,8 @@ export function setupEventListeners(): void{
                     alert("You are already using the latest version.");
                 }
             } catch (err) {
-                console.error("Update check failed:", err);
-                alert("Failed to check for updates. Please ensure you are connected to the internet and try again.");
+                // Silently ignore network errors - app works fully offline
+                return;
             } finally {
                 dom.checkUpdatesBtn!.disabled=false;
                 dom.checkUpdatesBtn!.textContent=originalText;
@@ -417,14 +414,17 @@ export function setupEventListeners(): void{
             }
         });
     }
-    initPrintModal();
+    const printWorksheet=await import("./printWorksheet");
+    printWorksheet.initPrintModal();
     const printWorksheetBtn=document.getElementById("print-worksheet-btn");
-    if (printWorksheetBtn) printWorksheetBtn.addEventListener("click", openPrintModal);
-    initDataModal();
+    if (printWorksheetBtn) printWorksheetBtn.addEventListener("click", printWorksheet.openPrintModal);
+    const dataManagement=await import("./dataManagement");
+    dataManagement.initDataModal();
+    const weakTopics=await import("./weakTopics");
     const recommendBtn=document.getElementById("recommend-btn");
     if (recommendBtn) recommendBtn.addEventListener("click", ()=>{
-        checkAndShowWeakTopicsPopup().catch(console.warn);
+        weakTopics.checkAndShowWeakTopicsPopup().catch(console.warn);
     });
     const manageDataBtn=document.getElementById("manage-data-btn");
-    if (manageDataBtn) manageDataBtn.addEventListener("click", openDataModal);
+    if (manageDataBtn) manageDataBtn.addEventListener("click", dataManagement.openDataModal);
 }

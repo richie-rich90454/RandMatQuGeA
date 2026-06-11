@@ -13,6 +13,7 @@ import {topics as topicList, SESSION_STORAGE_KEY} from "./constants";
 import {generateQuestion as callGenerator} from "./questionGenerator";
 import {invoke} from "@tauri-apps/api/core";
 import {generateChoicesForCurrentQuestion} from "./mcq";
+import {getAudioContext} from "./answer";
 export function saveSessionSnapshot(): void{
     if(!state.sessionActive)return;
     const snapshot={
@@ -65,15 +66,24 @@ export function restoreSessionSnapshot(): void{
 export function startTimer(): void{
     if(state.unlimitedMode)return;
     if(state.sessionTimer)clearInterval(state.sessionTimer);
+    let saveCounter=0;
     state.setSessionTimer(setInterval(()=>{
         if(!state.sessionActive||state.sessionPaused)return;
         state.setTimeLeft(state.timeLeft-1);
-        ui.updateTimerDisplay();
-        saveSessionSnapshot();
+        requestAnimationFrame(()=>{
+            ui.updateTimerDisplay();
+        });
+        saveCounter++;
+        if(saveCounter>=5){
+            saveCounter=0;
+            saveSessionSnapshot();
+        }
         if(state.timeLeft<=0){
             state.setSessionScore({correct:state.sessionScore.correct,total:state.sessionScore.total+1});
-            ui.updateScoreDisplay();
-            ui.updateProgressBar();
+            requestAnimationFrame(()=>{
+                ui.updateScoreDisplay();
+                ui.updateProgressBar();
+            });
             ui.showNotification("Time is up!","warning");
             if(dom.mentalProgressBar){
                 let percent=(state.sessionScore.total/state.maxQuestions)*100;
@@ -84,7 +94,10 @@ export function startTimer(): void{
                 return;
             }
             state.setTimeLeft(settings.settings.timer);
-            ui.updateTimerDisplay();
+            requestAnimationFrame(()=>{
+                ui.updateTimerDisplay();
+            });
+            saveCounter=0;
             saveSessionSnapshot();
             if(state.mentalNextQuestionTimeout){
                 clearTimeout(state.mentalNextQuestionTimeout);
@@ -99,7 +112,7 @@ export function startTimer(): void{
         }
     },1000));
 }
-export function generateNextMentalQuestion(): void{
+export async function generateNextMentalQuestion(): Promise<void>{
     if(!state.sessionActive||state.sessionPaused)return;
     if(state.mentalShuffle){
         const randomTopic=topicsModule.pickRandomTopic();
@@ -137,12 +150,12 @@ export function generateNextMentalQuestion(): void{
     </div>
   `;
     try{
-        callGenerator(state.selectedTopic,state.currentDifficulty);
+        await callGenerator(state.selectedTopic,state.currentDifficulty);
         window.hasQuestion=true;
         ui.updateUIState();
         state.setCurrentQuestionStartTime(Date.now());
         if(state.mcqMode){
-            generateChoicesForCurrentQuestion();
+            void generateChoicesForCurrentQuestion();
             if(dom.userAnswer)dom.userAnswer.style.display="none";
             if(dom.mathToolbar)dom.mathToolbar.style.display="none";
             if(dom.mcqChoicesContainer)dom.mcqChoicesContainer.style.display="flex";
@@ -191,7 +204,7 @@ export async function handleMentalAnswer(answer?: string): Promise<void>{
     let isCorrect=await settings.checkAnswerFast(userInput,correct,alternate);
     if(!state.sessionActive)return;
     if(settings.settings.sound){
-        const audioCtx=new(window.AudioContext||(window as any).webkitAudioContext)();
+        const audioCtx=getAudioContext();
         const oscillator=audioCtx.createOscillator();
         const gainNode=audioCtx.createGain();
         oscillator.connect(gainNode);
