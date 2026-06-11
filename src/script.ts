@@ -31,6 +31,11 @@ function initApp(): void{
     topicsModule.renderTopicGrid();
     session.updateLeaderboard();
     ui.showOnboarding();
+    if ("serviceWorker" in navigator){
+        navigator.serviceWorker.register("/sw.js").catch(()=>{
+            // SW registration failed - app still works
+        });
+    }
 }
 if (document.readyState==="loading"){
     document.addEventListener("DOMContentLoaded",initApp);
