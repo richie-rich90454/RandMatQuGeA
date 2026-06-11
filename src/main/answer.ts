@@ -12,7 +12,13 @@ import * as settings from "./settings";
 import * as ui from "./ui";
 import * as generation from "./generation";
 import {invoke} from "@tauri-apps/api/core";
-
+let _audioCtx: AudioContext|null=null;
+export function getAudioContext(): AudioContext{
+    if(!_audioCtx){
+        _audioCtx=new AudioContext();
+    }
+    return _audioCtx;
+}
 let mathjs: any=null;
 async function ensureMathjs(): Promise<void>{
 	if(mathjs) return;
@@ -37,6 +43,59 @@ function detectErrorType(userAnswer: string, correctAnswer: string, topicId: str
         if (userAnswer.includes('^2') && !correctAnswer.includes('^2')) return 'missing_exponent';
     }
     return null;
+}
+function sanitize(s: string): string{
+    s=s.toLowerCase().replace(/\s+/g,'');
+    s=s.replace(/−/g,'-');
+    s=s.replace(/\^{/g,'^').replace(/[{}]/g,'');
+    s=s.replace(/\*\*/g,'^');
+    s=s.replace(/√/g,'sqrt').replace(/π/g,'pi').replace(/∞/g,'inf');
+    s=s.replace(/(\d)([a-z])/g,'$1*$2');
+    s=s.replace(/([a-z])(\d)/g,'$1*$2');
+    s=s.replace(/\)(?=\()/g,')*');
+    s=s.replace(/1\*([a-z\(])/g,'$1');
+    s=s.replace(/\\?(sin|cos|tan|cot|sec|csc|log|ln|exp|sqrt|arcsin|arccos|arctan|sinh|cosh|tanh)/g,'$1');
+    s=s.replace(/\bln\b/g,'log');
+    s=s.replace(/\barcsin\b/g,'asin');
+    s=s.replace(/\barccos\b/g,'acos');
+    s=s.replace(/\barctan\b/g,'atan');
+    s=s.replace(/(sin|cos|tan|cot|sec|csc|log|exp|sqrt|asin|acos|atan|sinh|cosh|tanh)\s+([a-z\(])/g,'$1($2)');
+    return s;
+}
+function removeConstants(s: string): string{
+    let withPlus=s.replace(/-/g,'+-');
+    let terms=withPlus.split('+').filter(t=>t!=='');
+    const isConstant=(term: string): boolean=>{
+        term=term.replace(/^[+-]/,'');
+        if (term==='') return false;
+        return /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/.test(term)||
+               term==='pi'||term==='e';
+    };
+    let nonConstantTerms=terms.filter(t=>!isConstant(t));
+    nonConstantTerms=nonConstantTerms.filter(t=>!/^[+-]?[ck]$/.test(t.replace(/[+-]/,'')));
+    let result=nonConstantTerms.join('+');
+    return result || s;
+}
+function toDecimal(s: string): string{
+    return s.replace(/(^|[+\-*/\^\(])(\d+)\/(\d+)([+\-*/\^\)]|$)/g,(_,pre,num,den,post)=>{
+        let val=Number(num)/Number(den);
+        return pre+val+post;
+    });
+}
+function toTerms(s: string): string[]{
+    let withPlus=s.replace(/-/g,'+-');
+    let terms=withPlus.split('+').map(t=>t.trim()).filter(t=>t!=='');
+    terms.sort();
+    return terms;
+}
+function tryEvaluate(expr: string): any{
+    let normalized=expr.replace(/<([^>]*)>/g,'[$1]');
+    normalized=normalized.replace(/−/g,'-');
+    try{
+        return mathjs.evaluate(normalized);
+    }catch{
+        return null;
+    }
 }
 /**
  * Validates the user's answer against the expected correct answer.
@@ -112,6 +171,10 @@ export async function checkAnswer(userInput?: string): Promise<void>{
         return;
     }
     if (!dom.userAnswer||!dom.answerResults) return;
+    if (!(window as any).hasQuestion){
+        dom.answerResults.className="results-display incorrect";
+        return;
+    }
     let answer = userInput;
     if (answer === undefined){
         answer = dom.userAnswer.value.trim();
@@ -160,78 +223,22 @@ export async function checkAnswer(userInput?: string): Promise<void>{
         exprA=convertLatex(exprA);
         exprB=convertLatex(exprB);
         // Sanitize both
-        const sanitize=(s: string): string=>{
-            s=s.toLowerCase().replace(/\s+/g,'');
-            s=s.replace(/\^{/g,'^').replace(/[{}]/g,'');
-            s=s.replace(/\*\*/g,'^');
-            s=s.replace(/√/g,'sqrt').replace(/π/g,'pi').replace(/∞/g,'inf');
-            s=s.replace(/(\d)([a-z])/g,'$1*$2');
-            s=s.replace(/([a-z])(\d)/g,'$1*$2');
-            s=s.replace(/\)(?=\()/g,')*');
-            // Remove a leading coefficient of 1 multiplied by a variable or function (e.g., 1*ln|x| -> ln|x|)
-            s=s.replace(/1\*([a-z\(])/g,'$1');
-            s=s.replace(/\\?(sin|cos|tan|cot|sec|csc|log|ln|exp|sqrt|arcsin|arccos|arctan|sinh|cosh|tanh)/g,'$1');
-            s=s.replace(/\bln\b/g,'log');
-            s=s.replace(/\barcsin\b/g,'asin');
-            s=s.replace(/\barccos\b/g,'acos');
-            s=s.replace(/\barctan\b/g,'atan');
-            s=s.replace(/(sin|cos|tan|cot|sec|csc|log|exp|sqrt|asin|acos|atan|sinh|cosh|tanh)\s+([a-z\(])/g,'$1($2)');
-            return s;
-        };
         let sanA=sanitize(exprA);
         let sanB=sanitize(exprB);
         if (sanA===sanB) return true;
         // Remove constants, but preserve purely numeric expressions
-        const removeConstants=(s: string): string=>{
-            let withPlus=s.replace(/-/g,'+-');
-            let terms=withPlus.split('+').filter(t=>t!=='');
-            const isConstant=(term: string): boolean=>{
-                term=term.replace(/^[+-]/,'');
-                if (term==='') return false;
-                return /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/.test(term)||
-                       term==='pi'||term==='e';
-            };
-            let nonConstantTerms=terms.filter(t=>!isConstant(t));
-            nonConstantTerms=nonConstantTerms.filter(t=>!/^[+-]?[ck]$/.test(t.replace(/[+-]/,'')));
-            let result=nonConstantTerms.join('+');
-            // If the result is empty, it means the whole expression was constant (e.g., a number)
-            // In that case, return the original sanitized string so we can compare it later.
-            return result || s;
-        };
         let funcA=removeConstants(sanA);
         let funcB=removeConstants(sanB);
         if (funcA===funcB) return true;
         // Decimal conversion
-        const toDecimal=(s: string): string=>{
-            return s.replace(/(^|[+\-*/\^\(])(\d+)\/(\d+)([+\-*/\^\)]|$)/g,(_,pre,num,den,post)=>{
-                let val=Number(num)/Number(den);
-                return pre+val+post;
-            });
-        };
         let decA=toDecimal(funcA);
         let decB=toDecimal(funcB);
         if (decA===decB) return true;
         // Term comparison
-        const toTerms=(s: string): string[]=>{
-            let withPlus=s.replace(/-/g,'+-');
-            let terms=withPlus.split('+').map(t=>t.trim()).filter(t=>t!=='');
-            terms.sort();
-            return terms;
-        };
         let termsA=toTerms(funcA);
         let termsB=toTerms(funcB);
         if (termsA.join('+')===termsB.join('+')) return true;
         // Numeric evaluation for constants (including vectors)
-        const tryEvaluate=(expr: string): any=>{
-            // Already converted LaTeX, but ensure angle brackets are handled
-            let normalized=expr.replace(/<([^>]*)>/g,'[$1]');
-            normalized=normalized.replace(/−/g,'-');
-            try{
-                return mathjs.evaluate(normalized);
-            }catch{
-                return null;
-            }
-        };
         let valA=tryEvaluate(exprA);
         let valB=tryEvaluate(exprB);
         if (valA!==null && valB!==null){
@@ -341,45 +348,10 @@ let valCorrect=mathjs.evaluate(correctRight);
         let convertedUser=convertLatex(answer);
         let convertedCorrect=convertLatex(correct);
         let convertedAlternate=alternate?convertLatex(alternate):'';
-        const sanitize=(s: string): string=>{
-            s=s.toLowerCase().replace(/\s+/g,'');
-            s=s.replace(/−/g,'-');
-            s=s.replace(/\^{/g,'^').replace(/[{}]/g,'');
-            s=s.replace(/\*\*/g,'^');
-            s=s.replace(/√/g,'sqrt').replace(/π/g,'pi').replace(/∞/g,'inf');
-            s=s.replace(/(\d)([a-z])/g,'$1*$2');
-            s=s.replace(/([a-z])(\d)/g,'$1*$2');
-            s=s.replace(/\)(?=\()/g,')*');
-            // Remove a leading coefficient of 1 multiplied by a variable or function (e.g., 1*ln|x| -> ln|x|)
-            s=s.replace(/1\*([a-z\(])/g,'$1');
-            s=s.replace(/\\?(sin|cos|tan|cot|sec|csc|log|ln|exp|sqrt|arcsin|arccos|arctan|sinh|cosh|tanh)/g,'$1');
-            s=s.replace(/\bln\b/g,'log');
-            s=s.replace(/\barcsin\b/g,'asin');
-            s=s.replace(/\barccos\b/g,'acos');
-            s=s.replace(/\barctan\b/g,'atan');
-            s=s.replace(/(sin|cos|tan|cot|sec|csc|log|exp|sqrt|asin|acos|atan|sinh|cosh|tanh)\s+([a-z\(])/g,'$1($2)');
-            return s;
-        };
         let sanUser=sanitize(convertedUser);
         let sanCorrect=sanitize(convertedCorrect);
         let sanAlternate=alternate?sanitize(convertedAlternate):'';
         // Modified removeConstants to preserve purely numeric expressions
-        const removeConstants=(s: string): string=>{
-            let withPlus=s.replace(/-/g,'+-');
-            let terms=withPlus.split('+').filter(t=>t!=='');
-            const isConstant=(term: string): boolean=>{
-                term=term.replace(/^[+-]/,'');
-                if (term==='') return false;
-                return /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/.test(term)||
-                       term==='pi'||term==='e';
-            };
-            let nonConstantTerms=terms.filter(t=>!isConstant(t));
-            nonConstantTerms=nonConstantTerms.filter(t=>!/^[+-]?[ck]$/.test(t.replace(/[+-]/,'')));
-            let result=nonConstantTerms.join('+');
-            // If the result is empty, the whole expression was constant (e.g., a number)
-            // Return the original string so it can be compared numerically later.
-            return result || s;
-        };
         let funcUser=removeConstants(sanUser);
         let funcCorrect=removeConstants(sanCorrect);
         let funcAlternate=alternate?removeConstants(sanAlternate):'';
@@ -390,24 +362,12 @@ let valCorrect=mathjs.evaluate(correctRight);
             isCorrect=true;
         }
         else{
-            const toDecimal=(s: string): string=>{
-                return s.replace(/(^|[+\-*/\^\(])(\d+)\/(\d+)([+\-*/\^\)]|$)/g,(_,pre,num,den,post)=>{
-                    let val=Number(num)/Number(den);
-                    return pre+val+post;
-                });
-            };
             let decUser=toDecimal(funcUser);
             let decCorrect=toDecimal(funcCorrect);
             if (decUser===decCorrect){
                 isCorrect=true;
             }
             else{
-                const toTerms=(s: string): string[]=>{
-                    let withPlus=s.replace(/-/g,'+-');
-                    let terms=withPlus.split('+').map(t=>t.trim()).filter(t=>t!=='');
-                    terms.sort();
-                    return terms;
-                };
                 let termsUser=toTerms(funcUser);
                 let termsCorrect=toTerms(funcCorrect);
                 if (termsUser.join('+')===termsCorrect.join('+')){
@@ -415,15 +375,6 @@ let valCorrect=mathjs.evaluate(correctRight);
                 }
                 else{
                     // Try numeric evaluation for constants (including vectors)
-                    const tryEvaluate=(expr: string): any=>{
-                        let normalized=expr.replace(/<([^>]*)>/g,'[$1]');
-                        normalized=normalized.replace(/−/g,'-');
-                        try{
-                            return mathjs.evaluate(normalized);
-                        }catch{
-                            return null;
-                        }
-                    };
                     let valUser=tryEvaluate(convertedUser);
                     let valCorrect=tryEvaluate(convertedCorrect);
                     if (valUser!==null && valCorrect!==null){
@@ -504,7 +455,7 @@ let numCorrect=mathjs.evaluate(funcCorrect);
                         }
                     }
                     if (!isCorrect){
-                        isCorrect=settings.isAnswerCorrect(answer,sanCorrect,alternate);
+                        isCorrect=await settings.isAnswerCorrect(answer,sanCorrect,alternate);
                     }
                 }
             }
@@ -531,7 +482,7 @@ let numCorrect=mathjs.evaluate(funcCorrect);
         console.warn("[Adaptive] Failed to save performance:", e);
     });
     if (settings.settings.sound){
-        const audioCtx=new (window.AudioContext||(window as any).webkitAudioContext)();
+        const audioCtx=getAudioContext();
         const oscillator=audioCtx.createOscillator();
         const gainNode=audioCtx.createGain();
         oscillator.connect(gainNode);
