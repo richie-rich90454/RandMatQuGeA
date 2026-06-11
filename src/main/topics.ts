@@ -2,7 +2,12 @@ import * as dom from "./dom";
 import * as state from "./state";
 import * as ui from "./ui";
 import {topics,scopeTopics} from "./constants";
-
+let gridInitialized=false;
+let topicElements: Map<string, HTMLButtonElement>=new Map();
+export function resetTopicGrid(): void{
+    gridInitialized=false;
+    topicElements.clear();
+}
 export function renderTopicGrid(): void{
     if (!dom.topicGrid) return;
     const currentScope=state.currentMode==="single"?state.scope:state.mentalScope;
@@ -10,17 +15,24 @@ export function renderTopicGrid(): void{
     const filteredTopics=topics.filter(t=>allowedIds.includes(t.id));
     const searchTerm=dom.topicSearch?.value.toLowerCase().trim()||"";
     const displayedTopics=searchTerm?filteredTopics.filter(t=>t.name.toLowerCase().includes(searchTerm)||t.id.toLowerCase().includes(searchTerm)):filteredTopics;
-    dom.topicGrid.innerHTML="";
-    displayedTopics.forEach(topic=>{
-        let topicElement=document.createElement("button");
-        topicElement.className="topic-pill";
-        topicElement.dataset.topicId=topic.id;
-        topicElement.innerHTML=`
+    if (!gridInitialized){
+        topics.forEach(topic=>{
+            let topicElement=document.createElement("button");
+            topicElement.className="topic-pill";
+            topicElement.dataset.topicId=topic.id;
+            topicElement.innerHTML=`
       <span class="topic-pill-icon">${topic.icon}</span>
       <span class="topic-pill-name">${topic.name}</span>
     `;
-        topicElement.addEventListener("click",()=>selectTopic(topic.id));
-        dom.topicGrid!.appendChild(topicElement);
+            topicElement.addEventListener("click",()=>selectTopic(topic.id));
+            topicElements.set(topic.id, topicElement);
+            dom.topicGrid!.appendChild(topicElement);
+        });
+        gridInitialized=true;
+    }
+    const displayedIds=new Set(displayedTopics.map(t=>t.id));
+    topicElements.forEach((element, id)=>{
+        element.style.display=displayedIds.has(id)?"":"none";
     });
     if (state.selectedTopic&&!allowedIds.includes(state.selectedTopic)){
         if (displayedTopics.length>0){
