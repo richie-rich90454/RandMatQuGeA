@@ -66,18 +66,21 @@ export function restoreSessionSnapshot(): void{
 export function startTimer(): void{
     if(state.unlimitedMode)return;
     if(state.sessionTimer)clearInterval(state.sessionTimer);
-    let saveCounter=0;
+    let saveTimer: ReturnType<typeof setTimeout>|null=null;
+    function debouncedSave(): void{
+        if(saveTimer)clearTimeout(saveTimer);
+        saveTimer=setTimeout(()=>{
+            saveSessionSnapshot();
+            saveTimer=null;
+        },5000);
+    }
     state.setSessionTimer(setInterval(()=>{
         if(!state.sessionActive||state.sessionPaused)return;
         state.setTimeLeft(state.timeLeft-1);
         requestAnimationFrame(()=>{
             ui.updateTimerDisplay();
         });
-        saveCounter++;
-        if(saveCounter>=5){
-            saveCounter=0;
-            saveSessionSnapshot();
-        }
+        debouncedSave();
         if(state.timeLeft<=0){
             state.setSessionScore({correct:state.sessionScore.correct,total:state.sessionScore.total+1});
             requestAnimationFrame(()=>{
@@ -97,7 +100,6 @@ export function startTimer(): void{
             requestAnimationFrame(()=>{
                 ui.updateTimerDisplay();
             });
-            saveCounter=0;
             saveSessionSnapshot();
             if(state.mentalNextQuestionTimeout){
                 clearTimeout(state.mentalNextQuestionTimeout);
