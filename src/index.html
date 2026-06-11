@@ -8,8 +8,11 @@
         <meta name="theme-color" content="#28465C">
         <link rel="icon" href="/favicon.png" type="image/png">
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="preload" href="/LibertinusMath-Regular.ttf" as="font" type="font/ttf" crossorigin>
+        <link rel="preload" href="/NotoSans-VariableFont_wdth_wght.ttf" as="font" type="font/ttf" crossorigin>
+        <link rel="preload" href="/OpenDyslexic-Regular.woff2" as="font" type="font/woff2" crossorigin>
         <link rel="stylesheet" href="/katex.min.css">
-        <script src="/katex.min.js"></script>
+        <script defer src="/katex.min.js"></script>
         <link rel="stylesheet" href="style.css">
         <script>
             window.MathJax={
@@ -34,7 +37,6 @@
                 <div class="modal-header">
                     <h2 id="onboarding-title">Welcome to RandMatQuGeA!</h2>
                     <button class="icon-button modal-close" id="onboarding-close" aria-label="Close onboarding">✕</button>
-
                 </div>
                 <div class="modal-body">
                     <div class="onboarding-steps">
@@ -61,7 +63,6 @@
         <div id="wave-container">
             <div class="liquid-bg"></div>
         </div>
-        <div id="blur-layer"></div>
         <div class="app-container">
             <div class="app-content">
                 <div class="control-toolbar">
