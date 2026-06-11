@@ -2,10 +2,9 @@
 import {defineConfig} from "vite";
 import {readFileSync} from "fs";
 import {join} from "path";
-
+import {visualizer} from "rollup-plugin-visualizer";
 let packageJson=JSON.parse(readFileSync(join(__dirname,"package.json"),"utf-8"));
 let version=packageJson.version;
-
 export default defineConfig({
 	test:{
 		setupFiles:["./src/vitest.setup.ts"],
@@ -20,6 +19,8 @@ export default defineConfig({
 		minify: "oxc",
 		target: "es2020",
 		cssMinify: true,
+		cssCodeSplit: true,
+		modulePreload: {polyfill: false},
 		chunkSizeWarningLimit: 2000,
 		rolldownOptions: {
 			output: {
@@ -51,7 +52,8 @@ export default defineConfig({
 			transformIndexHtml(html){
 				return html.replace(/__APP_VERSION__/g, version);
 			}
-		}
+		},
+		visualizer({open: true, gzipSize: true, brotliSize: true})
 	],
 	server: {
 		host: "::",

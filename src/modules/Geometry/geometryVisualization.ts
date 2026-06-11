@@ -24,6 +24,9 @@ let currentLabelRenderer: any=null;
 let currentScene: any=null;
 let currentControls: any=null;
 let currentAnimationFrame: number=0;
+let canvasObserver: ResizeObserver|null=null;
+let threeObserver: ResizeObserver|null=null;
+let animFrameId: number|null=null;
 
 /**
  * Computes a nice step size for axis ticks based on range.
@@ -356,8 +359,8 @@ function createCanvas2DVisualization(shape: string, params: any, container: HTML
 		ctx.restore();
 	};
 	draw();
-	const resizeObserver=new ResizeObserver(()=>draw());
-	resizeObserver.observe(container);
+	canvasObserver=new ResizeObserver(()=>draw());
+	canvasObserver.observe(container);
 }
 
 /**
@@ -615,13 +618,13 @@ export async function createVisualization(shape: string, params: any): Promise<v
 		}
 	}
 	function animate(){
-		currentAnimationFrame=requestAnimationFrame(animate);
+		animFrameId=requestAnimationFrame(animate);
 		controls.update();
 		renderer.render(scene,camera);
 		labelRenderer.render(scene,camera);
 	}
 	animate();
-	const resizeObserver=new ResizeObserver(entries=>{
+	threeObserver=new ResizeObserver(entries=>{
 		for (let entry of entries){
 			const{width,height}=entry.contentRect;
 			if (width===0||height===0) return;
@@ -631,13 +634,25 @@ export async function createVisualization(shape: string, params: any): Promise<v
 			camera.updateProjectionMatrix();
 		}
 	});
-	resizeObserver.observe(container);
+	threeObserver.observe(container);
 }
 
 /**
  * Cleans up all visualization resources: stops animation, disposes renderers, removes DOM elements.
  */
 export function cleanupVisualization(): void{
+	if (animFrameId!==null){
+		cancelAnimationFrame(animFrameId);
+		animFrameId=null;
+	}
+	if (canvasObserver){
+		canvasObserver.disconnect();
+		canvasObserver=null;
+	}
+	if (threeObserver){
+		threeObserver.disconnect();
+		threeObserver=null;
+	}
 	if (currentAnimationFrame){
 		cancelAnimationFrame(currentAnimationFrame);
 		currentAnimationFrame=0;
