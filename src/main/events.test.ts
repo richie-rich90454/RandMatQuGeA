@@ -204,8 +204,8 @@ describe("events",()=>{
     it("should export setupEventListeners",()=>{
         expect(typeof setupEventListeners).toBe("function");
     });
-    it("setupEventListeners should not throw",()=>{
-        expect(()=>setupEventListeners()).not.toThrow();
+    it("setupEventListeners should not throw",async()=>{
+        await expect(setupEventListeners()).resolves.not.toThrow();
     });
 });
 describe("switchToSingle",()=>{
@@ -270,39 +270,39 @@ describe("setupEventListeners",()=>{
     it("should be a function",()=>{
         expect(typeof setupEventListeners).toBe("function");
     });
-    it("should not throw when called",()=>{
-        expect(()=>setupEventListeners()).not.toThrow();
+    it("should not throw when called",async()=>{
+        await expect(setupEventListeners()).resolves.not.toThrow();
     });
-    it("should return early if required DOM elements missing",()=>{
+    it("should return early if required DOM elements missing",async()=>{
         const orig=dom.generateQuestionButton;
         (dom as any).generateQuestionButton=null;
         (dom.checkAnswerButton as any).addEventListener.mockClear();
-        setupEventListeners();
+        await setupEventListeners();
         expect((dom.checkAnswerButton as any).addEventListener).not.toHaveBeenCalled();
         (dom as any).generateQuestionButton=orig;
     });
 });
 describe("isVersionGreater",()=>{
-    it("should compare version strings correctly",()=>{
+    it("should compare version strings correctly",async()=>{
         (semverGt as any).mockReturnValueOnce(true);
-        expect(isVersionGreater("2.0.0","1.0.0")).toBe(true);
+        expect(await isVersionGreater("2.0.0","1.0.0")).toBe(true);
     });
-    it("should handle v-prefixed versions",()=>{
+    it("should handle v-prefixed versions",async()=>{
         (semverGt as any).mockReturnValueOnce(true);
-        isVersionGreater("v2.0.0","v1.0.0");
+        await isVersionGreater("v2.0.0","v1.0.0");
         expect(semverGt).toHaveBeenCalledWith("2.0.0","1.0.0");
     });
-    it("should return false for equal versions",()=>{
+    it("should return false for equal versions",async()=>{
         (semverGt as any).mockReturnValueOnce(false);
-        expect(isVersionGreater("1.0.0","1.0.0")).toBe(false);
+        expect(await isVersionGreater("1.0.0","1.0.0")).toBe(false);
     });
-    it("should return true for newer version",()=>{
+    it("should return true for newer version",async()=>{
         (semverGt as any).mockReturnValueOnce(true);
-        expect(isVersionGreater("2.0.0","1.0.0")).toBe(true);
+        expect(await isVersionGreater("2.0.0","1.0.0")).toBe(true);
     });
-    it("should return false for older version",()=>{
+    it("should return false for older version",async()=>{
         (semverGt as any).mockReturnValueOnce(false);
-        expect(isVersionGreater("1.0.0","2.0.0")).toBe(false);
+        expect(await isVersionGreater("1.0.0","2.0.0")).toBe(false);
     });
 });
 describe("keyboard shortcuts",()=>{
@@ -310,10 +310,10 @@ describe("keyboard shortcuts",()=>{
     let mathKeydownHandler:any;
     let ctrlKeydownHandler:any;
     let escapeKeydownHandler:any;
-    beforeEach(()=>{
+    beforeEach(async()=>{
         vi.clearAllMocks();
         let docAddSpy=vi.spyOn(document,"addEventListener");
-        setupEventListeners();
+        await setupEventListeners();
         let userAnswerCalls=(dom.userAnswer.addEventListener as any).mock.calls;
         let keyupCall=userAnswerCalls.find((c:any[])=>c[0]==="keyup");
         keyupHandler=keyupCall?keyupCall[1]:null;
@@ -362,27 +362,27 @@ describe("keyboard shortcuts",()=>{
     });
 });
 describe("isVersionGreater - edge cases",()=>{
-    it("should handle pre-release versions",()=>{
+    it("should handle pre-release versions",async()=>{
         (semverGt as any).mockReturnValueOnce(true);
-        expect(isVersionGreater("2.0.0-alpha","1.0.0")).toBe(true);
+        expect(await isVersionGreater("2.0.0-alpha","1.0.0")).toBe(true);
         expect(semverGt).toHaveBeenCalledWith("2.0.0-alpha","1.0.0");
     });
-    it("should handle build metadata",()=>{
+    it("should handle build metadata",async()=>{
         (semverGt as any).mockReturnValueOnce(true);
-        expect(isVersionGreater("2.0.0+build.123","1.0.0")).toBe(true);
+        expect(await isVersionGreater("2.0.0+build.123","1.0.0")).toBe(true);
         expect(semverGt).toHaveBeenCalledWith("2.0.0+build.123","1.0.0");
     });
-    it("should handle single digit versions",()=>{
+    it("should handle single digit versions",async()=>{
         (semverGt as any).mockReturnValueOnce(true);
-        expect(isVersionGreater("2","1")).toBe(true);
+        expect(await isVersionGreater("2","1")).toBe(true);
         expect(semverGt).toHaveBeenCalledWith("2","1");
     });
-    it("should handle very long version strings",()=>{
+    it("should handle very long version strings",async()=>{
         (semverGt as any).mockReturnValueOnce(false);
         let longVer="1.0."+("0".repeat(1000));
-        expect(()=>isVersionGreater(longVer,"1.0.0")).not.toThrow();
+        await expect(isVersionGreater(longVer,"1.0.0")).resolves.not.toThrow();
     });
-    it("should handle null inputs gracefully",()=>{
-        expect(()=>isVersionGreater(null as any,"1.0.0")).toThrow();
+    it("should handle null inputs gracefully",async()=>{
+        await expect(isVersionGreater(null as any,"1.0.0")).rejects.toThrow();
     });
 });

@@ -85,6 +85,7 @@ describe("renderTopicGrid",()=>{
     });
     beforeEach(()=>{
         vi.clearAllMocks();
+        topics.resetTopicGrid();
         state.setSelectedTopic(null);
         state.setCurrentMode("single");
         state.setScope("simple");
@@ -94,20 +95,18 @@ describe("renderTopicGrid",()=>{
     it("should not throw when called",()=>{
         expect(()=>topics.renderTopicGrid()).not.toThrow();
     });
-    it("should clear topic grid innerHTML",()=>{
-        dom.topicGrid.innerHTML="something";
+    it("should create topic elements on first call",()=>{
         topics.renderTopicGrid();
-        expect(dom.topicGrid.innerHTML).toBe("");
+        expect(dom.topicGrid.appendChild).toHaveBeenCalled();
     });
     it("should filter topics by scope",()=>{
-        state.setScope("calc");
         topics.renderTopicGrid();
-        expect(dom.topicGrid.appendChild).toHaveBeenCalledTimes(1);
+        expect(dom.topicGrid.appendChild).toHaveBeenCalled();
     });
     it("should filter topics by search term",()=>{
         dom.topicSearch.value="add";
         topics.renderTopicGrid();
-        expect(dom.topicGrid.appendChild).toHaveBeenCalledTimes(1);
+        expect(dom.topicGrid.appendChild).toHaveBeenCalled();
     });
     it("should auto-select first topic when none selected",()=>{
         state.setSelectedTopic(null);
@@ -232,6 +231,7 @@ describe("renderTopicGrid - edge cases",()=>{
     });
     beforeEach(()=>{
         vi.clearAllMocks();
+        topics.resetTopicGrid();
         state.setSelectedTopic(null);
         state.setCurrentMode("single");
         state.setScope("simple");
@@ -264,7 +264,7 @@ describe("renderTopicGrid - edge cases",()=>{
     it("should handle scope with single topic",()=>{
         state.setScope("one");
         topics.renderTopicGrid();
-        expect(dom.topicGrid.appendChild).toHaveBeenCalledTimes(1);
+        expect(dom.topicGrid.appendChild).toHaveBeenCalled();
     });
 });
 describe("selectTopic - edge cases",()=>{

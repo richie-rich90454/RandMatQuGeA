@@ -60,8 +60,10 @@ vi.mock("@tauri-apps/api/core",()=>({
 import{debounceGenerate,generateQuestion,practiceWeakAreas}from"./generation.js";
 import*as state from"./state.js";
 import{invoke}from"@tauri-apps/api/core";
-import{generateQuestion as callGeneratorMock}from"./questionGenerator.js";
-import{generateChoicesForCurrentQuestion as generateChoicesMock}from"./mcq.js";
+import{generateQuestion as _callGeneratorMock}from"./questionGenerator.js";
+let callGeneratorMock=_callGeneratorMock as any;
+import{generateChoicesForCurrentQuestion as _generateChoicesMock}from"./mcq.js";
+let generateChoicesMock=_generateChoicesMock as any;
 import{showNotification,updateUIState}from"./ui.js";
 import{startQuestionTimer as startTimerMock}from"./answer.js";
 import{pickRandomTopic as pickRandomTopicMock}from"./topics.js";

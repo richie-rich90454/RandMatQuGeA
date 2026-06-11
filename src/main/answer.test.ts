@@ -146,6 +146,27 @@ vi.mock('./ui', () => ({
 vi.mock('./generation', () => ({
 	generateQuestion: vi.fn(),
 }));
+vi.mock("mathjs",()=>{
+	const evaluate=vi.fn((expr:string,scope?:any)=>{
+		try{
+			if(scope){
+				let keys=Object.keys(scope);
+				let vals=keys.map(k=>scope[k]);
+				return new Function(...keys,'"use strict";return ('+expr+')')(...vals);
+			}
+			return Function('"use strict";return ('+expr+')')();
+		}catch{
+			return null;
+		}
+	});
+	const simplify=vi.fn((expr:string)=>({
+		toString:()=>expr,
+	}));
+	const parse=vi.fn((expr:string)=>({
+		filter:()=>[],
+	}));
+	return{evaluate,simplify,parse,default:{evaluate,simplify,parse}};
+});
 import * as dom from './dom';
 import * as state from './state';
 import * as settings from './settings';
@@ -164,7 +185,7 @@ describe('checkAnswer', () => {
 		dom.answerResults!.className='';
 		window.correctAnswer={ correct: '', alternate: '', display: '' };
 		window.hasQuestion=true;
-		(settings.isAnswerCorrect as any).mockImplementation(() => true);
+		(settings.isAnswerCorrect as any).mockResolvedValue(true);
 	});
 	it('should show notification if no topic selected', async () => {
 		state.setSelectedTopic(null);
@@ -190,7 +211,7 @@ describe('checkAnswer', () => {
 	it('should reject different numbers', async () => {
 		dom.userAnswer!.value='42';
 		window.correctAnswer.correct='43';
-		(settings.isAnswerCorrect as any).mockImplementationOnce(() => false);
+		(settings.isAnswerCorrect as any).mockResolvedValueOnce(false);
 		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('incorrect');
 	});
@@ -438,7 +459,7 @@ describe('checkAnswer', () => {
 	it('should handle empty correct answer gracefully', async () => {
 		dom.userAnswer!.value='42';
 		window.correctAnswer.correct='';
-		(settings.isAnswerCorrect as any).mockImplementationOnce(() => false);
+		(settings.isAnswerCorrect as any).mockResolvedValueOnce(false);
 		await checkAnswer();
 		expect(dom.answerResults!.className).toContain('incorrect');
 	});
@@ -482,7 +503,7 @@ describe('checkAnswer', () => {
 		it('should reject non-numeric when numeric expected', async () => {
 			dom.userAnswer!.value='abc';
 			window.correctAnswer.correct='42';
-			(settings.isAnswerCorrect as any).mockImplementationOnce(() => false);
+			(settings.isAnswerCorrect as any).mockResolvedValueOnce(false);
 			await checkAnswer();
 			expect(dom.answerResults!.className).toContain('incorrect');
 		});
@@ -495,21 +516,21 @@ describe('checkAnswer', () => {
 		it('should accept mixed number format', async () => {
 			dom.userAnswer!.value='1 1/2';
 			window.correctAnswer.correct='1.5';
-			(settings.isAnswerCorrect as any).mockImplementationOnce(() => true);
+			(settings.isAnswerCorrect as any).mockResolvedValueOnce(true);
 			await checkAnswer();
 			expect(dom.answerResults!.className).toContain('correct');
 		});
 		it('should accept percentage format', async () => {
 			dom.userAnswer!.value='50%';
 			window.correctAnswer.correct='0.5';
-			(settings.isAnswerCorrect as any).mockImplementationOnce(() => true);
+			(settings.isAnswerCorrect as any).mockResolvedValueOnce(true);
 			await checkAnswer();
 			expect(dom.answerResults!.className).toContain('correct');
 		});
 		it('should accept answer with units stripped', async () => {
 			dom.userAnswer!.value='5cm';
 			window.correctAnswer.correct='5';
-			(settings.isAnswerCorrect as any).mockImplementationOnce(() => true);
+			(settings.isAnswerCorrect as any).mockResolvedValueOnce(true);
 			await checkAnswer();
 			expect(dom.answerResults!.className).toContain('correct');
 		});
@@ -597,7 +618,7 @@ describe('checkAnswer', () => {
 		it('should call save_performance on incorrect answer', async () => {
 			dom.userAnswer!.value='42';
 			window.correctAnswer.correct='43';
-			(settings.isAnswerCorrect as any).mockImplementationOnce(() => false);
+			(settings.isAnswerCorrect as any).mockResolvedValueOnce(false);
 			await checkAnswer();
 			expect(invoke).toHaveBeenCalledWith('save_performance', expect.objectContaining({
 				correct: false,
@@ -607,7 +628,7 @@ describe('checkAnswer', () => {
 			state.setSelectedTopic('linear_eq');
 			dom.userAnswer!.value='-5';
 			window.correctAnswer.correct='5';
-			(settings.isAnswerCorrect as any).mockImplementationOnce(() => false);
+			(settings.isAnswerCorrect as any).mockResolvedValueOnce(false);
 			await checkAnswer();
 			expect(invoke).toHaveBeenCalledWith('save_performance', expect.objectContaining({
 				errorType: 'sign_error',

@@ -15,127 +15,137 @@ vi.mock("./settings.js",()=>({
 vi.mock("./ui.js",()=>({
     renderMcqChoices:vi.fn(),
 }));
+vi.mock("mathjs",()=>{
+    const evaluate=vi.fn((expr:string)=>{
+        try{
+            return Function('"use strict";return ('+expr+')')();
+        }catch{
+            return NaN;
+        }
+    });
+    return{evaluate,default:{evaluate}};
+});
 import{generateDistractors,generateChoicesForCurrentQuestion}from"./mcq.js";
 import*as state from"./state.js";
 import*as ui from"./ui.js";
 import*as settings from"./settings.js";
 describe("generateDistractors",()=>{
-    it("should return an array of the given count",()=>{
-        const result=generateDistractors("42",4);
+    it("should return an array of the given count",async()=>{
+        const result=await generateDistractors("42",4);
         expect(result.length).toBe(4);
         expect(result).toContain("42");
     });
-    it("should work with numeric answers",()=>{
-        const result=generateDistractors("10",4);
+    it("should work with numeric answers",async()=>{
+        const result=await generateDistractors("10",4);
         expect(result.length).toBe(4);
         expect(result).toContain("10");
     });
-    it("should work with coordinate answers",()=>{
-        const result=generateDistractors("(3, 4)",4);
+    it("should work with coordinate answers",async()=>{
+        const result=await generateDistractors("(3, 4)",4);
         expect(result.length).toBe(4);
     });
-    it("should work with text answers",()=>{
-        const result=generateDistractors("hello",3);
+    it("should work with text answers",async()=>{
+        const result=await generateDistractors("hello",3);
         expect(result.length).toBe(3);
         expect(result).toContain("hello");
     });
 });
 describe("generateChoicesForCurrentQuestion",()=>{
-    it("should not throw when called without question",()=>{
-        expect(()=>generateChoicesForCurrentQuestion()).not.toThrow();
+    it("should not throw when called without question",async()=>{
+        await expect(generateChoicesForCurrentQuestion()).resolves.not.toThrow();
     });
 });
 describe("generateDistractors - numeric",()=>{
-    it("should include correct answer in results",()=>{
-        const result=generateDistractors("42",4);
+    it("should include correct answer in results",async()=>{
+        const result=await generateDistractors("42",4);
         expect(result).toContain("42");
     });
-    it("should generate correct count of distractors",()=>{
-        const result=generateDistractors("7",5);
+    it("should generate correct count of distractors",async()=>{
+        const result=await generateDistractors("7",5);
         expect(result.length).toBe(5);
     });
-    it("should not include correct answer as a distractor",()=>{
-        const result=generateDistractors("5",4);
+    it("should not include correct answer as a distractor",async()=>{
+        const result=await generateDistractors("5",4);
         const filtered=result.filter((v:string)=>v!=="5");
         const unique=new Set(filtered);
         expect(unique.size).toBe(filtered.length);
     });
-    it("should work with negative numbers",()=>{
-        const result=generateDistractors("-3",4);
+    it("should work with negative numbers",async()=>{
+        const result=await generateDistractors("-3",4);
         expect(result.length).toBe(4);
         expect(result).toContain("-3");
     });
-    it("should work with decimal numbers",()=>{
-        const result=generateDistractors("3.14",4);
+    it("should work with decimal numbers",async()=>{
+        const result=await generateDistractors("3.14",4);
         expect(result.length).toBe(4);
         expect(result).toContain("3.14");
     });
-    it("should work with zero",()=>{
-        const result=generateDistractors("0",4);
+    it("should work with zero",async()=>{
+        const result=await generateDistractors("0",4);
         expect(result.length).toBe(4);
         expect(result).toContain("0");
     });
-    it("should work with large numbers",()=>{
-        const result=generateDistractors("1000000",4);
+    it("should work with large numbers",async()=>{
+        const result=await generateDistractors("1000000",4);
         expect(result.length).toBe(4);
         expect(result).toContain("1000000");
     });
-    it("should work with count of 2",()=>{
-        const result=generateDistractors("10",2);
+    it("should work with count of 2",async()=>{
+        const result=await generateDistractors("10",2);
         expect(result.length).toBe(2);
         expect(result).toContain("10");
     });
-    it("should work with count of 6",()=>{
-        const result=generateDistractors("10",6);
+    it("should work with count of 6",async()=>{
+        const result=await generateDistractors("10",6);
         expect(result.length).toBe(6);
         expect(result).toContain("10");
     });
 });
 describe("generateDistractors - coordinate",()=>{
-    it("should generate coordinate distractors for (x, y) format",()=>{
-        const result=generateDistractors("(3, 4)",4);
+    it("should generate coordinate distractors for (x, y) format",async()=>{
+        const result=await generateDistractors("(3, 4)",4);
         expect(result.length).toBe(4);
         expect(result).toContain("(3, 4)");
     });
-    it("should generate distractors for center/radius format",()=>{
-        const result=generateDistractors("center (1, 2), radius 3",4);
+    it("should generate distractors for center/radius format",async()=>{
+        const result=await generateDistractors("center (1, 2), radius 3",4);
         expect(result.length).toBe(4);
         expect(result).toContain("center (1, 2), radius 3");
     });
-    it("should generate quadrant distractors",()=>{
-        const result=generateDistractors("I",4);
+    it("should generate quadrant distractors",async()=>{
+        const result=await generateDistractors("I",4);
         expect(result.length).toBe(4);
         expect(result).toContain("I");
     });
-    it("should include correct answer in coordinate distractors",()=>{
-        const result=generateDistractors("(5, 6)",4);
+    it("should include correct answer in coordinate distractors",async()=>{
+        const result=await generateDistractors("(5, 6)",4);
         expect(result).toContain("(5, 6)");
     });
 });
 describe("generateDistractors - text fallback",()=>{
-    it("should generate text fallback distractors",()=>{
-        const result=generateDistractors("hello",3);
+    it("should generate text fallback distractors",async()=>{
+        const result=await generateDistractors("hello",3);
         expect(result.length).toBe(3);
         expect(result).toContain("hello");
     });
-    it("should include correct answer in text fallback",()=>{
-        const result=generateDistractors("world",3);
+    it("should include correct answer in text fallback",async()=>{
+        const result=await generateDistractors("world",3);
         expect(result).toContain("world");
     });
-    it("should fill remaining slots with ?? if needed",()=>{
-        const result=generateDistractors("a",4);
+    it("should fill remaining slots with ?? if needed",async()=>{
+        const result=await generateDistractors("a",4);
         expect(result.length).toBe(4);
         expect(result).toContain("a");
         const qCount=result.filter((v:string)=>v==="??").length;
         expect(qCount).toBeGreaterThan(0);
     });
-    it("should work with single character answers",()=>{
-        const result=generateDistractors("x",4);
+    it("should work with single character answers",async()=>{
+        const result=await generateDistractors("x",4);
         expect(result.length).toBe(4);
         expect(result).toContain("x");
     });
-    it("should work with uppercase/lowercase variations",()=>{
-        const result=generateDistractors("Hello",4);
+    it("should work with uppercase/lowercase variations",async()=>{
+        const result=await generateDistractors("Hello",4);
         expect(result.length).toBe(4);
         expect(result).toContain("Hello");
         const hasCaseVariant=result.some((v:string)=>v==="HELLO"||v==="hello");
@@ -150,47 +160,47 @@ describe("generateChoicesForCurrentQuestion - integration",()=>{
         (state.setMcqChoices as any).mockClear();
         (ui.renderMcqChoices as any).mockClear();
     });
-    it("should return early when mcqMode is false",()=>{
+    it("should return early when mcqMode is false",async()=>{
         (state as any).mcqMode=false;
-        generateChoicesForCurrentQuestion();
+        await generateChoicesForCurrentQuestion();
         expect(state.setMcqChoices).not.toHaveBeenCalled();
     });
-    it("should return early when no correctAnswer",()=>{
+    it("should return early when no correctAnswer",async()=>{
         (state as any).mcqMode=true;
         (window as any).correctAnswer=undefined;
-        generateChoicesForCurrentQuestion();
+        await generateChoicesForCurrentQuestion();
         expect(state.setMcqChoices).not.toHaveBeenCalled();
     });
-    it("should call setMcqChoices when mcqMode is true",()=>{
+    it("should call setMcqChoices when mcqMode is true",async()=>{
         (state as any).mcqMode=true;
         (window as any).correctAnswer={correct:"42"};
-        generateChoicesForCurrentQuestion();
+        await generateChoicesForCurrentQuestion();
         expect(state.setMcqChoices).toHaveBeenCalled();
     });
-    it("should call renderMcqChoices when mcqMode is true",()=>{
+    it("should call renderMcqChoices when mcqMode is true",async()=>{
         (state as any).mcqMode=true;
         (window as any).correctAnswer={correct:"42"};
-        generateChoicesForCurrentQuestion();
+        await generateChoicesForCurrentQuestion();
         expect(ui.renderMcqChoices).toHaveBeenCalled();
     });
-    it("should use pre-defined choices when available",()=>{
+    it("should use pre-defined choices when available",async()=>{
         (state as any).mcqMode=true;
         (window as any).correctAnswer={correct:"42",choices:["42","10","20","30"]};
-        generateChoicesForCurrentQuestion();
+        await generateChoicesForCurrentQuestion();
         const calledArgs=(state.setMcqChoices as any).mock.calls[0][0];
         expect(calledArgs).toContain("42");
         expect(calledArgs).toContain("10");
         expect(calledArgs).toContain("20");
         expect(calledArgs).toContain("30");
     });
-    it("should shuffle pre-defined choices",()=>{
+    it("should shuffle pre-defined choices",async()=>{
         (state as any).mcqMode=true;
         const choices=["a","b","c","d"];
         (window as any).correctAnswer={correct:"a",choices:choices};
         let sawDifferent=false;
         for (let i=0;i<20;i++){
             (state.setMcqChoices as any).mockClear();
-            generateChoicesForCurrentQuestion();
+            await generateChoicesForCurrentQuestion();
             const calledArgs=(state.setMcqChoices as any).mock.calls[0][0];
             if (calledArgs[0]!=="a"||calledArgs[1]!=="b"||calledArgs[2]!=="c"||calledArgs[3]!=="d"){
                 sawDifferent=true;
@@ -199,124 +209,124 @@ describe("generateChoicesForCurrentQuestion - integration",()=>{
         }
         expect(sawDifferent).toBe(true);
     });
-    it("should ensure correct answer is in choices",()=>{
+    it("should ensure correct answer is in choices",async()=>{
         (state as any).mcqMode=true;
         (window as any).correctAnswer={correct:"42",choices:["10","20","30","40"]};
-        generateChoicesForCurrentQuestion();
+        await generateChoicesForCurrentQuestion();
         const calledArgs=(state.setMcqChoices as any).mock.calls[0][0];
         expect(calledArgs).toContain("42");
     });
-    it("should truncate choices to count",()=>{
+    it("should truncate choices to count",async()=>{
         (state as any).mcqMode=true;
         (window as any).correctAnswer={correct:"a",choices:["a","b","c","d","e","f"]};
-        generateChoicesForCurrentQuestion();
+        await generateChoicesForCurrentQuestion();
         const calledArgs=(state.setMcqChoices as any).mock.calls[0][0];
         expect(calledArgs.length).toBe(4);
     });
-    it("should generate distractors when no pre-defined choices",()=>{
+    it("should generate distractors when no pre-defined choices",async()=>{
         (state as any).mcqMode=true;
         (window as any).correctAnswer={correct:"42"};
-        generateChoicesForCurrentQuestion();
+        await generateChoicesForCurrentQuestion();
         const calledArgs=(state.setMcqChoices as any).mock.calls[0][0];
         expect(calledArgs.length).toBe(4);
         expect(calledArgs).toContain("42");
     });
-    it("should respect mcqChoicesCount setting",()=>{
+    it("should respect mcqChoicesCount setting",async()=>{
         (state as any).mcqMode=true;
         (settings as any).settings.mcqChoicesCount=6;
         (window as any).correctAnswer={correct:"42"};
-        generateChoicesForCurrentQuestion();
+        await generateChoicesForCurrentQuestion();
         const calledArgs=(state.setMcqChoices as any).mock.calls[0][0];
         expect(calledArgs.length).toBe(6);
     });
-    it("should handle choices with fewer items than count",()=>{
+    it("should handle choices with fewer items than count",async()=>{
         (state as any).mcqMode=true;
         (window as any).correctAnswer={correct:"42",choices:["42","10"]};
-        generateChoicesForCurrentQuestion();
+        await generateChoicesForCurrentQuestion();
         const calledArgs=(state.setMcqChoices as any).mock.calls[0][0];
         expect(calledArgs.length).toBe(4);
         expect(calledArgs).toContain("42");
     });
-    it("should handle empty correct answer",()=>{
+    it("should handle empty correct answer",async()=>{
         (state as any).mcqMode=true;
         (window as any).correctAnswer={correct:""};
-        generateChoicesForCurrentQuestion();
+        await generateChoicesForCurrentQuestion();
         expect(state.setMcqChoices).not.toHaveBeenCalled();
     });
 });
 describe("generateDistractors - boundary conditions",()=>{
-    it("should handle count of 1",()=>{
-        const result=generateDistractors("42",1);
+    it("should handle count of 1",async()=>{
+        const result=await generateDistractors("42",1);
         expect(result.length).toBe(1);
         expect(result).toContain("42");
     });
-    it("should handle count of 0",()=>{
-        const result=generateDistractors("42",0);
+    it("should handle count of 0",async()=>{
+        const result=await generateDistractors("42",0);
         expect(result.length).toBe(0);
     });
-    it("should handle negative count",()=>{
-        const result=generateDistractors("42",-1);
+    it("should handle negative count",async()=>{
+        const result=await generateDistractors("42",-1);
         expect(result.length).toBe(0);
     });
-    it("should handle very large count",()=>{
-        const result=generateDistractors("42",100);
+    it("should handle very large count",async()=>{
+        const result=await generateDistractors("42",100);
         expect(result.length).toBe(100);
         expect(result).toContain("42");
     });
-    it("should handle answer of \"0\"",()=>{
-        const result=generateDistractors("0",4);
+    it("should handle answer of \"0\"",async()=>{
+        const result=await generateDistractors("0",4);
         expect(result.length).toBe(4);
         expect(result).toContain("0");
     });
-    it("should handle answer of \"1\"",()=>{
-        const result=generateDistractors("1",4);
+    it("should handle answer of \"1\"",async()=>{
+        const result=await generateDistractors("1",4);
         expect(result.length).toBe(4);
         expect(result).toContain("1");
     });
-    it("should handle answer of \"-1\"",()=>{
-        const result=generateDistractors("-1",4);
+    it("should handle answer of \"-1\"",async()=>{
+        const result=await generateDistractors("-1",4);
         expect(result.length).toBe(4);
         expect(result).toContain("-1");
     });
-    it("should handle answer with many decimal places",()=>{
-        const result=generateDistractors("3.14159265358979",4);
+    it("should handle answer with many decimal places",async()=>{
+        const result=await generateDistractors("3.14159265358979",4);
         expect(result.length).toBe(4);
         expect(result).toContain("3.14159265358979");
     });
-    it("should handle answer in scientific notation",()=>{
-        const result=generateDistractors("1e5",4);
+    it("should handle answer in scientific notation",async()=>{
+        const result=await generateDistractors("1e5",4);
         expect(result.length).toBe(4);
         expect(result).toContain("1e5");
     });
-    it("should handle answer with leading plus sign",()=>{
-        const result=generateDistractors("+5",4);
+    it("should handle answer with leading plus sign",async()=>{
+        const result=await generateDistractors("+5",4);
         expect(result.length).toBe(4);
         expect(result).toContain("+5");
     });
 });
 describe("generateDistractors - string patterns",()=>{
-    it("should handle answer with parentheses",()=>{
-        const result=generateDistractors("(test)",4);
+    it("should handle answer with parentheses",async()=>{
+        const result=await generateDistractors("(test)",4);
         expect(result.length).toBe(4);
         expect(result).toContain("(test)");
     });
-    it("should handle answer with brackets",()=>{
-        const result=generateDistractors("[1, 2]",4);
+    it("should handle answer with brackets",async()=>{
+        const result=await generateDistractors("[1, 2]",4);
         expect(result.length).toBe(4);
         expect(result).toContain("[1, 2]");
     });
-    it("should handle answer with braces",()=>{
-        const result=generateDistractors("{1, 2}",4);
+    it("should handle answer with braces",async()=>{
+        const result=await generateDistractors("{1, 2}",4);
         expect(result.length).toBe(4);
         expect(result).toContain("{1, 2}");
     });
-    it("should handle answer with equals sign",()=>{
-        const result=generateDistractors("x=5",4);
+    it("should handle answer with equals sign",async()=>{
+        const result=await generateDistractors("x=5",4);
         expect(result.length).toBe(4);
         expect(result).toContain("x=5");
     });
-    it("should handle answer with comma",()=>{
-        const result=generateDistractors("a, b",4);
+    it("should handle answer with comma",async()=>{
+        const result=await generateDistractors("a, b",4);
         expect(result.length).toBe(4);
         expect(result).toContain("a, b");
     });

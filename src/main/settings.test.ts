@@ -48,6 +48,16 @@ vi.mock("./state.js",()=>({
 vi.mock("./mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
+vi.mock("mathjs",()=>{
+    const evaluate=vi.fn((expr:string)=>{
+        try{
+            return Function('"use strict";return ('+expr+')')();
+        }catch{
+            return NaN;
+        }
+    });
+    return{evaluate,default:{evaluate}};
+});
 import*as settings from"./settings.js";
 describe("settings",()=>{
     afterEach(()=>{
@@ -85,67 +95,67 @@ describe("settings",()=>{
         settings.applyFont("default");
         expect(document.body.classList.contains("font-opendyslexic")).toBe(false);
     });
-    it("isAnswerCorrect should match identical strings",()=>{
-        expect(settings.isAnswerCorrect("42","42")).toBe(true);
+    it("isAnswerCorrect should match identical strings",async()=>{
+        expect(await settings.isAnswerCorrect("42","42")).toBe(true);
     });
-    it("isAnswerCorrect should reject different strings",()=>{
-        expect(settings.isAnswerCorrect("42","43")).toBe(false);
+    it("isAnswerCorrect should reject different strings",async()=>{
+        expect(await settings.isAnswerCorrect("42","43")).toBe(false);
     });
-    it("isAnswerCorrect should handle whitespace",()=>{
-        expect(settings.isAnswerCorrect("  42  ","42")).toBe(true);
+    it("isAnswerCorrect should handle whitespace",async()=>{
+        expect(await settings.isAnswerCorrect("  42  ","42")).toBe(true);
     });
-    it("isAnswerCorrect should handle alternate",()=>{
-        expect(settings.isAnswerCorrect("alt","correct","alt")).toBe(true);
+    it("isAnswerCorrect should handle alternate",async()=>{
+        expect(await settings.isAnswerCorrect("alt","correct","alt")).toBe(true);
     });
     it("openSettings and closeSettings should toggle modal",()=>{
         settings.openSettings();
         settings.closeSettings();
     });
     describe("isAnswerCorrect",()=>{
-        it("should return false for empty input",()=>{
-            expect(settings.isAnswerCorrect("","42")).toBe(false);
+        it("should return false for empty input",async()=>{
+            expect(await settings.isAnswerCorrect("","42")).toBe(false);
         });
-        it("should return true for exact numeric match",()=>{
-            expect(settings.isAnswerCorrect("42","42")).toBe(true);
+        it("should return true for exact numeric match",async()=>{
+            expect(await settings.isAnswerCorrect("42","42")).toBe(true);
         });
-        it("should return true for numeric match within tolerance",()=>{
-            expect(settings.isAnswerCorrect("3.142","3.14")).toBe(true);
+        it("should return true for numeric match within tolerance",async()=>{
+            expect(await settings.isAnswerCorrect("3.142","3.14")).toBe(true);
         });
-        it("should return false for numeric match outside tolerance",()=>{
-            expect(settings.isAnswerCorrect("3.2","3.14")).toBe(false);
+        it("should return false for numeric match outside tolerance",async()=>{
+            expect(await settings.isAnswerCorrect("3.2","3.14")).toBe(false);
         });
-        it("should handle degree symbol in input",()=>{
-            expect(settings.isAnswerCorrect("45°","45")).toBe(true);
+        it("should handle degree symbol in input",async()=>{
+            expect(await settings.isAnswerCorrect("45°","45")).toBe(true);
         });
-        it("should handle radian suffix in input",()=>{
-            expect(settings.isAnswerCorrect("1rad","1")).toBe(true);
+        it("should handle radian suffix in input",async()=>{
+            expect(await settings.isAnswerCorrect("1rad","1")).toBe(true);
         });
-        it("should match alternate form numerically",()=>{
-            expect(settings.isAnswerCorrect("1+1","2","3")).toBe(true);
+        it("should match alternate form numerically",async()=>{
+            expect(await settings.isAnswerCorrect("1+1","2","3")).toBe(true);
         });
-        it("should match alternate form symbolically",()=>{
-            expect(settings.isAnswerCorrect("y","x","y")).toBe(true);
+        it("should match alternate form symbolically",async()=>{
+            expect(await settings.isAnswerCorrect("y","x","y")).toBe(true);
         });
-        it("should handle pi symbol (π) in expressions",()=>{
-            expect(settings.isAnswerCorrect("2*π","2*pi")).toBe(true);
+        it("should handle pi symbol (π) in expressions",async()=>{
+            expect(await settings.isAnswerCorrect("2*π","2*pi")).toBe(true);
         });
-        it("should handle Unicode π character",()=>{
-            expect(settings.isAnswerCorrect("π","pi")).toBe(true);
+        it("should handle Unicode π character",async()=>{
+            expect(await settings.isAnswerCorrect("π","pi")).toBe(true);
         });
-        it("should handle expressions with spaces",()=>{
-            expect(settings.isAnswerCorrect("2 + 3","5")).toBe(true);
+        it("should handle expressions with spaces",async()=>{
+            expect(await settings.isAnswerCorrect("2 + 3","5")).toBe(true);
         });
-        it("should handle case-insensitive comparison",()=>{
-            expect(settings.isAnswerCorrect("X","x")).toBe(true);
+        it("should handle case-insensitive comparison",async()=>{
+            expect(await settings.isAnswerCorrect("X","x")).toBe(true);
         });
-        it("should return false for completely different answers",()=>{
-            expect(settings.isAnswerCorrect("hello","42")).toBe(false);
+        it("should return false for completely different answers",async()=>{
+            expect(await settings.isAnswerCorrect("hello","42")).toBe(false);
         });
-        it("should handle negative numbers",()=>{
-            expect(settings.isAnswerCorrect("-5","-5")).toBe(true);
+        it("should handle negative numbers",async()=>{
+            expect(await settings.isAnswerCorrect("-5","-5")).toBe(true);
         });
-        it("should handle decimal answers",()=>{
-            expect(settings.isAnswerCorrect("3.14","3.14")).toBe(true);
+        it("should handle decimal answers",async()=>{
+            expect(await settings.isAnswerCorrect("3.14","3.14")).toBe(true);
         });
     });
     describe("previewSetting",()=>{
