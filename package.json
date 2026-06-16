@@ -49,7 +49,7 @@
     "jsdom": "^29.0.1",
     "rollup-plugin-visualizer": "^7.0.1",
     "typescript": "^6.0.2",
-    "vite": "^8.0.13",
+    "vite": "^8.0.16",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-copy": "^0.1.6",
     "vite-plugin-static-copy": "^3.3.0",
