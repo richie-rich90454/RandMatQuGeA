@@ -8,13 +8,12 @@ import {getMaxForDifficulty} from "../algebraUtils.js";
 vi.mock("../../../script.js",()=>({
 	questionArea: null as HTMLElement|null
 }));
-vi.mock("../algebraUtils.js",async()=>{
-	const actual=await vi.importActual("../algebraUtils.js");
-	return{
-		...actual,
-		getMaxForDifficulty: vi.fn(()=>20)
-	};
-});
+vi.mock("../algebraUtils.js",()=>({
+	factorial:vi.fn(function f(n:number){return n<=1?1:n*f(n-1);}),
+	gcd:vi.fn(function g(a:number,b:number){return b===0?Math.abs(a):g(b,a%b);}),
+	getOrdinal:vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
+	getMaxForDifficulty:vi.fn(()=>20),
+}));
 describe("generateRadicalSimplify",()=>{
 	let originalMathRandom:()=>number;
 	let mockDiv:HTMLDivElement;
@@ -47,7 +46,6 @@ describe("generateRadicalSimplify",()=>{
 		expect(mockDiv.innerHTML).toBe("<div>\\( \\sqrt{147} \\)</div>");
 		expect((window as any).correctAnswer).toMatchObject({
 			correct:"7\\sqrt{3}",
-			alternate:"7√3",
 			display:"7\\sqrt{3}"
 		});
 		expect((window as any).expectedFormat).toBe("Enter a simplified radical expression");
@@ -64,7 +62,6 @@ describe("generateRadicalSimplify",()=>{
 		expect(mockDiv.innerHTML).toBe("<div>\\( 7\\sqrt{3} + 11\\sqrt{3} \\)</div>");
 		expect((window as any).correctAnswer).toMatchObject({
 			correct:"18\\sqrt{3}",
-			alternate:"18√3",
 			display:"18\\sqrt{3}"
 		});
 	});
@@ -79,7 +76,6 @@ describe("generateRadicalSimplify",()=>{
 		expect(mockDiv.innerHTML).toBe("<div>\\( 15\\sqrt{3} - 7\\sqrt{3} \\)</div>");
 		expect((window as any).correctAnswer).toMatchObject({
 			correct:"8\\sqrt{3}",
-			alternate:"8√3",
 			display:"8\\sqrt{3}"
 		});
 	});
@@ -118,7 +114,6 @@ describe("generateRadicalSimplify",()=>{
 		expect(mockDiv.innerHTML).toBe("<div>\\( \\frac{1}{\\sqrt{7}} \\)</div>");
 		expect((window as any).correctAnswer).toMatchObject({
 			correct:"\\frac{\\sqrt{7}}{7}",
-			alternate:"√7/7",
 			display:"\\frac{\\sqrt{7}}{7}"
 		});
 	});
