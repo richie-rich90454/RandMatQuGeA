@@ -43,7 +43,7 @@
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.2",
     "@types/mathjs": "^9.4.2",
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.9.4",
     "@types/semver": "^7.7.1",
     "@types/three": "^0.183.1",
     "jsdom": "^29.0.1",
