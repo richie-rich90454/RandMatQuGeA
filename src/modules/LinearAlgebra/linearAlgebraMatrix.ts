@@ -155,10 +155,16 @@ export function generateMatrix(difficulty?: string): void{
 		case "inverse":{
 			let A: Matrix2x2;
 			let det: number;
+			let attempts=0;
 			do{
 				A=generate2x2();
 				det=A.a*A.d-A.b*A.c;
-			} while(Math.abs(det)<0.1);
+				attempts++;
+			} while(Math.abs(det)<0.1&&attempts<100);
+			if(Math.abs(det)<0.1){
+				A={ a: 2, b: 0, c: 0, d: 2 };
+				det=4;
+			}
 			let invDet=1/det;
 			let inv: Matrix2x2={
 				a: +(A.d*invDet).toFixed(2),
@@ -324,9 +330,12 @@ export function generateMatrix(difficulty?: string): void{
 		}
 		case "row_echelon":{
 			let A: Matrix2x2;
+			let attempts=0;
 			do{
 				A=generate2x2();
-			} while(Math.abs(A.a)<0.1);
+				attempts++;
+			} while(Math.abs(A.a)<0.1&&attempts<100);
+			if(Math.abs(A.a)<0.1) A.a=1;
 			let factor=+(A.c/A.a).toFixed(2);
 			let result: Matrix2x2={
 				a: A.a,

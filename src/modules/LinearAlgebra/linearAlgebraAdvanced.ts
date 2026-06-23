@@ -20,11 +20,18 @@ function generate3x3Matrix(range: number): number[][]{
 
 function generateRandomVector3D(range: number): { x: number; y: number; z: number }{
 	let x: number, y: number, z: number;
+	let attempts=0;
 	do{
 		x=Math.random()*range*2-range;
 		y=Math.random()*range*2-range;
 		z=Math.random()*range*2-range;
-	}while(Math.abs(x)<0.01&&Math.abs(y)<0.01&&Math.abs(z)<0.01);
+		attempts++;
+	}while(Math.abs(x)<0.01&&Math.abs(y)<0.01&&Math.abs(z)<0.01&&attempts<100);
+	if(Math.abs(x)<0.01&&Math.abs(y)<0.01&&Math.abs(z)<0.01){
+		x=1;
+		y=0;
+		z=0;
+	}
 	return{ x, y, z };
 }
 
@@ -139,9 +146,12 @@ export function generatePartialFractions(difficulty?: string): void{
 	let a=Math.floor(Math.random()*3)+1;
 	let b=Math.floor(Math.random()*3)+1;
 	if(type==="distinct"){
-		while(b===a){
+		let attempts=0;
+		while(b===a&&attempts<10){
 			b=Math.floor(Math.random()*3)+1;
+			attempts++;
 		}
+		if(b===a) b=a+1;
 	}
 	let c=Math.floor(Math.random()*3)+1;
 	let question="";
@@ -352,16 +362,16 @@ export function generateVector3D(difficulty?: string): void{
 		if(cosTheta>1) cosTheta=1;
 		if(cosTheta<-1) cosTheta=-1;
 		let angle=(Math.acos(cosTheta)*180/Math.PI).toFixed(1);
-		question=`Find the angle (in degrees) between \\( \\langle ${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)} \\rangle \\) and \\( \\langle ${w.x.toFixed(2)}, ${w.y.toFixed(2)}, ${w.z.toFixed(2)} \\rangle \\).`;
-		answer=`${angle}^{\\circ}`;
+		question=`Find the angle (in degrees) between \( \langle ${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)} \rangle \) and \( \langle ${w.x.toFixed(2)}, ${w.y.toFixed(2)}, ${w.z.toFixed(2)} \rangle \).`;
+		answer=`${angle}^{\circ}`;
 		alternate=angle;
 		hint="Enter a number (degrees)";
 		let angleNum=parseFloat(angle);
-		choices=[angle];
-		choices.push((angleNum+10).toFixed(1));
-		choices.push((angleNum-10).toFixed(1));
-		choices.push((Math.acos(Math.abs(cosTheta))*180/Math.PI).toFixed(1));
-		choices.push((Math.asin(cosTheta)*180/Math.PI).toFixed(1));
+		choices=[answer];
+		choices.push(`${(angleNum+10).toFixed(1)}^{\circ}`);
+		choices.push(`${(angleNum-10).toFixed(1)}^{\circ}`);
+		choices.push(`${(Math.acos(Math.abs(cosTheta))*180/Math.PI).toFixed(1)}^{\circ}`);
+		choices.push(`${(Math.asin(cosTheta)*180/Math.PI).toFixed(1)}^{\circ}`);
 	}
 	else{
 		const w=generateRandomVector3D(range);

@@ -11,7 +11,7 @@ export default defineConfig({
 		environment:"jsdom",
 		testTimeout:10000,
 		pool:"forks",
-		maxConcurrency:2,
+		maxConcurrency:4,
 	},
 	root: "src",
 	publicDir: "../public",
