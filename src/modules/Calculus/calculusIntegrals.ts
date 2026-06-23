@@ -54,8 +54,14 @@ export function generateIntegral(difficulty?: string): void{
 		case "polynomial":{
 			const numTerms=Math.floor(Math.random()*4)+2;
 			const exponents=new Set<number>();
-			while(exponents.size<numTerms){
+			let expAttempts=0;
+			while(exponents.size<numTerms&&expAttempts<100){
 				exponents.add(Math.floor(Math.random()*11));
+				expAttempts++;
+			}
+			let fillExp=0;
+			while(exponents.size<numTerms){
+				exponents.add(fillExp++);
 			}
 			const exponentsArray=Array.from(exponents).sort((a,b)=>b-a);
 			const coefficients: number[]=[];

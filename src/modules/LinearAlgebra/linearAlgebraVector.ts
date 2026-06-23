@@ -14,17 +14,23 @@ export function generateVector(difficulty?: string): void{
 	let range=getRange(difficulty);
 	let generateNonZeroVector=(): Vector2D=>{
 		let x: number, y: number;
+		let attempts=0;
 		do{
 			x=Math.random()*range*2-range;
 			y=Math.random()*range*2-range;
-		} while(Math.abs(x)<0.1&&Math.abs(y)<0.1);
+			attempts++;
+		} while(Math.abs(x)<0.1&&Math.abs(y)<0.1&&attempts<100);
+		if(Math.abs(x)<0.1&&Math.abs(y)<0.1){ x=1; y=0; }
 		return{ x, y };
 	};
 	let generateNonZeroXVector=(): Vector2D=>{
 		let vec: Vector2D;
+		let attempts=0;
 		do{
 			vec=generateNonZeroVector();
-		} while(Math.abs(vec.x)<0.1);
+			attempts++;
+		} while(Math.abs(vec.x)<0.1&&attempts<100);
+		if(Math.abs(vec.x)<0.1) vec={ x: 1, y: vec.y };
 		return vec;
 	};
 	let mathExpression="";

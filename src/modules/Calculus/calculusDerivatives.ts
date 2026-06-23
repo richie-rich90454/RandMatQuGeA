@@ -53,8 +53,14 @@ export function generateDerivative(difficulty?: string): void{
 		case "polynomial":{
 			let numTerms=Math.floor(Math.random()*4)+2;
 			let exponents=new Set<number>();
-			while(exponents.size<numTerms){
+			let expAttempts=0;
+			while(exponents.size<numTerms&&expAttempts<100){
 				exponents.add(Math.floor(Math.random()*11));
+				expAttempts++;
+			}
+			let fillExp=0;
+			while(exponents.size<numTerms){
+				exponents.add(fillExp++);
 			}
 			let exponentsArray=Array.from(exponents).sort((a,b)=>b-a);
 			let coefficients: number[]=[];
@@ -398,8 +404,15 @@ export function generateDerivative(difficulty?: string): void{
 			let y0=Math.floor(Math.random()*3)+1;
 			let constant=a*x0*x0+b*x0*y0+c*y0*y0;
 			let denominator=b*x0+2*c*y0;
-			while(denominator===0){
+			let attempts=0;
+			while(denominator===0&&attempts<10){
 				y0=Math.floor(Math.random()*3)+1;
+				constant=a*x0*x0+b*x0*y0+c*y0*y0;
+				denominator=b*x0+2*c*y0;
+				attempts++;
+			}
+			if(denominator===0){
+				y0=1;
 				constant=a*x0*x0+b*x0*y0+c*y0*y0;
 				denominator=b*x0+2*c*y0;
 			}

@@ -59,7 +59,28 @@ export function getMaxCoeff(difficulty?: string): number{
  * @returns A plain-text string suitable for display or comparison.
  */
 export function latexToPlain(str: string): string{
-    return str.replace(/\\/g, "").replace(/{/g, "").replace(/}/g, "").replace(/cdot/g, "*").replace(/frac\(([^)]+)\)\(([^)]+)\)/g, "($1)/($2)").replace(/frac{([^}]+)}{([^}]+)}/g, "($1)/($2)");
+    // Multi-pass: repeatedly apply regex replacements until stable.
+    // This handles nested LaTeX by processing from inside out.
+    let prev="";
+    let iter=0;
+    while(prev!==str&&iter<50){
+        prev=str;
+        iter++;
+        // Handle \frac{num}{den}
+        str=str.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g,(_,num,den)=>{
+            return "("+latexToPlain(num)+")/("+latexToPlain(den)+")";
+        });
+        // Handle \sqrt[root]{arg}
+        str=str.replace(/\\sqrt\[([^\]]*)\]\{([^}]*)\}/g,(_,root,arg)=>{
+            return "("+latexToPlain(arg)+")^(1/("+latexToPlain(root)+"))";
+        });
+        // Handle \sqrt{arg}
+        str=str.replace(/\\sqrt\{([^}]*)\}/g,(_,arg)=>{
+            return "sqrt("+latexToPlain(arg)+")";
+        });
+    }
+    // Strip backslashes and remaining braces, convert cdot
+    return str.replace(/\\/g,"").replace(/{/g,"").replace(/}/g,"").replace(/cdot/g,"*");
 }
 
 /**

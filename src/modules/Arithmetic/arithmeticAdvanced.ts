@@ -122,8 +122,8 @@ export function generateWholeNumberPlaceValue(difficulty?: string): void{
 		}
 	}
 	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	if (window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise();
 	}
 }
 /**
@@ -179,8 +179,8 @@ export function generateNumberLineOrdering(difficulty?: string): void{
 		choices: uniqueChoices.slice(0,4)
 	};
 	window.expectedFormat="Enter numbers separated by commas, e.g., -3, 0, 5, 7";
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	if (window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise();
 	}
 }
 /**
@@ -286,8 +286,8 @@ export function generateDivisibility(difficulty?: string): void{
 		}
 	}
 	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	if (window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise();
 	}
 }
 /**
@@ -377,7 +377,7 @@ export function generateGCFLCM(difficulty?: string): void{
 		}
 	}
 	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	if (window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise();
 	}
 }

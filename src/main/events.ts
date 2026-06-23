@@ -85,7 +85,10 @@ function handleMathShortcuts(e: KeyboardEvent): void{
 export async function setupEventListeners(): Promise<void>{
     if (!dom.generateQuestionButton||!dom.checkAnswerButton||!dom.userAnswer||!dom.themeToggle||!dom.helpButton||!dom.settingsButton||!dom.modeSingleBtn||!dom.modeMentalBtn||!dom.mentalControls||!dom.singleControls||!dom.difficultySelect||!dom.timerDisplay||!dom.scoreDisplay||!dom.startSessionBtn) return;
     dom.generateQuestionButton.addEventListener("click",generation.debounceGenerate);
-    dom.checkAnswerButton.addEventListener("click",()=>answer.checkAnswer());
+    dom.checkAnswerButton.addEventListener("click",()=>{
+        if (state.currentMode==="single") answer.checkAnswer();
+        else if (state.sessionActive) session.handleMentalAnswer();
+    });
     dom.userAnswer.addEventListener("keyup",function (e: KeyboardEvent){
         if (e.shiftKey&&e.key==="Enter"){
             if (state.currentMode==="single") answer.checkAnswer();

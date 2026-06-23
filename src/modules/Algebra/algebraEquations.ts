@@ -191,7 +191,6 @@ export function generateQuadraticEquation(difficulty?: string): void{
 			choices.push(`${sol1+1}, ${sol2}`);
 			choices.push(`${sol1}, ${sol2+1}`);
 			choices.push(`${-d}, ${-d}`);
-			choices.push(`${sol1}, ${sol2}`);
 			expectedFormat="Enter two numbers separated by comma";
 			break;
 		}
@@ -200,10 +199,17 @@ export function generateQuadraticEquation(difficulty?: string): void{
 			let b=Math.floor(Math.random()*(maxVal*2+1))-maxVal;
 			let c=Math.floor(Math.random()*(maxVal*2+1))-maxVal;
 			let disc=b*b-4*a*c;
-			while(disc<0){
+			let attempts=0;
+			while(disc<0&&attempts<100){
 				b=Math.floor(Math.random()*(maxVal*2+1))-maxVal;
 				c=Math.floor(Math.random()*(maxVal*2+1))-maxVal;
 				disc=b*b-4*a*c;
+				attempts++;
+			}
+			if(disc<0){
+				b=2;
+				c=0;
+				disc=4;
 			}
 			let sol1=(-b+Math.sqrt(disc))/(2*a);
 			let sol2=(-b-Math.sqrt(disc))/(2*a);
@@ -462,10 +468,13 @@ export function generateRationalInequality(difficulty?: string): void{
 	questionArea.innerHTML="";
 	let maxVal=getMaxForDifficulty(difficulty,5);
 	let a=Math.floor(Math.random()*maxVal)+1;
-	let b=Math.floor(Math.random()*maxVal)+1;
-	while(a===b){
-		b=Math.floor(Math.random()*maxVal)+1;
-	}
+		let b=Math.floor(Math.random()*maxVal)+1;
+		let attempts=0;
+		while(a===b&&attempts<10){
+			b=Math.floor(Math.random()*maxVal)+1;
+			attempts++;
+		}
+		if(a===b) b=a+1;
 	let mathExpression=`Solve: \\( \\frac{x-${a}}{x-${b}} > 0 \\) (Enter intervals)`;
 	let intervals:string;
 	if(a<b){

@@ -20,7 +20,7 @@ describe("generateExponent", ()=>{
 		(questionArea as any)=mockDiv;
 		delete (window as any).correctAnswer;
 		delete (window as any).expectedFormat;
-		(window as any).MathJax={ typeset: vi.fn() };
+		(window as any).MathJax={ typesetPromise: vi.fn().mockResolvedValue(undefined) };
 	});
 	afterEach(()=>{
 		Math.random=originalMathRandom;
@@ -46,7 +46,7 @@ describe("generateExponent", ()=>{
 			display: "64"
 		});
 		expect((window as any).expectedFormat).toBe("Enter a number");
-		expect((window as any).MathJax.typeset).toHaveBeenCalled();
+		expect((window as any).MathJax.typesetPromise).toHaveBeenCalled();
 	});
 	it("generates solve exponential equation correctly", ()=>{
 		Math.random=vi.fn()
@@ -123,7 +123,7 @@ describe("generateExponent", ()=>{
 		expect(mockGetMax).toHaveBeenCalledWith("hard", 4);
 		expect(mockGetMax).toHaveReturnedWith(10);
 	});
-	it("does not call MathJax.typeset if MathJax is missing", ()=>{
+	it("does not call MathJax.typesetPromise if MathJax is missing", ()=>{
 		delete (window as any).MathJax;
 		Math.random=vi.fn()
 			.mockReturnValueOnce(0.1)
@@ -197,7 +197,7 @@ describe("generateExponent - edge cases", ()=>{
 		(questionArea as any)=mockDiv;
 		delete (window as any).correctAnswer;
 		delete (window as any).expectedFormat;
-		(window as any).MathJax={ typeset: vi.fn() };
+		(window as any).MathJax={ typesetPromise: vi.fn().mockResolvedValue(undefined) };
 	});
 	afterEach(()=>{
 		Math.random=originalMathRandom;

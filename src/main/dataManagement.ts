@@ -28,7 +28,7 @@ async function loadData(){
         dataList.innerHTML="";
         for(const s of stats){
             const topicName=topics.find(t=>t.id===s.topic_id)?.name||s.topic_id;
-            const acc=(s.accuracy*100).toFixed(1);
+            const acc=isFinite(s.accuracy)?(s.accuracy*100).toFixed(1):"0.0";
             const div=document.createElement("div");
             div.className="data-item";
             div.innerHTML=`

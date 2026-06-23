@@ -114,7 +114,7 @@ export function generateDistanceFormula(difficulty?: string): void{
 	const choices=[correct];
 	choices.push((Math.abs(x2-x1)+Math.abs(y2-y1)).toFixed(2));
 	choices.push(Math.sqrt((x2-x1)**2+(y2-y1)**2+1).toFixed(2));
-	choices.push(Math.sqrt((x2-x1)**2+(y2-y1)**2-1).toFixed(2));
+	choices.push(Math.sqrt(Math.max(0, (x2-x1)**2+(y2-y1)**2-1)).toFixed(2));
 	choices.push((Math.abs(x2-x1)).toFixed(2));
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correct)){

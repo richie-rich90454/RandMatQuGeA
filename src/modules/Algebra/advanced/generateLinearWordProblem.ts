@@ -110,7 +110,7 @@ export function generateLinearWordProblem(difficulty?: string): void{
 	}
 	expectedFormat=expectedFormats[type]||"Enter a number";
 	questionArea.innerHTML=problemText;
-	if(window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 	window.correctAnswer={
 		correct: correct,
 		alternate: alternate,

@@ -55,7 +55,10 @@ export function generateSin(difficulty?: string): void{
 			let principal=Math.asin(parseFloat(k));
 			let sol1=principal;
 			let sol2=Math.PI-principal;
-			[sol1,sol2].forEach(sol=>{
+			let allSolutions=[sol1,sol2];
+			// If principal is negative, add sol1+2π to capture all solutions in [0,2π)
+			if(sol1<0) allSolutions.push(sol1+2*Math.PI);
+			allSolutions.forEach(sol=>{
 				if(sol>=0&&sol<2*Math.PI){
 					solutions.push(sol.toFixed(2));
 					plainNumbers.push(sol.toFixed(2));
@@ -196,7 +199,11 @@ export function generateSin(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat=window.expectedFormat||"";
-	window.MathJax?.typeset();
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise().catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
+	}
 }
 export function generateCosine(difficulty?: string): void{
 	if(!questionArea) return;
@@ -324,7 +331,7 @@ export function generateCosine(difficulty?: string): void{
 				b=Math.floor(Math.random()*5+5);
 				angleC=Math.floor(Math.random()*30+30);
 			}
-			let c=Math.sqrt(a*a+b*b-2*a*b*Math.cos(angleC*Math.PI/180)).toFixed(1);
+			let c=Math.sqrt(Math.max(0, a*a+b*b-2*a*b*Math.cos(angleC*Math.PI/180))).toFixed(1);
 			correct=c;
 			alternate=c;
 			display=c;
@@ -364,7 +371,11 @@ export function generateCosine(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat=window.expectedFormat||"";
-	window.MathJax?.typeset();
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise().catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
+	}
 }
 export function generateTangent(_difficulty?: string): void{
 	if(!questionArea) return;
@@ -462,5 +473,9 @@ export function generateTangent(_difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat=window.expectedFormat||"";
-	window.MathJax?.typeset();
+	if(window.MathJax&&window.MathJax.typesetPromise){
+		window.MathJax.typesetPromise().catch((err: any)=>
+			console.log("MathJax typeset error:", err)
+		);
+	}
 }

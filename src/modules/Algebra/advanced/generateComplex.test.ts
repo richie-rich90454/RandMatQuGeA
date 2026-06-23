@@ -22,7 +22,7 @@ describe("generateComplex", ()=>{
 		(questionArea as any)=mockDiv;
 		delete (window as any).correctAnswer;
 		delete (window as any).expectedFormat;
-		(window as any).MathJax={ typeset: vi.fn() };
+		(window as any).MathJax={ typesetPromise: vi.fn().mockResolvedValue(undefined) };
 	});
 	afterEach(()=>{
 		Math.random=originalMathRandom;
@@ -50,7 +50,7 @@ describe("generateComplex", ()=>{
 			display: "2 + 2i"
 		});
 		expect((window as any).expectedFormat).toBe("Enter as a+bi (e.g., 3+2i)");
-		expect((window as any).MathJax.typeset).toHaveBeenCalled();
+		expect((window as any).MathJax.typesetPromise).toHaveBeenCalled();
 	});
 	it("generates subtraction question correctly", ()=>{
 		Math.random=vi.fn()
@@ -163,7 +163,7 @@ describe("generateComplex", ()=>{
 		expect(mockGetMax).toHaveReturnedWith(10);
 		expect(mockDiv.innerHTML).toContain("(1 + 1i) + (1 + 1i)");
 	});
-	it("does not call MathJax.typeset if MathJax is missing", ()=>{
+	it("does not call MathJax.typesetPromise if MathJax is missing", ()=>{
 		delete (window as any).MathJax;
 		Math.random=vi.fn()
 			.mockReturnValueOnce(0.1)
@@ -249,7 +249,7 @@ describe("generateComplex - edge cases", ()=>{
 		(questionArea as any)=mockDiv;
 		delete (window as any).correctAnswer;
 		delete (window as any).expectedFormat;
-		(window as any).MathJax={ typeset: vi.fn() };
+		(window as any).MathJax={ typesetPromise: vi.fn().mockResolvedValue(undefined) };
 	});
 	afterEach(()=>{
 		Math.random=originalMathRandom;

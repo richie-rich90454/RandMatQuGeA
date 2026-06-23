@@ -202,11 +202,19 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			let b=Math.floor(Math.random()*maxCoeff)+1;
 			let f1=1-a-b;
 			let f2=8-2*a-b;
-			while(f1*f2>=0){
+			let attempts=0;
+			while(f1*f2>=0&&attempts<100){
 				a=Math.floor(Math.random()*maxCoeff)+1;
 				b=Math.floor(Math.random()*maxCoeff)+1;
 				f1=1-a-b;
 				f2=8-2*a-b;
+				attempts++;
+			}
+			if(f1*f2>=0){
+				a=2;
+				b=1;
+				f1=-2;
+				f2=3;
 			}
 			mathExpression=`\\[ \\text{Show that } f(x)=x^3-${a}x-${b} \\text{ has a root in } [1,2]. \\]`;
 			let desc=f1<0 && f2>0 ? "f(1)<0, f(2)>0" : "f(1)>0, f(2)<0";

@@ -47,8 +47,8 @@ export function generateAddition(difficulty?: string): void{
 		choices: uniqueChoices.slice(0,4)
 	};
 	window.expectedFormat="Enter a number (up to 3 decimals)";
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	if (window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise();
 	}
 }
 /**
@@ -95,8 +95,8 @@ export function generateSubtraction(difficulty?: string): void{
 		choices: uniqueChoices.slice(0,4)
 	};
 	window.expectedFormat="Enter a number (up to 3 decimals)";
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	if (window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise();
 	}
 }
 /**
@@ -145,8 +145,8 @@ export function generateMultiplication(difficulty?: string): void{
 		choices: uniqueChoices.slice(0,4)
 	};
 	window.expectedFormat="Enter a number rounded to 2 decimal places";
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	if (window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise();
 	}
 }
 /**
@@ -196,7 +196,7 @@ export function generateDivision(difficulty?: string): void{
 		choices: uniqueChoices.slice(0,4)
 	};
 	window.expectedFormat="Enter a number rounded to 2 decimal places";
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	if (window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise();
 	}
 }

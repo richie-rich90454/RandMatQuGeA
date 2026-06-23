@@ -227,9 +227,12 @@ export function generateParametricPolarVector(difficulty?: string): void{
 		case "polarAreaBetweenGeneral":{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			let b=Math.floor(Math.random()*maxCoeff)+1;
-			while(b>=a){
+			let attempts=0;
+			while(b>=a&&attempts<10){
 				b=Math.floor(Math.random()*maxCoeff)+1;
+				attempts++;
 			}
+			if(b>=a) b=1;
 			mathExpression=`\\[ \\text{Area inside } r=${a}+${b}\\cos\\theta \\text{ and outside } r=${a}. \\]`;
 			let area=Math.PI*b*b/2;
 			plainCorrectAnswer=area.toFixed(3);

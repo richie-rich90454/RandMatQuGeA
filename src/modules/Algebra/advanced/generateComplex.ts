@@ -135,7 +135,7 @@ export function generateComplex(difficulty?: string): void{
 	}
 	questionArea.innerHTML=mathExpression;
 	questionArea.style.whiteSpace="pre-wrap";
-	if(window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 	window.correctAnswer={
 		correct: correct,
 		alternate: alternate,

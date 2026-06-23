@@ -184,7 +184,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Volume when same region revolved about } y=-1. \\]`;
 			let intersect=a;
-			let val=Math.PI*(Math.pow(intersect,5)/3 + 2*Math.pow(intersect,3)/3 + intersect - (Math.pow(intersect,5)/5 + 2*Math.pow(intersect,3)/3 + intersect));
+			let val=Math.PI*(Math.pow(intersect,5)/3 + Math.pow(intersect,3)/3 - Math.pow(intersect,5)/5);
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
@@ -268,7 +268,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			plainCorrectAnswer=options[correctIdx];
 			latexAnswer=`\\text{${options[correctIdx]}}`;
 			mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{4-x^2}} \\] Best technique? A) ${options[0]} B) ${options[1]} C) ${options[2]} D) ${options[3]}`;
-			expectedFormat="Enter letter";
+			expectedFormat="Enter technique name";
 			choices=[options[correctIdx]];
 			for(let i=0;i<options.length;i++) if(i!==correctIdx) choices.push(options[i]);
 			break;
@@ -455,11 +455,12 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	let uniqueChoices=[...new Set(choices)];
+	let uniqueChoices=[...new Set(choices.map(c=>c.toLowerCase()))];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if(!uniqueChoices.includes(plainCorrectAnswer)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
-		else uniqueChoices=[plainCorrectAnswer];
+	let correctLower=plainCorrectAnswer.toLowerCase();
+	if(!uniqueChoices.includes(correctLower)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctLower;
+		else uniqueChoices=[correctLower];
 	}
 	window.correctAnswer={
 		correct: plainCorrectAnswer,

@@ -179,7 +179,7 @@ export function generateStatistics(difficulty?: string): void{
 	textDiv.style.marginBottom="10px";
 	container.appendChild(textDiv);
 	window.expectedFormat=hint;
-	if (window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	if (window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise();
 	}
 }

@@ -43,10 +43,10 @@ describe("latexToPlain",()=>{
         expect(latexToPlain("\\cdot")).toBe("*");
     });
     it("convertsfractobracesstripped",()=>{
-        expect(latexToPlain("\\frac{1}{2}")).toBe("frac12");
+        expect(latexToPlain("\\frac{1}{2}")).toBe("(1)/(2)");
     });
     it("handlescompletexpression",()=>{
-        expect(latexToPlain("\\frac{1}{x\\ln(2)}")).toBe("frac1xln(2)");
+        expect(latexToPlain("\\frac{1}{x\\ln(2)}")).toBe("(1)/(xln(2))");
     });
     it("handlesemptystring",()=>{
         expect(latexToPlain("")).toBe("");

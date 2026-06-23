@@ -145,6 +145,7 @@ export function generateLimit(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a number or 'avg=... inst=...'";
+	window.hasQuestion=true;
 }
 
 /**
@@ -371,4 +372,5 @@ export function generateRelatedRates(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a number or compound answer (e.g., 'dy/dt=-1.5 dtheta/dt=0.2')";
+	window.hasQuestion=true;
 }

@@ -45,11 +45,14 @@ function detectErrorType(userAnswer: string, correctAnswer: string, topicId: str
     return null;
 }
 function sanitize(s: string): string{
-    s=s.toLowerCase().replace(/\s+/g,'');
+    s=s.toLowerCase();
+    s=s.replace(/(sin|cos|tan|cot|sec|csc|log|ln|exp|sqrt|arcsin|arccos|arctan|sinh|cosh|tanh)\s+([a-z\(])/g,'$1($2)');
+    s=s.replace(/\s+/g,'');
     s=s.replace(/−/g,'-');
-    s=s.replace(/\^{/g,'^').replace(/[{}]/g,'');
+    s=s.replace(/\^{/g,'^(').replace(/}/g,')');
     s=s.replace(/\*\*/g,'^');
     s=s.replace(/√/g,'sqrt').replace(/π/g,'pi').replace(/∞/g,'inf');
+    s=s.replace(/\b(sin|cos|tan|cot|sec|csc|log|ln|exp|sqrt|arcsin|arccos|arctan|sinh|cosh|tanh)(\d+[a-z]*)/g,'$1($2)');
     s=s.replace(/(\d)([a-z])/g,'$1*$2');
     s=s.replace(/([a-z])(\d)/g,'$1*$2');
     s=s.replace(/\)(?=\()/g,')*');
@@ -59,7 +62,6 @@ function sanitize(s: string): string{
     s=s.replace(/\barcsin\b/g,'asin');
     s=s.replace(/\barccos\b/g,'acos');
     s=s.replace(/\barctan\b/g,'atan');
-    s=s.replace(/(sin|cos|tan|cot|sec|csc|log|exp|sqrt|asin|acos|atan|sinh|cosh|tanh)\s+([a-z\(])/g,'$1($2)');
     return s;
 }
 function removeConstants(s: string): string{
@@ -77,16 +79,38 @@ function removeConstants(s: string): string{
     return result || s;
 }
 function toDecimal(s: string): string{
-    return s.replace(/(^|[+\-*/\^\(])(\d+)\/(\d+)([+\-*/\^\)]|$)/g,(_,pre,num,den,post)=>{
+    // Handle fractions from \frac conversion: (1)/(2) -> 0.5, exclude ^ prefix for x^1/2
+    return s.replace(/(^|[+\-*\/\(])(\d+) ?\)?\/\(? ?(\d+)([+\-*\/\)]|$)/g,(_,pre,num,den,post)=>{
         let val=Number(num)/Number(den);
         return pre+val+post;
     });
 }
 function toTerms(s: string): string[]{
-    let withPlus=s.replace(/-/g,'+-');
-    let terms=withPlus.split('+').map(t=>t.trim()).filter(t=>t!=='');
-    terms.sort();
-    return terms;
+    // Only replace - with +- outside of parentheses to avoid garbling sub-expressions
+    let result:string[]=[];
+    let depth=0;
+    let current='';
+    for(let i=0;i<s.length;i++){
+        let ch=s[i];
+        if(ch==='(')depth++;
+        else if(ch===')')depth--;
+        if(ch==='-'&&depth===0){
+            if(current)result.push(current);
+            current='-';
+        }
+        else if(ch==='+'&&depth===0){
+            if(current)result.push(current);
+            current='';
+        }
+        else{
+            current+=ch;
+        }
+    }
+    if(current)result.push(current);
+    // Clean up leading +
+    result=result.map(t=>t.replace(/^\+/,'')).filter(t=>t!=='');
+    result.sort();
+    return result;
 }
 function tryEvaluate(expr: string): any{
     let normalized=expr.replace(/<([^>]*)>/g,'[$1]');
@@ -364,13 +388,15 @@ let valCorrect=mathjs.evaluate(correctRight);
         else{
             let decUser=toDecimal(funcUser);
             let decCorrect=toDecimal(funcCorrect);
-            if (decUser===decCorrect){
+            let decAlternate=alternate?toDecimal(funcAlternate):'';
+            if (decUser===decCorrect||decUser===decAlternate){
                 isCorrect=true;
             }
             else{
                 let termsUser=toTerms(funcUser);
                 let termsCorrect=toTerms(funcCorrect);
-                if (termsUser.join('+')===termsCorrect.join('+')){
+                let termsAlternate=alternate?toTerms(funcAlternate):[];
+                if (termsUser.join('+')===termsCorrect.join('+')||(termsAlternate.length&&termsUser.join('+')===termsAlternate.join('+'))){
                     isCorrect=true;
                 }
                 else{

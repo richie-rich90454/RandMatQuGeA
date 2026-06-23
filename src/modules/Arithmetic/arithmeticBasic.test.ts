@@ -20,7 +20,7 @@ describe("generateAddition",()=>{
         (questionArea as any)=mockDiv;
         delete (window as any).correctAnswer;
         delete (window as any).expectedFormat;
-        (window as any).MathJax={typeset:vi.fn()};
+        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
     });
     afterEach(()=>{
         Math.random=originalMathRandom;
@@ -41,7 +41,7 @@ describe("generateAddition",()=>{
         expect((window as any).correctAnswer.alternate).toBe("10.500");
         expect((window as any).correctAnswer.display).toBe("10.500");
         expect((window as any).expectedFormat).toBe("Enter a number (up to 3 decimals)");
-        expect((window as any).MathJax.typeset).toHaveBeenCalled();
+        expect((window as any).MathJax.typesetPromise).toHaveBeenCalled();
     });
     it("generates addition with easy difficulty",()=>{
         Math.random=vi.fn().mockReturnValue(0.5);
@@ -102,7 +102,7 @@ describe("generateAddition - edge cases",()=>{
         (questionArea as any)=mockDiv;
         delete (window as any).correctAnswer;
         delete (window as any).expectedFormat;
-        (window as any).MathJax={typeset:vi.fn()};
+        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
     });
     afterEach(()=>{
         Math.random=originalMathRandom;
@@ -170,7 +170,7 @@ describe("generateSubtraction",()=>{
         (questionArea as any)=mockDiv;
         delete (window as any).correctAnswer;
         delete (window as any).expectedFormat;
-        (window as any).MathJax={typeset:vi.fn()};
+        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
     });
     afterEach(()=>{
         Math.random=originalMathRandom;
@@ -241,7 +241,7 @@ describe("generateMultiplication",()=>{
         (questionArea as any)=mockDiv;
         delete (window as any).correctAnswer;
         delete (window as any).expectedFormat;
-        (window as any).MathJax={typeset:vi.fn()};
+        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
     });
     afterEach(()=>{
         Math.random=originalMathRandom;
@@ -314,7 +314,7 @@ describe("generateDivision",()=>{
         (questionArea as any)=mockDiv;
         delete (window as any).correctAnswer;
         delete (window as any).expectedFormat;
-        (window as any).MathJax={typeset:vi.fn()};
+        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
     });
     afterEach(()=>{
         Math.random=originalMathRandom;

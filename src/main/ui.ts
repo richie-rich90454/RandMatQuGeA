@@ -38,7 +38,8 @@ export function updateCheckboxAria(checkbox: HTMLInputElement|null): void{
 }
 export function updateProgressBar(): void{
     if (dom.mentalProgressBar){
-        const now=(state.sessionScore.total/state.maxQuestions)*100;
+        if (state.maxQuestions<=0) return;
+        const now=Math.min(100,(state.sessionScore.total/state.maxQuestions)*100);
         dom.mentalProgressBar.setAttribute("aria-valuenow",String(now));
     }
 }
@@ -92,7 +93,7 @@ export function setSessionButton(isActive: boolean): void{
 export function updateUIState(): void{
     if (!dom.generateQuestionButton||!dom.checkAnswerButton||!dom.questionArea) return;
     let hasTopic=state.selectedTopic!==null;
-    let hasQuestion=window.hasQuestion || !!window.correctAnswer.correct;
+    let hasQuestion=window.hasQuestion || (window.correctAnswer&&!!window.correctAnswer.correct);
     dom.generateQuestionButton.disabled=!hasTopic;
     dom.generateQuestionButton.setAttribute("aria-disabled",String(!hasTopic));
     dom.checkAnswerButton.disabled=!hasTopic||!hasQuestion;
@@ -203,7 +204,7 @@ export function insertSymbol(symbol: string): void{
     updatePreviewDebounced();
 }
 export function copyCorrectAnswer(): void{
-    if (!window.correctAnswer.correct) return;
+    if (!window.correctAnswer||!window.correctAnswer.correct) return;
     navigator.clipboard.writeText(window.correctAnswer.correct).then(()=>{
         showNotification("Answer copied to clipboard","info");
     }).catch(()=>{
@@ -303,3 +304,6 @@ export function renderMcqChoices(choices: string[]): void{
 function isProbablyLaTeX(str: string): boolean{
     return /\\|{|}|^[^a-zA-Z0-9]/.test(str) || /[a-zA-Z]+\^/i.test(str);
 }
+
+
+

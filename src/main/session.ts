@@ -189,6 +189,7 @@ export async function generateNextMentalQuestion(): Promise<void>{
 export async function handleMentalAnswer(answer?: string): Promise<void>{
     if(!state.sessionActive||state.sessionPaused)return;
     if(!dom.userAnswer||!dom.answerResults)return;
+    if(!(window as any).hasQuestion)return;
     if(state.mentalNextQuestionTimeout){
         clearTimeout(state.mentalNextQuestionTimeout);
         state.setMentalNextQuestionTimeout(null);
@@ -441,7 +442,7 @@ export async function updateLeaderboard(): Promise<void>{
                     <span>${topicName} (${s.difficulty})</span>
                     <div style="display:flex; gap:8px; align-items:center;">
                         <span class="leaderboard-score">${s.score}/${s.total}</span>
-                        <button class="icon-button delete-score-btn" data-id="${s.id}" style="width:20px; height:20px;">✕</button>
+                        <button class="icon-button delete-score-btn" data-id="${s.id}" style="width:20px; height:20px;">�?/button>
                     </div>
                 </div>
             `;
@@ -479,3 +480,6 @@ export async function updateLeaderboard(): Promise<void>{
         dom.leaderboardContent.innerHTML=`<div class="empty-state"><p>Failed to load scores</p></div>`;
     }
 }
+
+
+

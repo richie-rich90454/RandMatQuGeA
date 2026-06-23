@@ -5,10 +5,12 @@ import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
 import {questionArea} from "../../script.js";
 import {generateDegreesToRadians,generateArcLength,generateReferenceAngle,generateASTCSign} from "./trigAnalytic.js";
 vi.mock("../../script.js",()=>({questionArea:null as HTMLElement|null}));
-vi.mock("../Algebra/algebraUtils.js",async()=>{
-	const actual=await vi.importActual("../Algebra/algebraUtils.js");
-	return{...actual,getMaxForDifficulty:vi.fn(()=>5)};
-});
+vi.mock("../Algebra/algebraUtils.js",()=>({
+    factorial:vi.fn(function f(n:number){return n<=1?1:n*f(n-1);}),
+    gcd:vi.fn(function g(a:number,b:number){return b===0?Math.abs(a):g(b,a%b);}),
+    getOrdinal:vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
+    getMaxForDifficulty:vi.fn(()=>5),
+}));
 describe("generateDegreesToRadians",()=>{
 	let originalMathRandom:()=>number;
 	let mockDiv:HTMLDivElement;

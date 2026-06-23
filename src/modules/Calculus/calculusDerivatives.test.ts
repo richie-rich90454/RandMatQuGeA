@@ -78,7 +78,7 @@ describe("generateDerivative",()=>{
 		expect(Array.isArray(ca.choices)).toBe(true);
 		expect(ca.choices.length).toBeGreaterThanOrEqual(1);
 	});
-	it("does not call MathJax.typeset if MathJax is missing",()=>{
+	it("does not call MathJax.typesetPromise if MathJax is missing",()=>{
 		delete(window as any).MathJax;
 		Math.random=vi.fn()
 			.mockReturnValueOnce(0.1)

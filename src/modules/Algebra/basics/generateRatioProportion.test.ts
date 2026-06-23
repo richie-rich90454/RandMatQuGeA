@@ -9,8 +9,10 @@ vi.mock("../../../script.js",()=>({
 	questionArea: null as HTMLElement|null
 }));
 vi.mock("../algebraUtils.js",()=>({
-	getMaxForDifficulty: vi.fn(()=>20),
-	gcd: vi.fn(()=>1)
+	factorial:vi.fn(function f(n:number){return n<=1?1:n*f(n-1);}),
+	gcd:vi.fn(function g(a:number,b:number){return b===0?Math.abs(a):g(b,a%b);}),
+	getOrdinal:vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
+	getMaxForDifficulty:vi.fn(()=>20),
 }));
 describe("generateRatioProportion",()=>{
 	let originalMathRandom:()=>number;

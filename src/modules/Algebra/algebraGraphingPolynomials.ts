@@ -424,7 +424,12 @@ export function generateLinearGraphing(difficulty?: string): void{
 	let y1=Math.floor(Math.random()*maxVal)+1;
 	let x2=Math.floor(Math.random()*maxVal)+1;
 	let y2=Math.floor(Math.random()*maxVal)+1;
-	while(x1===x2) x2=Math.floor(Math.random()*maxVal)+1;
+	let attempts=0;
+	while(x1===x2&&attempts<10){
+		x2=Math.floor(Math.random()*maxVal)+1;
+		attempts++;
+	}
+	if(x1===x2) x2=x1+1;
 	switch(type){
 		case "slope":{
 			let slope=(y2-y1)/(x2-x1);

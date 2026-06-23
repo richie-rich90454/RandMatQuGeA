@@ -46,7 +46,12 @@ export function generateRadicalSimplify(difficulty?: string): void{
 		case "simplify":{
 			let a=Math.floor(Math.random()*maxVal)+1;
 			let b=Math.floor(Math.random()*maxVal)+1;
-			while(!isSquareFree(b)) b=Math.floor(Math.random()*maxVal)+1;
+			let attempts=0;
+			while(!isSquareFree(b)&&attempts<100){
+				b=Math.floor(Math.random()*maxVal)+1;
+				attempts++;
+			}
+			if(!isSquareFree(b)) b=2;
 			let radicand=a*a*b;
 			correct=`${a}\\sqrt{${b}}`;
 			alternate=`${a}√${b}`;
@@ -63,7 +68,12 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxVal)+1;
 			let c=Math.floor(Math.random()*maxVal)+1;
 			let b=Math.floor(Math.random()*maxVal)+1;
-			while(!isSquareFree(b)) b=Math.floor(Math.random()*maxVal)+1;
+			let attempts=0;
+			while(!isSquareFree(b)&&attempts<100){
+				b=Math.floor(Math.random()*maxVal)+1;
+				attempts++;
+			}
+			if(!isSquareFree(b)) b=2;
 			let coeff=a+c;
 			correct=`${coeff}\\sqrt{${b}}`;
 			alternate=`${coeff}√${b}`;
@@ -80,7 +90,12 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			let a=Math.floor(Math.random()*maxVal)+1;
 			let c=Math.floor(Math.random()*maxVal)+1;
 			let b=Math.floor(Math.random()*maxVal)+1;
-			while(!isSquareFree(b)) b=Math.floor(Math.random()*maxVal)+1;
+			let attempts=0;
+			while(!isSquareFree(b)&&attempts<100){
+				b=Math.floor(Math.random()*maxVal)+1;
+				attempts++;
+			}
+			if(!isSquareFree(b)) b=2;
 			let coeff=a-c;
 			correct=`${coeff}\\sqrt{${b}}`;
 			alternate=`${coeff}√${b}`;

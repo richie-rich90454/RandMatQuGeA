@@ -100,8 +100,8 @@ export function generateInverseTrig(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat=hint;
-	if(window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise();
 	}
 }
 export function generateTrigEquations(difficulty?: string): void{
@@ -385,8 +385,8 @@ export function generateTrigEquations(difficulty?: string): void{
 	textDiv.style.marginBottom="10px";
 	container.appendChild(textDiv);
 	window.expectedFormat=hint;
-	if(window.MathJax&&window.MathJax.typeset){
-		window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise){
+		window.MathJax.typesetPromise();
 	}
 }
 export function generateTrigGraphs(difficulty?: string): void{
@@ -726,5 +726,5 @@ export function generateTrigGraphs(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat=hint;
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }

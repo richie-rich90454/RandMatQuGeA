@@ -33,7 +33,7 @@ function generateNumericDistractors(num: number, original: string, count: number
         ()=>num+(Math.random()>0.5?1:-1),
         ()=>-num,
         ()=>Math.round(num*(Math.random()*0.5+0.75)*100)/100,
-        ()=>Math.pow(num,0.5),
+        ()=>num>=0?Math.pow(num,0.5):num+Math.random()*5,
         ()=>num+Math.random()*5
     ];
     while(distractors.size<count){
@@ -49,7 +49,11 @@ function generateNumericDistractors(num: number, original: string, count: number
     const all=Array.from(distractors);
     const correctPos=Math.floor(Math.random()*(all.length+1));
     all.splice(correctPos,0,original);
-    return all.slice(0,count);
+    let result=all.slice(0,count);
+    if (!result.includes(original)){
+        result[result.length-1]=original;
+    }
+    return result;
 }
 function generatePatternDistractors(answer: string, count: number): string[]{
     const distractors=new Set<string>();
@@ -136,7 +140,11 @@ function generateTextFallbackDistractors(answer: string, count: number): string[
     const all=Array.from(distractors);
     const correctPos=Math.floor(Math.random()*(all.length+1));
     all.splice(correctPos,0,answer);
-    return all.slice(0,count);
+    let result=all.slice(0,count);
+    if (!result.includes(answer)){
+        result[result.length-1]=answer;
+    }
+    return result;
 }
 export async function generateChoicesForCurrentQuestion(): Promise<void>{
     if (!state.mcqMode) return;
@@ -165,3 +173,4 @@ export async function generateChoicesForCurrentQuestion(): Promise<void>{
     state.setMcqChoices(choices);
     ui.renderMcqChoices(choices);
 }
+

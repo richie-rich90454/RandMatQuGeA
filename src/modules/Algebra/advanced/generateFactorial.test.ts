@@ -8,13 +8,12 @@ import {getMaxForDifficulty} from "../algebraUtils.js";
 vi.mock("../../../script.js", () => ({
 	questionArea: null as HTMLElement | null
 }));
-vi.mock("../algebraUtils.js", async () => {
-	const actual = await vi.importActual("../algebraUtils.js");
-	return {
-		...actual,
-		getMaxForDifficulty: vi.fn(() => 7)
-	};
-});
+vi.mock("../algebraUtils.js", () => ({
+	factorial: vi.fn(function f(n: number){return n <= 1 ? 1 : n * f(n - 1);}),
+	gcd: vi.fn(function g(a: number, b: number){return b === 0 ? Math.abs(a) : g(b, a % b);}),
+	getOrdinal: vi.fn((n: number) => { let s = ["th", "st", "nd", "rd"]; let v = n % 100; return s[(v - 20) % 10] || s[v] || s[0]; }),
+	getMaxForDifficulty: vi.fn(() => 7),
+}));
 describe("generateFactorial", () => {
 	let originalMathRandom: () => number;
 	let mockDiv: HTMLDivElement;
@@ -24,7 +23,7 @@ describe("generateFactorial", () => {
 		(questionArea as any) = mockDiv;
 		delete (window as any).correctAnswer;
 		delete (window as any).expectedFormat;
-		(window as any).MathJax = { typeset: vi.fn() };
+		(window as any).MathJax = { typesetPromise: vi.fn().mockResolvedValue(undefined) };
 	});
 	afterEach(() => {
 		Math.random = originalMathRandom;
@@ -50,7 +49,7 @@ describe("generateFactorial", () => {
 			display: "40320"
 		});
 		expect((window as any).expectedFormat).toBe("Enter a whole number");
-		expect((window as any).MathJax.typeset).toHaveBeenCalled();
+		expect((window as any).MathJax.typesetPromise).toHaveBeenCalled();
 	});
 	it("generates division factorial correctly", () => {
 		Math.random = vi.fn()
@@ -117,7 +116,7 @@ describe("generateFactorial", () => {
 		expect(mockGetMax).toHaveBeenCalledWith("hard", 7);
 		expect(mockGetMax).toHaveReturnedWith(10);
 	});
-	it("does not call MathJax.typeset if MathJax is missing", () => {
+	it("does not call MathJax.typesetPromise if MathJax is missing", () => {
 		delete (window as any).MathJax;
 		Math.random = vi.fn()
 			.mockReturnValueOnce(0.1)

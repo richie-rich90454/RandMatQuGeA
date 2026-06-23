@@ -88,7 +88,7 @@ export function generateExponentRules(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	if(window.MathJax&&window.MathJax.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 	window.correctAnswer={
 		correct: correct,
 		alternate: alternate,

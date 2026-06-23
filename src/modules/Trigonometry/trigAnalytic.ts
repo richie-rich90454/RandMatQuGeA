@@ -50,7 +50,7 @@ export function generateDegreesToRadians(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as a decimal (e.g., 0.7854 rad) or exact expression (e.g., π/4 rad)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateRadiansToDegrees(difficulty?: string): void{
 	if(!questionArea) return;
@@ -92,7 +92,7 @@ export function generateRadiansToDegrees(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as a number with ° (e.g., 45°)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateArcLength(difficulty?: string): void{
 	if(!questionArea) return;
@@ -135,7 +135,7 @@ export function generateArcLength(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a number (e.g., 15.71)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateAngularLinearSpeed(difficulty?: string): void{
 	if(!questionArea) return;
@@ -179,7 +179,7 @@ export function generateAngularLinearSpeed(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a number (e.g., 6.28)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateRightTriangleDefs(difficulty?: string): void{
 	if(!questionArea) return;
@@ -237,7 +237,7 @@ export function generateRightTriangleDefs(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as a fraction (e.g., opposite/hypotenuse)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateSpecialTriangle(difficulty?: string): void{
 	if(!questionArea) return;
@@ -320,7 +320,7 @@ export function generateSpecialTriangle(difficulty?: string): void{
 		};
 	}
 	window.expectedFormat="Enter numbers separated by commas or phrases";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateElevationDepression(difficulty?: string): void{
 	if(!questionArea) return;
@@ -382,7 +382,7 @@ export function generateElevationDepression(difficulty?: string): void{
 		};
 	}
 	window.expectedFormat="Enter a number (e.g., 15.2)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateReferenceAngle(difficulty?: string): void{
 	if(!questionArea) return;
@@ -421,7 +421,7 @@ export function generateReferenceAngle(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a number (e.g., 30)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateASTCSign(difficulty?: string): void{
 	if(!questionArea) return;
@@ -460,7 +460,7 @@ export function generateASTCSign(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter 'positive' or 'negative'";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateSumDifference(difficulty?: string): void{
 	if(!questionArea) return;
@@ -511,7 +511,7 @@ export function generateSumDifference(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a decimal (e.g., 0.7071) or exact expression (e.g., √2/2)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateDoubleAngle(difficulty?: string): void{
 	if(!questionArea) return;
@@ -551,7 +551,7 @@ export function generateDoubleAngle(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a decimal (e.g., 0.8660) or exact expression";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateHalfAngle(difficulty?: string): void{
 	if(!questionArea) return;
@@ -591,7 +591,7 @@ export function generateHalfAngle(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a decimal (e.g., 0.2588) or exact expression";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generatePolarToRectangular(difficulty?: string): void{
 	if(!questionArea) return;
@@ -633,7 +633,7 @@ export function generatePolarToRectangular(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as (x, y)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateRectangularToPolar(difficulty?: string): void{
 	if(!questionArea) return;
@@ -677,7 +677,7 @@ export function generateRectangularToPolar(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as (r, θ°)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generatePolarDistance(difficulty?: string): void{
 	if(!questionArea) return;
@@ -689,7 +689,7 @@ export function generatePolarDistance(difficulty?: string): void{
 	let theta2Deg=Math.floor(Math.random()*360);
 	const theta1=theta1Deg*Math.PI/180;
 	const theta2=theta2Deg*Math.PI/180;
-	const dist=Math.sqrt(r1*r1+r2*r2-2*r1*r2*Math.cos(theta1-theta2)).toFixed(2);
+	const dist=Math.sqrt(Math.max(0, r1*r1+r2*r2-2*r1*r2*Math.cos(theta1-theta2))).toFixed(2);
 	questionArea.innerHTML=`Find the distance between the polar points \\( (${r1}, ${theta1Deg}°) \\) and \\( (${r2}, ${theta2Deg}°) \\).`;
 	let correct=dist;
 	let choices=[correct];
@@ -710,7 +710,7 @@ export function generatePolarDistance(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a number";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generatePolarGraphEquation(difficulty?: string): void{
 	if(!questionArea) return;
@@ -783,7 +783,7 @@ export function generatePolarGraphEquation(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter a short description (e.g., 'rose with 4 petals')";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateParametricToCartesian(difficulty?: string): void{
 	if(!questionArea) return;
@@ -858,7 +858,7 @@ export function generateParametricToCartesian(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter the Cartesian equation (e.g., y = 2x + 3)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateParametricMotion(difficulty?: string): void{
 	if(!questionArea) return;
@@ -891,7 +891,7 @@ export function generateParametricMotion(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as (x, y)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateComplexPolarForm(difficulty?: string): void{
 	if(!questionArea) return;
@@ -924,7 +924,7 @@ export function generateComplexPolarForm(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as 'r cis θ°' or r(cos θ + i sin θ)";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateComplexMultiplyDivide(difficulty?: string): void{
 	if(!questionArea) return;
@@ -965,7 +965,7 @@ export function generateComplexMultiplyDivide(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as 'r cis θ°' or expanded form";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateDeMoivre(difficulty?: string): void{
 	if(!questionArea) return;
@@ -997,7 +997,7 @@ export function generateDeMoivre(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as 'r cis θ°' or expanded form";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateComplexRoots(difficulty?: string): void{
 	if(!questionArea) return;
@@ -1044,5 +1044,5 @@ export function generateComplexRoots(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat="Enter as 'r1 cis θ1°; r2 cis θ2°; ...'";
-	if(window.MathJax?.typeset) window.MathJax.typeset();
+	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }

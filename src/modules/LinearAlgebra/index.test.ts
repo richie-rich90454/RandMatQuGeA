@@ -5,10 +5,15 @@ import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
 import {questionArea} from "../../script.js";
 import * as la from "./index.js";
 vi.mock("../../script.js",()=>({questionArea:null as HTMLElement|null}));
-vi.mock("./linearAlgebraUtils.js",async()=>{
-	const actual=await vi.importActual("./linearAlgebraUtils.js");
-	return{...actual,getRange:vi.fn(()=>3)};
-});
+vi.mock("./linearAlgebraUtils.js",()=>({
+	getRange:vi.fn(()=>3),
+	matrixToString:vi.fn((m:any,style="bmatrix")=>`\\begin{${style}} ${m.a} & ${m.b} \\\\ ${m.c} & ${m.d} \\end{${style}}`),
+	getDeterminant:vi.fn(()=>0),
+	formatMatrix:vi.fn(()=>""),
+	formatVector:vi.fn(()=>""),
+	getMatrixSize:vi.fn(()=>({rows:2,cols:2})),
+	getVectorDimension:vi.fn(()=>2),
+}));
 describe("LinearAlgebra index exports",()=>{
 	it("exports generateMatrix",()=>{
 		expect(typeof la.generateMatrix).toBe("function");
