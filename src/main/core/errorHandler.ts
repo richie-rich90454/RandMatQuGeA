@@ -1,4 +1,4 @@
-import { DomRegistry } from "./domRegistry";
+import { dom } from "./domRegistry";
 export class ErrorHandler{
     wrap<T>(fn: ()=>T): T|undefined{
         try{
@@ -19,7 +19,7 @@ export class ErrorHandler{
         }
     }
     showError(message: string, retryFn?: ()=>void): void{
-        let questionArea=DomRegistry.getQuestionArea();
+        let questionArea=dom.displays.questionArea;
         if(!questionArea)return;
         let errorCard=document.createElement("div");
         errorCard.className="error-card";

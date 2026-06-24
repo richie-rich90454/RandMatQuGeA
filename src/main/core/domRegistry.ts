@@ -1,5 +1,5 @@
 import {getCurrentWindow,type Window} from "@tauri-apps/api/window";
-class DomRegistry{
+export class DomRegistry{
     private cache: Map<string,HTMLElement|null>=new Map();
     private _appWindow: Window|null=null;
     getElement<T extends HTMLElement>(id: string): T|null{
