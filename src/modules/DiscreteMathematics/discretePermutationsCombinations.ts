@@ -1,14 +1,14 @@
 /**
  * Discrete mathematics: permutations and combinations generator
  * @fileoverview Provides functions to generate permutation and combination questions with MCQ distractors.
- * Each question displays LaTeX in questionArea and sets window.correctAnswer with:
+ * Each question displays LaTeX via renderer.render and sets renderer.setAnswer with:
  * - correct: plain text answer
  * - alternate: plain text answer for tolerant checking
  * - display: LaTeX string for display (pure LaTeX, no outer delimiters)
  * - choices: array of plausible wrong answers for MCQ mode
  * @date 2026-03-29
  */
-import {questionArea} from "../../script.js";
+import {renderer} from "../../main/core/questionRenderer";
 import {factorial, nPr, nCr, getMaxN} from "./discreteUtils.js";
 
 /**
@@ -16,8 +16,7 @@ import {factorial, nPr, nCr, getMaxN} from "./discreteUtils.js";
  * @param difficulty - optional difficulty level
  */
 export function generatePermutation(difficulty?: string): void{
-	if (!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	let types=["basic","equation","word","circular","identical","withReplacement"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxN=getMaxN(difficulty);
@@ -28,7 +27,7 @@ export function generatePermutation(difficulty?: string): void{
 	switch (type){
 		case "basic":
 			correctAns = nPr(n, r).toString();
-			questionArea.innerHTML=`\\( P(${n}, ${r}) \\)`;
+			renderer.render(`\\( P(${n}, ${r}) \\)`);
 			choices = [
 				correctAns,
 				nCr(n, r).toString(),
@@ -40,7 +39,7 @@ export function generatePermutation(difficulty?: string): void{
 		case "equation":{
 			let val = nPr(n, r);
 			correctAns = n.toString();
-			questionArea.innerHTML=`Find \\( n \\) if \\( P(n, ${r})=${val} \\)`;
+			renderer.render(`Find \\( n \\) if \\( P(n, ${r})=${val} \\)`);
 			choices = [
 				correctAns,
 				(r + 1).toString(),
@@ -54,7 +53,7 @@ export function generatePermutation(difficulty?: string): void{
 			let objs=["books","cars","students","colors"];
 			let obj=objs[Math.floor(Math.random()*objs.length)];
 			correctAns = nPr(n, r).toString();
-			questionArea.innerHTML=`In how many ways can you arrange \\( ${r} \\) ${obj} chosen from \\( ${n} \\)?`;
+			renderer.render(`In how many ways can you arrange \\( ${r} \\) ${obj} chosen from \\( ${n} \\)?`);
 			choices = [
 				correctAns,
 				nCr(n, r).toString(),
@@ -66,7 +65,7 @@ export function generatePermutation(difficulty?: string): void{
 		}
 		case "circular":
 			correctAns = factorial(n-1).toString();
-			questionArea.innerHTML=`How many circular arrangements of \\( ${n} \\) distinct objects?`;
+			renderer.render(`How many circular arrangements of \\( ${n} \\) distinct objects?`);
 			choices = [
 				correctAns,
 				factorial(n).toString(),
@@ -78,7 +77,7 @@ export function generatePermutation(difficulty?: string): void{
 		case "identical":{
 			let k=Math.floor(Math.random()*(n-1))+1;
 			correctAns = (factorial(n)/factorial(k)).toString();
-			questionArea.innerHTML=`Permutations of \\( ${n} \\) items when \\( ${k} \\) are identical`;
+			renderer.render(`Permutations of \\( ${n} \\) items when \\( ${k} \\) are identical`);
 			choices = [
 				correctAns,
 				factorial(n).toString(),
@@ -90,7 +89,7 @@ export function generatePermutation(difficulty?: string): void{
 		}
 		case "withReplacement":
 			correctAns = Math.pow(n, r).toString();
-			questionArea.innerHTML=`How many ordered selections of \\( ${r} \\) items from \\( ${n} \\) types if repetition is allowed?`;
+			renderer.render(`How many ordered selections of \\( ${r} \\) items from \\( ${n} \\) types if repetition is allowed?`);
 			choices = [
 				correctAns,
 				nPr(n, r).toString(),
@@ -108,14 +107,13 @@ export function generatePermutation(difficulty?: string): void{
 		if (uniqueChoices.length > 0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)] = correctAns;
 		else uniqueChoices = [correctAns];
 	}
-	window.correctAnswer = {
+	renderer.setAnswer({
 		correct: correctAns,
 		alternate: correctAns,
 		display: correctAns,
 		choices: uniqueChoices
-	};
-	window.expectedFormat = "Enter a number";
-	if(window.MathJax?.typesetPromise)window.MathJax.typesetPromise();
+	});
+	renderer.setExpectedFormat("Enter a number");
 }
 
 /**
@@ -123,8 +121,7 @@ export function generatePermutation(difficulty?: string): void{
  * @param difficulty - optional difficulty level
  */
 export function generateCombination(difficulty?: string): void{
-	if (!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	let types=["basic","equation","word","complement","paths","multiset"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let maxN=getMaxN(difficulty);
@@ -135,7 +132,7 @@ export function generateCombination(difficulty?: string): void{
 	switch (type){
 		case "basic":
 			correctAns = nCr(n, r).toString();
-			questionArea.innerHTML=`\\( C(${n}, ${r}) \\)`;
+			renderer.render(`\\( C(${n}, ${r}) \\)`);
 			choices = [
 				correctAns,
 				nPr(n, r).toString(),
@@ -147,7 +144,7 @@ export function generateCombination(difficulty?: string): void{
 		case "equation":{
 			let val = nCr(n, r);
 			correctAns = n.toString();
-			questionArea.innerHTML=`Find \\( n \\) if \\( C(n, ${r})=${val} \\)`;
+			renderer.render(`Find \\( n \\) if \\( C(n, ${r})=${val} \\)`);
 			choices = [
 				correctAns,
 				(r + 1).toString(),
@@ -161,7 +158,7 @@ export function generateCombination(difficulty?: string): void{
 			let items=["fruits","committee members","pizzas"];
 			let item=items[Math.floor(Math.random()*items.length)];
 			correctAns = nCr(n, r).toString();
-			questionArea.innerHTML=`How many ways to choose \\( ${r} \\) ${item} from \\( ${n} \\)?`;
+			renderer.render(`How many ways to choose \\( ${r} \\) ${item} from \\( ${n} \\)?`);
 			choices = [
 				correctAns,
 				nPr(n, r).toString(),
@@ -173,7 +170,7 @@ export function generateCombination(difficulty?: string): void{
 		}
 		case "complement":
 			correctAns = nCr(n, r).toString();
-			questionArea.innerHTML=`Show that \\( C(${n}, ${n-r})=C(${n}, ${r}) \\). What is its value?`;
+			renderer.render(`Show that \\( C(${n}, ${n-r})=C(${n}, ${r}) \\). What is its value?`);
 			choices = [
 				correctAns,
 				nCr(n, n-r+1).toString(),
@@ -185,7 +182,7 @@ export function generateCombination(difficulty?: string): void{
 		case "paths":{
 			let g=Math.floor(Math.random()*4)+3;
 			correctAns = nCr(2*g, g).toString();
-			questionArea.innerHTML=`Number of shortest paths in a \\( ${g} \\times ${g} \\) grid (right & up moves)?`;
+			renderer.render(`Number of shortest paths in a \\( ${g} \\times ${g} \\) grid (right & up moves)?`);
 			choices = [
 				correctAns,
 				Math.pow(2, g).toString(),
@@ -197,7 +194,7 @@ export function generateCombination(difficulty?: string): void{
 		}
 		case "multiset":
 			correctAns = nCr(n+r-1, r).toString();
-			questionArea.innerHTML=`Ways to choose \\( ${r} \\) items from \\( ${n} \\) types if repeats allowed?`;
+			renderer.render(`Ways to choose \\( ${r} \\) items from \\( ${n} \\) types if repeats allowed?`);
 			choices = [
 				correctAns,
 				nCr(n+r-1, n-1).toString(), // same value, included as alternative
@@ -215,12 +212,11 @@ export function generateCombination(difficulty?: string): void{
 		if (uniqueChoices.length > 0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)] = correctAns;
 		else uniqueChoices = [correctAns];
 	}
-	window.correctAnswer = {
+	renderer.setAnswer({
 		correct: correctAns,
 		alternate: correctAns,
 		display: correctAns,
 		choices: uniqueChoices
-	};
-	window.expectedFormat = "Enter a number";
-	if(window.MathJax?.typesetPromise)window.MathJax.typesetPromise();
+	});
+	renderer.setExpectedFormat("Enter a number");
 }
