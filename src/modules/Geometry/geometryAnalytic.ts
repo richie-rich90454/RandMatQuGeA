@@ -1,14 +1,13 @@
-import {questionArea} from "../../script.js";
+import {renderer} from "../../main/core/questionRenderer";
 import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
 import {createVisualization} from "./geometryVisualization.js";
 /**
  * Analytic geometry: conic sections (parabola, ellipse, hyperbola), polar conics, 3D geometry (distance/midpoint, sphere equations, line/plane).
- * @fileoverview Generates questions about analytic geometry concepts, displays them in questionArea, and sets window.correctAnswer with answer and alternate representations, plus plausible wrong answers for MCQ mode. Includes 3D visualizations.
+ * @fileoverview Generates questions about analytic geometry concepts, uses the renderer API to display questions and set answers, plus plausible wrong answers for MCQ mode. Includes 3D visualizations.
  * @date 2026-04-18
  */
 export function generateParabola(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxA=getMaxForDifficulty(difficulty,5);
 	const a=Math.floor(Math.random()*maxA)+1;
@@ -43,24 +42,18 @@ export function generateParabola(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correctAnswer,
 		alternate: `${focus}, ${directrix}`,
 		display: correctAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as 'focus: (x,y), directrix: line'";
+	});
+	renderer.setExpectedFormat("Enter as 'focus: (x,y), directrix: line'");
 	createVisualization("parabola",{ a, type });
 }
 export function generateEllipse(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxAxis=getMaxForDifficulty(difficulty,8);
 	const a=Math.floor(Math.random()*maxAxis)+3;
@@ -121,24 +114,18 @@ export function generateEllipse(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correctAnswer,
 		alternate: `${foci}, ${eccentricity.toFixed(2)}`,
 		display: correctAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as 'foci: (x,y) (±), e = number'";
+	});
+	renderer.setExpectedFormat("Enter as 'foci: (x,y) (±), e = number'");
 	createVisualization("ellipse",{ a, b, center, h, k });
 }
 export function generateHyperbola(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxAxis=getMaxForDifficulty(difficulty,8);
 	const a=Math.floor(Math.random()*maxAxis)+3;
@@ -204,24 +191,18 @@ export function generateHyperbola(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correctAnswer,
 		alternate: `${foci}, ${asymptotes}, ${eccentricity.toFixed(2)}`,
 		display: correctAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as 'foci: ..., asymptotes: ..., e = ...'";
+	});
+	renderer.setExpectedFormat("Enter as 'foci: ..., asymptotes: ..., e = ...'");
 	createVisualization("hyperbola",{ a, b, center, h, k });
 }
 export function generatePolarConic(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	let eMin=0.2;
 	let eMax=2.2;
@@ -264,24 +245,18 @@ export function generatePolarConic(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correctAnswer,
 		alternate: `${conicType}, ${e}`,
 		display: correctAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as 'type, e = number'";
+	});
+	renderer.setExpectedFormat("Enter as 'type, e = number'");
 	createVisualization("polarConic",{ e: eNum, k, sinOrCos, sign });
 }
 export function generate3DDistanceMidpoint(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxCoord=getMaxForDifficulty(difficulty,6);
 	const x1=Math.floor(Math.random()*maxCoord*2)-maxCoord;
@@ -313,24 +288,18 @@ export function generate3DDistanceMidpoint(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correctAnswer,
 		alternate: `${dist.toFixed(2)}, (${mx.toFixed(2)},${my.toFixed(2)},${mz.toFixed(2)})`,
 		display: correctAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as 'distance: ..., midpoint: (x,y,z)'";
+	});
+	renderer.setExpectedFormat("Enter as 'distance: ..., midpoint: (x,y,z)'");
 	createVisualization("points3D",{ points: [{ x: x1, y: y1, z: z1 },{ x: x2, y: y2, z: z2 }] });
 }
 export function generateSphereEquation(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxCoord=getMaxForDifficulty(difficulty,5);
 	const h=Math.floor(Math.random()*maxCoord*2)-maxCoord;
@@ -373,24 +342,18 @@ export function generateSphereEquation(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correctAnswer,
 		alternate: correctAnswer,
 		display: correctAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter the equation or center/radius as appropriate";
+	});
+	renderer.setExpectedFormat("Enter the equation or center/radius as appropriate");
 	createVisualization("sphere",{ radius: r, center: [h,k,l] });
 }
 export function generateLinePlane3D(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const type=Math.random()<0.5?"line":"plane";
 	const maxCoord=getMaxForDifficulty(difficulty,5);
@@ -417,19 +380,14 @@ export function generateLinePlane3D(difficulty?: string): void{
 			if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
 			else uniqueChoices=[correctAnswer];
 		}
-		let mathContainer=document.createElement("div");
-		mathContainer.innerHTML=mathExpression;
-		questionArea.appendChild(mathContainer);
-		if(window.MathJax?.typesetPromise){
-			window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-		}
-		window.correctAnswer={
+		renderer.render(mathExpression);
+		renderer.setAnswer({
 			correct: correctAnswer,
 			alternate: `(${x},${y},${z})`,
 			display: correctAnswer,
 			choices: uniqueChoices
-		};
-		window.expectedFormat="Enter as (x, y, z)";
+		});
+		renderer.setExpectedFormat("Enter as (x, y, z)");
 		createVisualization("line3D",{ point: [x0,y0,z0], direction: [a,b,c], t: tVal });
 	}
 	else{
@@ -448,19 +406,14 @@ export function generateLinePlane3D(difficulty?: string): void{
 			if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
 			else uniqueChoices=[correctAnswer];
 		}
-		let mathContainer=document.createElement("div");
-		mathContainer.innerHTML=mathExpression;
-		questionArea.appendChild(mathContainer);
-		if(window.MathJax?.typesetPromise){
-			window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-		}
-		window.correctAnswer={
+		renderer.render(mathExpression);
+		renderer.setAnswer({
 			correct: correctAnswer,
 			alternate: "yes",
 			display: "yes",
 			choices: uniqueChoices
-		};
-		window.expectedFormat="Enter 'yes' or 'no'";
+		});
+		renderer.setExpectedFormat("Enter 'yes' or 'no'");
 		createVisualization("plane3D",{ normal: [a,b,c], d, point: [x,y,z] });
 	}
 }
