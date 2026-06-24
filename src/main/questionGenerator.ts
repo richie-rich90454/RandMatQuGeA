@@ -1,4 +1,4 @@
-import * as dom from "./dom";
+import {dom} from "./core/domRegistry";
 import { topicRegistry, registerTopic } from "./services/topicRegistry";
 let moduleCache: Map<string, any>=new Map();
 async function loadModule(scope: string): Promise<any>{
@@ -169,6 +169,6 @@ export async function generateQuestion(topicId: string, difficulty: string): Pro
         }
     }
     else{
-        if (dom.questionArea) dom.questionArea.innerHTML=`<div class="empty-state"><p>Unknown topic</p></div>`;
+        if (dom.displays.questionArea) dom.displays.questionArea.innerHTML=`<div class="empty-state"><p>Unknown topic</p></div>`;
     }
 }
