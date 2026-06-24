@@ -30,7 +30,7 @@ import*as themeMod from"./main/theme.js";
 import*as topicsMod from"./main/topics.js";
 import*as eventsMod from"./main/events.js";
 import*as sessionMod from"./main/session.js";
-import*as uiMod from"./main/ui.js";
+import*as _uiMod from"./main/ui.js";
 describe("script",()=>{
     it("should set window globals on load",()=>{
         expect(window.correctAnswer).toEqual({correct:""});

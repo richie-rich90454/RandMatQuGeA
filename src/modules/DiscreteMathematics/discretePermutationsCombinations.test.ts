@@ -17,7 +17,7 @@ vi.mock("./discreteUtils.js",()=>({
 	median:vi.fn((arr)=>{let s=[...arr].sort((a,b)=>a-b);let m=Math.floor(s.length/2);return s.length%2===0?(s[m-1]+s[m])/2:s[m];}),
 	mode:vi.fn((arr)=>{let f={};arr.forEach(v=>f[v]=(f[v]||0)+1);let mx=Math.max(...Object.values(f));return Object.keys(f).filter(k=>f[k]===mx).map(Number);}),
 	range:vi.fn((arr)=>Math.max(...arr)-Math.min(...arr)),
-	stdDev:vi.fn((arr)=>{let m=arr.reduce((a,b)=>a+b,0)/arr.length;return Math.sqrt(arr.reduce((s,v)=>s+(v-m)**2,0)/arr.length);}),
+	stdDev:vi.fn((arr:number[])=>{let m=arr.reduce((a:number,b:number)=>a+b,0)/arr.length;return Math.sqrt(arr.reduce((s,v)=>s+(v-m)**2,0)/arr.length);}),
 	getOrdinal:vi.fn((n)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
 }));
 describe("generatePermutation",()=>{
