@@ -244,7 +244,7 @@ describe("checkAndShowWeakTopicsPopup - edge cases",()=>{
         document.body.appendChild(closeBtn);
         await checkAndShowWeakTopicsPopup();
         expect(modal.classList.contains("show")).toBe(true);
-        if(closeBtn.onclick)closeBtn.onclick(new MouseEvent("click"));
+        if(closeBtn.onclick)closeBtn.onclick(new PointerEvent("click"));
         expect(modal.classList.contains("show")).toBe(false);
         document.body.removeChild(closeBtn);
     });
