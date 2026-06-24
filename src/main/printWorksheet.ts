@@ -7,7 +7,7 @@
  */
 import { topics, scopeTopics } from "./constants";
 import { generateQuestion as callGenerator } from "./questionGenerator";
-import * as dom from "./dom";
+import {dom} from "./core/domRegistry";
 let modal: HTMLElement|null=null;
 let questionCountSelect: HTMLSelectElement|null=null;
 let topicSelect: HTMLSelectElement|null=null;
@@ -95,7 +95,7 @@ async function captureRawLatexDuringGeneration(generator: ()=>Promise<void>): Pr
         }
     }
     try{
-        dom.questionArea!.innerHTML="";
+        dom.displays.questionArea!.innerHTML="";
         await generator();
     }
     finally{
@@ -104,9 +104,9 @@ async function captureRawLatexDuringGeneration(generator: ()=>Promise<void>): Pr
         if (originalKatexRender) (window as any).katex.render=originalKatexRender;
         if (originalKatexRenderToString) (window as any).katex.renderToString=originalKatexRenderToString;
     }
-    if (!capturedLatex && dom.questionArea){
+    if (!capturedLatex && dom.displays.questionArea){
         let temp=document.createElement("div");
-        temp.innerHTML=dom.questionArea.innerHTML;
+        temp.innerHTML=dom.displays.questionArea.innerHTML;
         temp.querySelectorAll("canvas, script, style, [data-threejs]").forEach(el=>el.remove());
         capturedLatex=temp.innerHTML;
     }
@@ -116,10 +116,10 @@ async function captureRawLatexDuringGeneration(generator: ()=>Promise<void>): Pr
     return cleanDiv.innerHTML;
 }
 async function generateQuestionText(topicId: string, difficulty: string): Promise<{ html: string; answerDisplay: string }>{
-    if (!dom.questionArea){
+    if (!dom.displays.questionArea){
         return { html: "\\text{Error: Question area not found}", answerDisplay: "" };
     }
-    let originalHtml=dom.questionArea.innerHTML;
+    let originalHtml=dom.displays.questionArea.innerHTML;
     let originalCorrectAnswer=(window as any).correctAnswer;
     try{
         let latexSource=await captureRawLatexDuringGeneration(()=>callGenerator(topicId, difficulty));
@@ -128,7 +128,7 @@ async function generateQuestionText(topicId: string, difficulty: string): Promis
         return { html: latexSource, answerDisplay };
     }
     finally{
-        dom.questionArea.innerHTML=originalHtml;
+        dom.displays.questionArea.innerHTML=originalHtml;
         (window as any).correctAnswer=originalCorrectAnswer;
     }
 }
