@@ -1,12 +1,11 @@
-/**
+﻿/**
  * Basic trigonometry: sine, cosine, tangent functions (evaluate, solve, amplitude, period, phase shift, law of sines/cosines, unit circle, identities).
- * @fileoverview Generates basic trig questions with MCQ distractors. Sets window.correctAnswer with LaTeX display, plain text alternate, and plausible wrong answers.
+ * @fileoverview Generates basic trig questions with MCQ distractors. Sets renderer.setAnswer with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-04-18
  */
-import {questionArea} from "../../script.js";
+import {renderer} from "../../main/core/questionRenderer";
 export function generateSin(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	let types=["evaluate","solve","amplitude","period","phase_shift","law_sines","unit_circle","identity"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let correct="";
@@ -39,7 +38,7 @@ export function generateSin(difficulty?: string): void{
 			correct=value;
 			alternate=value;
 			display=value;
-			questionArea.innerHTML=`Evaluate \\( \\sin(${obj.label}) \\)`;
+			renderer.render(`Evaluate \\( \\sin(${obj.label}) \\)`);
 			choices=[correct];
 			let wrong1=Math.sin(angleVal+0.1).toFixed(2);
 			let wrong2=Math.sin(angleVal-0.1).toFixed(2);
@@ -67,7 +66,7 @@ export function generateSin(difficulty?: string): void{
 			correct=solutions.join(", ");
 			alternate=plainNumbers.join(", ");
 			display=solutions.join(", ");
-			questionArea.innerHTML=`Solve \\( \\sin\\theta=${k} \\) for \\( 0\\le\\theta<2\\pi \\) (in radians)`;
+			renderer.render(`Solve \\( \\sin\\theta=${k} \\) for \\( 0\\le\\theta<2\\pi \\) (in radians)`);
 			choices=[correct];
 			let wrongSol1Num=Math.asin(parseFloat(k))+0.2;
 			let wrongSol2Num=Math.PI-wrongSol1Num;
@@ -90,7 +89,7 @@ export function generateSin(difficulty?: string): void{
 			correct=A;
 			alternate=A;
 			display=A;
-			questionArea.innerHTML=`Find the amplitude of \\( y=${A}\\sin(3x+\\pi/4) \\)`;
+			renderer.render(`Find the amplitude of \\( y=${A}\\sin(3x+\\pi/4) \\)`);
 			choices=[correct];
 			let aNum=parseFloat(A);
 			choices.push((aNum+1).toFixed(1));
@@ -105,7 +104,7 @@ export function generateSin(difficulty?: string): void{
 			correct=period.toFixed(2)+" rad";
 			alternate=`2π/${B} rad`;
 			display=period.toFixed(2)+" rad";
-			questionArea.innerHTML=`What is the period of \\( y=\\sin(${B}x) \\)? (in radians)`;
+			renderer.render(`What is the period of \\( y=\\sin(${B}x) \\)? (in radians)`);
 			choices=[correct];
 			choices.push((2*Math.PI/(B+1)).toFixed(2)+" rad");
 			choices.push((2*Math.PI/(B-1)).toFixed(2)+" rad");
@@ -122,7 +121,7 @@ export function generateSin(difficulty?: string): void{
 			correct=shiftText;
 			alternate=(cNum===0)?"0":`-${cNum}`;
 			display=shiftText;
-			questionArea.innerHTML=`Identify the phase shift of \\( y=\\sin(x+${C}) \\) (in radians)`;
+			renderer.render(`Identify the phase shift of \\( y=\\sin(x+${C}) \\) (in radians)`);
 			choices=[correct];
 			let wrongMag1=(parseFloat(shiftMag)+0.2).toFixed(2);
 			let wrongMag2=(parseFloat(shiftMag)-0.2).toFixed(2);
@@ -145,9 +144,9 @@ export function generateSin(difficulty?: string): void{
 			correct=sideB;
 			alternate=sideB;
 			display=sideB;
-			questionArea.innerHTML=`Using the Law of Sines:<br>
+			renderer.render(`Using the Law of Sines:<br>
 				In triangle ABC, ∠A=${angleA}°, ∠B=${angleB}°, and side a=${sideA}.<br>
-				Find side b.`;
+				Find side b.`);
 			let bNum=parseFloat(sideB);
 			choices=[correct];
 			choices.push((bNum+0.5).toFixed(1));
@@ -164,7 +163,7 @@ export function generateSin(difficulty?: string): void{
 			correct=`(${cosVal}, ${sinVal})`;
 			alternate=`(${cosVal}, ${sinVal})`;
 			display=`(${cosVal}, ${sinVal})`;
-			questionArea.innerHTML=`Find the coordinates on the unit circle for an angle of ${angle}° (format: (cos, sin))`;
+			renderer.render(`Find the coordinates on the unit circle for an angle of ${angle}° (format: (cos, sin))`);
 			let cosNum=parseFloat(cosVal);
 			let sinNum=parseFloat(sinVal);
 			choices=[correct];
@@ -178,12 +177,12 @@ export function generateSin(difficulty?: string): void{
 			correct="1";
 			alternate="one";
 			display="1";
-			questionArea.innerHTML=`Complete the identity: \\( \\sin^2\\theta+\\cos^2\\theta=\\; ? \\)`;
+			renderer.render(`Complete the identity: \\( \\sin^2\\theta+\\cos^2\\theta=\\; ? \\)`);
 			choices=["1","0","-1","sin^2θ+cos^2θ"];
 			break;
 		}
 		default:
-			questionArea.innerHTML="Unknown sine question type";
+			renderer.render("Unknown sine question type");
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
@@ -192,22 +191,16 @@ export function generateSin(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=window.expectedFormat||"";
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise().catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
+	});
+	renderer.setExpectedFormat("");
 }
 export function generateCosine(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	let types=["evaluate","solve","amplitude","period","phase_shift","law_cosines","identity"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let correct="";
@@ -232,7 +225,7 @@ export function generateCosine(difficulty?: string): void{
 			correct=value;
 			alternate=value;
 			display=value;
-			questionArea.innerHTML=`Evaluate \\( \\cos(${obj.label}) \\)`;
+			renderer.render(`Evaluate \\( \\cos(${obj.label}) \\)`);
 			choices=[correct];
 			let wrong1=Math.cos(angleVal+0.1).toFixed(2);
 			let wrong2=Math.cos(angleVal-0.1).toFixed(2);
@@ -257,7 +250,7 @@ export function generateCosine(difficulty?: string): void{
 			correct=solutions.join(", ");
 			alternate=plainNumbers.join(", ");
 			display=solutions.join(", ");
-			questionArea.innerHTML=`Solve \\( \\cos\\theta=${k} \\) for \\( 0\\le\\theta<2\\pi \\) (in radians)`;
+			renderer.render(`Solve \\( \\cos\\theta=${k} \\) for \\( 0\\le\\theta<2\\pi \\) (in radians)`);
 			choices=[correct];
 			let wrongSol1Num=Math.acos(parseFloat(k))+0.2;
 			let wrongSol2Num=2*Math.PI-wrongSol1Num;
@@ -280,7 +273,7 @@ export function generateCosine(difficulty?: string): void{
 			correct=A;
 			alternate=A;
 			display=A;
-			questionArea.innerHTML=`Find the amplitude of \\( y=${A}\\cos(2x-\\pi/3) \\)`;
+			renderer.render(`Find the amplitude of \\( y=${A}\\cos(2x-\\pi/3) \\)`);
 			choices=[correct];
 			let aNum=parseFloat(A);
 			choices.push((aNum+1).toFixed(1));
@@ -295,7 +288,7 @@ export function generateCosine(difficulty?: string): void{
 			correct=period.toFixed(2)+" rad";
 			alternate=`2π/${B} rad`;
 			display=period.toFixed(2)+" rad";
-			questionArea.innerHTML=`What is the period of \\( y=\\cos(${B}x) \\)? (in radians)`;
+			renderer.render(`What is the period of \\( y=\\cos(${B}x) \\)? (in radians)`);
 			choices=[correct];
 			choices.push((2*Math.PI/(B+1)).toFixed(2)+" rad");
 			choices.push((2*Math.PI/(B-1)).toFixed(2)+" rad");
@@ -312,7 +305,7 @@ export function generateCosine(difficulty?: string): void{
 			correct=shiftText;
 			alternate=(cNum===0)?"0":`-${cNum}`;
 			display=shiftText;
-			questionArea.innerHTML=`Identify the phase shift of \\( y=\\cos(x+${C}) \\) (in radians)`;
+			renderer.render(`Identify the phase shift of \\( y=\\cos(x+${C}) \\) (in radians)`);
 			choices=[correct];
 			let wrongMag1=(parseFloat(shiftMag)+0.2).toFixed(2);
 			let wrongMag2=(parseFloat(shiftMag)-0.2).toFixed(2);
@@ -335,9 +328,9 @@ export function generateCosine(difficulty?: string): void{
 			correct=c;
 			alternate=c;
 			display=c;
-			questionArea.innerHTML=`Using the Law of Cosines:<br>
+			renderer.render(`Using the Law of Cosines:<br>
 				In triangle ABC, sides a=${a}, b=${b}, and ∠C=${angleC}°.<br>
-				Find side c.`;
+				Find side c.`);
 			let cNum=parseFloat(c);
 			choices=[correct];
 			choices.push((cNum+0.5).toFixed(1));
@@ -350,12 +343,12 @@ export function generateCosine(difficulty?: string): void{
 			correct="1";
 			alternate="one";
 			display="1";
-			questionArea.innerHTML=`Complete the identity: \\( \\cos^2\\theta+\\sin^2\\theta=\\; ? \\)`;
+			renderer.render(`Complete the identity: \\( \\cos^2\\theta+\\sin^2\\theta=\\; ? \\)`);
 			choices=["1","0","-1","cos^2θ+sin^2θ"];
 			break;
 		}
 		default:
-			questionArea.innerHTML="Unknown cosine question type";
+			renderer.render("Unknown cosine question type");
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
@@ -364,22 +357,16 @@ export function generateCosine(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=window.expectedFormat||"";
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise().catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
+	});
+	renderer.setExpectedFormat("");
 }
 export function generateTangent(_difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	let types=["evaluate","solve","period","asymptote","identity"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let correct="";
@@ -396,7 +383,7 @@ export function generateTangent(_difficulty?: string): void{
 			correct=value;
 			alternate=value;
 			display=value;
-			questionArea.innerHTML=`Evaluate \\( \\tan(${labels[idx]}) \\)`;
+			renderer.render(`Evaluate \\( \\tan(${labels[idx]}) \\)`);
 			choices=[correct];
 			let wrong1=Math.tan(angle+0.1).toFixed(2);
 			let wrong2=Math.tan(angle-0.1).toFixed(2);
@@ -411,7 +398,7 @@ export function generateTangent(_difficulty?: string): void{
 			correct=`${principal.toFixed(2)}+\\pi n`;
 			alternate=`${principal.toFixed(2)}+πn`;
 			display=`${principal.toFixed(2)}+\\pi n`;
-			questionArea.innerHTML=`Solve \\( \\tan\\theta=${k} \\) (in radians, give the principal solution)`;
+			renderer.render(`Solve \\( \\tan\\theta=${k} \\) (in radians, give the principal solution)`);
 			choices=[correct];
 			let wrongPrincipal=Math.atan(parseFloat(k)+0.5);
 			choices.push(`${wrongPrincipal.toFixed(2)}+πn`);
@@ -427,7 +414,7 @@ export function generateTangent(_difficulty?: string): void{
 			correct=period.toFixed(2)+" rad";
 			alternate=`π/${B} rad`;
 			display=period.toFixed(2)+" rad";
-			questionArea.innerHTML=`What is the period of \\( y=\\tan(${B}x) \\)? (in radians)`;
+			renderer.render(`What is the period of \\( y=\\tan(${B}x) \\)? (in radians)`);
 			choices=[correct];
 			choices.push((Math.PI/(B+1)).toFixed(2)+" rad");
 			choices.push((Math.PI/(B-1)).toFixed(2)+" rad");
@@ -440,7 +427,7 @@ export function generateTangent(_difficulty?: string): void{
 			correct=`x = \\frac{\\pi}{2\\cdot${B}} + \\frac{\\pi k}{${B}}`;
 			alternate=`x=π/(2*${B}) + πk/${B}`;
 			display=`x = \\frac{\\pi}{2\\cdot${B}} + \\frac{\\pi k}{${B}}`;
-			questionArea.innerHTML=`Find the vertical asymptotes of \\( y=\\tan(${B}x) \\) (in radians).`;
+			renderer.render(`Find the vertical asymptotes of \\( y=\\tan(${B}x) \\) (in radians).`);
 			choices=[correct];
 			choices.push(`x = \\frac{\\pi}{${B}} + \\frac{\\pi k}{${B}}`);
 			choices.push(`x = \\frac{\\pi}{4\\cdot${B}} + \\frac{\\pi k}{${B}}`);
@@ -452,12 +439,12 @@ export function generateTangent(_difficulty?: string): void{
 			correct="\\sec^2\\theta";
 			alternate="sec^2θ";
 			display="\\sec^2\\theta";
-			questionArea.innerHTML=`Complete the identity: \\( 1+\\tan^2\\theta=\\; ? \\)`;
+			renderer.render(`Complete the identity: \\( 1+\\tan^2\\theta=\\; ? \\)`);
 			choices=["\\sec^2\\theta","\\csc^2\\theta","1","\\tan^2\\theta"];
 			break;
 		}
 		default:
-			questionArea.innerHTML="Unknown tangent question type";
+			renderer.render("Unknown tangent question type");
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
@@ -466,16 +453,11 @@ export function generateTangent(_difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=window.expectedFormat||"";
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise().catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
+	});
+	renderer.setExpectedFormat("");
 }
