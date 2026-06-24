@@ -63,7 +63,7 @@ describe("topics",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
-        dom.topicSearch.value="";
+        dom.topicSearch!.value="";
     });
     it("should export renderTopicGrid",()=>{
         expect(typeof topics.renderTopicGrid).toBe("function");
@@ -90,23 +90,23 @@ describe("renderTopicGrid",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
-        dom.topicSearch.value="";
+        dom.topicSearch!.value="";
     });
     it("should not throw when called",()=>{
         expect(()=>topics.renderTopicGrid()).not.toThrow();
     });
     it("should create topic elements on first call",()=>{
         topics.renderTopicGrid();
-        expect(dom.topicGrid.appendChild).toHaveBeenCalled();
+        expect(dom.topicGrid!.appendChild).toHaveBeenCalled();
     });
     it("should filter topics by scope",()=>{
         topics.renderTopicGrid();
-        expect(dom.topicGrid.appendChild).toHaveBeenCalled();
+        expect(dom.topicGrid!.appendChild).toHaveBeenCalled();
     });
     it("should filter topics by search term",()=>{
-        dom.topicSearch.value="add";
+        dom.topicSearch!.value="add";
         topics.renderTopicGrid();
-        expect(dom.topicGrid.appendChild).toHaveBeenCalled();
+        expect(dom.topicGrid!.appendChild).toHaveBeenCalled();
     });
     it("should auto-select first topic when none selected",()=>{
         state.setSelectedTopic(null);
@@ -129,7 +129,7 @@ describe("renderTopicGrid",()=>{
         expect(pill.classList.contains("active")).toBe(true);
     });
     it("should handle empty search results",()=>{
-        dom.topicSearch.value="zzz";
+        dom.topicSearch!.value="zzz";
         expect(()=>topics.renderTopicGrid()).not.toThrow();
     });
 });
@@ -143,7 +143,7 @@ describe("selectTopic",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
-        dom.topicSearch.value="";
+        dom.topicSearch!.value="";
     });
     it("should set selected topic in state",()=>{
         topics.selectTopic("add");
@@ -151,12 +151,12 @@ describe("selectTopic",()=>{
     });
     it("should update current topic display text",()=>{
         topics.selectTopic("add");
-        expect(dom.currentTopicDisplay.textContent).toBe("Addition");
+        expect(dom.currentTopicDisplay!.textContent).toBe("Addition");
     });
     it("should enable generate question button",()=>{
-        dom.generateQuestionButton.disabled=true;
+        dom.generateQuestionButton!.disabled=true;
         topics.selectTopic("add");
-        expect(dom.generateQuestionButton.disabled).toBe(false);
+        expect(dom.generateQuestionButton!.disabled).toBe(false);
     });
     it("should add active class to selected element",()=>{
         let pill=document.createElement("button");
@@ -191,7 +191,7 @@ describe("pickRandomTopic",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
-        dom.topicSearch.value="";
+        dom.topicSearch!.value="";
     });
     it("should return a valid topic id",()=>{
         const result=topics.pickRandomTopic();
@@ -236,12 +236,12 @@ describe("renderTopicGrid - edge cases",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
-        dom.topicSearch.value="";
+        dom.topicSearch!.value="";
     });
     it("should handle topics with missing icons",()=>{
         state.setScope("all");
         topics.renderTopicGrid();
-        expect(dom.topicGrid.appendChild).toHaveBeenCalled();
+        expect(dom.topicGrid!.appendChild).toHaveBeenCalled();
     });
     it("should handle topics with very long names",()=>{
         state.setScope("all");
@@ -252,7 +252,7 @@ describe("renderTopicGrid - edge cases",()=>{
         state.setScope("all");
         topics.renderTopicGrid();
         let pills=document.querySelectorAll(".topic-pill");
-        let ids=Array.from(pills).map(p=>p.dataset.topicId);
+        let ids=Array.from(pills).map(p=>(p as HTMLElement).dataset.topicId);
         let uniqueIds=new Set(ids);
         expect(uniqueIds.size).toBe(ids.length);
     });
@@ -264,7 +264,7 @@ describe("renderTopicGrid - edge cases",()=>{
     it("should handle scope with single topic",()=>{
         state.setScope("one");
         topics.renderTopicGrid();
-        expect(dom.topicGrid.appendChild).toHaveBeenCalled();
+        expect(dom.topicGrid!.appendChild).toHaveBeenCalled();
     });
 });
 describe("selectTopic - edge cases",()=>{
@@ -277,7 +277,7 @@ describe("selectTopic - edge cases",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
-        dom.topicSearch.value="";
+        dom.topicSearch!.value="";
     });
     it("should handle clicking same topic twice",()=>{
         let pill=document.createElement("button");
@@ -295,7 +295,7 @@ describe("selectTopic - edge cases",()=>{
     });
     it("should update breadcrumb display",()=>{
         topics.selectTopic("add");
-        expect(dom.currentTopicDisplay.textContent).toBe("Addition");
+        expect(dom.currentTopicDisplay!.textContent).toBe("Addition");
     });
     it("should scroll topic into view",()=>{
         let pill=document.createElement("button");
