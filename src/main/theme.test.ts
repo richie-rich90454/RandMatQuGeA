@@ -83,9 +83,9 @@ describe("initializeTheme",()=>{
         expect(addEventListener).toHaveBeenCalledWith("click",expect.any(Function));
     });
     it("should cycle through themes on click",async()=>{
-        let addEventListener=vi.fn();
+        let _addEventListener=vi.fn();
         let clickHandler: any=null;
-        mockThemeToggle={addEventListener:(event: string,handler: any)=>{clickHandler=handler;}};
+        mockThemeToggle={addEventListener:(_event: string,handler: any)=>{clickHandler=handler;}};
         mockMatchMedia.mockReturnValue({matches:false,addEventListener:mockAddEventListener});
         await initializeTheme();
         expect(clickHandler).not.toBeNull();
@@ -98,9 +98,8 @@ describe("initializeTheme",()=>{
         expect(mockSettings.theme).toBe("system");
     });
     it("should save theme preference",async()=>{
-        let addEventListener=vi.fn();
         let clickHandler: any=null;
-        mockThemeToggle={addEventListener:(event: string,handler: any)=>{clickHandler=handler;}};
+        mockThemeToggle={addEventListener:(_event: string,handler: any)=>{clickHandler=handler;}};
         mockMatchMedia.mockReturnValue({matches:false,addEventListener:mockAddEventListener});
         await initializeTheme();
         clickHandler();
