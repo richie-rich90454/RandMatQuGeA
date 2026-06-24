@@ -1,11 +1,9 @@
-/**
+﻿/**
  * @file session.ts - Manages mental math sessions, timer, scoring, and leaderboard with delete functionality.
  * @date 2026-04-12
  * @description Handles start, pause, skip, end of mental sessions, tracks scores, saves to SQLite,
  * and provides delete buttons for individual score entries in the leaderboard.
  */
-import * as dom from "./dom";
-import * as state from "./state";
 import * as settings from "./settings";
 import * as ui from "./ui";
 import * as topicsModule from "./topics";
@@ -14,16 +12,19 @@ import {generateQuestion as callGenerator} from "./questionGenerator";
 import {invoke} from "@tauri-apps/api/core";
 import {generateChoicesForCurrentQuestion} from "./mcq";
 import {getAudioContext} from "./answer";
+import { appState } from "./core/stateStore";
+import { dom } from "./core/domRegistry";
+import { questionState } from "./core/questionState";
 export function saveSessionSnapshot(): void{
-    if(!state.sessionActive)return;
+    if(!appState.sessionActive)return;
     const snapshot={
-        sessionScore:state.sessionScore,
-        timeLeft:state.timeLeft,
-        maxQuestions:state.maxQuestions,
-        currentDifficulty:state.currentDifficulty,
-        mentalShuffle:state.mentalShuffle,
-        mentalScope:state.mentalScope,
-        selectedTopic:state.selectedTopic,
+        sessionScore:appState.sessionScore,
+        timeLeft:appState.timeLeft,
+        maxQuestions:appState.maxQuestions,
+        currentDifficulty:appState.currentDifficulty,
+        mentalShuffle:appState.mentalShuffle,
+        mentalScope:appState.mentalScope,
+        selectedTopic:appState.selectedTopic,
         timestamp:Date.now()
     };
     localStorage.setItem(SESSION_STORAGE_KEY,JSON.stringify(snapshot));
@@ -37,17 +38,17 @@ export function restoreSessionSnapshot(): void{
             localStorage.removeItem(SESSION_STORAGE_KEY);
             return;
         }
-        state.setSessionActive(true);
-        state.setSessionPaused(false);
-        state.setSessionScore(snap.sessionScore);
-        state.setTimeLeft(snap.timeLeft);
-        state.setMaxQuestions(snap.maxQuestions);
-        state.setCurrentDifficulty(snap.currentDifficulty);
-        state.setMentalShuffle(snap.mentalShuffle);
-        state.setMentalScope(snap.mentalScope);
-        state.setSelectedTopic(snap.selectedTopic);
-        if(dom.modeMentalBtn)dom.modeMentalBtn.click();
-        if(state.selectedTopic)topicsModule.selectTopic(state.selectedTopic);
+        appState.sessionActive=true;
+        appState.sessionPaused=false;
+        appState.sessionScore=snap.sessionScore;
+        appState.timeLeft=snap.timeLeft;
+        appState.maxQuestions=snap.maxQuestions;
+        appState.currentDifficulty=snap.currentDifficulty;
+        appState.mentalShuffle=snap.mentalShuffle;
+        appState.mentalScope=snap.mentalScope;
+        appState.selectedTopic=snap.selectedTopic;
+        if(dom.buttons.modeMentalBtn)dom.buttons.modeMentalBtn.click();
+        if(appState.selectedTopic)topicsModule.selectTopic(appState.selectedTopic);
         ui.updateScoreDisplay();
         ui.updateTimerDisplay();
         ui.updateProgressBar();
@@ -64,8 +65,8 @@ export function restoreSessionSnapshot(): void{
     }
 }
 export function startTimer(): void{
-    if(state.unlimitedMode)return;
-    if(state.sessionTimer)clearInterval(state.sessionTimer);
+    if(appState.unlimitedMode)return;
+    if(appState.sessionTimer)clearInterval(appState.sessionTimer);
     let saveTimer: ReturnType<typeof setTimeout>|null=null;
     function debouncedSave(): void{
         if(saveTimer)clearTimeout(saveTimer);
@@ -74,60 +75,60 @@ export function startTimer(): void{
             saveTimer=null;
         },5000);
     }
-    state.setSessionTimer(setInterval(()=>{
-        if(!state.sessionActive||state.sessionPaused)return;
-        state.setTimeLeft(state.timeLeft-1);
+    appState.sessionTimer=setInterval(()=>{
+        if(!appState.sessionActive||appState.sessionPaused)return;
+        appState.timeLeft=appState.timeLeft-1;
         requestAnimationFrame(()=>{
             ui.updateTimerDisplay();
         });
         debouncedSave();
-        if(state.timeLeft<=0){
-            state.setSessionScore({correct:state.sessionScore.correct,total:state.sessionScore.total+1});
+        if(appState.timeLeft<=0){
+            appState.sessionScore={correct:appState.sessionScore.correct,total:appState.sessionScore.total+1};
             requestAnimationFrame(()=>{
                 ui.updateScoreDisplay();
                 ui.updateProgressBar();
             });
             ui.showNotification("Time is up!","warning");
-            if(dom.mentalProgressBar){
-                let percent=(state.sessionScore.total/state.maxQuestions)*100;
-                dom.mentalProgressBar.style.width=percent+"%";
+            if(dom.displays.mentalProgressBar){
+                let percent=(appState.sessionScore.total/appState.maxQuestions)*100;
+                dom.displays.mentalProgressBar.style.width=percent+"%";
             }
-            if(state.sessionScore.total>=state.maxQuestions&&!state.unlimitedMode){
+            if(appState.sessionScore.total>=appState.maxQuestions&&!appState.unlimitedMode){
                 endMentalSession();
                 return;
             }
-            state.setTimeLeft(settings.settings.timer);
+            appState.timeLeft=settings.settings.timer;
             requestAnimationFrame(()=>{
                 ui.updateTimerDisplay();
             });
             saveSessionSnapshot();
-            if(state.mentalNextQuestionTimeout){
-                clearTimeout(state.mentalNextQuestionTimeout);
-                state.setMentalNextQuestionTimeout(null);
+            if(appState.mentalNextQuestionTimeout){
+                clearTimeout(appState.mentalNextQuestionTimeout);
+                appState.mentalNextQuestionTimeout=null;
             }
-            state.setMentalNextQuestionTimeout(setTimeout(()=>{
-                if(state.sessionActive&&!state.sessionPaused){
+            appState.mentalNextQuestionTimeout=setTimeout(()=>{
+                if(appState.sessionActive&&!appState.sessionPaused){
                     generateNextMentalQuestion();
                 }
-                state.setMentalNextQuestionTimeout(null);
-            },settings.settings.autoCheckDelay));
+                appState.mentalNextQuestionTimeout=null;
+            },settings.settings.autoCheckDelay);
         }
-    },1000));
+    },1000);
 }
 export async function generateNextMentalQuestion(): Promise<void>{
-    if(!state.sessionActive||state.sessionPaused)return;
-    if(state.mentalShuffle){
+    if(!appState.sessionActive||appState.sessionPaused)return;
+    if(appState.mentalShuffle){
         const randomTopic=topicsModule.pickRandomTopic();
         if(randomTopic){
-            state.setSelectedTopic(randomTopic);
+            appState.selectedTopic=randomTopic;
             document.querySelectorAll(".topic-pill").forEach(item=>{
                 item.classList.remove("active");
             });
-            let selectedElement=document.querySelector(`[data-topic-id="${state.selectedTopic}"]`);
+            let selectedElement=document.querySelector('[data-topic-id="' + appState.selectedTopic + '"]');
             if(selectedElement)selectedElement.classList.add("active");
-            let topic=topicList.find(t=>t.id===state.selectedTopic);
-            if(dom.currentTopicDisplay){
-                dom.currentTopicDisplay.textContent=topic?topic.name:"Topic";
+            let topic=topicList.find(t=>t.id===appState.selectedTopic);
+            if(dom.displays.currentTopicDisplay){
+                dom.displays.currentTopicDisplay.textContent=topic?topic.name:"Topic";
             }
         }
         else{
@@ -136,76 +137,71 @@ export async function generateNextMentalQuestion(): Promise<void>{
             return;
         }
     }
-    if(!state.selectedTopic){
+    if(!appState.selectedTopic){
         endMentalSession();
         return;
     }
-    if(!dom.questionArea||!dom.userAnswer||!dom.checkAnswerButton)return;
-    if(dom.answerResults){
-        dom.answerResults.innerHTML=`<div class="empty-state">...</div>`;
+    if(!dom.displays.questionArea||!dom.inputs.userAnswer||!dom.buttons.checkAnswerButton)return;
+    if(dom.displays.answerResults){
+        dom.displays.answerResults.innerHTML='<div class="empty-state">...</div>';
     }
-    if(dom.copyAnswerBtn)dom.copyAnswerBtn.style.display="none";
-    dom.questionArea.innerHTML=`
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <p>Generating...</p>
-    </div>
-  `;
+    if(dom.buttons.copyAnswerBtn)dom.buttons.copyAnswerBtn.style.display="none";
+    dom.displays.questionArea.innerHTML=`\n    <div class="loading-state">\n      <div class="spinner"></div>\n      <p>Generating...</p>\n    </div>\n  `;
     try{
-        await callGenerator(state.selectedTopic,state.currentDifficulty);
-        window.hasQuestion=true;
+        await callGenerator(appState.selectedTopic,appState.currentDifficulty);
+        questionState.hasQuestion=true;
         ui.updateUIState();
-        state.setCurrentQuestionStartTime(Date.now());
-        if(state.mcqMode){
+        appState.currentQuestionStartTime=Date.now();
+        if(appState.mcqMode){
             void generateChoicesForCurrentQuestion();
-            if(dom.userAnswer)dom.userAnswer.style.display="none";
-            if(dom.mathToolbar)dom.mathToolbar.style.display="none";
-            if(dom.mcqChoicesContainer)dom.mcqChoicesContainer.style.display="flex";
+            if(dom.inputs.userAnswer)dom.inputs.userAnswer.style.display="none";
+            if(dom.displays.mathToolbar)dom.displays.mathToolbar.style.display="none";
+            if(dom.displays.mcqChoicesContainer)dom.displays.mcqChoicesContainer.style.display="flex";
         }
         else{
-            if(dom.userAnswer)dom.userAnswer.style.display="block";
-            if(dom.mathToolbar)dom.mathToolbar.style.display="flex";
-            if(dom.mcqChoicesContainer)dom.mcqChoicesContainer.style.display="none";
+            if(dom.inputs.userAnswer)dom.inputs.userAnswer.style.display="block";
+            if(dom.displays.mathToolbar)dom.displays.mathToolbar.style.display="flex";
+            if(dom.displays.mcqChoicesContainer)dom.displays.mcqChoicesContainer.style.display="none";
         }
     }
     catch(error){
         console.error("Mental question generation failed:",error);
-        dom.questionArea.innerHTML=`<div class="empty-state">Generation failed</div>`;
-        window.hasQuestion=false;
+        dom.displays.questionArea.innerHTML='<div class="empty-state">Generation failed</div>';
+        questionState.hasQuestion=false;
         endMentalSession();
         return;
     }
-    if(dom.expectedFormatDiv&&window.expectedFormat){
-        dom.expectedFormatDiv.textContent="Expected format: "+window.expectedFormat;
+    if(dom.displays.expectedFormatDiv&&questionState.expectedFormat){
+        dom.displays.expectedFormatDiv.textContent="Expected format: "+questionState.expectedFormat;
     }
-    dom.userAnswer.disabled=false;
-    dom.userAnswer.removeAttribute("aria-disabled");
-    dom.userAnswer.focus();
+    dom.inputs.userAnswer.disabled=false;
+    dom.inputs.userAnswer.removeAttribute("aria-disabled");
+    dom.inputs.userAnswer.focus();
     ui.updatePreview();
     if(window.MathJax&&window.MathJax.typesetPromise){
-        window.MathJax.typesetPromise([dom.questionArea]).catch((err: any)=>console.log("MathJax typeset error:",err));
+        window.MathJax.typesetPromise([dom.displays.questionArea]).catch((err: any)=>console.log("MathJax typeset error:",err));
     }
 }
 export async function handleMentalAnswer(answer?: string): Promise<void>{
-    if(!state.sessionActive||state.sessionPaused)return;
-    if(!dom.userAnswer||!dom.answerResults)return;
-    if(!(window as any).hasQuestion)return;
-    if(state.mentalNextQuestionTimeout){
-        clearTimeout(state.mentalNextQuestionTimeout);
-        state.setMentalNextQuestionTimeout(null);
+    if(!appState.sessionActive||appState.sessionPaused)return;
+    if(!dom.inputs.userAnswer||!dom.displays.answerResults)return;
+    if(!questionState.hasQuestion)return;
+    if(appState.mentalNextQuestionTimeout){
+        clearTimeout(appState.mentalNextQuestionTimeout);
+        appState.mentalNextQuestionTimeout=null;
     }
     let userInput=answer;
     if(userInput===undefined){
-        userInput=dom.userAnswer.value.trim();
+        userInput=dom.inputs.userAnswer.value.trim();
         if(!userInput){
             ui.showNotification("Please enter an answer","warning");
             return;
         }
     }
-    let correct=window.correctAnswer.correct;
-    let alternate=window.correctAnswer.alternate;
+    let correct=questionState.correctAnswer.correct;
+    let alternate=questionState.correctAnswer.alternate;
     let isCorrect=await settings.checkAnswerFast(userInput,correct,alternate);
-    if(!state.sessionActive)return;
+    if(!appState.sessionActive)return;
     if(settings.settings.sound){
         const audioCtx=getAudioContext();
         const oscillator=audioCtx.createOscillator();
@@ -220,98 +216,98 @@ export async function handleMentalAnswer(answer?: string): Promise<void>{
     if(settings.settings.vibration&&navigator.vibrate){
         navigator.vibrate(isCorrect?50:100);
     }
-    if(state.currentQuestionStartTime){
-        const elapsed=Date.now()-state.currentQuestionStartTime;
-        state.setTotalTimeSpent(state.totalTimeSpent+elapsed);
-        state.setAnsweredQuestionsCount(state.answeredQuestionsCount+1);
+    if(appState.currentQuestionStartTime){
+        const elapsed=Date.now()-appState.currentQuestionStartTime;
+        appState.totalTimeSpent=appState.totalTimeSpent+elapsed;
+        appState.answeredQuestionsCount=appState.answeredQuestionsCount+1;
         ui.updateStatistics();
-        state.setCurrentQuestionStartTime(null);
+        appState.currentQuestionStartTime=null;
     }
-    let newCorrect=state.sessionScore.correct+(isCorrect?1:0);
-    let newTotal=state.sessionScore.total+1;
-    state.setSessionScore({correct:newCorrect,total:newTotal});
+    let newCorrect=appState.sessionScore.correct+(isCorrect?1:0);
+    let newTotal=appState.sessionScore.total+1;
+    appState.sessionScore={correct:newCorrect,total:newTotal};
     ui.updateScoreDisplay();
     ui.updateProgressBar();
-    if(dom.mentalProgressBar){
-        let percent=(newTotal/state.maxQuestions)*100;
-        dom.mentalProgressBar.style.width=percent+"%";
+    if(dom.displays.mentalProgressBar){
+        let percent=(newTotal/appState.maxQuestions)*100;
+        dom.displays.mentalProgressBar.style.width=percent+"%";
     }
     let answerHtml="";
     if(window.katex){
         try{
-            answerHtml=window.katex.renderToString(window.correctAnswer.correct,{throwOnError:false,displayMode:false});
+            answerHtml=window.katex.renderToString(questionState.correctAnswer.correct,{throwOnError:false,displayMode:false});
         }
         catch(e){
             console.warn("KaTeX rendering failed, falling back to plain text",e);
-            answerHtml=window.correctAnswer.correct;
+            answerHtml=questionState.correctAnswer.correct;
         }
     }
     else{
-        answerHtml=window.correctAnswer.correct;
+        answerHtml=questionState.correctAnswer.correct;
     }
-    if(dom.answerResults){
-        dom.answerResults.innerHTML=isCorrect
-            ?`<div class="result-success">Correct! <span class="katex-answer">${answerHtml}</span></div>`
-            :`<div class="result-error">Incorrect. The answer was <span class="katex-answer">${answerHtml}</span></div>`;
-        dom.answerResults.className=isCorrect?"results-display correct":"results-display incorrect";
-        dom.answerResults.classList.add(isCorrect?"correct-flash":"incorrect-flash");
-        setTimeout(()=>dom.answerResults?.classList.remove(isCorrect?"correct-flash":"incorrect-flash"),300);
+    if(dom.displays.answerResults){
+        dom.displays.answerResults.innerHTML=isCorrect
+            ?'<div class="result-success">Correct! <span class="katex-answer">' + answerHtml + '</span></div>'
+            :'<div class="result-error">Incorrect. The answer was <span class="katex-answer">' + answerHtml + '</span></div>';
+        dom.displays.answerResults.className=isCorrect?"results-display correct":"results-display incorrect";
+        dom.displays.answerResults.classList.add(isCorrect?"correct-flash":"incorrect-flash");
+        setTimeout(()=>dom.displays.answerResults?.classList.remove(isCorrect?"correct-flash":"incorrect-flash"),300);
     }
-    if(dom.copyAnswerBtn)dom.copyAnswerBtn.style.display="inline-flex";
-    if(dom.userAnswer)dom.userAnswer.value="";
+    if(dom.buttons.copyAnswerBtn)dom.buttons.copyAnswerBtn.style.display="inline-flex";
+    if(dom.inputs.userAnswer)dom.inputs.userAnswer.value="";
     ui.updatePreview();
     saveSessionSnapshot();
-    if(newTotal>=state.maxQuestions&&!state.unlimitedMode){
+    if(newTotal>=appState.maxQuestions&&!appState.unlimitedMode){
         endMentalSession();
         return;
     }
-    state.setMentalNextQuestionTimeout(setTimeout(()=>{
-        if(state.sessionActive&&!state.sessionPaused){
-            state.setTimeLeft(settings.settings.timer);
+    appState.mentalNextQuestionTimeout=setTimeout(()=>{
+        if(appState.sessionActive&&!appState.sessionPaused){
+            appState.timeLeft=settings.settings.timer;
             ui.updateTimerDisplay();
             generateNextMentalQuestion();
         }
-        state.setMentalNextQuestionTimeout(null);
-    },settings.settings.autoCheckDelay));
+        appState.mentalNextQuestionTimeout=null;
+    },settings.settings.autoCheckDelay);
 }
 export function handleMcqChoice(choice: string): void{
     handleMentalAnswer(choice);
 }
 export function startMentalSession(): void{
-    if(!state.selectedTopic&&!state.mentalShuffle){
+    if(!appState.selectedTopic&&!appState.mentalShuffle){
         ui.showNotification("Please select a topic or enable shuffle","warning");
         return;
     }
-    if(state.mentalShuffle&&!topicsModule.pickRandomTopic()){
+    if(appState.mentalShuffle&&!topicsModule.pickRandomTopic()){
         ui.showNotification("No topics available in current scope","warning");
         return;
     }
-    if(state.mentalNextQuestionTimeout){
-        clearTimeout(state.mentalNextQuestionTimeout);
-        state.setMentalNextQuestionTimeout(null);
+    if(appState.mentalNextQuestionTimeout){
+        clearTimeout(appState.mentalNextQuestionTimeout);
+        appState.mentalNextQuestionTimeout=null;
     }
-    state.setUnlimitedMode(dom.unlimitedToggle?.checked??false);
-    if(dom.statisticsPanel)dom.statisticsPanel.style.display="flex";
-    state.setTotalTimeSpent(0);
-    state.setAnsweredQuestionsCount(0);
-    state.setCurrentQuestionStartTime(null);
+    appState.unlimitedMode=dom.inputs.unlimitedToggle?.checked??false;
+    if(dom.displays.statisticsPanel)dom.displays.statisticsPanel.style.display="flex";
+    appState.totalTimeSpent=0;
+    appState.answeredQuestionsCount=0;
+    appState.currentQuestionStartTime=null;
     ui.updateStatistics();
-    state.setSessionActive(true);
-    state.setSessionPaused(false);
-    state.setSessionScore({correct:0,total:0});
-    state.setTimeLeft(settings.settings.timer);
-    state.setMaxQuestions(settings.settings.maxQuestions);
+    appState.sessionActive=true;
+    appState.sessionPaused=false;
+    appState.sessionScore={correct:0,total:0};
+    appState.timeLeft=settings.settings.timer;
+    appState.maxQuestions=settings.settings.maxQuestions;
     ui.updateScoreDisplay();
     ui.updateTimerDisplay();
-    if(dom.mentalProgressBar)dom.mentalProgressBar.style.width="0%";
+    if(dom.displays.mentalProgressBar)dom.displays.mentalProgressBar.style.width="0%";
     ui.updateProgressBar();
-    if(state.unlimitedMode){
-        if(dom.mentalProgressBar)dom.mentalProgressBar.style.display="none";
-        if(dom.timerDisplay)dom.timerDisplay.style.display="none";
+    if(appState.unlimitedMode){
+        if(dom.displays.mentalProgressBar)dom.displays.mentalProgressBar.style.display="none";
+        if(dom.displays.timerDisplay)dom.displays.timerDisplay.style.display="none";
     }
     else{
-        if(dom.mentalProgressBar)dom.mentalProgressBar.style.display="block";
-        if(dom.timerDisplay)dom.timerDisplay.style.display="inline-flex";
+        if(dom.displays.mentalProgressBar)dom.displays.mentalProgressBar.style.display="block";
+        if(dom.displays.timerDisplay)dom.displays.timerDisplay.style.display="inline-flex";
     }
     startTimer();
     ui.disableTopicSelection(true);
@@ -321,95 +317,95 @@ export function startMentalSession(): void{
     generateNextMentalQuestion();
 }
 export function pauseMentalSession(): void{
-    if(!state.sessionActive)return;
-    state.setSessionPaused(!state.sessionPaused);
-    if(dom.pauseSessionBtn){
-        dom.pauseSessionBtn.innerHTML=state.sessionPaused
+    if(!appState.sessionActive)return;
+    appState.sessionPaused=!appState.sessionPaused;
+    if(dom.buttons.pauseSessionBtn){
+        dom.buttons.pauseSessionBtn.innerHTML=appState.sessionPaused
             ?'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'
             :'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
-        dom.pauseSessionBtn.setAttribute("aria-label",state.sessionPaused?"Resume":"Pause");
+        dom.buttons.pauseSessionBtn.setAttribute("aria-label",appState.sessionPaused?"Resume":"Pause");
     }
-    if(dom.userAnswer)dom.userAnswer.disabled=state.sessionPaused;
+    if(dom.inputs.userAnswer)dom.inputs.userAnswer.disabled=appState.sessionPaused;
 }
 export function skipMentalQuestion(): void{
-    if(!state.sessionActive||state.sessionPaused)return;
-    if(state.mentalNextQuestionTimeout){
-        clearTimeout(state.mentalNextQuestionTimeout);
-        state.setMentalNextQuestionTimeout(null);
+    if(!appState.sessionActive||appState.sessionPaused)return;
+    if(appState.mentalNextQuestionTimeout){
+        clearTimeout(appState.mentalNextQuestionTimeout);
+        appState.mentalNextQuestionTimeout=null;
     }
-    if(dom.answerResults){
-        dom.answerResults.innerHTML=`<div class="result-info">Skipped</div>`;
-        dom.answerResults.className="results-display";
+    if(dom.displays.answerResults){
+        dom.displays.answerResults.innerHTML='<div class="result-info">Skipped</div>';
+        dom.displays.answerResults.className="results-display";
     }
-    state.setCurrentQuestionStartTime(null);
-    let newTotal=state.sessionScore.total+1;
-    state.setSessionScore({correct:state.sessionScore.correct,total:newTotal});
+    appState.currentQuestionStartTime=null;
+    let newTotal=appState.sessionScore.total+1;
+    appState.sessionScore={correct:appState.sessionScore.correct,total:newTotal};
     ui.updateScoreDisplay();
     ui.updateProgressBar();
-    if(dom.mentalProgressBar){
-        let percent=(newTotal/state.maxQuestions)*100;
-        dom.mentalProgressBar.style.width=percent+"%";
+    if(dom.displays.mentalProgressBar){
+        let percent=(newTotal/appState.maxQuestions)*100;
+        dom.displays.mentalProgressBar.style.width=percent+"%";
     }
-    if(newTotal>=state.maxQuestions&&!state.unlimitedMode){
+    if(newTotal>=appState.maxQuestions&&!appState.unlimitedMode){
         endMentalSession();
         return;
     }
-    state.setTimeLeft(settings.settings.timer);
+    appState.timeLeft=settings.settings.timer;
     ui.updateTimerDisplay();
     saveSessionSnapshot();
-    state.setMentalNextQuestionTimeout(setTimeout(()=>{
-        if(state.sessionActive&&!state.sessionPaused){
+    appState.mentalNextQuestionTimeout=setTimeout(()=>{
+        if(appState.sessionActive&&!appState.sessionPaused){
             generateNextMentalQuestion();
         }
-        state.setMentalNextQuestionTimeout(null);
-    },settings.settings.autoCheckDelay));
+        appState.mentalNextQuestionTimeout=null;
+    },settings.settings.autoCheckDelay);
 }
 export function stopMentalSession(): void{
     endMentalSession();
 }
 export async function endMentalSession(): Promise<void>{
     ui.clearAllTimeouts();
-    state.setSessionActive(false);
-    state.setSessionPaused(false);
+    appState.sessionActive=false;
+    appState.sessionPaused=false;
     localStorage.removeItem(SESSION_STORAGE_KEY);
-    if(dom.mentalProgressBar)dom.mentalProgressBar.style.width="0%";
+    if(dom.displays.mentalProgressBar)dom.displays.mentalProgressBar.style.width="0%";
     ui.updateProgressBar();
-    if(dom.statisticsPanel)dom.statisticsPanel.style.display="none";
+    if(dom.displays.statisticsPanel)dom.displays.statisticsPanel.style.display="none";
     ui.disableTopicSelection(false);
     ui.disableModeButtons(false);
     ui.disableDifficulty(false);
     ui.setSessionButton(false);
-    if(dom.userAnswer){
-        dom.userAnswer.disabled=true;
-        dom.userAnswer.value="";
-        dom.userAnswer.setAttribute("aria-disabled","true");
+    if(dom.inputs.userAnswer){
+        dom.inputs.userAnswer.disabled=true;
+        dom.inputs.userAnswer.value="";
+        dom.inputs.userAnswer.setAttribute("aria-disabled","true");
     }
-    if(dom.checkAnswerButton){
-        dom.checkAnswerButton.disabled=true;
-        dom.checkAnswerButton.setAttribute("aria-disabled","true");
+    if(dom.buttons.checkAnswerButton){
+        dom.buttons.checkAnswerButton.disabled=true;
+        dom.buttons.checkAnswerButton.setAttribute("aria-disabled","true");
     }
-    if(dom.answerResults){
-        dom.answerResults.innerHTML=`<div class="empty-state">...</div>`;
-        dom.answerResults.className="results-display";
+    if(dom.displays.answerResults){
+        dom.displays.answerResults.innerHTML='<div class="empty-state">...</div>';
+        dom.displays.answerResults.className="results-display";
     }
-    if(dom.copyAnswerBtn)dom.copyAnswerBtn.style.display="none";
-    if(dom.expectedFormatDiv)dom.expectedFormatDiv.textContent="";
-    ui.showNotification(`Session finished! Score: ${state.sessionScore.correct}/${state.sessionScore.total}`,"info");
+    if(dom.buttons.copyAnswerBtn)dom.buttons.copyAnswerBtn.style.display="none";
+    if(dom.displays.expectedFormatDiv)dom.displays.expectedFormatDiv.textContent="";
+    ui.showNotification('Session finished! Score: ' + appState.sessionScore.correct + '/' + appState.sessionScore.total,'info');
     await promptSaveScore();
     await updateLeaderboard();
 }
 export async function promptSaveScore(): Promise<void>{
-    if(!state.selectedTopic){
+    if(!appState.selectedTopic){
         ui.showNotification("No topic selected. Score not saved.","warning");
         return;
     }
     try{
         await invoke("save_score",{
             entry:{
-                topic:state.selectedTopic,
-                score:state.sessionScore.correct,
-                total:state.sessionScore.total,
-                difficulty:state.currentDifficulty,
+                topic:appState.selectedTopic,
+                score:appState.sessionScore.correct,
+                total:appState.sessionScore.total,
+                difficulty:appState.currentDifficulty,
                 date:new Date().toISOString()
             }
         });
@@ -425,30 +421,22 @@ export async function promptSaveScore(): Promise<void>{
     }
 }
 export async function updateLeaderboard(): Promise<void>{
-    if(!dom.leaderboardContent)return;
+    if(!dom.displays.leaderboardContent)return;
     try{
         const scores: any[] = await invoke("load_scores");
         if(!scores||scores.length===0){
-            dom.leaderboardContent.innerHTML=`<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/></svg><p>No scores yet. Complete a mental session to see your results.</p></div>`;
-            if(dom.leaderboardCard)dom.leaderboardCard.classList.add("hidden");
+            dom.displays.leaderboardContent.innerHTML='<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/></svg><p>No scores yet. Complete a mental session to see your results.</p></div>';
+            if(dom.session.leaderboardCard)dom.session.leaderboardCard.classList.add("hidden");
             return;
         }
         let recent=scores.slice(-10).reverse();
-        let html="<div style=\"display:flex; flex-direction:column; gap:var(--spacing-xs);\">";
+        let html='<div style="display:flex; flex-direction:column; gap:var(--spacing-xs);">';
         for(const s of recent){
             const topicName=topicList.find(t=>t.id===s.topic)?.name||s.topic;
-            html+=`
-                <div class="leaderboard-item" data-id="${s.id}">
-                    <span>${topicName} (${s.difficulty})</span>
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <span class="leaderboard-score">${s.score}/${s.total}</span>
-                        <button class="icon-button delete-score-btn" data-id="${s.id}" style="width:20px; height:20px;">�?/button>
-                    </div>
-                </div>
-            `;
+            html+='<div class="leaderboard-item" data-id="' + s.id + '"><span>' + topicName + ' (' + s.difficulty + ')</span><div style="display:flex; gap:8px; align-items:center;"><span class="leaderboard-score">' + s.score + '/' + s.total + '</span><button class="icon-button delete-score-btn" data-id="' + s.id + '" style="width:20px; height:20px;">✕</button></div></div>';
         }
-        html+="</div>";
-        dom.leaderboardContent.innerHTML=html;
+        html+='</div>';
+        dom.displays.leaderboardContent.innerHTML=html;
         const deleteButtons = document.querySelectorAll(".delete-score-btn");
         for(const btn of deleteButtons){
             btn.removeEventListener("click", (window as any).__deleteHandler);
@@ -470,16 +458,13 @@ export async function updateLeaderboard(): Promise<void>{
             btn.addEventListener("click", handler);
             (window as any).__deleteHandler = handler;
         }
-        if(dom.leaderboardCard){
-            dom.leaderboardCard.classList.remove("hidden");
-            dom.leaderboardCard.style.display="block";
+        if(dom.session.leaderboardCard){
+            dom.session.leaderboardCard.classList.remove("hidden");
+            dom.session.leaderboardCard.style.display="block";
         }
     }
     catch(err){
         console.error("Failed to load leaderboard:",err);
-        dom.leaderboardContent.innerHTML=`<div class="empty-state"><p>Failed to load scores</p></div>`;
+        dom.displays.leaderboardContent.innerHTML='<div class="empty-state"><p>Failed to load scores</p></div>';
     }
 }
-
-
-
