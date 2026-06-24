@@ -11,6 +11,7 @@ vi.mock("@tauri-apps/api/core",()=>({
 }));
 import{invoke}from"@tauri-apps/api/core";
 import{openDataModal,initDataModal}from"./dataManagement.js";
+declare const process: { on: (e: string, h: Function) => void; off: (e: string, h: Function) => void; };
 describe("dataManagement",()=>{
     it("should export openDataModal",()=>{
         expect(typeof openDataModal).toBe("function");
