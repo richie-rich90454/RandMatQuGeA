@@ -1,13 +1,12 @@
-import {questionArea} from "../../../script.js";
+import {renderer} from "../../../main/core/questionRenderer";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Roots: simplify nth roots.
- * @fileoverview Generates root simplification questions with MCQ distractors. Sets window.correctAnswer with correct value and display.
+ * @fileoverview Generates root simplification questions with MCQ distractors. 
  * @date 2026-04-18
  */
 export function generateRoot(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	let maxRoot=getMaxForDifficulty(difficulty,4);
 	let maxBase=getMaxForDifficulty(difficulty,10);
 	let root=Math.floor((Math.random()*maxRoot))+2;
@@ -32,19 +31,12 @@ export function generateRoot(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctRoot;
 		else uniqueChoices=[correctRoot];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=rootExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	window.correctAnswer={
+	renderer.render(rootExpression);
+	renderer.setAnswer({
 		correct: correctRoot,
 		alternate: correctRoot,
 		display: correctRoot,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a whole number";
+	});
+	renderer.setExpectedFormat("Enter a whole number");
 }
