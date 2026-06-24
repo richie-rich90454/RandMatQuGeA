@@ -1,13 +1,13 @@
 /**
  * Sequences, series, and induction generator
- * @fileoverview Provides functions to generate questions about arithmetic/geometric sequences, limits, infinite series, mathematical induction, and binomial theorem. Each question displays in questionArea and sets window.correctAnswer with:
+ * @fileoverview Provides functions to generate questions about arithmetic/geometric sequences, limits, infinite series, mathematical induction, and binomial theorem. Each question renders via renderer.render and sets answer via renderer.setAnswer with:
  * - correct: normalized answer (string)
  * - alternate: alternative representation (e.g., fraction, expression)
  * - display: LaTeX representation suitable for showing the answer.
- * Also sets window.expectedFormat as a hint for the user.
+ * Also calls renderer.setExpectedFormat as a hint for the user.
  * @date 2026-03-15
  */
-import {questionArea} from "../../script.js";
+import {renderer} from "../../main/core/questionRenderer";
 import {getMaxN, nCr} from "./discreteUtils.js";
 /**
  * Determines the maximum term value for sequence generation based on difficulty.
@@ -24,8 +24,7 @@ function getMaxTerm(difficulty?: string): number{
  * @param difficulty - optional difficulty level.
  */
 export function generateArithmeticSequence(difficulty?: string): void{
-	if (!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	const maxA1=getMaxN(difficulty);
 	const maxD=getMaxTerm(difficulty);
 	const a1=Math.floor(Math.random()*maxA1)+1;
@@ -40,26 +39,24 @@ export function generateArithmeticSequence(difficulty?: string): void{
 		question=`Find the ${n}th term of the arithmetic sequence: \\( a_1 = ${a1}, d = ${d} \\).`;
 		answer=an.toString();
 		hint="Enter a number";
-		window.correctAnswer={ correct: answer, alternate: answer, display: an.toString() ,choices:[]};
+		renderer.setAnswer({ correct: answer, alternate: answer, display: an.toString() ,choices:[]});
 	}
 	else{
 		const sum=(n/2)*(2*a1+(n-1)*d);
 		question=`Find the sum of the first ${n} terms of the arithmetic sequence with \\( a_1 = ${a1} \\) and common difference \\( d = ${d} \\).`;
 		answer=sum.toFixed(2);
 		hint="Enter a decimal or integer";
-		window.correctAnswer={ correct: answer, alternate: answer, display: sum.toFixed(2) ,choices:[]};
+		renderer.setAnswer({ correct: answer, alternate: answer, display: sum.toFixed(2) ,choices:[]});
 	}
-	questionArea.innerHTML=question;
-	window.expectedFormat=hint;
-	if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
+	renderer.render(question);
+	renderer.setExpectedFormat(hint);
 }
 /**
  * Generates a geometric sequence question (nth term or sum of first n terms).
  * @param difficulty - optional difficulty level.
  */
 export function generateGeometricSequence(difficulty?: string): void{
-	if (!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	const maxA1=getMaxN(difficulty);
 	const a1=Math.floor(Math.random()*maxA1)+1;
 	let r: number;
@@ -82,7 +79,7 @@ export function generateGeometricSequence(difficulty?: string): void{
 		question=`Find the ${n}th term of the geometric sequence: \\( a_1 = ${a1}, r = ${r} \\).`;
 		answer=an.toFixed(2);
 		hint="Enter a decimal";
-		window.correctAnswer={ correct: answer, alternate: answer, display: an.toFixed(2) ,choices:[]};
+		renderer.setAnswer({ correct: answer, alternate: answer, display: an.toFixed(2) ,choices:[]});
 	}
 	else{
 		if (r===1){
@@ -90,27 +87,25 @@ export function generateGeometricSequence(difficulty?: string): void{
 			question=`Find the sum of the first ${n} terms of the geometric sequence with \\( a_1 = ${a1} \\) and common ratio \\( r = 1 \\).`;
 			answer=sum.toString();
 			hint="Enter a number";
-			window.correctAnswer={ correct: answer, alternate: answer, display: sum.toString() ,choices:[]};
+			renderer.setAnswer({ correct: answer, alternate: answer, display: sum.toString() ,choices:[]});
 		}
 		else{
 			const sum=a1*(1-Math.pow(r,n))/(1-r);
 			question=`Find the sum of the first ${n} terms of the geometric sequence: \\( a_1 = ${a1}, r = ${r} \\).`;
 			answer=sum.toFixed(2);
 			hint="Enter a decimal";
-			window.correctAnswer={ correct: answer, alternate: answer, display: sum.toFixed(2) ,choices:[]};
+			renderer.setAnswer({ correct: answer, alternate: answer, display: sum.toFixed(2) ,choices:[]});
 		}
 	}
-	questionArea.innerHTML=question;
-	window.expectedFormat=hint;
-	if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
+	renderer.render(question);
+	renderer.setExpectedFormat(hint);
 }
 /**
  * Generates a sequence limit question (rational or exponential type).
  * @param difficulty - optional difficulty level.
  */
 export function generateSequenceLimit(difficulty?: string): void{
-	if (!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	const types=["rational","exponential"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	if (difficulty==="easy"){
@@ -148,7 +143,7 @@ export function generateSequenceLimit(difficulty?: string): void{
 		question=`Determine the limit as \\( n \\to \\infty \\) of the sequence \\( a_n = \\frac{${numCoeff}n ${signNum} ${Math.abs(constNum)}}{${denCoeff}n ${signDen} ${Math.abs(constDen)}} \\).`;
 		answer=limit.toFixed(2);
 		hint="Enter a decimal (e.g., 0.5) or 'diverges'";
-		window.correctAnswer={ correct: answer, alternate: answer, display: limit.toFixed(2) ,choices:[]};
+		renderer.setAnswer({ correct: answer, alternate: answer, display: limit.toFixed(2) ,choices:[]});
 	}
 	else{
 		let r: number;
@@ -161,19 +156,17 @@ export function generateSequenceLimit(difficulty?: string): void{
 		question=`Determine the limit as \\( n \\to \\infty \\) of the sequence \\( a_n = (${r})^n \\).`;
 		answer="0";
 		hint="Enter 0 or '0'";
-		window.correctAnswer={ correct: answer, alternate: answer, display: "0" ,choices:[]};
+		renderer.setAnswer({ correct: answer, alternate: answer, display: "0" ,choices:[]});
 	}
-	questionArea.innerHTML=question;
-	window.expectedFormat=hint;
-	if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
+	renderer.render(question);
+	renderer.setExpectedFormat(hint);
 }
 /**
  * Generates an infinite geometric series sum question.
  * @param difficulty - optional difficulty level.
  */
 export function generateInfiniteGeometricSeries(difficulty?: string): void{
-	if (!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	const maxA1=getMaxN(difficulty);
 	const a1=Math.floor(Math.random()*maxA1)+1;
 	let r: number;
@@ -187,22 +180,20 @@ export function generateInfiniteGeometricSeries(difficulty?: string): void{
 		r=parseFloat((Math.random()*0.5+0.2).toFixed(2));
 	}
 	const sum=a1/(1-r);
-	questionArea.innerHTML=`Find the sum of the infinite geometric series: \\( ${a1} + ${(a1*r).toFixed(2)} + ${(a1*r*r).toFixed(2)} + \\cdots \\).`;
-	window.correctAnswer={
+	renderer.render(`Find the sum of the infinite geometric series: \\( ${a1} + ${(a1*r).toFixed(2)} + ${(a1*r*r).toFixed(2)} + \\cdots \\).`);
+	renderer.setAnswer({
 		correct: sum.toFixed(2),
 		alternate: sum.toString(),
 		display: sum.toFixed(2)
-	,choices:[]};
-	window.expectedFormat="Enter a decimal";
-	if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
+	,choices:[]});
+	renderer.setExpectedFormat("Enter a decimal");
 }
 /**
  * Generates a mathematical induction question (base case or inductive hypothesis).
  * @param difficulty - optional difficulty level.
  */
 export function generateMathematicalInduction(difficulty?: string): void{
-	if (!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	let formulaIndex: number;
 	if (difficulty==="easy"){
 		formulaIndex=0;
@@ -247,25 +238,23 @@ export function generateMathematicalInduction(difficulty?: string): void{
 		}
 		answer=leftSum.toString();
 		hint="Enter a number";
-		window.correctAnswer={ correct: answer, alternate: answer, display: leftSum.toString() ,choices:[]};
+		renderer.setAnswer({ correct: answer, alternate: answer, display: leftSum.toString() ,choices:[]});
 	}
 	else{
 		question=`In a proof by induction that \\( ${chosen.lhs} = ${chosen.rhs} \\), what is the inductive hypothesis? (Assume true for n = k)`;
 		answer=`Assume true for n = k: ${chosen.lhs.replace(/n/g,"k")} = ${chosen.rhs.replace(/n/g,"k")}`;
 		hint="Enter the statement for n = k";
-		window.correctAnswer={ correct: answer, alternate: answer, display: answer ,choices:[]};
+		renderer.setAnswer({ correct: answer, alternate: answer, display: answer ,choices:[]});
 	}
-	questionArea.innerHTML=question;
-	window.expectedFormat=hint;
-	if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
+	renderer.render(question);
+	renderer.setExpectedFormat(hint);
 }
 /**
  * Generates a binomial theorem question (expansion or coefficient).
  * @param difficulty - optional difficulty level.
  */
 export function generateBinomialTheorem(difficulty?: string): void{
-	if (!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	const maxN=getMaxN(difficulty);
 	const n=Math.floor(Math.random()*maxN)+2;
 	const type=Math.random()<0.5?"expand":"coefficient";
@@ -305,7 +294,7 @@ export function generateBinomialTheorem(difficulty?: string): void{
 		answer=signedTerms.join(" + ").replace(/\+ -/g,"- ");
 		question=`Expand \\( ${expr} \\) using the binomial theorem.`;
 		hint="Enter as a polynomial (e.g., x^2 + 2x + 1)";
-		window.correctAnswer={ correct: answer, alternate: answer, display: answer ,choices:[]};
+		renderer.setAnswer({ correct: answer, alternate: answer, display: answer ,choices:[]});
 	}
 	else{
 		const a=Math.floor(Math.random()*2)+1;
@@ -318,9 +307,8 @@ export function generateBinomialTheorem(difficulty?: string): void{
 		question=`Find the coefficient of \\( x^{${k}} \\) in the expansion of \\( ${expr} \\).`;
 		answer=coeff.toString();
 		hint="Enter an integer (may be negative)";
-		window.correctAnswer={ correct: answer, alternate: answer, display: coeff.toString() ,choices:[]};
+		renderer.setAnswer({ correct: answer, alternate: answer, display: coeff.toString() ,choices:[]});
 	}
-	questionArea.innerHTML=question;
-	window.expectedFormat=hint;
-	if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
+	renderer.render(question);
+	renderer.setExpectedFormat(hint);
 }
