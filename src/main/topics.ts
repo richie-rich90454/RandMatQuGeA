@@ -1,5 +1,5 @@
-import * as dom from "./dom";
-import * as state from "./state";
+import {dom} from "./core/domRegistry";
+import {appState} from "./core/stateStore";
 import * as ui from "./ui";
 import {topics,scopeTopics} from "./constants";
 let gridInitialized=false;
@@ -9,11 +9,11 @@ export function resetTopicGrid(): void{
     topicElements.clear();
 }
 export function renderTopicGrid(): void{
-    if (!dom.topicGrid) return;
-    const currentScope=state.currentMode==="single"?state.scope:state.mentalScope;
+    if (!dom.displays.topicGrid) return;
+    const currentScope=appState.currentMode==="single"?appState.scope:appState.mentalScope;
     const allowedIds=scopeTopics[currentScope as keyof typeof scopeTopics]||scopeTopics.simple;
     const filteredTopics=topics.filter(t=>allowedIds.includes(t.id));
-    const searchTerm=dom.topicSearch?.value.toLowerCase().trim()||"";
+    const searchTerm=dom.inputs.topicSearch?.value.toLowerCase().trim()||"";
     const displayedTopics=searchTerm?filteredTopics.filter(t=>t.name.toLowerCase().includes(searchTerm)||t.id.toLowerCase().includes(searchTerm)):filteredTopics;
     if (!gridInitialized){
         topics.forEach(topic=>{
@@ -26,7 +26,7 @@ export function renderTopicGrid(): void{
     `;
             topicElement.addEventListener("click",()=>selectTopic(topic.id));
             topicElements.set(topic.id, topicElement);
-            dom.topicGrid!.appendChild(topicElement);
+            dom.displays.topicGrid!.appendChild(topicElement);
         });
         gridInitialized=true;
     }
@@ -34,23 +34,23 @@ export function renderTopicGrid(): void{
     topicElements.forEach((element, id)=>{
         element.style.display=displayedIds.has(id)?"":"none";
     });
-    if (state.selectedTopic&&!allowedIds.includes(state.selectedTopic)){
+    if (appState.selectedTopic&&!allowedIds.includes(appState.selectedTopic)){
         if (displayedTopics.length>0){
             selectTopic(displayedTopics[0].id);
         }
         else{
-            state.setSelectedTopic(null);
-            if (dom.currentTopicDisplay) dom.currentTopicDisplay.textContent="Select a topic";
+            appState.selectedTopic=null;
+            if (dom.displays.currentTopicDisplay) dom.displays.currentTopicDisplay.textContent="Select a topic";
         }
     }
-    else if (!state.selectedTopic&&displayedTopics.length>0){
+    else if (!appState.selectedTopic&&displayedTopics.length>0){
         selectTopic(displayedTopics[0].id);
     }
-    else if (state.selectedTopic){
+    else if (appState.selectedTopic){
         document.querySelectorAll(".topic-pill").forEach(item=>{
             item.classList.remove("active");
         });
-        let selectedElement=document.querySelector(`[data-topic-id="${state.selectedTopic}"]`);
+        let selectedElement=document.querySelector(`[data-topic-id="${appState.selectedTopic}"]`);
         if (selectedElement) selectedElement.classList.add("active");
     }
 }
@@ -62,19 +62,19 @@ export function selectTopic(topicId: string): void{
     if (selectedElement){
         selectedElement.classList.add("active");
     }
-    state.setSelectedTopic(topicId);
+    appState.selectedTopic=topicId;
     let topic=topics.find(t=>t.id===topicId);
-    if (dom.currentTopicDisplay){
-        dom.currentTopicDisplay.textContent=topic?topic.name:"Select a topic to begin";
+    if (dom.displays.currentTopicDisplay){
+        dom.displays.currentTopicDisplay.textContent=topic?topic.name:"Select a topic to begin";
     }
-    if (dom.generateQuestionButton){
-        dom.generateQuestionButton.disabled=false;
-        dom.generateQuestionButton.setAttribute("aria-disabled","false");
+    if (dom.buttons.generateQuestionButton){
+        dom.buttons.generateQuestionButton.disabled=false;
+        dom.buttons.generateQuestionButton.setAttribute("aria-disabled","false");
     }
     ui.updateUIState();
 }
 export function pickRandomTopic(): string|null{
-    const currentScope=state.currentMode==="single"?state.scope:state.mentalScope;
+    const currentScope=appState.currentMode==="single"?appState.scope:appState.mentalScope;
     const allowedIds=scopeTopics[currentScope as keyof typeof scopeTopics]||scopeTopics.simple;
     if (allowedIds.length===0) return null;
     return allowedIds[Math.floor(Math.random()*allowedIds.length)];
