@@ -218,11 +218,11 @@ describe("switchToSingle",()=>{
     });
     it("should add active class to single button",()=>{
         switchToSingle();
-        expect(dom.modeSingleBtn.classList.add).toHaveBeenCalledWith("active");
+        expect(dom.modeSingleBtn!.classList.add).toHaveBeenCalledWith("active");
     });
     it("should remove active class from mental button",()=>{
         switchToSingle();
-        expect(dom.modeMentalBtn.classList.remove).toHaveBeenCalledWith("active");
+        expect(dom.modeMentalBtn!.classList.remove).toHaveBeenCalledWith("active");
     });
     it("should end mental session if active",()=>{
         (state as any).sessionActive=true;
@@ -247,11 +247,11 @@ describe("switchToMental",()=>{
     });
     it("should add active class to mental button",()=>{
         switchToMental();
-        expect(dom.modeMentalBtn.classList.add).toHaveBeenCalledWith("active");
+        expect(dom.modeMentalBtn!.classList.add).toHaveBeenCalledWith("active");
     });
     it("should remove active class from single button",()=>{
         switchToMental();
-        expect(dom.modeSingleBtn.classList.remove).toHaveBeenCalledWith("active");
+        expect(dom.modeSingleBtn!.classList.remove).toHaveBeenCalledWith("active");
     });
     it("should end mental session if active",()=>{
         (state as any).sessionActive=true;
@@ -314,7 +314,7 @@ describe("keyboard shortcuts",()=>{
         vi.clearAllMocks();
         let docAddSpy=vi.spyOn(document,"addEventListener");
         await setupEventListeners();
-        let userAnswerCalls=(dom.userAnswer.addEventListener as any).mock.calls;
+        let userAnswerCalls=(dom.userAnswer!.addEventListener as any).mock.calls;
         let keyupCall=userAnswerCalls.find((c:any[])=>c[0]==="keyup");
         keyupHandler=keyupCall?keyupCall[1]:null;
         let keydownCall=userAnswerCalls.find((c:any[])=>c[0]==="keydown");
@@ -332,10 +332,10 @@ describe("keyboard shortcuts",()=>{
     });
     it("should handle Escape key to close modals",()=>{
         expect(escapeKeydownHandler).toBeDefined();
-        dom.settingsModal.classList.contains.mockReturnValue(true);
+        vi.mocked(dom.settingsModal!.classList.contains).mockReturnValue(true);
         let mockEvent={key:"Escape",preventDefault:vi.fn()};
         escapeKeydownHandler(mockEvent);
-        expect(dom.settingsModal.classList.remove).toHaveBeenCalledWith("show");
+        expect(dom.settingsModal!.classList.remove).toHaveBeenCalledWith("show");
     });
     it("should handle keyboard shortcut for generate",()=>{
         expect(ctrlKeydownHandler).toBeDefined();

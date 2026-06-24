@@ -107,9 +107,9 @@ Object.defineProperty(window,"matchMedia",{
 });
 // Mock ResizeObserver for geometry visualization code
 (globalThis as any).ResizeObserver=class ResizeObserver{
-	constructor(callback: ResizeObserverCallback){}
-	observe(target: Element, options?: ResizeObserverOptions): void{}
-	unobserve(target: Element): void{}
+	constructor(_callback: ResizeObserverCallback){}
+	observe(_target: Element, _options?: ResizeObserverOptions): void{}
+	unobserve(_target: Element): void{}
 	disconnect(): void{}
 };
 // Mock HTMLCanvasElement.getContext for geometry visualization
