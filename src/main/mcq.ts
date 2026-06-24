@@ -1,4 +1,5 @@
-import * as state from "./state";
+import {appState} from "./core/stateStore";
+import {questionState} from "./core/questionState";
 import * as settings from "./settings";
 import * as ui from "./ui";
 let mathjsModule: any=null;
@@ -147,8 +148,8 @@ function generateTextFallbackDistractors(answer: string, count: number): string[
     return result;
 }
 export async function generateChoicesForCurrentQuestion(): Promise<void>{
-    if (!state.mcqMode) return;
-    const correctObj=window.correctAnswer;
+    if (!appState.mcqMode) return;
+    const correctObj=questionState.correctAnswer;
     if (!correctObj || !correctObj.correct) return;
     const count=settings.settings.mcqChoicesCount;
     let choices: string[];
@@ -170,7 +171,7 @@ export async function generateChoicesForCurrentQuestion(): Promise<void>{
     else{
         choices=await generateDistractors(correctObj.correct, count);
     }
-    state.setMcqChoices(choices);
+    appState.mcqChoices=choices;
     ui.renderMcqChoices(choices);
 }
 
