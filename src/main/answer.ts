@@ -6,8 +6,9 @@
  * (response time, error types) for the adaptive learning system. Updated to support Tauri commands for saving
  * performance data to SQLite and starting question timers, with detailed console logging.
  */
-import * as dom from "./dom";
-import * as state from "./state";
+import {dom} from "./core/domRegistry";
+import {appState} from "./core/stateStore";
+import {questionState} from "./core/questionState";
 import * as settings from "./settings";
 import * as ui from "./ui";
 import * as generation from "./generation";
@@ -190,25 +191,25 @@ function tryEvaluate(expr: string): any{
  */
 export async function checkAnswer(userInput?: string): Promise<void>{
     await ensureMathjs();
-    if (!state.selectedTopic){
+    if (!appState.selectedTopic){
         ui.showNotification("Please select a topic and generate a question first","warning");
         return;
     }
-    if (!dom.userAnswer||!dom.answerResults) return;
-    if (!(window as any).hasQuestion){
-        dom.answerResults.className="results-display incorrect";
+    if (!dom.inputs.userAnswer||!dom.displays.answerResults) return;
+    if (!questionState.hasQuestion){
+        dom.displays.answerResults.className="results-display incorrect";
         return;
     }
     let answer = userInput;
     if (answer === undefined){
-        answer = dom.userAnswer.value.trim();
+        answer = dom.inputs.userAnswer.value.trim();
         if (!answer){
             ui.showNotification("Please enter an answer before checking","warning");
             return;
         }
     }
-    let correct=window.correctAnswer.correct;
-    let alternate=window.correctAnswer.alternate;
+    let correct=questionState.correctAnswer.correct;
+    let alternate=questionState.correctAnswer.alternate;
 
     // --- Helper to convert LaTeX to math.js syntax ---
     const convertLatex=(s: string): string=>{
@@ -488,17 +489,17 @@ let numCorrect=mathjs.evaluate(funcCorrect);
         }
     }
     const responseTime=getResponseTime();
-    const errorType=!isCorrect ? detectErrorType(answer, correct, state.selectedTopic || '') : null;
+    const errorType=!isCorrect ? detectErrorType(answer, correct, appState.selectedTopic || '') : null;
     console.log("[Adaptive] Saving performance:", {
-        topicId: state.selectedTopic,
-        difficulty: state.currentDifficulty,
+        topicId: appState.selectedTopic,
+        difficulty: appState.currentDifficulty,
         correct: isCorrect,
         responseTimeMs: responseTime,
         errorType: errorType
     });
     invoke('save_performance', {
-        topicId: state.selectedTopic,
-        difficulty: state.currentDifficulty,
+        topicId: appState.selectedTopic,
+        difficulty: appState.currentDifficulty,
         correct: isCorrect,
         responseTimeMs: responseTime,
         errorType: errorType
@@ -522,7 +523,7 @@ let numCorrect=mathjs.evaluate(funcCorrect);
         navigator.vibrate(isCorrect?50:100);
     }
     // Render the correct answer using KaTeX (fallback to plain text if KaTeX unavailable or errors)
-    const answerToDisplay=(window.correctAnswer as any).display||window.correctAnswer.correct;
+    const answerToDisplay=(questionState.correctAnswer as any).display||questionState.correctAnswer.correct;
     let answerHtml='';
     if (window.katex){
         try{
@@ -535,7 +536,7 @@ let numCorrect=mathjs.evaluate(funcCorrect);
         answerHtml=answerToDisplay;
     }
     if (isCorrect){
-        dom.answerResults.innerHTML=`
+        dom.displays.answerResults.innerHTML=`
       <div class="result-success">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
           <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
@@ -546,13 +547,13 @@ let numCorrect=mathjs.evaluate(funcCorrect);
         </div>
       </div>
     `;
-        dom.answerResults.className="results-display correct";
-        if (dom.copyAnswerBtn) dom.copyAnswerBtn.style.display="inline-flex";
-        dom.answerResults.classList.add("correct-flash");
-        setTimeout(()=>dom.answerResults?.classList.remove("correct-flash"),300);
+        dom.displays.answerResults.className="results-display correct";
+        if (dom.buttons.copyAnswerBtn) dom.buttons.copyAnswerBtn.style.display="inline-flex";
+        dom.displays.answerResults.classList.add("correct-flash");
+        setTimeout(()=>dom.displays.answerResults?.classList.remove("correct-flash"),300);
     }
     else{
-        dom.answerResults.innerHTML=`
+        dom.displays.answerResults.innerHTML=`
       <div class="result-error">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
           <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -563,19 +564,19 @@ let numCorrect=mathjs.evaluate(funcCorrect);
         </div>
       </div>
     `;
-        dom.answerResults.className="results-display incorrect";
-        if (dom.copyAnswerBtn) dom.copyAnswerBtn.style.display="inline-flex";
-        dom.answerResults.classList.add("incorrect-flash");
-        setTimeout(()=>dom.answerResults?.classList.remove("incorrect-flash"),300);
+        dom.displays.answerResults.className="results-display incorrect";
+        if (dom.buttons.copyAnswerBtn) dom.buttons.copyAnswerBtn.style.display="inline-flex";
+        dom.displays.answerResults.classList.add("incorrect-flash");
+        setTimeout(()=>dom.displays.answerResults?.classList.remove("incorrect-flash"),300);
     }
-    dom.userAnswer.value="";
+    dom.inputs.userAnswer.value="";
     ui.updatePreview();
-    dom.userAnswer.focus();
-    if (state.currentMode==="single"&&state.autocontinue){
-        if (state.autoTimeout) clearTimeout(state.autoTimeout);
-        state.setAutoTimeout(setTimeout(()=>{
+    dom.inputs.userAnswer.focus();
+    if (appState.currentMode==="single"&&appState.autocontinue){
+        if (appState.autoTimeout) clearTimeout(appState.autoTimeout);
+        appState.autoTimeout=setTimeout(()=>{
             generation.generateQuestion();
-            state.setAutoTimeout(null);
-        },settings.settings.autoCheckDelay));
+            appState.autoTimeout=null;
+        },settings.settings.autoCheckDelay);
     }
 }
