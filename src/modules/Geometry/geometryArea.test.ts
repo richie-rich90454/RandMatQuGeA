@@ -131,7 +131,6 @@ describe("generateAreaCircle - edge cases",()=>{
 		Math.random=vi.fn().mockReturnValue(0.3);
 		generateAreaCircle();
 		let correct=(window as any).correctAnswer.correct;
-		let _alternate=(window as any).correctAnswer.alternate;
 		let numeric=parseFloat(correct);
 		expect(numeric).toBeGreaterThan(0);
 	});

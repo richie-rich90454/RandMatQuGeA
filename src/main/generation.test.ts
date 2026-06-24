@@ -248,14 +248,14 @@ describe("generateQuestion - edge cases",()=>{
         state.setSelectedTopic("add");
         (window as any).expectedFormat="decimal";
         await generateQuestion();
-        expect(dom.expectedFormatDiv.textContent).toBe("Expected format: decimal");
+        expect(dom.expectedFormatDiv!.textContent).toBe("Expected format: decimal");
         delete (window as any).expectedFormat;
     });
     it("should clear previous answer state",async()=>{
         state.setSelectedTopic("add");
-        dom.userAnswer.value="old answer";
+        dom.userAnswer!.value="old answer";
         await generateQuestion();
-        expect(dom.userAnswer.value).toBe("");
+        expect(dom.userAnswer!.value).toBe("");
     });
     it("should set hasQuestion to true",async()=>{
         state.setSelectedTopic("add");
