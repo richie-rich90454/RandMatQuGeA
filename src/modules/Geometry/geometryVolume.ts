@@ -1,14 +1,13 @@
-import {questionArea} from "../../script.js";
+import {renderer} from "../../main/core/questionRenderer";
 import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
 import {createVisualization} from "./geometryVisualization.js";
 /**
  * Volume calculations for 3D shapes: sphere, cylinder, cone, pyramid.
- * @fileoverview Generates volume questions for common 3D shapes, displays them in questionArea, and sets window.correctAnswer with correct, alternate, and display properties, plus plausible wrong answers for MCQ mode. Includes 3D visualizations.
+ * @fileoverview Generates volume questions for common 3D shapes, uses the renderer API to display questions and set answers, plus plausible wrong answers for MCQ mode. Includes 3D visualizations.
  * @date 2026-04-18
  */
 export function generateVolumeSphere(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxRadius=getMaxForDifficulty(difficulty,6);
 	const radius=Math.floor(Math.random()*maxRadius)+2;
@@ -26,24 +25,18 @@ export function generateVolumeSphere(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correct,
 		alternate: (4/3*Math.PI*radius**3).toFixed(2),
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal (e.g., 113.10)";
+	});
+	renderer.setExpectedFormat("Enter a decimal (e.g., 113.10)");
 	createVisualization("sphere",{radius});
 }
 export function generateVolumeCylinder(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxRadius=getMaxForDifficulty(difficulty,5);
 	const maxHeight=getMaxForDifficulty(difficulty,8);
@@ -63,24 +56,18 @@ export function generateVolumeCylinder(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correct,
 		alternate: (Math.PI*r*r*h).toFixed(2),
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal";
+	});
+	renderer.setExpectedFormat("Enter a decimal");
 	createVisualization("cylinder",{radius:r,height:h});
 }
 export function generateVolumeCone(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxRadius=getMaxForDifficulty(difficulty,5);
 	const maxHeight=getMaxForDifficulty(difficulty,8);
@@ -100,24 +87,18 @@ export function generateVolumeCone(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correct,
 		alternate: ((1/3)*Math.PI*r*r*h).toFixed(2),
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal";
+	});
+	renderer.setExpectedFormat("Enter a decimal");
 	createVisualization("cone",{radius:r,height:h});
 }
 export function generateVolumePyramid(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxBase=getMaxForDifficulty(difficulty,6);
 	const base=Math.floor(Math.random()*maxBase)+3;
@@ -136,18 +117,13 @@ export function generateVolumePyramid(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correct,
 		alternate: ((1/3)*base*base*height).toFixed(2),
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal";
+	});
+	renderer.setExpectedFormat("Enter a decimal");
 	createVisualization("pyramid",{radius:base/2,height});
 }
