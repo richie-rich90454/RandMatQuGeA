@@ -162,7 +162,7 @@ vi.mock("mathjs",()=>{
 	const simplify=vi.fn((expr:string)=>({
 		toString:()=>expr,
 	}));
-	const parse=vi.fn((expr:string)=>({
+	const parse=vi.fn((_expr:string)=>({
 		filter:()=>[],
 	}));
 	return{evaluate,simplify,parse,default:{evaluate,simplify,parse}};

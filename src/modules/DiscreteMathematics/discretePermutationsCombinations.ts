@@ -115,7 +115,7 @@ export function generatePermutation(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat = "Enter a number";
-	window.MathJax?.typesetPromise();
+	window.MathJax?.typesetPromise?.();
 }
 
 /**
@@ -222,5 +222,5 @@ export function generateCombination(difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat = "Enter a number";
-	window.MathJax?.typesetPromise();
+	window.MathJax?.typesetPromise?.();
 }
