@@ -47,7 +47,7 @@ export async function initializeTheme(): Promise<void>{
                 settings.applyTheme(prefersDark?"dark":"light");
             }
             else{
-                settings.applyTheme(next);
+                settings.applyTheme(next as "light"|"dark");
             }
         });
     }
