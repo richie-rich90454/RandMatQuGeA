@@ -74,7 +74,7 @@ export function generateCosecant(_difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat=window.expectedFormat||"";
-	window.MathJax?.typesetPromise?.();
+	if(window.MathJax?.typesetPromise)window.MathJax.typesetPromise();
 }
 export function generateSecant(_difficulty?: string): void{
 	if(!questionArea) return;
@@ -128,7 +128,7 @@ export function generateSecant(_difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat=window.expectedFormat||"";
-	window.MathJax?.typesetPromise?.();
+	if(window.MathJax?.typesetPromise)window.MathJax.typesetPromise();
 }
 export function generateCotangent(_difficulty?: string): void{
 	if(!questionArea) return;
@@ -186,5 +186,5 @@ export function generateCotangent(_difficulty?: string): void{
 		choices: uniqueChoices
 	};
 	window.expectedFormat=window.expectedFormat||"";
-	window.MathJax?.typesetPromise?.();
+	if(window.MathJax?.typesetPromise)window.MathJax.typesetPromise();
 }
