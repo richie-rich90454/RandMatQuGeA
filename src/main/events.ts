@@ -4,8 +4,8 @@
  * @description Handles mode switching, keyboard shortcuts, settings, and button actions.
  * Added event listeners for "Recommend Topics" and "Manage Data" buttons.
  */
-import * as dom from "./dom";
-import * as state from "./state";
+import {dom} from "./core/domRegistry";
+import {appState} from "./core/stateStore";
 import * as settings from "./settings";
 import * as ui from "./ui";
 import * as topics from "./topics";
@@ -22,50 +22,50 @@ export async function isVersionGreater(v1: string, v2: string): Promise<boolean>
     return semver.gt(cleanV1, cleanV2);
 }
 export function switchToSingle(): void{
-    if (dom.modeSingleBtn?.classList.contains("disabled")) return;
+    if (dom.buttons.modeSingleBtn?.classList.contains("disabled")) return;
     ui.clearAllTimeouts();
-    dom.modeSingleBtn?.classList.add("active");
-    dom.modeMentalBtn?.classList.remove("active");
-    state.setCurrentMode("single");
-    if (dom.mentalControls) dom.mentalControls.style.display="none";
-    if (dom.singleControls) dom.singleControls.style.display="flex";
-    if (state.sessionActive) session.endMentalSession();
-    if (state.autoTimeout){
-        clearTimeout(state.autoTimeout);
-        state.setAutoTimeout(null);
+    dom.buttons.modeSingleBtn?.classList.add("active");
+    dom.buttons.modeMentalBtn?.classList.remove("active");
+    appState.currentMode="single";
+    if (dom.session.mentalControls) dom.session.mentalControls.style.display="none";
+    if (dom.session.singleControls) dom.session.singleControls.style.display="flex";
+    if (appState.sessionActive) session.endMentalSession();
+    if (appState.autoTimeout){
+        clearTimeout(appState.autoTimeout);
+        appState.autoTimeout=null;
     }
-    if (dom.mentalScopeSelect) state.setScope(dom.mentalScopeSelect.value);
-    if (dom.scopeSelect) dom.scopeSelect.value=state.scope;
-    if (dom.mentalShuffleToggle) state.setShuffle(dom.mentalShuffleToggle.checked);
-    if (dom.shuffleToggle) dom.shuffleToggle.checked=state.shuffle;
+    if (dom.inputs.mentalScopeSelect) appState.scope=dom.inputs.mentalScopeSelect.value;
+    if (dom.inputs.scopeSelect) dom.inputs.scopeSelect.value=appState.scope;
+    if (dom.inputs.mentalShuffleToggle) appState.shuffle=dom.inputs.mentalShuffleToggle.checked;
+    if (dom.inputs.shuffleToggle) dom.inputs.shuffleToggle.checked=appState.shuffle;
     ui.updateAriaPressed();
     topics.renderTopicGrid();
     ui.updateUIState();
 }
 export function switchToMental(): void{
-    if (dom.modeMentalBtn?.classList.contains("disabled")) return;
+    if (dom.buttons.modeMentalBtn?.classList.contains("disabled")) return;
     ui.clearAllTimeouts();
-    dom.modeMentalBtn?.classList.add("active");
-    dom.modeSingleBtn?.classList.remove("active");
-    state.setCurrentMode("mental");
-    if (dom.mentalControls) dom.mentalControls.style.display="flex";
-    if (dom.singleControls) dom.singleControls.style.display="none";
-    if (state.sessionActive) session.endMentalSession();
-    if (state.autoTimeout){
-        clearTimeout(state.autoTimeout);
-        state.setAutoTimeout(null);
+    dom.buttons.modeMentalBtn?.classList.add("active");
+    dom.buttons.modeSingleBtn?.classList.remove("active");
+    appState.currentMode="mental";
+    if (dom.session.mentalControls) dom.session.mentalControls.style.display="flex";
+    if (dom.session.singleControls) dom.session.singleControls.style.display="none";
+    if (appState.sessionActive) session.endMentalSession();
+    if (appState.autoTimeout){
+        clearTimeout(appState.autoTimeout);
+        appState.autoTimeout=null;
     }
-    if (dom.scopeSelect) state.setMentalScope(dom.scopeSelect.value);
-    if (dom.mentalScopeSelect) dom.mentalScopeSelect.value=state.mentalScope;
-    if (dom.shuffleToggle) state.setMentalShuffle(dom.shuffleToggle.checked);
-    if (dom.mentalShuffleToggle) dom.mentalShuffleToggle.checked=state.mentalShuffle;
+    if (dom.inputs.scopeSelect) appState.mentalScope=dom.inputs.scopeSelect.value;
+    if (dom.inputs.mentalScopeSelect) dom.inputs.mentalScopeSelect.value=appState.mentalScope;
+    if (dom.inputs.shuffleToggle) appState.mentalShuffle=dom.inputs.shuffleToggle.checked;
+    if (dom.inputs.mentalShuffleToggle) dom.inputs.mentalShuffleToggle.checked=appState.mentalShuffle;
     ui.updateAriaPressed();
     topics.renderTopicGrid();
     ui.updateUIState();
 }
 function handleMathShortcuts(e: KeyboardEvent): void{
-    if (!dom.userAnswer) return;
-    if (document.activeElement !== dom.userAnswer) return;
+    if (!dom.inputs.userAnswer) return;
+    if (document.activeElement !== dom.inputs.userAnswer) return;
     if (e.ctrlKey || e.metaKey) return;
     switch (e.key){
         case "/":
@@ -83,42 +83,42 @@ function handleMathShortcuts(e: KeyboardEvent): void{
     }
 }
 export async function setupEventListeners(): Promise<void>{
-    if (!dom.generateQuestionButton||!dom.checkAnswerButton||!dom.userAnswer||!dom.themeToggle||!dom.helpButton||!dom.settingsButton||!dom.modeSingleBtn||!dom.modeMentalBtn||!dom.mentalControls||!dom.singleControls||!dom.difficultySelect||!dom.timerDisplay||!dom.scoreDisplay||!dom.startSessionBtn) return;
-    dom.generateQuestionButton.addEventListener("click",generation.debounceGenerate);
-    dom.checkAnswerButton.addEventListener("click",()=>{
-        if (state.currentMode==="single") answer.checkAnswer();
-        else if (state.sessionActive) session.handleMentalAnswer();
+    if (!dom.buttons.generateQuestionButton||!dom.buttons.checkAnswerButton||!dom.inputs.userAnswer||!dom.buttons.themeToggle||!dom.buttons.helpButton||!dom.buttons.settingsButton||!dom.buttons.modeSingleBtn||!dom.buttons.modeMentalBtn||!dom.session.mentalControls||!dom.session.singleControls||!dom.inputs.difficultySelect||!dom.displays.timerDisplay||!dom.displays.scoreDisplay||!dom.buttons.startSessionBtn) return;
+    dom.buttons.generateQuestionButton.addEventListener("click",generation.debounceGenerate);
+    dom.buttons.checkAnswerButton.addEventListener("click",()=>{
+        if (appState.currentMode==="single") answer.checkAnswer();
+        else if (appState.sessionActive) session.handleMentalAnswer();
     });
-    dom.userAnswer.addEventListener("keyup",function (e: KeyboardEvent){
+    dom.inputs.userAnswer.addEventListener("keyup",function (e: KeyboardEvent){
         if (e.shiftKey&&e.key==="Enter"){
-            if (state.currentMode==="single") answer.checkAnswer();
-            else if (state.sessionActive) session.handleMentalAnswer();
+            if (appState.currentMode==="single") answer.checkAnswer();
+            else if (appState.sessionActive) session.handleMentalAnswer();
         }
     });
-    dom.userAnswer.addEventListener("input",()=>{
+    dom.inputs.userAnswer.addEventListener("input",()=>{
         ui.updatePreviewDebounced();
     });
-    dom.userAnswer.addEventListener("keydown",handleMathShortcuts);
+    dom.inputs.userAnswer.addEventListener("keydown",handleMathShortcuts);
     document.addEventListener("keydown",(e: KeyboardEvent)=>{
         if (e.ctrlKey||e.metaKey){
             switch (e.key){
                 case "g": case "G":
                     e.preventDefault();
-                    if (state.currentMode==="single") generation.debounceGenerate();
+                    if (appState.currentMode==="single") generation.debounceGenerate();
                     break;
                 case "Enter":
                     if (e.shiftKey) break;
                     e.preventDefault();
-                    if (state.currentMode==="single") answer.checkAnswer();
-                    else if (state.sessionActive) session.handleMentalAnswer();
+                    if (appState.currentMode==="single") answer.checkAnswer();
+                    else if (appState.sessionActive) session.handleMentalAnswer();
                     break;
                 case "1":
                     e.preventDefault();
-                    if (!dom.modeSingleBtn?.classList.contains("disabled")) dom.modeSingleBtn?.click();
+                    if (!dom.buttons.modeSingleBtn?.classList.contains("disabled")) dom.buttons.modeSingleBtn?.click();
                     break;
                 case "2":
                     e.preventDefault();
-                    if (!dom.modeMentalBtn?.classList.contains("disabled")) dom.modeMentalBtn?.click();
+                    if (!dom.buttons.modeMentalBtn?.classList.contains("disabled")) dom.buttons.modeMentalBtn?.click();
                     break;
                 case ",":
                     e.preventDefault();
@@ -127,7 +127,7 @@ export async function setupEventListeners(): Promise<void>{
                 case "t": case "T":
                     if (e.shiftKey){
                         e.preventDefault();
-                        dom.themeToggle?.click();
+                        dom.buttons.themeToggle?.click();
                     }
                     break;
             }
@@ -135,119 +135,119 @@ export async function setupEventListeners(): Promise<void>{
     });
     document.addEventListener("keydown", (e: KeyboardEvent)=>{
         if (e.key==="Escape") {
-            const openModals=[dom.settingsModal, dom.shortcutsModal, dom.onboardingOverlay];
+            const openModals=[dom.modals.settingsModal, dom.modals.shortcutsModal, dom.modals.onboardingOverlay];
             openModals.forEach(modal=>{
                 if (modal && modal.classList.contains("show")) {
                     modal.classList.remove("show");
-                    if (modal===dom.settingsModal) settings.closeSettings();
-                    else if (modal===dom.shortcutsModal) ui.hideShortcutsModal();
-                    else if (modal===dom.onboardingOverlay) ui.hideOnboarding();
+                    if (modal===dom.modals.settingsModal) settings.closeSettings();
+                    else if (modal===dom.modals.shortcutsModal) ui.hideShortcutsModal();
+                    else if (modal===dom.modals.onboardingOverlay) ui.hideOnboarding();
                 }
             });
         }
     });
-    dom.themeToggle.addEventListener("click",function (){
+    dom.buttons.themeToggle.addEventListener("click",function (){
         let isDark=document.documentElement.classList.contains("dark");
         settings.applyTheme(isDark?"light":"dark");
-        if (dom.settingsTheme){
-            dom.settingsTheme.value=isDark?"light":"dark";
-            settings.settings.theme=dom.settingsTheme.value as "light"|"dark";
+        if (dom.settings.settingsTheme){
+            dom.settings.settingsTheme.value=isDark?"light":"dark";
+            settings.settings.theme=dom.settings.settingsTheme.value as "light"|"dark";
             settings.saveSettings();
         }
     });
-    dom.helpButton.addEventListener("click",function (){
+    dom.buttons.helpButton.addEventListener("click",function (){
         ui.showNotification("Select a topic, generate a question, enter your answer, and check it!","info");
     });
-    dom.settingsButton.addEventListener("click",settings.openSettings);
-    if (dom.settingsClose) dom.settingsClose.addEventListener("click",settings.closeSettings);
-    if (dom.settingsSave) dom.settingsSave.addEventListener("click",()=>{
+    dom.buttons.settingsButton.addEventListener("click",settings.openSettings);
+    if (dom.buttons.settingsClose) dom.buttons.settingsClose.addEventListener("click",settings.closeSettings);
+    if (dom.buttons.settingsSave) dom.buttons.settingsSave.addEventListener("click",()=>{
         settings.saveSettings();
         ui.syncSettingsToState();
         settings.closeSettings();
     });
-    if (dom.settingsReset) dom.settingsReset.addEventListener("click",settings.resetSettings);
-    if (dom.settingsModal) dom.settingsModal.addEventListener("click",(e)=>{
-        if (e.target===dom.settingsModal) settings.closeSettings();
+    if (dom.buttons.settingsReset) dom.buttons.settingsReset.addEventListener("click",settings.resetSettings);
+    if (dom.modals.settingsModal) dom.modals.settingsModal.addEventListener("click",(e)=>{
+        if (e.target===dom.modals.settingsModal) settings.closeSettings();
     });
-    if (dom.settingsTabBasic && dom.settingsTabAdvanced && dom.settingsBasicPanel && dom.settingsAdvancedPanel){
-        dom.settingsTabBasic.addEventListener("click",()=>{
-            dom.settingsTabBasic?.classList.add("active");
-            dom.settingsTabAdvanced?.classList.remove("active");
-            if (dom.settingsBasicPanel) dom.settingsBasicPanel.style.display="block";
-            if (dom.settingsAdvancedPanel) dom.settingsAdvancedPanel.style.display="none";
+    if (dom.buttons.settingsTabBasic && dom.buttons.settingsTabAdvanced && dom.session.settingsBasicPanel && dom.session.settingsAdvancedPanel){
+        dom.buttons.settingsTabBasic.addEventListener("click",()=>{
+            dom.buttons.settingsTabBasic?.classList.add("active");
+            dom.buttons.settingsTabAdvanced?.classList.remove("active");
+            if (dom.session.settingsBasicPanel) dom.session.settingsBasicPanel.style.display="block";
+            if (dom.session.settingsAdvancedPanel) dom.session.settingsAdvancedPanel.style.display="none";
         });
-        dom.settingsTabAdvanced.addEventListener("click",()=>{
-            dom.settingsTabAdvanced?.classList.add("active");
-            dom.settingsTabBasic?.classList.remove("active");
-            if (dom.settingsAdvancedPanel) dom.settingsAdvancedPanel.style.display="block";
-            if (dom.settingsBasicPanel) dom.settingsBasicPanel.style.display="none";
+        dom.buttons.settingsTabAdvanced.addEventListener("click",()=>{
+            dom.buttons.settingsTabAdvanced?.classList.add("active");
+            dom.buttons.settingsTabBasic?.classList.remove("active");
+            if (dom.session.settingsAdvancedPanel) dom.session.settingsAdvancedPanel.style.display="block";
+            if (dom.session.settingsBasicPanel) dom.session.settingsBasicPanel.style.display="none";
         });
     }
-    if (dom.settingsTheme){
-        dom.settingsTheme.addEventListener("change",(e)=>settings.previewSetting("theme",(e.target as HTMLSelectElement).value));
+    if (dom.settings.settingsTheme){
+        dom.settings.settingsTheme.addEventListener("change",(e)=>settings.previewSetting("theme",(e.target as HTMLSelectElement).value));
     }
-    if (dom.settingsDefaultMode){
-        dom.settingsDefaultMode.addEventListener("change",(e)=>settings.previewSetting("defaultMode",(e.target as HTMLSelectElement).value));
+    if (dom.settings.settingsDefaultMode){
+        dom.settings.settingsDefaultMode.addEventListener("change",(e)=>settings.previewSetting("defaultMode",(e.target as HTMLSelectElement).value));
     }
-    if (dom.settingsAutoContinue){
-        dom.settingsAutoContinue.addEventListener("change",(e)=>settings.previewSetting("autoContinue",(e.target as HTMLInputElement).checked));
+    if (dom.settings.settingsAutoContinue){
+        dom.settings.settingsAutoContinue.addEventListener("change",(e)=>settings.previewSetting("autoContinue",(e.target as HTMLInputElement).checked));
     }
-    if (dom.settingsShuffle){
-        dom.settingsShuffle.addEventListener("change",(e)=>settings.previewSetting("shuffle",(e.target as HTMLInputElement).checked));
+    if (dom.settings.settingsShuffle){
+        dom.settings.settingsShuffle.addEventListener("change",(e)=>settings.previewSetting("shuffle",(e.target as HTMLInputElement).checked));
     }
-    if (dom.settingsScope){
-        dom.settingsScope.addEventListener("change",(e)=>settings.previewSetting("scope",(e.target as HTMLSelectElement).value));
+    if (dom.settings.settingsScope){
+        dom.settings.settingsScope.addEventListener("change",(e)=>settings.previewSetting("scope",(e.target as HTMLSelectElement).value));
     }
-    if (dom.settingsDifficulty){
-        dom.settingsDifficulty.addEventListener("change",(e)=>settings.previewSetting("difficulty",(e.target as HTMLSelectElement).value));
+    if (dom.settings.settingsDifficulty){
+        dom.settings.settingsDifficulty.addEventListener("change",(e)=>settings.previewSetting("difficulty",(e.target as HTMLSelectElement).value));
     }
-    if (dom.settingsTimer){
-        dom.settingsTimer.addEventListener("input",(e)=>settings.previewSetting("timer",(e.target as HTMLInputElement).value));
+    if (dom.settings.settingsTimer){
+        dom.settings.settingsTimer.addEventListener("input",(e)=>settings.previewSetting("timer",(e.target as HTMLInputElement).value));
     }
-    if (dom.settingsMaxQuestions){
-        dom.settingsMaxQuestions.addEventListener("input",(e)=>settings.previewSetting("maxQuestions",(e.target as HTMLInputElement).value));
+    if (dom.settings.settingsMaxQuestions){
+        dom.settings.settingsMaxQuestions.addEventListener("input",(e)=>settings.previewSetting("maxQuestions",(e.target as HTMLInputElement).value));
     }
-    if (dom.settingsFont){
-        dom.settingsFont.addEventListener("change",(e)=>settings.previewSetting("font",(e.target as HTMLSelectElement).value));
+    if (dom.settings.settingsFont){
+        dom.settings.settingsFont.addEventListener("change",(e)=>settings.previewSetting("font",(e.target as HTMLSelectElement).value));
     }
-    if (dom.settingsPerfMaster){
-        dom.settingsPerfMaster.addEventListener("change",(e)=>settings.previewSetting("perfMaster",(e.target as HTMLInputElement).checked));
+    if (dom.settings.settingsPerfMaster){
+        dom.settings.settingsPerfMaster.addEventListener("change",(e)=>settings.previewSetting("perfMaster",(e.target as HTMLInputElement).checked));
     }
-    if (dom.settingsPerfWave){
-        dom.settingsPerfWave.addEventListener("change",(e)=>settings.previewSetting("perfWave",(e.target as HTMLInputElement).checked));
+    if (dom.settings.settingsPerfWave){
+        dom.settings.settingsPerfWave.addEventListener("change",(e)=>settings.previewSetting("perfWave",(e.target as HTMLInputElement).checked));
     }
-    if (dom.settingsPerfBlur){
-        dom.settingsPerfBlur.addEventListener("change",(e)=>settings.previewSetting("perfBlur",(e.target as HTMLInputElement).checked));
+    if (dom.settings.settingsPerfBlur){
+        dom.settings.settingsPerfBlur.addEventListener("change",(e)=>settings.previewSetting("perfBlur",(e.target as HTMLInputElement).checked));
     }
-    if (dom.settingsPerfPreview){
-        dom.settingsPerfPreview.addEventListener("change",(e)=>settings.previewSetting("perfPreview",(e.target as HTMLInputElement).checked));
+    if (dom.settings.settingsPerfPreview){
+        dom.settings.settingsPerfPreview.addEventListener("change",(e)=>settings.previewSetting("perfPreview",(e.target as HTMLInputElement).checked));
     }
-    if (dom.settingsPerfAnimations){
-        dom.settingsPerfAnimations.addEventListener("change",(e)=>settings.previewSetting("perfAnimations",(e.target as HTMLInputElement).checked));
+    if (dom.settings.settingsPerfAnimations){
+        dom.settings.settingsPerfAnimations.addEventListener("change",(e)=>settings.previewSetting("perfAnimations",(e.target as HTMLInputElement).checked));
     }
-    if (dom.settingsFpsCap){
-        dom.settingsFpsCap.addEventListener("change",(e)=>settings.previewSetting("fpsCap",(e.target as HTMLSelectElement).value));
+    if (dom.settings.settingsFpsCap){
+        dom.settings.settingsFpsCap.addEventListener("change",(e)=>settings.previewSetting("fpsCap",(e.target as HTMLSelectElement).value));
     }
-    if (dom.settingsNotifications){
-        dom.settingsNotifications.addEventListener("change",(e)=>settings.previewSetting("notifications",(e.target as HTMLInputElement).checked));
+    if (dom.settings.settingsNotifications){
+        dom.settings.settingsNotifications.addEventListener("change",(e)=>settings.previewSetting("notifications",(e.target as HTMLInputElement).checked));
     }
-    if (dom.settingsAutoCheckDelay){
-        dom.settingsAutoCheckDelay.addEventListener("input",(e)=>settings.previewSetting("autoCheckDelay",(e.target as HTMLInputElement).value));
+    if (dom.settings.settingsAutoCheckDelay){
+        dom.settings.settingsAutoCheckDelay.addEventListener("input",(e)=>settings.previewSetting("autoCheckDelay",(e.target as HTMLInputElement).value));
     }
-    if (dom.settingsDecimalPlaces){
-        dom.settingsDecimalPlaces.addEventListener("input",(e)=>settings.previewSetting("decimalPlaces",(e.target as HTMLInputElement).value));
+    if (dom.settings.settingsDecimalPlaces){
+        dom.settings.settingsDecimalPlaces.addEventListener("input",(e)=>settings.previewSetting("decimalPlaces",(e.target as HTMLInputElement).value));
     }
-    if (dom.settingsSound){
-        dom.settingsSound.addEventListener("change",(e)=>settings.previewSetting("sound",(e.target as HTMLInputElement).checked));
+    if (dom.settings.settingsSound){
+        dom.settings.settingsSound.addEventListener("change",(e)=>settings.previewSetting("sound",(e.target as HTMLInputElement).checked));
     }
-    if (dom.settingsVibration){
-        dom.settingsVibration.addEventListener("change",(e)=>settings.previewSetting("vibration",(e.target as HTMLInputElement).checked));
+    if (dom.settings.settingsVibration){
+        dom.settings.settingsVibration.addEventListener("change",(e)=>settings.previewSetting("vibration",(e.target as HTMLInputElement).checked));
     }
-    if (dom.checkUpdatesBtn){
-        dom.checkUpdatesBtn.addEventListener("click", async ()=>{
-            dom.checkUpdatesBtn!.disabled=true;
-            const originalText=dom.checkUpdatesBtn!.textContent;
-            dom.checkUpdatesBtn!.textContent="Checking...";
+    if (dom.buttons.checkUpdatesBtn){
+        dom.buttons.checkUpdatesBtn.addEventListener("click", async ()=>{
+            dom.buttons.checkUpdatesBtn!.disabled=true;
+            const originalText=dom.buttons.checkUpdatesBtn!.textContent;
+            dom.buttons.checkUpdatesBtn!.textContent="Checking...";
             try{
                 const update=await check();
                 if (update){
@@ -258,7 +258,7 @@ export async function setupEventListeners(): Promise<void>{
                         return;
                     }
                     if (confirm(`Version ${update.version} is available!\n\nRelease notes:\n${update.body || "No release notes available"}\n\nDownload and install now?`)) {
-                        dom.checkUpdatesBtn!.textContent="Downloading...";
+                        dom.buttons.checkUpdatesBtn!.textContent="Downloading...";
                         await update.downloadAndInstall((progress)=>{
                             if (progress.event==="Progress") {
                                 const data=progress.data as { chunkLength: number; contentLength: number };
@@ -276,132 +276,132 @@ export async function setupEventListeners(): Promise<void>{
                 // Silently ignore network errors - app works fully offline
                 return;
             } finally {
-                dom.checkUpdatesBtn!.disabled=false;
-                dom.checkUpdatesBtn!.textContent=originalText;
+                dom.buttons.checkUpdatesBtn!.disabled=false;
+                dom.buttons.checkUpdatesBtn!.textContent=originalText;
             }
         });
     }
-    dom.modeSingleBtn.addEventListener("click",switchToSingle);
-    dom.modeMentalBtn.addEventListener("click",switchToMental);
-    dom.difficultySelect.addEventListener("change",function (e: Event){
-        state.setCurrentDifficulty((e.target as HTMLSelectElement).value);
+    dom.buttons.modeSingleBtn.addEventListener("click",switchToSingle);
+    dom.buttons.modeMentalBtn.addEventListener("click",switchToMental);
+    dom.inputs.difficultySelect.addEventListener("change",function (e: Event){
+        appState.currentDifficulty=(e.target as HTMLSelectElement).value;
     });
-    dom.startSessionBtn.addEventListener("click",()=>{
-        if (state.sessionActive){
+    dom.buttons.startSessionBtn.addEventListener("click",()=>{
+        if (appState.sessionActive){
             session.stopMentalSession();
         }
         else{
             session.startMentalSession();
         }
     });
-    if (dom.pauseSessionBtn){
-        dom.pauseSessionBtn.addEventListener("click",session.pauseMentalSession);
+    if (dom.buttons.pauseSessionBtn){
+        dom.buttons.pauseSessionBtn.addEventListener("click",session.pauseMentalSession);
     }
-    if (dom.skipQuestionBtn){
-        dom.skipQuestionBtn.addEventListener("click",session.skipMentalQuestion);
+    if (dom.buttons.skipQuestionBtn){
+        dom.buttons.skipQuestionBtn.addEventListener("click",session.skipMentalQuestion);
     }
-    if (dom.autocontinueToggle){
-        dom.autocontinueToggle.addEventListener("change",(e)=>{
-            state.setAutocontinue((e.target as HTMLInputElement).checked);
-            ui.updateCheckboxAria(dom.autocontinueToggle);
-            if (!state.autocontinue&&state.autoTimeout){
-                clearTimeout(state.autoTimeout);
-                state.setAutoTimeout(null);
+    if (dom.inputs.autocontinueToggle){
+        dom.inputs.autocontinueToggle.addEventListener("change",(e)=>{
+            appState.autocontinue=(e.target as HTMLInputElement).checked;
+            ui.updateCheckboxAria(dom.inputs.autocontinueToggle);
+            if (!appState.autocontinue&&appState.autoTimeout){
+                clearTimeout(appState.autoTimeout);
+                appState.autoTimeout=null;
             }
         });
     }
-    if (dom.scopeSelect){
-        dom.scopeSelect.addEventListener("change",(e)=>{
-            state.setScope((e.target as HTMLSelectElement).value);
+    if (dom.inputs.scopeSelect){
+        dom.inputs.scopeSelect.addEventListener("change",(e)=>{
+            appState.scope=(e.target as HTMLSelectElement).value;
             topics.renderTopicGrid();
-            if (state.autoTimeout){
-                clearTimeout(state.autoTimeout);
-                state.setAutoTimeout(null);
+            if (appState.autoTimeout){
+                clearTimeout(appState.autoTimeout);
+                appState.autoTimeout=null;
             }
         });
     }
-    if (dom.shuffleToggle){
-        dom.shuffleToggle.addEventListener("change",(e)=>{
-            state.setShuffle((e.target as HTMLInputElement).checked);
-            ui.updateCheckboxAria(dom.shuffleToggle);
+    if (dom.inputs.shuffleToggle){
+        dom.inputs.shuffleToggle.addEventListener("change",(e)=>{
+            appState.shuffle=(e.target as HTMLInputElement).checked;
+            ui.updateCheckboxAria(dom.inputs.shuffleToggle);
         });
     }
-    if (dom.mentalScopeSelect){
-        dom.mentalScopeSelect.addEventListener("change",(e)=>{
-            state.setMentalScope((e.target as HTMLSelectElement).value);
+    if (dom.inputs.mentalScopeSelect){
+        dom.inputs.mentalScopeSelect.addEventListener("change",(e)=>{
+            appState.mentalScope=(e.target as HTMLSelectElement).value;
             topics.renderTopicGrid();
         });
     }
-    if (dom.mentalShuffleToggle){
-        dom.mentalShuffleToggle.addEventListener("change",(e)=>{
-            state.setMentalShuffle((e.target as HTMLInputElement).checked);
-            ui.updateCheckboxAria(dom.mentalShuffleToggle);
+    if (dom.inputs.mentalShuffleToggle){
+        dom.inputs.mentalShuffleToggle.addEventListener("change",(e)=>{
+            appState.mentalShuffle=(e.target as HTMLInputElement).checked;
+            ui.updateCheckboxAria(dom.inputs.mentalShuffleToggle);
         });
     }
-    if (dom.mcqToggle){
-        dom.mcqToggle.addEventListener("change",()=>{
+    if (dom.inputs.mcqToggle){
+        dom.inputs.mcqToggle.addEventListener("change",()=>{
             ui.toggleMcqMode();
-            settings.settings.mcqMode=dom.mcqToggle!.checked;
+            settings.settings.mcqMode=dom.inputs.mcqToggle!.checked;
             settings.saveSettings();
         });
     }
-    if (dom.topicSearch){
-        dom.topicSearch.addEventListener("input",()=>{
+    if (dom.inputs.topicSearch){
+        dom.inputs.topicSearch.addEventListener("input",()=>{
             topics.renderTopicGrid();
         });
     }
-    if (dom.clearAnswerBtn){
-        dom.clearAnswerBtn.addEventListener("click",ui.clearAnswer);
+    if (dom.buttons.clearAnswerBtn){
+        dom.buttons.clearAnswerBtn.addEventListener("click",ui.clearAnswer);
     }
-    if (dom.mathToolbar){
-        dom.mathToolbar.querySelectorAll(".math-toolbar-btn").forEach(btn=>{
+    if (dom.displays.mathToolbar){
+        dom.displays.mathToolbar.querySelectorAll(".math-toolbar-btn").forEach(btn=>{
             btn.addEventListener("click",(e)=>{
                 const target=e.target as HTMLElement;
                 const symbol=target.dataset.symbol||target.dataset.template||"";
                 ui.insertSymbol(symbol);
             });
         });
-        dom.userAnswer?.addEventListener("focus",()=>{
-            if (dom.answerCard) dom.answerCard.classList.add("focused");
+        dom.inputs.userAnswer?.addEventListener("focus",()=>{
+            if (dom.modals.answerCard) dom.modals.answerCard.classList.add("focused");
         });
-        dom.userAnswer?.addEventListener("blur", (e)=>{
-            if (dom.mathToolbar&&e.relatedTarget instanceof Node&&dom.mathToolbar.contains(e.relatedTarget)){
+        dom.inputs.userAnswer?.addEventListener("blur", (e)=>{
+            if (dom.displays.mathToolbar&&e.relatedTarget instanceof Node&&dom.displays.mathToolbar.contains(e.relatedTarget)){
                 return;
             }
-            if (dom.answerCard) dom.answerCard.classList.remove("focused");
+            if (dom.modals.answerCard) dom.modals.answerCard.classList.remove("focused");
         });
     }
-    if (dom.copyAnswerBtn){
-        dom.copyAnswerBtn.addEventListener("click",ui.copyCorrectAnswer);
+    if (dom.buttons.copyAnswerBtn){
+        dom.buttons.copyAnswerBtn.addEventListener("click",ui.copyCorrectAnswer);
     }
-    if (dom.shortcutsButton){
-        dom.shortcutsButton.addEventListener("click",ui.showShortcutsModal);
+    if (dom.buttons.shortcutsButton){
+        dom.buttons.shortcutsButton.addEventListener("click",ui.showShortcutsModal);
     }
-    if (dom.shortcutsClose){
-        dom.shortcutsClose.addEventListener("click",ui.hideShortcutsModal);
+    if (dom.buttons.shortcutsClose){
+        dom.buttons.shortcutsClose.addEventListener("click",ui.hideShortcutsModal);
     }
-    if (dom.shortcutsGotit){
-        dom.shortcutsGotit.addEventListener("click",ui.hideShortcutsModal);
+    if (dom.buttons.shortcutsGotit){
+        dom.buttons.shortcutsGotit.addEventListener("click",ui.hideShortcutsModal);
     }
-    if (dom.shortcutsModal){
-        dom.shortcutsModal.addEventListener("click",(e)=>{
-            if (e.target===dom.shortcutsModal) ui.hideShortcutsModal();
+    if (dom.modals.shortcutsModal){
+        dom.modals.shortcutsModal.addEventListener("click",(e)=>{
+            if (e.target===dom.modals.shortcutsModal) ui.hideShortcutsModal();
         });
     }
-    if (dom.leaderboardClose){
-        dom.leaderboardClose.addEventListener("click",()=>{
-            if (dom.leaderboardCard) dom.leaderboardCard.style.display="none";
+    if (dom.buttons.leaderboardClose){
+        dom.buttons.leaderboardClose.addEventListener("click",()=>{
+            if (dom.session.leaderboardCard) dom.session.leaderboardCard.style.display="none";
         });
     }
-    if (dom.onboardingClose){
-        dom.onboardingClose.addEventListener("click",ui.hideOnboarding);
+    if (dom.buttons.onboardingClose){
+        dom.buttons.onboardingClose.addEventListener("click",ui.hideOnboarding);
     }
-    if (dom.onboardingGotit){
-        dom.onboardingGotit.addEventListener("click",ui.hideOnboarding);
+    if (dom.buttons.onboardingGotit){
+        dom.buttons.onboardingGotit.addEventListener("click",ui.hideOnboarding);
     }
-    if (dom.onboardingOverlay){
-        dom.onboardingOverlay.addEventListener("click",(e)=>{
-            if (e.target===dom.onboardingOverlay) ui.hideOnboarding();
+    if (dom.modals.onboardingOverlay){
+        dom.modals.onboardingOverlay.addEventListener("click",(e)=>{
+            if (e.target===dom.modals.onboardingOverlay) ui.hideOnboarding();
         });
     }
     const dropdownBtn=document.getElementById("math-dropdown-btn");
