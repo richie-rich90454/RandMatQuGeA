@@ -1,13 +1,12 @@
 /**
  * Statistics questions generator with MCQ distractors
- * @fileoverview Generates statistical questions (mean, median, mode, range, stem-and-leaf, box plot, standard deviation). Displays question in questionArea and sets window.correctAnswer with correct value, alternate representation, display format, and plausible wrong answers for MCQ mode.
+ * @fileoverview Generates statistical questions (mean, median, mode, range, stem-and-leaf, box plot, standard deviation). Renders question via renderer.render and sets answer via renderer.setAnswer with correct value, alternate representation, display format, and plausible wrong answers for MCQ mode.
  * @date 2026-03-29
  */
-import {questionArea} from "../../script.js";
+import {renderer} from "../../main/core/questionRenderer";
 import {getDataRange, mean, median, mode, range, stdDev} from "./discreteUtils.js";
 export function generateStatistics(difficulty?: string): void{
-	if (!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	let types=["mean","median","mode","range","stem_leaf","box_plot","standard_deviation"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let dataRange=getDataRange(difficulty);
@@ -163,23 +162,12 @@ export function generateStatistics(difficulty?: string): void{
 		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=answer;
 		else uniqueChoices=[answer];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: answer,
 		alternate: answer,
 		display: answer,
 		choices: uniqueChoices
-	};
-	const container=document.createElement("div");
-	container.style.display="flex";
-	container.style.flexDirection="column";
-	container.style.alignItems="center";
-	questionArea.appendChild(container);
-	const textDiv=document.createElement("div");
-	textDiv.innerHTML=questionText;
-	textDiv.style.marginBottom="10px";
-	container.appendChild(textDiv);
-	window.expectedFormat=hint;
-	if (window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise();
-	}
+	});
+	renderer.render(questionText);
+	renderer.setExpectedFormat(hint);
 }
