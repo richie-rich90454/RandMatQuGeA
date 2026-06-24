@@ -1,14 +1,13 @@
-import {questionArea} from "../../script.js";
+import {renderer} from "../../main/core/questionRenderer";
 import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
 import {createVisualization} from "./geometryVisualization.js";
 /**
  * Miscellaneous geometry: perimeter, arc length, distance formula, angle relations.
- * @fileoverview Generates questions about perimeter (rectangle/triangle), arc length, distance between points, and complementary/supplementary angles. Displays in questionArea and sets window.correctAnswer with answer and display, plus plausible wrong answers for MCQ mode.
+ * @fileoverview Generates questions about perimeter (rectangle/triangle), arc length, distance between points, and complementary/supplementary angles. Uses the renderer API to display questions and set answers, plus plausible wrong answers for MCQ mode.
  * @date 2026-04-18
  */
 export function generatePerimeter(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const shape=Math.random()>0.5?"rectangle":"triangle";
 	let mathExpression="";
@@ -48,23 +47,17 @@ export function generatePerimeter(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a whole number";
+	});
+	renderer.setExpectedFormat("Enter a whole number");
 }
 export function generateArcLength(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxRadius=getMaxForDifficulty(difficulty,8);
 	const r=Math.floor(Math.random()*maxRadius)+3;
@@ -83,24 +76,18 @@ export function generateArcLength(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correct,
 		alternate: ((angle/360)*2*Math.PI*r).toFixed(2),
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal";
+	});
+	renderer.setExpectedFormat("Enter a decimal");
 	createVisualization("torus",{radius:r,tube:0.2});
 }
 export function generateDistanceFormula(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxCoord=getMaxForDifficulty(difficulty,8);
 	const x1=Math.floor(Math.random()*maxCoord)-4;
@@ -121,23 +108,17 @@ export function generateDistanceFormula(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correct,
 		alternate: Math.sqrt((x2-x1)**2+(y2-y1)**2).toFixed(2),
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal";
+	});
+	renderer.setExpectedFormat("Enter a decimal");
 }
 export function generateAngleRelations(_difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const angle=Math.floor(Math.random()*60)+20;
 	const comp=90-angle;
@@ -154,17 +135,12 @@ export function generateAngleRelations(_difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correct,
 		alternate: `${comp}, ${supp}`,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as \"complement: X, supplement: Y\"";
+	});
+	renderer.setExpectedFormat("Enter as \"complement: X, supplement: Y\"");
 }
