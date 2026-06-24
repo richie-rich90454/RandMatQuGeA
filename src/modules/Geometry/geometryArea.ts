@@ -1,14 +1,13 @@
-import {questionArea} from "../../script.js";
+import {renderer} from "../../main/core/questionRenderer";
 import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
 import {createVisualization} from "./geometryVisualization.js";
 /**
  * Area and surface area: circle, rectangle, triangle, sector, cube.
- * @fileoverview Generates questions about area and surface area for common 2D and 3D shapes. Displays in questionArea and sets window.correctAnswer with answer and display, plus plausible wrong answers for MCQ mode.
+ * @fileoverview Generates questions about area and surface area for common 2D and 3D shapes. Uses the renderer API to display questions and set answers, plus plausible wrong answers for MCQ mode.
  * @date 2026-04-18
  */
 export function generateAreaCircle(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxRadius=getMaxForDifficulty(difficulty,10);
 	const radius=Math.floor(Math.random()*maxRadius)+2;
@@ -26,24 +25,18 @@ export function generateAreaCircle(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctStr;
 		else uniqueChoices=[correctStr];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correctStr,
 		alternate: (Math.PI*radius*radius).toFixed(2),
 		display: correctStr,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal (e.g., 78.54)";
+	});
+	renderer.setExpectedFormat("Enter a decimal (e.g., 78.54)");
 	createVisualization("circle",{radius});
 }
 export function generateAreaRectangle(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxDim=getMaxForDifficulty(difficulty,12);
 	const length=Math.floor(Math.random()*maxDim)+3;
@@ -61,24 +54,18 @@ export function generateAreaRectangle(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctStr;
 		else uniqueChoices=[correctStr];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correctStr,
 		alternate: correctStr,
 		display: correctStr,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a whole number";
+	});
+	renderer.setExpectedFormat("Enter a whole number");
 	createVisualization("cube",{size:Math.min(length,width,5)});
 }
 export function generateAreaTriangle(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxBase=getMaxForDifficulty(difficulty,10);
 	const maxHeight=getMaxForDifficulty(difficulty,10);
@@ -98,24 +85,18 @@ export function generateAreaTriangle(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctStr;
 		else uniqueChoices=[correctStr];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correctStr,
 		alternate: (0.5*base*height).toFixed(2),
 		display: correctStr,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal (e.g., 12.5)";
+	});
+	renderer.setExpectedFormat("Enter a decimal (e.g., 12.5)");
 	createVisualization("triangle",{base,height});
 }
 export function generateSectorArea(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxRadius=getMaxForDifficulty(difficulty,8);
 	const r=Math.floor(Math.random()*maxRadius)+3;
@@ -134,24 +115,18 @@ export function generateSectorArea(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctStr;
 		else uniqueChoices=[correctStr];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correctStr,
 		alternate: ((angle/360)*Math.PI*r*r).toFixed(2),
 		display: correctStr,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal";
+	});
+	renderer.setExpectedFormat("Enter a decimal");
 	createVisualization("circle",{radius:r});
 }
 export function generateSurfaceAreaCube(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxSide=getMaxForDifficulty(difficulty,6);
 	const s=Math.floor(Math.random()*maxSide)+2;
@@ -168,18 +143,13 @@ export function generateSurfaceAreaCube(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctStr;
 		else uniqueChoices=[correctStr];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correctStr,
 		alternate: correctStr,
 		display: correctStr,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a whole number";
+	});
+	renderer.setExpectedFormat("Enter a whole number");
 	createVisualization("cube",{size:s});
 }
