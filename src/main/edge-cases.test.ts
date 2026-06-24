@@ -389,7 +389,6 @@ describe("Progress bar division by zero fixes",()=>{
     });
 
     it("updateProgressBar produces finite percentage when maxQuestions is positive",async()=>{
-        const domMod=await import("../main/dom.js");
         const stateMod=await import("../main/state.js");
         const originalMax=stateMod.maxQuestions;
         stateMod.setMaxQuestions(10);
