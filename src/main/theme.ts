@@ -1,4 +1,4 @@
-import * as dom from "./dom";
+import {dom} from "./core/domRegistry";
 import * as settings from "./settings";
 
 export async function initializeTheme(): Promise<void>{
@@ -37,8 +37,8 @@ export async function initializeTheme(): Promise<void>{
     else{
         settings.applyTheme(settings.settings.theme as "light"|"dark");
     }
-    if (dom.themeToggle){
-        dom.themeToggle.addEventListener("click",()=>{
+    if (dom.buttons.themeToggle){
+        dom.buttons.themeToggle.addEventListener("click",()=>{
             let next=settings.settings.theme==="system"?"dark":settings.settings.theme==="dark"?"light":"system";
             settings.settings.theme=next;
             localStorage.setItem("theme",next);
