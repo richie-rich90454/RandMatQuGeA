@@ -6,8 +6,9 @@
  * preview settings changes and reset to defaults. Updated to include the `adaptive` setting for enabling
  * adaptive difficulty and weak topic recommendations, and `showWeakTopicsPopup` for controlling the weak topics modal.
  */
-import * as dom from "./dom";
-import * as state from "./state";
+import {dom} from "./core/domRegistry";
+import {appState} from "./core/stateStore";
+import {questionState} from "./core/questionState";
 import {invoke} from "@tauri-apps/api/core";
 import {generateChoicesForCurrentQuestion} from "./mcq";
 let mathjsModule: any=null;
@@ -56,67 +57,67 @@ export function loadSettings():void{
             console.warn("Failed to parse settings", e);
         }
     }
-    if (dom.settingsTheme) dom.settingsTheme.value=settings.theme;
-    if (dom.settingsDefaultMode) dom.settingsDefaultMode.value=settings.defaultMode;
-    if (dom.settingsAutoContinue) dom.settingsAutoContinue.checked=settings.autoContinue;
-    if (dom.settingsShuffle) dom.settingsShuffle.checked=settings.shuffle;
-    if (dom.settingsScope) dom.settingsScope.value=settings.scope;
-    if (dom.settingsDifficulty) dom.settingsDifficulty.value=settings.difficulty;
-    if (dom.settingsTimer) dom.settingsTimer.value=settings.timer.toString();
-    if (dom.settingsMaxQuestions) dom.settingsMaxQuestions.value=settings.maxQuestions.toString();
-    if (dom.settingsFont) dom.settingsFont.value=settings.font;
-    if (dom.settingsPerfMaster) dom.settingsPerfMaster.checked=settings.perfMaster;
-    if (dom.settingsPerfWave) dom.settingsPerfWave.checked=settings.perfWave;
-    if (dom.settingsPerfBlur) dom.settingsPerfBlur.checked=settings.perfBlur;
-    if (dom.settingsPerfPreview) dom.settingsPerfPreview.checked=settings.perfPreview;
-    if (dom.settingsPerfAnimations) dom.settingsPerfAnimations.checked=settings.perfAnimations;
-    if (dom.settingsFpsCap) dom.settingsFpsCap.value=settings.fpsCap.toString();
-    if (dom.settingsNotifications) dom.settingsNotifications.checked=settings.notifications;
-    if (dom.settingsAutoCheckDelay) dom.settingsAutoCheckDelay.value=settings.autoCheckDelay.toString();
-    if (dom.settingsDecimalPlaces) dom.settingsDecimalPlaces.value=settings.decimalPlaces.toString();
-    if (dom.settingsSound) dom.settingsSound.checked=settings.sound;
-    if (dom.settingsVibration) dom.settingsVibration.checked=settings.vibration;
-    if (dom.unlimitedToggle) dom.unlimitedToggle.checked=settings.unlimitedMode;
-    if (dom.mcqToggle) dom.mcqToggle.checked=settings.mcqMode;
-    if (dom.settingsMcqChoices) dom.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
-    if (dom.settingsAdaptive) dom.settingsAdaptive.checked=settings.adaptive;
-    if (dom.settingsShowWeakPopup) dom.settingsShowWeakPopup.checked = settings.showWeakTopicsPopup;
+    if (dom.settings.settingsTheme) dom.settings.settingsTheme.value=settings.theme;
+    if (dom.settings.settingsDefaultMode) dom.settings.settingsDefaultMode.value=settings.defaultMode;
+    if (dom.settings.settingsAutoContinue) dom.settings.settingsAutoContinue.checked=settings.autoContinue;
+    if (dom.settings.settingsShuffle) dom.settings.settingsShuffle.checked=settings.shuffle;
+    if (dom.settings.settingsScope) dom.settings.settingsScope.value=settings.scope;
+    if (dom.settings.settingsDifficulty) dom.settings.settingsDifficulty.value=settings.difficulty;
+    if (dom.settings.settingsTimer) dom.settings.settingsTimer.value=settings.timer.toString();
+    if (dom.settings.settingsMaxQuestions) dom.settings.settingsMaxQuestions.value=settings.maxQuestions.toString();
+    if (dom.settings.settingsFont) dom.settings.settingsFont.value=settings.font;
+    if (dom.settings.settingsPerfMaster) dom.settings.settingsPerfMaster.checked=settings.perfMaster;
+    if (dom.settings.settingsPerfWave) dom.settings.settingsPerfWave.checked=settings.perfWave;
+    if (dom.settings.settingsPerfBlur) dom.settings.settingsPerfBlur.checked=settings.perfBlur;
+    if (dom.settings.settingsPerfPreview) dom.settings.settingsPerfPreview.checked=settings.perfPreview;
+    if (dom.settings.settingsPerfAnimations) dom.settings.settingsPerfAnimations.checked=settings.perfAnimations;
+    if (dom.settings.settingsFpsCap) dom.settings.settingsFpsCap.value=settings.fpsCap.toString();
+    if (dom.settings.settingsNotifications) dom.settings.settingsNotifications.checked=settings.notifications;
+    if (dom.settings.settingsAutoCheckDelay) dom.settings.settingsAutoCheckDelay.value=settings.autoCheckDelay.toString();
+    if (dom.settings.settingsDecimalPlaces) dom.settings.settingsDecimalPlaces.value=settings.decimalPlaces.toString();
+    if (dom.settings.settingsSound) dom.settings.settingsSound.checked=settings.sound;
+    if (dom.settings.settingsVibration) dom.settings.settingsVibration.checked=settings.vibration;
+    if (dom.inputs.unlimitedToggle) dom.inputs.unlimitedToggle.checked=settings.unlimitedMode;
+    if (dom.inputs.mcqToggle) dom.inputs.mcqToggle.checked=settings.mcqMode;
+    if (dom.settings.settingsMcqChoices) dom.settings.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
+    if (dom.settings.settingsAdaptive) dom.settings.settingsAdaptive.checked=settings.adaptive;
+    if (dom.settings.settingsShowWeakPopup) dom.settings.settingsShowWeakPopup.checked = settings.showWeakTopicsPopup;
     applySettingsToApp();
 }
 export function saveSettings():void{
-    if (dom.settingsTheme) settings.theme=dom.settingsTheme.value as "system"|"light"|"dark";
-    if (dom.settingsDefaultMode) settings.defaultMode=dom.settingsDefaultMode.value as "single"|"mental";
-    if (dom.settingsAutoContinue) settings.autoContinue=dom.settingsAutoContinue.checked;
-    if (dom.settingsShuffle) settings.shuffle=dom.settingsShuffle.checked;
-    if (dom.settingsScope) settings.scope=dom.settingsScope.value;
-    if (dom.settingsDifficulty) settings.difficulty=dom.settingsDifficulty.value;
-    if (dom.settingsTimer) settings.timer=parseInt(dom.settingsTimer.value)||30;
-    if (dom.settingsMaxQuestions) settings.maxQuestions=parseInt(dom.settingsMaxQuestions.value)||5;
-    if (dom.settingsFont) settings.font=dom.settingsFont.value;
-    if (dom.settingsPerfMaster) settings.perfMaster=dom.settingsPerfMaster.checked;
-    if (dom.settingsPerfWave) settings.perfWave=dom.settingsPerfWave.checked;
-    if (dom.settingsPerfBlur) settings.perfBlur=dom.settingsPerfBlur.checked;
-    if (dom.settingsPerfPreview) settings.perfPreview=dom.settingsPerfPreview.checked;
-    if (dom.settingsPerfAnimations) settings.perfAnimations=dom.settingsPerfAnimations.checked;
-    if (dom.settingsFpsCap) settings.fpsCap=parseInt(dom.settingsFpsCap.value)||0;
-    if (dom.settingsNotifications) settings.notifications=dom.settingsNotifications.checked;
-    if (dom.settingsAutoCheckDelay) settings.autoCheckDelay=parseInt(dom.settingsAutoCheckDelay.value)||800;
-    if (dom.settingsDecimalPlaces) settings.decimalPlaces=parseInt(dom.settingsDecimalPlaces.value)||2;
-    if (dom.settingsSound) settings.sound=dom.settingsSound.checked;
-    if (dom.settingsVibration) settings.vibration=dom.settingsVibration.checked;
-    if (dom.unlimitedToggle) settings.unlimitedMode=dom.unlimitedToggle.checked;
-    if (dom.mcqToggle) settings.mcqMode=dom.mcqToggle.checked;
-    if (dom.settingsMcqChoices){
-        const newCount=parseInt(dom.settingsMcqChoices.value)||4;
+    if (dom.settings.settingsTheme) settings.theme=dom.settings.settingsTheme.value as "system"|"light"|"dark";
+    if (dom.settings.settingsDefaultMode) settings.defaultMode=dom.settings.settingsDefaultMode.value as "single"|"mental";
+    if (dom.settings.settingsAutoContinue) settings.autoContinue=dom.settings.settingsAutoContinue.checked;
+    if (dom.settings.settingsShuffle) settings.shuffle=dom.settings.settingsShuffle.checked;
+    if (dom.settings.settingsScope) settings.scope=dom.settings.settingsScope.value;
+    if (dom.settings.settingsDifficulty) settings.difficulty=dom.settings.settingsDifficulty.value;
+    if (dom.settings.settingsTimer) settings.timer=parseInt(dom.settings.settingsTimer.value)||30;
+    if (dom.settings.settingsMaxQuestions) settings.maxQuestions=parseInt(dom.settings.settingsMaxQuestions.value)||5;
+    if (dom.settings.settingsFont) settings.font=dom.settings.settingsFont.value;
+    if (dom.settings.settingsPerfMaster) settings.perfMaster=dom.settings.settingsPerfMaster.checked;
+    if (dom.settings.settingsPerfWave) settings.perfWave=dom.settings.settingsPerfWave.checked;
+    if (dom.settings.settingsPerfBlur) settings.perfBlur=dom.settings.settingsPerfBlur.checked;
+    if (dom.settings.settingsPerfPreview) settings.perfPreview=dom.settings.settingsPerfPreview.checked;
+    if (dom.settings.settingsPerfAnimations) settings.perfAnimations=dom.settings.settingsPerfAnimations.checked;
+    if (dom.settings.settingsFpsCap) settings.fpsCap=parseInt(dom.settings.settingsFpsCap.value)||0;
+    if (dom.settings.settingsNotifications) settings.notifications=dom.settings.settingsNotifications.checked;
+    if (dom.settings.settingsAutoCheckDelay) settings.autoCheckDelay=parseInt(dom.settings.settingsAutoCheckDelay.value)||800;
+    if (dom.settings.settingsDecimalPlaces) settings.decimalPlaces=parseInt(dom.settings.settingsDecimalPlaces.value)||2;
+    if (dom.settings.settingsSound) settings.sound=dom.settings.settingsSound.checked;
+    if (dom.settings.settingsVibration) settings.vibration=dom.settings.settingsVibration.checked;
+    if (dom.inputs.unlimitedToggle) settings.unlimitedMode=dom.inputs.unlimitedToggle.checked;
+    if (dom.inputs.mcqToggle) settings.mcqMode=dom.inputs.mcqToggle.checked;
+    if (dom.settings.settingsMcqChoices){
+        const newCount=parseInt(dom.settings.settingsMcqChoices.value)||4;
         if (settings.mcqChoicesCount!==newCount){
             settings.mcqChoicesCount=newCount;
-            if (state.mcqMode&&window.hasQuestion&&window.correctAnswer.correct){
+            if (appState.mcqMode&&questionState.hasQuestion&&questionState.correctAnswer.correct){
                 void generateChoicesForCurrentQuestion();
             }
         }
     }
-    if (dom.settingsAdaptive) settings.adaptive=dom.settingsAdaptive.checked;
-    if (dom.settingsShowWeakPopup) settings.showWeakTopicsPopup = dom.settingsShowWeakPopup.checked;
+    if (dom.settings.settingsAdaptive) settings.adaptive=dom.settings.settingsAdaptive.checked;
+    if (dom.settings.settingsShowWeakPopup) settings.showWeakTopicsPopup = dom.settings.settingsShowWeakPopup.checked;
     localStorage.setItem("appSettings",JSON.stringify(settings));
     applySettingsToApp();
 }
@@ -134,18 +135,18 @@ export function previewSetting(field:string,value:any):void{
         case "defaultMode":
             break;
         case "autoContinue":
-            if (dom.autocontinueToggle) dom.autocontinueToggle.checked=value;
+            if (dom.inputs.autocontinueToggle) dom.inputs.autocontinueToggle.checked=value;
             break;
         case "shuffle":
-            if (dom.shuffleToggle) dom.shuffleToggle.checked=value;
-            if (dom.mentalShuffleToggle) dom.mentalShuffleToggle.checked=value;
+            if (dom.inputs.shuffleToggle) dom.inputs.shuffleToggle.checked=value;
+            if (dom.inputs.mentalShuffleToggle) dom.inputs.mentalShuffleToggle.checked=value;
             break;
         case "scope":
-            if (dom.scopeSelect) dom.scopeSelect.value=value;
-            if (dom.mentalScopeSelect) dom.mentalScopeSelect.value=value;
+            if (dom.inputs.scopeSelect) dom.inputs.scopeSelect.value=value;
+            if (dom.inputs.mentalScopeSelect) dom.inputs.mentalScopeSelect.value=value;
             break;
         case "difficulty":
-            if (dom.difficultySelect) dom.difficultySelect.value=value;
+            if (dom.inputs.difficultySelect) dom.inputs.difficultySelect.value=value;
             break;
         case "timer":
             break;
@@ -194,13 +195,13 @@ export function previewSetting(field:string,value:any):void{
             settings.vibration=value;
             break;
         case "unlimitedMode":
-            if (dom.unlimitedToggle) dom.unlimitedToggle.checked=value;
+            if (dom.inputs.unlimitedToggle) dom.inputs.unlimitedToggle.checked=value;
             break;
         case "mcqMode":
-            if (dom.mcqToggle) dom.mcqToggle.checked=value;
+            if (dom.inputs.mcqToggle) dom.inputs.mcqToggle.checked=value;
             break;
         case "mcqChoicesCount":
-            if (dom.settingsMcqChoices) dom.settingsMcqChoices.value=value;
+            if (dom.settings.settingsMcqChoices) dom.settings.settingsMcqChoices.value=value;
             break;
         case "adaptive":
             settings.adaptive=value;
@@ -216,17 +217,17 @@ export function applySettingsToApp():void{
         applyTheme(settings.theme as "light"|"dark");
     }
     applyFont(settings.font);
-    if (dom.autocontinueToggle) dom.autocontinueToggle.checked=settings.autoContinue;
-    if (dom.shuffleToggle) dom.shuffleToggle.checked=settings.shuffle;
-    if (dom.mentalShuffleToggle) dom.mentalShuffleToggle.checked=settings.shuffle;
-    if (dom.scopeSelect) dom.scopeSelect.value=settings.scope;
-    if (dom.mentalScopeSelect) dom.mentalScopeSelect.value=settings.scope;
-    if (dom.difficultySelect) dom.difficultySelect.value=settings.difficulty;
-    if (dom.unlimitedToggle) dom.unlimitedToggle.checked=settings.unlimitedMode;
-    if (dom.mcqToggle) dom.mcqToggle.checked=settings.mcqMode;
-    if (dom.settingsMcqChoices) dom.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
-    if (dom.settingsAdaptive) dom.settingsAdaptive.checked=settings.adaptive;
-    if (dom.settingsShowWeakPopup) dom.settingsShowWeakPopup.checked=settings.showWeakTopicsPopup;
+    if (dom.inputs.autocontinueToggle) dom.inputs.autocontinueToggle.checked=settings.autoContinue;
+    if (dom.inputs.shuffleToggle) dom.inputs.shuffleToggle.checked=settings.shuffle;
+    if (dom.inputs.mentalShuffleToggle) dom.inputs.mentalShuffleToggle.checked=settings.shuffle;
+    if (dom.inputs.scopeSelect) dom.inputs.scopeSelect.value=settings.scope;
+    if (dom.inputs.mentalScopeSelect) dom.inputs.mentalScopeSelect.value=settings.scope;
+    if (dom.inputs.difficultySelect) dom.inputs.difficultySelect.value=settings.difficulty;
+    if (dom.inputs.unlimitedToggle) dom.inputs.unlimitedToggle.checked=settings.unlimitedMode;
+    if (dom.inputs.mcqToggle) dom.inputs.mcqToggle.checked=settings.mcqMode;
+    if (dom.settings.settingsMcqChoices) dom.settings.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
+    if (dom.settings.settingsAdaptive) dom.settings.settingsAdaptive.checked=settings.adaptive;
+    if (dom.settings.settingsShowWeakPopup) dom.settings.settingsShowWeakPopup.checked=settings.showWeakTopicsPopup;
     if (settings.perfMaster){
         applyPerformanceMaster(true);
     }
@@ -239,39 +240,39 @@ export function applySettingsToApp():void{
     applyFPSCap(settings.fpsCap);
 }
 export function resetSettings():void{
-    if (dom.settingsTheme) dom.settingsTheme.value="system";
-    if (dom.settingsDefaultMode) dom.settingsDefaultMode.value="single";
-    if (dom.settingsAutoContinue) dom.settingsAutoContinue.checked=false;
-    if (dom.settingsShuffle) dom.settingsShuffle.checked=false;
-    if (dom.settingsScope) dom.settingsScope.value="simple";
-    if (dom.settingsDifficulty) dom.settingsDifficulty.value="medium";
-    if (dom.settingsTimer) dom.settingsTimer.value="30";
-    if (dom.settingsMaxQuestions) dom.settingsMaxQuestions.value="5";
-    if (dom.settingsFont) dom.settingsFont.value="default";
-    if (dom.settingsPerfMaster) dom.settingsPerfMaster.checked=false;
-    if (dom.settingsPerfWave) dom.settingsPerfWave.checked=true;
-    if (dom.settingsPerfBlur) dom.settingsPerfBlur.checked=true;
-    if (dom.settingsPerfPreview) dom.settingsPerfPreview.checked=true;
-    if (dom.settingsPerfAnimations) dom.settingsPerfAnimations.checked=true;
-    if (dom.settingsFpsCap) dom.settingsFpsCap.value="0";
-    if (dom.settingsNotifications) dom.settingsNotifications.checked=true;
-    if (dom.settingsAutoCheckDelay) dom.settingsAutoCheckDelay.value="800";
-    if (dom.settingsDecimalPlaces) dom.settingsDecimalPlaces.value="2";
-    if (dom.settingsSound) dom.settingsSound.checked=false;
-    if (dom.settingsVibration) dom.settingsVibration.checked=false;
-    if (dom.unlimitedToggle) dom.unlimitedToggle.checked=false;
-    if (dom.mcqToggle) dom.mcqToggle.checked=false;
-    if (dom.settingsMcqChoices) dom.settingsMcqChoices.value="4";
-    if (dom.settingsAdaptive) dom.settingsAdaptive.checked=true;
-    if (dom.settingsShowWeakPopup) dom.settingsShowWeakPopup.checked=true;
+    if (dom.settings.settingsTheme) dom.settings.settingsTheme.value="system";
+    if (dom.settings.settingsDefaultMode) dom.settings.settingsDefaultMode.value="single";
+    if (dom.settings.settingsAutoContinue) dom.settings.settingsAutoContinue.checked=false;
+    if (dom.settings.settingsShuffle) dom.settings.settingsShuffle.checked=false;
+    if (dom.settings.settingsScope) dom.settings.settingsScope.value="simple";
+    if (dom.settings.settingsDifficulty) dom.settings.settingsDifficulty.value="medium";
+    if (dom.settings.settingsTimer) dom.settings.settingsTimer.value="30";
+    if (dom.settings.settingsMaxQuestions) dom.settings.settingsMaxQuestions.value="5";
+    if (dom.settings.settingsFont) dom.settings.settingsFont.value="default";
+    if (dom.settings.settingsPerfMaster) dom.settings.settingsPerfMaster.checked=false;
+    if (dom.settings.settingsPerfWave) dom.settings.settingsPerfWave.checked=true;
+    if (dom.settings.settingsPerfBlur) dom.settings.settingsPerfBlur.checked=true;
+    if (dom.settings.settingsPerfPreview) dom.settings.settingsPerfPreview.checked=true;
+    if (dom.settings.settingsPerfAnimations) dom.settings.settingsPerfAnimations.checked=true;
+    if (dom.settings.settingsFpsCap) dom.settings.settingsFpsCap.value="0";
+    if (dom.settings.settingsNotifications) dom.settings.settingsNotifications.checked=true;
+    if (dom.settings.settingsAutoCheckDelay) dom.settings.settingsAutoCheckDelay.value="800";
+    if (dom.settings.settingsDecimalPlaces) dom.settings.settingsDecimalPlaces.value="2";
+    if (dom.settings.settingsSound) dom.settings.settingsSound.checked=false;
+    if (dom.settings.settingsVibration) dom.settings.settingsVibration.checked=false;
+    if (dom.inputs.unlimitedToggle) dom.inputs.unlimitedToggle.checked=false;
+    if (dom.inputs.mcqToggle) dom.inputs.mcqToggle.checked=false;
+    if (dom.settings.settingsMcqChoices) dom.settings.settingsMcqChoices.value="4";
+    if (dom.settings.settingsAdaptive) dom.settings.settingsAdaptive.checked=true;
+    if (dom.settings.settingsShowWeakPopup) dom.settings.settingsShowWeakPopup.checked=true;
     saveSettings();
 }
 export function openSettings():void{
     loadSettings();
-    if (dom.settingsModal) dom.settingsModal.classList.add("show");
+    if (dom.modals.settingsModal) dom.modals.settingsModal.classList.add("show");
 }
 export function closeSettings():void{
-    if (dom.settingsModal) dom.settingsModal.classList.remove("show");
+    if (dom.modals.settingsModal) dom.modals.settingsModal.classList.remove("show");
 }
 export function applyTheme(theme:"light"|"dark"):void{
     let root=document.documentElement;
@@ -305,7 +306,7 @@ export function applyBlurEffects(enabled:boolean):void{
     else root.classList.add("no-blur");
 }
 export function applyLivePreview(enabled:boolean):void{
-    if (dom.previewDiv) dom.previewDiv.style.display=enabled?"block":"none";
+    if (dom.displays.previewDiv) dom.displays.previewDiv.style.display=enabled?"block":"none";
 }
 export function applyAnimations(enabled:boolean):void{
     const root=document.documentElement;
