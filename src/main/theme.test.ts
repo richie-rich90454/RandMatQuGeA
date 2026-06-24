@@ -83,7 +83,6 @@ describe("initializeTheme",()=>{
         expect(addEventListener).toHaveBeenCalledWith("click",expect.any(Function));
     });
     it("should cycle through themes on click",async()=>{
-        let _addEventListener=vi.fn();
         let clickHandler: any=null;
         mockThemeToggle={addEventListener:(_event: string,handler: any)=>{clickHandler=handler;}};
         mockMatchMedia.mockReturnValue({matches:false,addEventListener:mockAddEventListener});
