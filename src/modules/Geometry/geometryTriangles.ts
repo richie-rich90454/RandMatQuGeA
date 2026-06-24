@@ -1,14 +1,13 @@
-import {questionArea} from "../../script.js";
+import {renderer} from "../../main/core/questionRenderer";
 import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
 import {createVisualization} from "./geometryVisualization.js";
 /**
  * Triangle geometry: Pythagorean theorem, similar triangles, triangle classification.
- * @fileoverview Generates questions about right triangles (hypotenuse), similar triangles (scale factor), and triangle classification (equilateral/isosceles/scalene). Displays in questionArea and sets window.correctAnswer with answer and display, plus plausible wrong answers for MCQ mode.
+ * @fileoverview Generates questions about right triangles (hypotenuse), similar triangles (scale factor), and triangle classification (equilateral/isosceles/scalene). Uses the renderer API to display questions and set answers.
  * @date 2026-04-18
  */
 export function generatePythagorean(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxLeg=getMaxForDifficulty(difficulty,8);
 	let a=Math.floor(Math.random()*maxLeg)+3;
@@ -27,24 +26,18 @@ export function generatePythagorean(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correct,
 		alternate: Math.sqrt(a*a+b*b).toFixed(2),
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal (e.g., 5.83)";
+	});
+	renderer.setExpectedFormat("Enter a decimal (e.g., 5.83)");
 	createVisualization("triangle",{base:a,height:b});
 }
 export function generateSimilarTriangles(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const maxScale=getMaxForDifficulty(difficulty,4);
 	const scale=Math.floor(Math.random()*maxScale)+2;
@@ -62,24 +55,18 @@ export function generateSimilarTriangles(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a whole number";
+	});
+	renderer.setExpectedFormat("Enter a whole number");
 	createVisualization("triangle",{base:side1,height:side1});
 }
 export function generateTriangleClassification(_difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	cleanupVisualization();
 	const sides=[
 		[3,4,5],
@@ -110,18 +97,13 @@ export function generateTriangleClassification(_difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	window.correctAnswer={
+	renderer.render(mathExpression);
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter \"equilateral\", \"isosceles\", or \"scalene\"";
+	});
+	renderer.setExpectedFormat("Enter \"equilateral\", \"isosceles\", or \"scalene\"");
 	createVisualization("triangle",{base:a,height:b});
 }
