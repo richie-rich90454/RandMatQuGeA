@@ -1,12 +1,11 @@
 /**
  * Reciprocal trigonometric functions: cosecant, secant, cotangent.
- * @fileoverview Generates questions on reciprocal trig functions with MCQ distractors. Sets window.correctAnswer with LaTeX display, plain text alternate, and plausible wrong answers.
+ * @fileoverview Generates questions on reciprocal trig functions with MCQ distractors. Sets renderer.setAnswer with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-04-18
  */
-import {questionArea} from "../../script.js";
+import {renderer} from "../../main/core/questionRenderer";
 export function generateCosecant(_difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	let types=["evaluate","relationship","asymptote"];
 	let type=types[Math.floor(Math.random()*types.length)];
 	let correct="";
@@ -23,7 +22,7 @@ export function generateCosecant(_difficulty?: string): void{
 			correct=value;
 			alternate=value;
 			display=value;
-			questionArea.innerHTML=`Evaluate \\( \\csc(${labels[idx]}) \\)`;
+			renderer.render(`Evaluate \\( \\csc(${labels[idx]}) \\)`);
 			choices=[correct];
 			let wrong1=(1/Math.sin(angle+0.1)).toFixed(2);
 			let wrong2=(1/Math.sin(angle-0.1)).toFixed(2);
@@ -37,7 +36,7 @@ export function generateCosecant(_difficulty?: string): void{
 			correct=`\\frac{1}{\\sin(${angleNum}°)}`;
 			alternate=`1/sin(${angleNum}°)`;
 			display=`\\frac{1}{\\sin(${angleNum}°)}`;
-			questionArea.innerHTML=`Express \\( \\csc(${angleNum}°) \\) in terms of sine.`;
+			renderer.render(`Express \\( \\csc(${angleNum}°) \\) in terms of sine.`);
 			choices=[correct];
 			choices.push(`\\frac{1}{\\cos(${angleNum}°)}`);
 			choices.push(`\\frac{1}{\\tan(${angleNum}°)}`);
@@ -49,7 +48,7 @@ export function generateCosecant(_difficulty?: string): void{
 			correct=`x = n\\pi`;
 			alternate="x=nπ";
 			display=`x = n\\pi`;
-			questionArea.innerHTML=`Find the vertical asymptotes of \\( y=\\csc(x) \\) (in radians).`;
+			renderer.render(`Find the vertical asymptotes of \\( y=\\csc(x) \\) (in radians).`);
 			choices=[correct];
 			choices.push(`x = \\frac{\\pi}{2} + n\\pi`);
 			choices.push(`x = n\\pi + \\frac{\\pi}{2}`);
@@ -58,7 +57,7 @@ export function generateCosecant(_difficulty?: string): void{
 			break;
 		}
 		default:
-			questionArea.innerHTML="Unknown cosecant question type";
+			renderer.render("Unknown cosecant question type");
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
@@ -67,18 +66,16 @@ export function generateCosecant(_difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=window.expectedFormat||"";
-	if(window.MathJax?.typesetPromise)window.MathJax.typesetPromise();
-}
+	});
+	renderer.setExpectedFormat("");
+	}
 export function generateSecant(_difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	let type=Math.random()<0.5?"evaluate":"identity";
 	let correct="";
 	let alternate="";
@@ -94,7 +91,7 @@ export function generateSecant(_difficulty?: string): void{
 			correct=value;
 			alternate=value;
 			display=value;
-			questionArea.innerHTML=`Evaluate \\( \\sec(${labels[idx]}) \\)`;
+			renderer.render(`Evaluate \\( \\sec(${labels[idx]}) \\)`);
 			choices=[correct];
 			let wrong1=(1/Math.cos(angle+0.1)).toFixed(2);
 			let wrong2=(1/Math.cos(angle-0.1)).toFixed(2);
@@ -107,12 +104,12 @@ export function generateSecant(_difficulty?: string): void{
 			correct="1";
 			alternate="1";
 			display="1";
-			questionArea.innerHTML=`Complete the identity: \\( \\sec^2\\theta-\\tan^2\\theta=? \\)`;
+			renderer.render(`Complete the identity: \\( \\sec^2\\theta-\\tan^2\\theta=? \\)`);
 			choices=["1","0","-1","sec^2θ+tan^2θ"];
 			break;
 		}
 		default:
-			questionArea.innerHTML="Unknown secant question type";
+			renderer.render("Unknown secant question type");
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
@@ -121,18 +118,16 @@ export function generateSecant(_difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=window.expectedFormat||"";
-	if(window.MathJax?.typesetPromise)window.MathJax.typesetPromise();
+	});
+	renderer.setExpectedFormat("");
 }
 export function generateCotangent(_difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+	renderer.clear();
 	let type=Math.random()<0.5?"evaluate":"relationship";
 	let correct="";
 	let alternate="";
@@ -148,7 +143,7 @@ export function generateCotangent(_difficulty?: string): void{
 			correct=value;
 			alternate=value;
 			display=value;
-			questionArea.innerHTML=`Evaluate \\( \\cot(${labels[idx]}) \\)`;
+			renderer.render(`Evaluate \\( \\cot(${labels[idx]}) \\)`);
 			choices=[correct];
 			let wrong1=(1/Math.tan(angle+0.1)).toFixed(2);
 			let wrong2=(1/Math.tan(angle-0.1)).toFixed(2);
@@ -161,7 +156,7 @@ export function generateCotangent(_difficulty?: string): void{
 			correct="\\frac{1}{\\tan\\theta}";
 			alternate="1/tanθ";
 			display="\\frac{1}{\\tan\\theta}";
-			questionArea.innerHTML=`Express \\( \\cot\\theta \\) in terms of tangent.`;
+			renderer.render(`Express \\( \\cot\\theta \\) in terms of tangent.`);
 			choices=[correct];
 			choices.push("\\frac{1}{\\sin\\theta}");
 			choices.push("\\frac{1}{\\cos\\theta}");
@@ -170,7 +165,7 @@ export function generateCotangent(_difficulty?: string): void{
 			break;
 		}
 		default:
-			questionArea.innerHTML="Unknown cotangent question type";
+			renderer.render("Unknown cotangent question type");
 			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
@@ -179,12 +174,11 @@ export function generateCotangent(_difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=window.expectedFormat||"";
-	if(window.MathJax?.typesetPromise)window.MathJax.typesetPromise();
+	});
+	renderer.setExpectedFormat("");
 }
