@@ -349,7 +349,7 @@ describe("session",()=>{
             state.setTimeLeft(1);
             startTimer();
             vi.advanceTimersByTime(2000);
-            let calls=state.setTimeLeft.mock.calls.map((c: number[])=>c[0]);
+            let calls=vi.mocked(state.setTimeLeft).mock.calls.map((c: number[])=>c[0]);
             let belowZero=calls.some((v: number)=>v<0);
             expect(belowZero).toBe(false);
         });
