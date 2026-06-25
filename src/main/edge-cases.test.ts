@@ -9,6 +9,17 @@ const mockQuestionArea=document.createElement("div");
 vi.mock("../script.js",()=>({
     questionArea: mockQuestionArea,
 }));
+vi.mock("mathjs",()=>{
+    const evaluate=vi.fn((expr:string)=>{
+        try{
+            return Function('"use strict";return ('+expr+')')();
+        }
+        catch(e){
+            return NaN;
+        }
+    });
+    return{evaluate};
+});
 
 // ========================================
 // GENERATOR MCQ EDGE CASES
@@ -257,8 +268,8 @@ describe("MCQ answer checking",()=>{
 // ========================================
 describe("window state flags",()=>{
     it("hasQuestion defaults to false on module load",async()=>{
-        // script.ts sets window.hasQuestion=false on init
-        expect((window as any).hasQuestion).toBeUndefined();
+        // questionState constructor mirrors hasQuestion=false to window on init (Task 1)
+        expect((window as any).hasQuestion).toBe(false);
     });
 });
 // ========================================
@@ -270,6 +281,7 @@ describe("UI null-safety fixes",()=>{
         delete (window as any).hasQuestion;
         (window as any).MathJax={ typesetPromise: vi.fn().mockResolvedValue(undefined), };
         mockQuestionArea.innerHTML="<div>test</div>";
+        Object.defineProperty(navigator,"clipboard",{value:{writeText:vi.fn().mockResolvedValue(undefined)},configurable:true,writable:true});
     });
     afterEach(()=>{
         delete (window as any).MathJax;
