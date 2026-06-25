@@ -1,131 +1,127 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-vi.mock('./dom', () => ({
-	userAnswer: {
-		value: '',
-		focus: vi.fn(),
-	},
-	answerResults: {
+vi.mock('./core/domRegistry', () => {
+	const userAnswer={value: '', focus: vi.fn()};
+	const answerResults={
 		innerHTML: '',
 		className: '',
-		classList: {
-			add: vi.fn(),
-			remove: vi.fn(),
-			contains: vi.fn(),
-		}
-	},
-	copyAnswerBtn: null,
-	previewDiv: null,
-	answerCard: null,
-	questionArea: null,
-	generateQuestionButton: null,
-	checkAnswerButton: null,
-	modeSingleBtn: null,
-	modeMentalBtn: null,
-	mentalControls: null,
-	singleControls: null,
-	scopeSelect: null,
-	mentalScopeSelect: null,
-	shuffleToggle: null,
-	mentalShuffleToggle: null,
-	autocontinueToggle: null,
-	difficultySelect: null,
-	timerDisplay: null,
-	scoreDisplay: null,
-	startSessionBtn: null,
-	pauseSessionBtn: null,
-	skipQuestionBtn: null,
-	topicSearch: null,
-	topicGrid: null,
-	currentTopicDisplay: null,
-	clearAnswerBtn: null,
-	mathToolbar: null,
-	shortcutsButton: null,
-	shortcutsClose: null,
-	shortcutsGotit: null,
-	shortcutsModal: null,
-	leaderboardClose: null,
-	leaderboardCard: null,
-	leaderboardContent: null,
-	onboardingClose: null,
-	onboardingGotit: null,
-	onboardingOverlay: null,
-	customContextMenu: null,
-	themeToggle: null,
-	helpButton: null,
-	settingsButton: null,
-	settingsClose: null,
-	settingsSave: null,
-	settingsReset: null,
-	settingsModal: null,
-	settingsTabBasic: null,
-	settingsTabAdvanced: null,
-	settingsBasicPanel: null,
-	settingsAdvancedPanel: null,
-	settingsTheme: null,
-	settingsDefaultMode: null,
-	settingsAutoContinue: null,
-	settingsShuffle: null,
-	settingsScope: null,
-	settingsDifficulty: null,
-	settingsTimer: null,
-	settingsMaxQuestions: null,
-	settingsFont: null,
-	settingsPerfMaster: null,
-	settingsPerfWave: null,
-	settingsPerfBlur: null,
-	settingsPerfPreview: null,
-	settingsPerfAnimations: null,
-	settingsFpsCap: null,
-	settingsNotifications: null,
-	settingsAutoCheckDelay: null,
-	settingsDecimalPlaces: null,
-	settingsSound: null,
-	settingsVibration: null,
-	checkUpdatesBtn: null,
-	appWindow: null,
-}));
-vi.mock('./state', () => {
-	const state={
-		selectedTopic: 'topic',
-		currentMode: 'single',
-		sessionActive: false,
-		sessionPaused: false,
-		sessionScore: { correct:0, total:0 },
-		timeLeft: 30,
-		maxQuestions: 5,
-		currentDifficulty: 'medium',
-		autoTimeout: null,
-		previewTimeout: null,
-		generateDebounceTimeout: null,
-		mentalNextQuestionTimeout: null,
-		sessionTimer: null,
-		autocontinue: false,
-		scope: 'simple',
-		shuffle: false,
-		mentalScope: 'simple',
-		mentalShuffle: false,
-		modeButtons: [],
-		setSelectedTopic: vi.fn((val) => state.selectedTopic = val),
-		setAutocontinue: vi.fn((val) => state.autocontinue = val),
-		setCurrentMode: vi.fn((val) => state.currentMode = val),
-		setAutoTimeout: vi.fn(),
-		setPreviewTimeout: vi.fn(),
-		setGenerateDebounceTimeout: vi.fn(),
-		setMentalNextQuestionTimeout: vi.fn(),
-		setSessionTimer: vi.fn(),
-		setSessionActive: vi.fn(),
-		setSessionPaused: vi.fn(),
-		setSessionScore: vi.fn(),
-		setTimeLeft: vi.fn(),
-		setCurrentDifficulty: vi.fn(),
-		setScope: vi.fn(),
-		setShuffle: vi.fn(),
-		setMentalScope: vi.fn(),
-		setMentalShuffle: vi.fn(),
+		classList: {add: vi.fn(), remove: vi.fn(), contains: vi.fn()}
 	};
-	return state;
+	const dom={
+		userAnswer,
+		answerResults,
+		inputs: {userAnswer},
+		displays: {answerResults},
+		buttons: {copyAnswerBtn: null}
+	};
+	return {dom};
 });
+vi.mock('./core/stateStore', () => {
+	let selectedTopic='topic';
+	let currentMode='single';
+	let sessionActive=false;
+	let sessionPaused=false;
+	let sessionScore={correct: 0, total: 0};
+	let timeLeft=30;
+	let maxQuestions=5;
+	let currentDifficulty='medium';
+	let autoTimeout:any=null;
+	let previewTimeout:any=null;
+	let generateDebounceTimeout:any=null;
+	let mentalNextQuestionTimeout:any=null;
+	let sessionTimer:any=null;
+	let autocontinue=false;
+	let scope='simple';
+	let shuffle=false;
+	let mentalScope='simple';
+	let mentalShuffle=false;
+	let modeButtons:any[]=[];
+	const setSelectedTopic=vi.fn((val: any) => {selectedTopic=val;});
+	const setAutocontinue=vi.fn((val: any) => {autocontinue=val;});
+	const setCurrentMode=vi.fn((val: any) => {currentMode=val;});
+	const setAutoTimeout=vi.fn();
+	const setPreviewTimeout=vi.fn();
+	const setGenerateDebounceTimeout=vi.fn();
+	const setMentalNextQuestionTimeout=vi.fn();
+	const setSessionTimer=vi.fn();
+	const setSessionActive=vi.fn();
+	const setSessionPaused=vi.fn();
+	const setSessionScore=vi.fn();
+	const setTimeLeft=vi.fn();
+	const setCurrentDifficulty=vi.fn();
+	const setScope=vi.fn();
+	const setShuffle=vi.fn();
+	const setMentalScope=vi.fn();
+	const setMentalShuffle=vi.fn();
+	const appState={
+		get selectedTopic(){return selectedTopic;},
+		set selectedTopic(v: any){selectedTopic=v;},
+		get currentMode(){return currentMode;},
+		set currentMode(v: any){currentMode=v;},
+		get sessionActive(){return sessionActive;},
+		set sessionActive(v: any){sessionActive=v;},
+		get sessionPaused(){return sessionPaused;},
+		set sessionPaused(v: any){sessionPaused=v;},
+		get sessionScore(){return sessionScore;},
+		set sessionScore(v: any){sessionScore=v;},
+		get timeLeft(){return timeLeft;},
+		set timeLeft(v: any){timeLeft=v;},
+		get maxQuestions(){return maxQuestions;},
+		set maxQuestions(v: any){maxQuestions=v;},
+		get currentDifficulty(){return currentDifficulty;},
+		set currentDifficulty(v: any){currentDifficulty=v;},
+		get autoTimeout(){return autoTimeout;},
+		set autoTimeout(v: any){autoTimeout=v;},
+		get previewTimeout(){return previewTimeout;},
+		set previewTimeout(v: any){previewTimeout=v;},
+		get generateDebounceTimeout(){return generateDebounceTimeout;},
+		set generateDebounceTimeout(v: any){generateDebounceTimeout=v;},
+		get mentalNextQuestionTimeout(){return mentalNextQuestionTimeout;},
+		set mentalNextQuestionTimeout(v: any){mentalNextQuestionTimeout=v;},
+		get sessionTimer(){return sessionTimer;},
+		set sessionTimer(v: any){sessionTimer=v;},
+		get autocontinue(){return autocontinue;},
+		set autocontinue(v: any){autocontinue=v;},
+		get scope(){return scope;},
+		set scope(v: any){scope=v;},
+		get shuffle(){return shuffle;},
+		set shuffle(v: any){shuffle=v;},
+		get mentalScope(){return mentalScope;},
+		set mentalScope(v: any){mentalScope=v;},
+		get mentalShuffle(){return mentalShuffle;},
+		set mentalShuffle(v: any){mentalShuffle=v;},
+		get modeButtons(){return modeButtons;},
+		set modeButtons(v: any){modeButtons=v;},
+		setSelectedTopic,
+		setAutocontinue,
+		setCurrentMode,
+		setAutoTimeout,
+		setPreviewTimeout,
+		setGenerateDebounceTimeout,
+		setMentalNextQuestionTimeout,
+		setSessionTimer,
+		setSessionActive,
+		setSessionPaused,
+		setSessionScore,
+		setTimeLeft,
+		setCurrentDifficulty,
+		setScope,
+		setShuffle,
+		setMentalScope,
+		setMentalShuffle
+	};
+	return {appState};
+});
+vi.mock('./core/questionState', () => ({
+	questionState: {
+		get correctAnswer(){return (window as any).correctAnswer;},
+		set correctAnswer(v: any){(window as any).correctAnswer=v;},
+		get expectedFormat(){return (window as any).expectedFormat;},
+		set expectedFormat(v: any){(window as any).expectedFormat=v;},
+		get hasQuestion(){return (window as any).hasQuestion;},
+		set hasQuestion(v: any){(window as any).hasQuestion=v;}
+	}
+}));
 vi.mock('./settings', () => ({
 	settings: {
 		sound: false,
@@ -167,8 +163,10 @@ vi.mock("mathjs",()=>{
 	}));
 	return{evaluate,simplify,parse,default:{evaluate,simplify,parse}};
 });
-import * as dom from './dom';
-import * as state from './state';
+import * as domRegistry from './core/domRegistry';
+import * as stateStore from './core/stateStore';
+const dom:any=domRegistry.dom;
+const state:any=stateStore.appState;
 import * as settings from './settings';
 import * as ui from './ui';
 import * as generation from './generation';
