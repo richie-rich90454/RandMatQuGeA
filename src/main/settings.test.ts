@@ -1,49 +1,58 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,afterEach}from"vitest";
-vi.mock("./dom.js",()=>({
-    settingsTheme:{value:"system"},
-    settingsDefaultMode:{value:"single"},
-    settingsAutoContinue:{checked:false},
-    settingsShuffle:{checked:false},
-    settingsScope:{value:"simple"},
-    settingsDifficulty:{value:"medium"},
-    settingsTimer:{value:"30"},
-    settingsMaxQuestions:{value:"5"},
-    settingsFont:{value:"default"},
-    settingsPerfMaster:{checked:false},
-    settingsPerfWave:{checked:true},
-    settingsPerfBlur:{checked:true},
-    settingsPerfPreview:{checked:true},
-    settingsPerfAnimations:{checked:true},
-    settingsFpsCap:{value:"0"},
-    settingsNotifications:{checked:true},
-    settingsAutoCheckDelay:{value:"800"},
-    settingsDecimalPlaces:{value:"2"},
-    settingsSound:{checked:false},
-    settingsVibration:{checked:false},
-    unlimitedToggle:{checked:false},
-    mcqToggle:{checked:false},
-    settingsMcqChoices:{value:"4"},
-    settingsAdaptive:{checked:true},
-    settingsShowWeakPopup:{checked:true},
-    appWindow:null,
-    autocontinueToggle:null,
-    shuffleToggle:null,
-    mentalShuffleToggle:null,
-    scopeSelect:null,
-    mentalScopeSelect:null,
-    difficultySelect:null,
-    settingsModal:null,
-    waveContainer:null,
-    previewDiv:null,
-    userAnswer:null,
-    expectedFormatDiv:null,
-    questionArea:null,
+vi.mock("./core/domRegistry",()=>{
+    const settings={
+        settingsTheme:{value:"system"},
+        settingsDefaultMode:{value:"single"},
+        settingsAutoContinue:{checked:false},
+        settingsShuffle:{checked:false},
+        settingsScope:{value:"simple"},
+        settingsDifficulty:{value:"medium"},
+        settingsTimer:{value:"30"},
+        settingsMaxQuestions:{value:"5"},
+        settingsFont:{value:"default"},
+        settingsPerfMaster:{checked:false},
+        settingsPerfWave:{checked:true},
+        settingsPerfBlur:{checked:true},
+        settingsPerfPreview:{checked:true},
+        settingsPerfAnimations:{checked:true},
+        settingsFpsCap:{value:"0"},
+        settingsNotifications:{checked:true},
+        settingsAutoCheckDelay:{value:"800"},
+        settingsDecimalPlaces:{value:"2"},
+        settingsSound:{checked:false},
+        settingsVibration:{checked:false},
+        settingsMcqChoices:{value:"4"},
+        settingsAdaptive:{checked:true},
+        settingsShowWeakPopup:{checked:true}
+    };
+    const inputs={
+        unlimitedToggle:{checked:false},
+        mcqToggle:{checked:false},
+        autocontinueToggle:null,
+        shuffleToggle:null,
+        mentalShuffleToggle:null,
+        scopeSelect:null,
+        mentalScopeSelect:null,
+        difficultySelect:null
+    };
+    const dom={
+        settings,
+        inputs,
+        modals:{settingsModal:null},
+        appWindow:null,
+        displays:{previewDiv:null}
+    };
+    return{dom};
+});
+vi.mock("./core/stateStore",()=>({
+    appState:{mcqMode:false}
 }));
-vi.mock("./state.js",()=>({
-    mcqMode:false,
-    hasQuestion:false,
-    get correctAnswer(){return window.correctAnswer;},
+vi.mock("./core/questionState",()=>({
+    questionState:{
+        hasQuestion:false,
+        get correctAnswer(){return(window as any).correctAnswer;}
+    }
 }));
 vi.mock("./mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
