@@ -11,88 +11,108 @@ vi.mock("semver",()=>{
     return{gt,default:{gt}};
 });
 vi.mock("../../package.json",()=>({default:{version:"1.0.0"},version:"1.0.0"}));
-vi.mock("./dom.js",()=>{
-    const btnProps={addEventListener:vi.fn(),classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()},disabled:false,textContent:"",setAttribute:vi.fn(),click:vi.fn(),style:{display:""},value:"",checked:false,innerHTML:"",querySelectorAll:vi.fn(()=>[]),dataset:{}};
-    const modalProps={classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn(()=>false)},style:{display:""},addEventListener:vi.fn()};
-    const inputProps={value:"",disabled:false,style:{display:""},focus:vi.fn(),addEventListener:vi.fn(),selectionStart:0,selectionEnd:0,setAttribute:vi.fn(),removeAttribute:vi.fn(),checked:false};
-    return{
-        generateQuestionButton:{...btnProps},
-        checkAnswerButton:{...btnProps},
-        userAnswer:{...inputProps},
-        themeToggle:{...btnProps},
-        helpButton:{...btnProps},
-        settingsButton:{...btnProps},
-        modeSingleBtn:{...btnProps},
-        modeMentalBtn:{...btnProps},
-        mentalControls:{style:{display:""}},
-        singleControls:{style:{display:""}},
-        difficultySelect:{...btnProps,value:"medium"},
-        timerDisplay:{innerHTML:""},
-        scoreDisplay:{innerHTML:""},
-        startSessionBtn:{...btnProps},
-        pauseSessionBtn:{...btnProps,style:{display:""}},
-        skipQuestionBtn:{...btnProps,style:{display:""}},
-        autocontinueToggle:{...inputProps},
-        scopeSelect:{...btnProps,value:"simple"},
-        shuffleToggle:{...inputProps},
-        mentalScopeSelect:{...btnProps,value:"simple"},
-        mentalShuffleToggle:{...inputProps},
-        settingsModal:{...modalProps},
-        settingsClose:{...btnProps},
-        settingsSave:{...btnProps},
-        settingsReset:{...btnProps},
-        settingsTheme:{...btnProps,value:"system"},
-        settingsDefaultMode:{...btnProps,value:"single"},
-        settingsAutoContinue:{...inputProps},
-        settingsShuffle:{...inputProps},
-        settingsScope:{...btnProps,value:"simple"},
-        settingsDifficulty:{...btnProps,value:"medium"},
-        settingsTimer:{...inputProps,value:"30"},
-        settingsMaxQuestions:{...inputProps,value:"5"},
-        settingsFont:{...btnProps,value:"default"},
-        settingsPerfMaster:{...inputProps},
-        settingsPerfWave:{...inputProps},
-        settingsPerfBlur:{...inputProps},
-        settingsPerfPreview:{...inputProps},
-        settingsPerfAnimations:{...inputProps},
-        settingsFpsCap:{...btnProps,value:"0"},
-        settingsNotifications:{...inputProps},
-        settingsAutoCheckDelay:{...inputProps,value:"800"},
-        settingsDecimalPlaces:{...inputProps,value:"2"},
-        settingsSound:{...inputProps},
-        settingsVibration:{...inputProps},
-        mcqToggle:{...inputProps},
-        topicSearch:{...inputProps},
-        clearAnswerBtn:{...btnProps},
-        mathToolbar:{style:{display:""},querySelectorAll:vi.fn(()=>[]),contains:vi.fn(()=>false)},
-        copyAnswerBtn:{...btnProps,style:{display:""}},
-        shortcutsButton:{...btnProps},
-        shortcutsClose:{...btnProps},
-        shortcutsGotit:{...btnProps},
-        shortcutsModal:{...modalProps},
-        leaderboardClose:{...btnProps},
-        leaderboardCard:{style:{display:""}},
-        onboardingClose:{...btnProps},
-        onboardingGotit:{...btnProps},
-        onboardingOverlay:{...modalProps},
-        answerCard:{classList:{add:vi.fn(),remove:vi.fn()}},
-        checkUpdatesBtn:{...btnProps},
-        unlimitedToggle:{...inputProps},
-        appWindow:null,
-        settingsAdaptive:{...inputProps},
-        settingsShowWeakPopup:{...inputProps},
-        settingsMcqChoices:{...btnProps,value:"4"},
-        settingsTabBasic:{...btnProps},
-        settingsTabAdvanced:{...btnProps},
-        settingsBasicPanel:{style:{display:""}},
-        settingsAdvancedPanel:{style:{display:""}},
-        mcqChoicesContainer:{style:{display:""}},
-        previewDiv:{style:{display:""}},
-        expectedFormatDiv:{style:{display:""}},
-        mentalProgressBar:{style:{width:""},setAttribute:vi.fn()},
+vi.mock("./core/domRegistry",()=>{
+    const btnProps=(o:any={})=>({addEventListener:vi.fn(),classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()},disabled:false,textContent:"",setAttribute:vi.fn(),click:vi.fn(),style:{display:""},value:"",checked:false,innerHTML:"",querySelectorAll:vi.fn(()=>[]),dataset:{},...o});
+    const modalProps=()=>({classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn(()=>false)},style:{display:""},addEventListener:vi.fn()});
+    const inputProps=(o:any={})=>({value:"",disabled:false,style:{display:""},focus:vi.fn(),addEventListener:vi.fn(),selectionStart:0,selectionEnd:0,setAttribute:vi.fn(),removeAttribute:vi.fn(),checked:false,...o});
+    const generateQuestionButton=btnProps();
+    const checkAnswerButton=btnProps();
+    const userAnswer=inputProps();
+    const themeToggle=btnProps();
+    const helpButton=btnProps();
+    const settingsButton=btnProps();
+    const modeSingleBtn=btnProps();
+    const modeMentalBtn=btnProps();
+    const mentalControls={style:{display:""}};
+    const singleControls={style:{display:""}};
+    const difficultySelect=btnProps({value:"medium"});
+    const timerDisplay={innerHTML:""};
+    const scoreDisplay={innerHTML:""};
+    const startSessionBtn=btnProps();
+    const pauseSessionBtn=btnProps({style:{display:""}});
+    const skipQuestionBtn=btnProps({style:{display:""}});
+    const autocontinueToggle=inputProps();
+    const scopeSelect=btnProps({value:"simple"});
+    const shuffleToggle=inputProps();
+    const mentalScopeSelect=btnProps({value:"simple"});
+    const mentalShuffleToggle=inputProps();
+    const settingsModal=modalProps();
+    const settingsClose=btnProps();
+    const settingsSave=btnProps();
+    const settingsReset=btnProps();
+    const settingsTheme=btnProps({value:"system"});
+    const settingsDefaultMode=btnProps({value:"single"});
+    const settingsAutoContinue=inputProps();
+    const settingsShuffle=inputProps();
+    const settingsScope=btnProps({value:"simple"});
+    const settingsDifficulty=btnProps({value:"medium"});
+    const settingsTimer=inputProps({value:"30"});
+    const settingsMaxQuestions=inputProps({value:"5"});
+    const settingsFont=btnProps({value:"default"});
+    const settingsPerfMaster=inputProps();
+    const settingsPerfWave=inputProps();
+    const settingsPerfBlur=inputProps();
+    const settingsPerfPreview=inputProps();
+    const settingsPerfAnimations=inputProps();
+    const settingsFpsCap=btnProps({value:"0"});
+    const settingsNotifications=inputProps();
+    const settingsAutoCheckDelay=inputProps({value:"800"});
+    const settingsDecimalPlaces=inputProps({value:"2"});
+    const settingsSound=inputProps();
+    const settingsVibration=inputProps();
+    const mcqToggle=inputProps();
+    const topicSearch=inputProps();
+    const clearAnswerBtn=btnProps();
+    const mathToolbar={style:{display:""},querySelectorAll:vi.fn(()=>[]),contains:vi.fn(()=>false)};
+    const copyAnswerBtn=btnProps({style:{display:""}});
+    const shortcutsButton=btnProps();
+    const shortcutsClose=btnProps();
+    const shortcutsGotit=btnProps();
+    const shortcutsModal=modalProps();
+    const leaderboardClose=btnProps();
+    const leaderboardCard={style:{display:""}};
+    const onboardingClose=btnProps();
+    const onboardingGotit=btnProps();
+    const onboardingOverlay=modalProps();
+    const answerCard={classList:{add:vi.fn(),remove:vi.fn()}};
+    const checkUpdatesBtn=btnProps();
+    const unlimitedToggle=inputProps();
+    const settingsAdaptive=inputProps();
+    const settingsShowWeakPopup=inputProps();
+    const settingsMcqChoices=btnProps({value:"4"});
+    const settingsTabBasic=btnProps();
+    const settingsTabAdvanced=btnProps();
+    const settingsBasicPanel={style:{display:""}};
+    const settingsAdvancedPanel={style:{display:""}};
+    const mcqChoicesContainer={style:{display:""}};
+    const previewDiv={style:{display:""}};
+    const expectedFormatDiv={style:{display:""}};
+    const mentalProgressBar={style:{width:""},setAttribute:vi.fn()};
+    const buttons={generateQuestionButton,checkAnswerButton,themeToggle,helpButton,settingsButton,modeSingleBtn,modeMentalBtn,startSessionBtn,pauseSessionBtn,skipQuestionBtn,clearAnswerBtn,copyAnswerBtn,shortcutsButton,shortcutsClose,shortcutsGotit,leaderboardClose,onboardingClose,onboardingGotit,settingsClose,settingsSave,settingsReset,checkUpdatesBtn,settingsTabBasic,settingsTabAdvanced};
+    const inputs={userAnswer,difficultySelect,autocontinueToggle,scopeSelect,shuffleToggle,mentalScopeSelect,mentalShuffleToggle,mcqToggle,topicSearch,unlimitedToggle};
+    const displays={timerDisplay,scoreDisplay,mathToolbar,previewDiv,expectedFormatDiv,mentalProgressBar};
+    const modals={settingsModal,shortcutsModal,onboardingOverlay,answerCard};
+    const session={mentalControls,singleControls,leaderboardCard,settingsBasicPanel,settingsAdvancedPanel,mentalProgressBar};
+    const settings={settingsTheme,settingsDefaultMode,settingsAutoContinue,settingsShuffle,settingsScope,settingsDifficulty,settingsTimer,settingsMaxQuestions,settingsFont,settingsPerfMaster,settingsPerfWave,settingsPerfBlur,settingsPerfPreview,settingsPerfAnimations,settingsFpsCap,settingsNotifications,settingsAutoCheckDelay,settingsDecimalPlaces,settingsSound,settingsVibration,settingsMcqChoices,settingsAdaptive,settingsShowWeakPopup};
+    const dom={
+        get generateQuestionButton(){return buttons.generateQuestionButton;},
+        set generateQuestionButton(v:any){buttons.generateQuestionButton=v;},
+        checkAnswerButton,
+        userAnswer,
+        modeSingleBtn,
+        modeMentalBtn,
+        settingsModal,
+        buttons,
+        inputs,
+        displays,
+        modals,
+        session,
+        settings,
+        appWindow:null
     };
+    return{dom};
 });
-vi.mock("./state.js",()=>{
+vi.mock("./core/stateStore",()=>{
     let sessionActive=false;
     let autoTimeout:any=null;
     let mcqMode=false;
@@ -101,30 +121,54 @@ vi.mock("./state.js",()=>{
     let mentalScope="simple";
     let shuffle=false;
     let mentalShuffle=false;
-    let selectedTopic=null;
+    let selectedTopic:string|null=null;
     let currentDifficulty="medium";
-    return{
-        sessionActive,
-        autoTimeout,
-        mcqMode,
-        currentMode,
-        scope,
-        mentalScope,
-        shuffle,
-        mentalShuffle,
-        selectedTopic,
-        currentDifficulty,
-        setSessionActive:vi.fn((a:boolean)=>{sessionActive=a;}),
-        setAutoTimeout:vi.fn((t:any)=>{autoTimeout=t;}),
-        setCurrentMode:vi.fn((m:"single"|"mental")=>{currentMode=m;}),
-        setScope:vi.fn((s:string)=>{scope=s;}),
-        setMentalScope:vi.fn((s:string)=>{mentalScope=s;}),
-        setShuffle:vi.fn((s:boolean)=>{shuffle=s;}),
-        setMentalShuffle:vi.fn((s:boolean)=>{mentalShuffle=s;}),
-        setMcqMode:vi.fn((m:boolean)=>{mcqMode=m;}),
-        setSelectedTopic:vi.fn((t:string|null)=>{selectedTopic=t;}),
-        setCurrentDifficulty:vi.fn((d:string)=>{currentDifficulty=d;}),
+    let autocontinue=false;
+    const setSessionActive=vi.fn((a:boolean)=>{sessionActive=a;});
+    const setAutoTimeout=vi.fn((t:any)=>{autoTimeout=t;});
+    const setCurrentMode=vi.fn((m:string)=>{currentMode=m;});
+    const setScope=vi.fn((s:string)=>{scope=s;});
+    const setMentalScope=vi.fn((s:string)=>{mentalScope=s;});
+    const setShuffle=vi.fn((s:boolean)=>{shuffle=s;});
+    const setMentalShuffle=vi.fn((s:boolean)=>{mentalShuffle=s;});
+    const setMcqMode=vi.fn((m:boolean)=>{mcqMode=m;});
+    const setSelectedTopic=vi.fn((t:string|null)=>{selectedTopic=t;});
+    const setCurrentDifficulty=vi.fn((d:string)=>{currentDifficulty=d;});
+    const setAutocontinue=vi.fn((a:boolean)=>{autocontinue=a;});
+    const appState={
+        get sessionActive(){return sessionActive;},
+        set sessionActive(v:boolean){sessionActive=v;},
+        get autoTimeout(){return autoTimeout;},
+        set autoTimeout(v:any){autoTimeout=v;setAutoTimeout(v);},
+        get mcqMode(){return mcqMode;},
+        get currentMode(){return"single";},
+        set currentMode(v:string){setCurrentMode(v);},
+        get scope(){return scope;},
+        set scope(v:string){scope=v;setScope(v);},
+        get mentalScope(){return mentalScope;},
+        set mentalScope(v:string){mentalScope=v;setMentalScope(v);},
+        get shuffle(){return shuffle;},
+        set shuffle(v:boolean){shuffle=v;setShuffle(v);},
+        get mentalShuffle(){return mentalShuffle;},
+        set mentalShuffle(v:boolean){mentalShuffle=v;setMentalShuffle(v);},
+        get selectedTopic(){return selectedTopic;},
+        get currentDifficulty(){return currentDifficulty;},
+        set currentDifficulty(v:string){currentDifficulty=v;setCurrentDifficulty(v);},
+        get autocontinue(){return autocontinue;},
+        set autocontinue(v:boolean){autocontinue=v;setAutocontinue(v);},
+        setSessionActive,
+        setAutoTimeout,
+        setCurrentMode,
+        setScope,
+        setMentalScope,
+        setShuffle,
+        setMentalShuffle,
+        setMcqMode,
+        setSelectedTopic,
+        setCurrentDifficulty,
+        setAutocontinue
     };
+    return{appState};
 });
 vi.mock("./settings.js",()=>({
     openSettings:vi.fn(),
@@ -181,8 +225,10 @@ vi.mock("./dataManagement.js",()=>({
     initDataModal:vi.fn(),
 }));
 import{switchToSingle,switchToMental,setupEventListeners,isVersionGreater}from"./events.js";
-import * as state from "./state.js";
-import * as dom from "./dom.js";
+import*as stateStore from"./core/stateStore";
+let state:any=stateStore.appState;
+import*as domRegistry from"./core/domRegistry";
+let dom:any=domRegistry.dom;
 import * as session from "./session.js";
 import{gt as semverGt}from"semver";
 import*as generation from"./generation.js";
