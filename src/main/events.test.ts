@@ -90,7 +90,7 @@ vi.mock("./core/domRegistry",()=>{
     const mentalProgressBar={style:{width:""},setAttribute:vi.fn()};
     const buttons={generateQuestionButton,checkAnswerButton,themeToggle,helpButton,settingsButton,modeSingleBtn,modeMentalBtn,startSessionBtn,pauseSessionBtn,skipQuestionBtn,clearAnswerBtn,copyAnswerBtn,shortcutsButton,shortcutsClose,shortcutsGotit,leaderboardClose,onboardingClose,onboardingGotit,settingsClose,settingsSave,settingsReset,checkUpdatesBtn,settingsTabBasic,settingsTabAdvanced};
     const inputs={userAnswer,difficultySelect,autocontinueToggle,scopeSelect,shuffleToggle,mentalScopeSelect,mentalShuffleToggle,mcqToggle,topicSearch,unlimitedToggle};
-    const displays={timerDisplay,scoreDisplay,mathToolbar,previewDiv,expectedFormatDiv,mentalProgressBar};
+    const displays={timerDisplay,scoreDisplay,mathToolbar,previewDiv,expectedFormatDiv,mentalProgressBar,mcqChoicesContainer};
     const modals={settingsModal,shortcutsModal,onboardingOverlay,answerCard};
     const session={mentalControls,singleControls,leaderboardCard,settingsBasicPanel,settingsAdvancedPanel,mentalProgressBar};
     const settings={settingsTheme,settingsDefaultMode,settingsAutoContinue,settingsShuffle,settingsScope,settingsDifficulty,settingsTimer,settingsMaxQuestions,settingsFont,settingsPerfMaster,settingsPerfWave,settingsPerfBlur,settingsPerfPreview,settingsPerfAnimations,settingsFpsCap,settingsNotifications,settingsAutoCheckDelay,settingsDecimalPlaces,settingsSound,settingsVibration,settingsMcqChoices,settingsAdaptive,settingsShowWeakPopup};
@@ -116,7 +116,6 @@ vi.mock("./core/stateStore",()=>{
     let sessionActive=false;
     let autoTimeout:any=null;
     let mcqMode=false;
-    let currentMode="single";
     let scope="simple";
     let mentalScope="simple";
     let shuffle=false;
@@ -126,7 +125,7 @@ vi.mock("./core/stateStore",()=>{
     let autocontinue=false;
     const setSessionActive=vi.fn((a:boolean)=>{sessionActive=a;});
     const setAutoTimeout=vi.fn((t:any)=>{autoTimeout=t;});
-    const setCurrentMode=vi.fn((m:string)=>{currentMode=m;});
+    const setCurrentMode=vi.fn();
     const setScope=vi.fn((s:string)=>{scope=s;});
     const setMentalScope=vi.fn((s:string)=>{mentalScope=s;});
     const setShuffle=vi.fn((s:boolean)=>{shuffle=s;});
