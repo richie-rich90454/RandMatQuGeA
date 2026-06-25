@@ -1,4 +1,4 @@
-import * as dom from "../dom";
+import {dom} from "./domRegistry";
 export class AppState{
 	private _selectedTopic: string|null=null;
 	private _currentMode: "single"|"mental"="single";
@@ -18,7 +18,7 @@ export class AppState{
 	private _autoTimeout: ReturnType<typeof setTimeout>|null=null;
 	private _generateDebounceTimeout: ReturnType<typeof setTimeout>|null=null;
 	private _previewTimeout: ReturnType<typeof setTimeout>|null=null;
-	private _modeButtons: (HTMLButtonElement|null)[]=([] as (HTMLButtonElement|null)[]).concat(dom.modeSingleBtn,dom.modeMentalBtn);
+	private _modeButtons: (HTMLButtonElement|null)[]=([] as (HTMLButtonElement|null)[]).concat(dom.buttons.modeSingleBtn,dom.buttons.modeMentalBtn);
 	private _unlimitedMode: boolean=false;
 	private _totalTimeSpent: number=0;
 	private _answeredQuestionsCount: number=0;
