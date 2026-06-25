@@ -1,14 +1,26 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
-vi.mock("./dom.js",()=>({
-    difficultySelect:{value:"medium"},
-    answerResults:{innerHTML:"",className:"",classList:{add:vi.fn(),remove:vi.fn()}},
-    userAnswer:{value:"",disabled:false,focus:vi.fn(),removeAttribute:vi.fn(),style:{display:""}},
-    questionArea:{innerHTML:""},
-    checkAnswerButton:{disabled:false,setAttribute:vi.fn()},
-    expectedFormatDiv:{textContent:""},
-}));
-vi.mock("./state.js",()=>{
+vi.mock("./core/domRegistry",()=>{
+    const difficultySelect={value:"medium"};
+    const answerResults={innerHTML:"",className:"",classList:{add:vi.fn(),remove:vi.fn()}};
+    const userAnswer={value:"",disabled:false,focus:vi.fn(),removeAttribute:vi.fn(),style:{display:""}};
+    const questionArea={innerHTML:""};
+    const checkAnswerButton={disabled:false,setAttribute:vi.fn()};
+    const expectedFormatDiv={textContent:""};
+    const dom={
+        difficultySelect,
+        answerResults,
+        userAnswer,
+        questionArea,
+        checkAnswerButton,
+        expectedFormatDiv,
+        inputs:{difficultySelect,userAnswer},
+        displays:{answerResults,questionArea,expectedFormatDiv},
+        buttons:{checkAnswerButton}
+    };
+    return{dom};
+});
+vi.mock("./core/stateStore",()=>{
     let selectedTopic:string|null=null;
     let currentMode="single";
     let currentDifficulty="medium";
@@ -16,21 +28,56 @@ vi.mock("./state.js",()=>{
     let autoTimeout:any=null;
     let generateDebounceTimeout:any=null;
     let mcqMode=false;
-    return{
+    const setSelectedTopic=vi.fn((t:string|null)=>{selectedTopic=t;});
+    const setCurrentDifficulty=vi.fn((d:string)=>{currentDifficulty=d;});
+    const setGenerateDebounceTimeout=vi.fn((t:any)=>{generateDebounceTimeout=t;});
+    const setAutoTimeout=vi.fn((t:any)=>{autoTimeout=t;});
+    const setMcqMode=vi.fn((m:boolean)=>{mcqMode=m;});
+    const setShuffle=vi.fn((s:boolean)=>{shuffle=s;});
+    const setCurrentMode=vi.fn((m:string)=>{currentMode=m;});
+    const appState={
         get selectedTopic(){return selectedTopic;},
+        set selectedTopic(v:string|null){selectedTopic=v;setSelectedTopic(v);},
         get currentMode(){return currentMode;},
+        set currentMode(v:string){currentMode=v;setCurrentMode(v);},
         get currentDifficulty(){return currentDifficulty;},
+        set currentDifficulty(v:string){currentDifficulty=v;setCurrentDifficulty(v);},
         get shuffle(){return shuffle;},
+        set shuffle(v:boolean){shuffle=v;setShuffle(v);},
         get autoTimeout(){return autoTimeout;},
+        set autoTimeout(v:any){autoTimeout=v;setAutoTimeout(v);},
         get generateDebounceTimeout(){return generateDebounceTimeout;},
+        set generateDebounceTimeout(v:any){generateDebounceTimeout=v;setGenerateDebounceTimeout(v);},
         get mcqMode(){return mcqMode;},
-        setSelectedTopic:vi.fn((t:string|null)=>{selectedTopic=t;}),
-        setCurrentDifficulty:vi.fn((d:string)=>{currentDifficulty=d;}),
-        setGenerateDebounceTimeout:vi.fn((t:any)=>{generateDebounceTimeout=t;}),
-        setAutoTimeout:vi.fn((t:any)=>{autoTimeout=t;}),
-        setMcqMode:vi.fn((m:boolean)=>{mcqMode=m;}),
-        setShuffle:vi.fn((s:boolean)=>{shuffle=s;}),
-        setCurrentMode:vi.fn((m:string)=>{currentMode=m;}),
+        set mcqMode(v:boolean){mcqMode=v;setMcqMode(v);},
+        setSelectedTopic,
+        setCurrentDifficulty,
+        setGenerateDebounceTimeout,
+        setAutoTimeout,
+        setMcqMode,
+        setShuffle,
+        setCurrentMode
+    };
+    return{appState};
+});
+vi.mock("./core/questionState",()=>{
+    return{
+        questionState:{
+            get correctAnswer(){return(window as any).correctAnswer;},
+            set correctAnswer(v:any){(window as any).correctAnswer=v;},
+            get expectedFormat(){return(window as any).expectedFormat;},
+            set expectedFormat(v:any){(window as any).expectedFormat=v;},
+            get hasQuestion(){return(window as any).hasQuestion;},
+            set hasQuestion(v:any){(window as any).hasQuestion=v;}
+        }
+    };
+});
+vi.mock("./core/questionRenderer",()=>{
+    return{
+        renderer:{
+            render:vi.fn(),
+            typeset:vi.fn()
+        }
     };
 });
 vi.mock("./ui.js",()=>({
@@ -58,7 +105,8 @@ vi.mock("@tauri-apps/api/core",()=>({
     invoke:vi.fn(()=>Promise.resolve({difficulty:"hard",weak_topic:"add"})),
 }));
 import{debounceGenerate,generateQuestion,practiceWeakAreas}from"./generation.js";
-import*as state from"./state.js";
+import*as stateStore from"./core/stateStore";
+let state:any=stateStore.appState;
 import{invoke}from"@tauri-apps/api/core";
 import{generateQuestion as _callGeneratorMock}from"./questionGenerator.js";
 let callGeneratorMock=_callGeneratorMock as any;
@@ -67,7 +115,8 @@ let generateChoicesMock=_generateChoicesMock as any;
 import{showNotification,updateUIState}from"./ui.js";
 import{startQuestionTimer as startTimerMock}from"./answer.js";
 import{pickRandomTopic as pickRandomTopicMock}from"./topics.js";
-import*as dom from"./dom.js";
+import*as domRegistry from"./core/domRegistry";
+let dom:any=domRegistry.dom;
 import*as settings from"./settings.js";
 describe("generation",()=>{
     it("should export debounceGenerate",()=>{
