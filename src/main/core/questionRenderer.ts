@@ -1,6 +1,6 @@
 import{DomRegistry,dom}from"./domRegistry";
 import{questionState}from"./questionState";
-import{type CorrectAnswer}from"../../types/global.d";
+import{type CorrectAnswer}from"../../types/global";
 export class QuestionRenderer{
     private registry: DomRegistry;
     constructor(registry: DomRegistry){
