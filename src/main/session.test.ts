@@ -1,31 +1,37 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
-vi.mock("./dom.js",()=>({
-    timerDisplay:{innerHTML:"",style:{display:""}},
-    scoreDisplay:{innerHTML:""},
-    mentalProgressBar:{style:{width:""},setAttribute:vi.fn()},
-    startSessionBtn:{textContent:"",classList:{add:vi.fn(),remove:vi.fn()}},
-    pauseSessionBtn:{style:{display:""},innerHTML:"",setAttribute:vi.fn()},
-    skipQuestionBtn:{style:{display:""}},
-    userAnswer:{value:"",disabled:false,focus:vi.fn(),style:{display:"none"},removeAttribute:vi.fn(),setAttribute:vi.fn()},
-    answerResults:{innerHTML:"",className:"",classList:{add:vi.fn(),remove:vi.fn()}},
-    questionArea:{innerHTML:""},
-    checkAnswerButton:{disabled:false,setAttribute:vi.fn(),removeAttribute:vi.fn()},
-    currentTopicDisplay:{textContent:""},
-    copyAnswerBtn:{style:{display:""}},
-    expectedFormatDiv:{textContent:""},
-    leaderboardContent:{innerHTML:""},
-    leaderboardCard:{classList:{add:vi.fn(),remove:vi.fn()},style:{display:""}},
-    mcqChoicesContainer:{style:{display:""}},
-    mathToolbar:{style:{display:""}},
-    statisticsPanel:{style:{display:""}},
-    accuracyStat:{textContent:""},
-    avgTimeStat:{textContent:""},
-    unlimitedToggle:{checked:false},
-    modeSingleBtn:{classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()}},
-    modeMentalBtn:{classList:{add:vi.fn(),remove:vi.fn()},click:vi.fn()},
-}));
-vi.mock("./state.js",()=>{
+vi.mock("./core/domRegistry",()=>{
+    const timerDisplay={innerHTML:"",style:{display:""}};
+    const scoreDisplay={innerHTML:""};
+    const mentalProgressBar={style:{width:""},setAttribute:vi.fn()};
+    const startSessionBtn={textContent:"",classList:{add:vi.fn(),remove:vi.fn()}};
+    const pauseSessionBtn={style:{display:""},innerHTML:"",setAttribute:vi.fn()};
+    const skipQuestionBtn={style:{display:""}};
+    const userAnswer={value:"",disabled:false,focus:vi.fn(),style:{display:"none"},removeAttribute:vi.fn(),setAttribute:vi.fn()};
+    const answerResults={innerHTML:"",className:"",classList:{add:vi.fn(),remove:vi.fn()}};
+    const questionArea={innerHTML:""};
+    const checkAnswerButton={disabled:false,setAttribute:vi.fn(),removeAttribute:vi.fn()};
+    const currentTopicDisplay={textContent:""};
+    const copyAnswerBtn={style:{display:""}};
+    const expectedFormatDiv={textContent:""};
+    const leaderboardContent={innerHTML:""};
+    const leaderboardCard={classList:{add:vi.fn(),remove:vi.fn()},style:{display:""}};
+    const mcqChoicesContainer={style:{display:""}};
+    const mathToolbar={style:{display:""}};
+    const statisticsPanel={style:{display:""}};
+    const accuracyStat={textContent:""};
+    const avgTimeStat={textContent:""};
+    const unlimitedToggle={checked:false};
+    const modeSingleBtn={classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()}};
+    const modeMentalBtn={classList:{add:vi.fn(),remove:vi.fn()},click:vi.fn()};
+    const buttons={startSessionBtn,pauseSessionBtn,skipQuestionBtn,checkAnswerButton,copyAnswerBtn,modeSingleBtn,modeMentalBtn};
+    const inputs={userAnswer,unlimitedToggle};
+    const displays={timerDisplay,scoreDisplay,mentalProgressBar,answerResults,questionArea,currentTopicDisplay,expectedFormatDiv,leaderboardContent,mcqChoicesContainer,mathToolbar,statisticsPanel,accuracyStat,avgTimeStat};
+    const session={leaderboardCard};
+    const dom={buttons,inputs,displays,session};
+    return{dom};
+});
+vi.mock("./core/stateStore",()=>{
     let sessionActive=false;
     let sessionPaused=false;
     let sessionScore={correct:0,total:0};
@@ -42,40 +48,83 @@ vi.mock("./state.js",()=>{
     let currentQuestionStartTime:number|null=null;
     let totalTimeSpent=0;
     let answeredQuestionsCount=0;
-    return{
+    const setSessionActive=vi.fn((a:boolean)=>{sessionActive=a;});
+    const setSessionPaused=vi.fn((p:boolean)=>{sessionPaused=p;});
+    const setSessionScore=vi.fn((s:{correct:number,total:number})=>{sessionScore=s;});
+    const setTimeLeft=vi.fn((t:number)=>{timeLeft=t;});
+    const setMaxQuestions=vi.fn((m:number)=>{maxQuestions=m;});
+    const setCurrentDifficulty=vi.fn((d:string)=>{currentDifficulty=d;});
+    const setSelectedTopic=vi.fn((t:string|null)=>{selectedTopic=t;});
+    const setMentalShuffle=vi.fn((s:boolean)=>{mentalShuffle=s;});
+    const setMentalScope=vi.fn((s:string)=>{mentalScope=s;});
+    const setSessionTimer=vi.fn((t:any)=>{sessionTimer=t;});
+    const setMentalNextQuestionTimeout=vi.fn((t:any)=>{mentalNextQuestionTimeout=t;});
+    const setUnlimitedMode=vi.fn((u:boolean)=>{unlimitedMode=u;});
+    const setMcqMode=vi.fn((m:boolean)=>{mcqMode=m;});
+    const setCurrentQuestionStartTime=vi.fn((t:number|null)=>{currentQuestionStartTime=t;});
+    const setTotalTimeSpent=vi.fn((t:number)=>{totalTimeSpent=t;});
+    const setAnsweredQuestionsCount=vi.fn((c:number)=>{answeredQuestionsCount=c;});
+    const appState={
         get sessionActive(){return sessionActive;},
+        set sessionActive(v:boolean){sessionActive=v;setSessionActive(v);},
         get sessionPaused(){return sessionPaused;},
+        set sessionPaused(v:boolean){sessionPaused=v;setSessionPaused(v);},
         get sessionScore(){return sessionScore;},
+        set sessionScore(v:{correct:number,total:number}){sessionScore=v;setSessionScore(v);},
         get timeLeft(){return timeLeft;},
+        set timeLeft(v:number){timeLeft=v;setTimeLeft(v);},
         get maxQuestions(){return maxQuestions;},
+        set maxQuestions(v:number){maxQuestions=v;setMaxQuestions(v);},
         get currentDifficulty(){return currentDifficulty;},
+        set currentDifficulty(v:string){currentDifficulty=v;setCurrentDifficulty(v);},
         get selectedTopic(){return selectedTopic;},
+        set selectedTopic(v:string|null){selectedTopic=v;setSelectedTopic(v);},
         get mentalShuffle(){return mentalShuffle;},
+        set mentalShuffle(v:boolean){mentalShuffle=v;setMentalShuffle(v);},
         get mentalScope(){return mentalScope;},
+        set mentalScope(v:string){mentalScope=v;setMentalScope(v);},
         get sessionTimer(){return sessionTimer;},
+        set sessionTimer(v:any){sessionTimer=v;setSessionTimer(v);},
         get mentalNextQuestionTimeout(){return mentalNextQuestionTimeout;},
+        set mentalNextQuestionTimeout(v:any){mentalNextQuestionTimeout=v;setMentalNextQuestionTimeout(v);},
         get unlimitedMode(){return unlimitedMode;},
+        set unlimitedMode(v:boolean){unlimitedMode=v;setUnlimitedMode(v);},
         get mcqMode(){return mcqMode;},
+        set mcqMode(v:boolean){mcqMode=v;setMcqMode(v);},
         get currentQuestionStartTime(){return currentQuestionStartTime;},
+        set currentQuestionStartTime(v:number|null){currentQuestionStartTime=v;setCurrentQuestionStartTime(v);},
         get totalTimeSpent(){return totalTimeSpent;},
+        set totalTimeSpent(v:number){totalTimeSpent=v;setTotalTimeSpent(v);},
         get answeredQuestionsCount(){return answeredQuestionsCount;},
-        setSessionActive:vi.fn((a:boolean)=>{sessionActive=a;}),
-        setSessionPaused:vi.fn((p:boolean)=>{sessionPaused=p;}),
-        setSessionScore:vi.fn((s:{correct:number,total:number})=>{sessionScore=s;}),
-        setTimeLeft:vi.fn((t:number)=>{timeLeft=t;}),
-        setMaxQuestions:vi.fn((m:number)=>{maxQuestions=m;}),
-        setCurrentDifficulty:vi.fn((d:string)=>{currentDifficulty=d;}),
-        setSelectedTopic:vi.fn((t:string|null)=>{selectedTopic=t;}),
-        setMentalShuffle:vi.fn((s:boolean)=>{mentalShuffle=s;}),
-        setMentalScope:vi.fn((s:string)=>{mentalScope=s;}),
-        setSessionTimer:vi.fn((t:any)=>{sessionTimer=t;}),
-        setMentalNextQuestionTimeout:vi.fn((t:any)=>{mentalNextQuestionTimeout=t;}),
-        setUnlimitedMode:vi.fn((u:boolean)=>{unlimitedMode=u;}),
-        setMcqMode:vi.fn((m:boolean)=>{mcqMode=m;}),
-        setCurrentQuestionStartTime:vi.fn((t:number|null)=>{currentQuestionStartTime=t;}),
-        setTotalTimeSpent:vi.fn((t:number)=>{totalTimeSpent=t;}),
-        setAnsweredQuestionsCount:vi.fn((c:number)=>{answeredQuestionsCount=c;}),
+        set answeredQuestionsCount(v:number){answeredQuestionsCount=v;setAnsweredQuestionsCount(v);},
+        setSessionActive,
+        setSessionPaused,
+        setSessionScore,
+        setTimeLeft,
+        setMaxQuestions,
+        setCurrentDifficulty,
+        setSelectedTopic,
+        setMentalShuffle,
+        setMentalScope,
+        setSessionTimer,
+        setMentalNextQuestionTimeout,
+        setUnlimitedMode,
+        setMcqMode,
+        setCurrentQuestionStartTime,
+        setTotalTimeSpent,
+        setAnsweredQuestionsCount
     };
+    return{appState};
+});
+vi.mock("./core/questionState",()=>{
+    return{questionState:{
+        get correctAnswer(){return(window as any).correctAnswer;},
+        set correctAnswer(v:any){(window as any).correctAnswer=v;},
+        get expectedFormat(){return(window as any).expectedFormat;},
+        set expectedFormat(v:any){(window as any).expectedFormat=v;},
+        get hasQuestion(){return(window as any).hasQuestion;},
+        set hasQuestion(v:any){(window as any).hasQuestion=v;}
+    }};
 });
 vi.mock("./settings.js",()=>({
     settings:{
@@ -115,7 +164,8 @@ vi.mock("./mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
 import{saveSessionSnapshot,restoreSessionSnapshot,startTimer,generateNextMentalQuestion,handleMentalAnswer,handleMcqChoice,startMentalSession,pauseMentalSession,skipMentalQuestion,stopMentalSession,endMentalSession,promptSaveScore,updateLeaderboard}from"./session.js";
-import * as state from "./state.js";
+import*as stateStore from"./core/stateStore";
+let state:any=stateStore.appState;
 import * as ui from "./ui.js";
 import * as settings from "./settings.js";
 import * as questionGenerator from "./questionGenerator.js";
