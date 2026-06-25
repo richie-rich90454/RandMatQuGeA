@@ -1,14 +1,24 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,afterEach}from"vitest";
-vi.mock("./state.js",()=>{
+vi.mock("./core/stateStore",()=>{
     let mcqMode=false;
     let mcqChoices:string[]=[];
-    return{
-        mcqMode:mcqMode,
-        mcqChoices:mcqChoices,
-        setMcqChoices:vi.fn((c:string[])=>{mcqChoices=c;}),
+    const setMcqChoices=vi.fn((c:string[])=>{mcqChoices=c;});
+    const appState={
+        get mcqMode(){return mcqMode;},
+        set mcqMode(v:boolean){mcqMode=v;},
+        get mcqChoices(){return mcqChoices;},
+        set mcqChoices(v:string[]){setMcqChoices(v);},
+        setMcqChoices,
     };
+    return{appState};
 });
+vi.mock("./core/questionState",()=>({
+    questionState:{
+        get correctAnswer(){return(window as any).correctAnswer;},
+        set correctAnswer(v:any){(window as any).correctAnswer=v;},
+    }
+}));
 vi.mock("./settings.js",()=>({
     settings:{mcqChoicesCount:4},
 }));
@@ -26,9 +36,10 @@ vi.mock("mathjs",()=>{
     return{evaluate,default:{evaluate}};
 });
 import{generateDistractors,generateChoicesForCurrentQuestion}from"./mcq.js";
-import*as state from"./state.js";
+import*as stateStore from"./core/stateStore";
 import*as ui from"./ui.js";
 import*as settings from"./settings.js";
+const state:any=stateStore.appState;
 describe("generateDistractors",()=>{
     it("should return an array of the given count",async()=>{
         const result=await generateDistractors("42",4);
