@@ -10,11 +10,12 @@ import * as topicsModule from "./main/topics";
 import * as session from "./main/session";
 import * as events from "./main/events";
 import * as theme from "./main/theme";
+import {questionState} from "./main/core/questionState";
 export * from "./main/dom";
 export * from "./main/state";
-window.correctAnswer={correct:""};
-window.expectedFormat="";
-window.hasQuestion=false;
+questionState.correctAnswer={correct:""};
+questionState.expectedFormat="";
+questionState.hasQuestion=false;
 function initApp(): void{
     settings.loadSettings();
     ui.syncSettingsToState();
