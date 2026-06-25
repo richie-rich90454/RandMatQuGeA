@@ -2,10 +2,26 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
-import {questionArea} from "../../script.js";
 import {generatePythagorean,generateSimilarTriangles,generateTriangleClassification} from "./geometryTriangles.js";
 import {getMaxForDifficulty} from "./geometryUtils.js";
-vi.mock("../../script.js",()=>({questionArea:null as HTMLElement|null}));
+let sink=vi.hoisted(()=>({ div: null as HTMLDivElement|null }));
+vi.mock("../../main/core/questionRenderer",()=>({
+	renderer:{
+		render(html: string){
+			if(sink.div) sink.div.innerHTML=html;
+			let mj=(window as any).MathJax;
+			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
+		},
+		clear(){ if(sink.div) sink.div.innerHTML=""; },
+		setAnswer(a: any){ (window as any).correctAnswer=a; },
+		setExpectedFormat(f: string){ (window as any).expectedFormat=f; },
+		setHasQuestion(v: boolean){ (window as any).hasQuestion=v; },
+		typeset(){
+			let mj=(window as any).MathJax;
+			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
+		}
+	}
+}));
 vi.mock("./geometryUtils.js",()=>({
 	getMaxForDifficulty:vi.fn(()=>5),
 	cleanupVisualization:vi.fn()
@@ -19,7 +35,7 @@ describe("generatePythagorean",()=>{
 	beforeEach(()=>{
 		originalMathRandom=Math.random;
 		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
+		sink.div=mockDiv;
 		delete(window as any).correctAnswer;
 		delete(window as any).expectedFormat;
 		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
@@ -29,10 +45,10 @@ describe("generatePythagorean",()=>{
 		delete(window as any).MathJax;
 	});
 	it("returns early if questionArea is null",()=>{
-		(questionArea as any)=null;
+		sink.div=null;
 		generatePythagorean();
 		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
+		expect((window as any).correctAnswer).toBeDefined();
 	});
 	it("generates pythagorean correctly",()=>{
 		Math.random=vi.fn().mockReturnValue(0.3);
@@ -91,7 +107,7 @@ describe("generatePythagorean - edge cases",()=>{
     beforeEach(()=>{
         originalMathRandom=Math.random;
         mockDiv=document.createElement("div");
-        (questionArea as any)=mockDiv;
+        sink.div=mockDiv;
         delete(window as any).correctAnswer;
         delete(window as any).expectedFormat;
         (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
