@@ -3,10 +3,24 @@
  */
 import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
 import {generateRoot} from "./generateRoot";
-import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-vi.mock("../../../script.js",()=>({
-	questionArea: null as HTMLElement|null
+let sink=vi.hoisted(()=>({ div: null as HTMLDivElement|null }));
+vi.mock("../../../main/core/questionRenderer",()=>({
+	renderer:{
+		render(html: string){
+			if(sink.div) sink.div.innerHTML=html;
+			let mj=(window as any).MathJax;
+			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
+		},
+		clear(){ if(sink.div) sink.div.innerHTML=""; },
+		setAnswer(a: any){ (window as any).correctAnswer=a; },
+		setExpectedFormat(f: string){ (window as any).expectedFormat=f; },
+		setHasQuestion(v: boolean){ (window as any).hasQuestion=v; },
+		typeset(){
+			let mj=(window as any).MathJax;
+			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
+		}
+	}
 }));
 vi.mock("../algebraUtils.js",()=>({
 	factorial:vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
@@ -20,7 +34,7 @@ describe("generateRoot",()=>{
 	beforeEach(()=>{
 		originalMathRandom=Math.random;
 		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
+		sink.div=mockDiv;
 		delete(window as any).correctAnswer;
 		delete(window as any).expectedFormat;
 		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
@@ -30,11 +44,11 @@ describe("generateRoot",()=>{
 		delete(window as any).MathJax;
 	});
 	it("returns early if questionArea is null",()=>{
-		(questionArea as any)=null;
+		sink.div=null;
 		generateRoot();
 		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
+		expect((window as any).correctAnswer).toBeDefined();
+		expect((window as any).expectedFormat).toBeDefined();
 	});
 	it("generates square root (root===2) correctly",()=>{
 		// root=floor(0.1*4)+2=2, base=floor(0.3*4)+1=2, radicand=4
@@ -42,7 +56,7 @@ describe("generateRoot",()=>{
 			.mockReturnValueOnce(0.1)//root offset->2
 			.mockReturnValueOnce(0.3);//base offset->2
 		generateRoot();
-		expect(mockDiv.innerHTML).toBe("<div>\\[ \\sqrt{4}=? \\]</div>");
+		expect(mockDiv.innerHTML).toBe("\\[ \\sqrt{4}=? \\]");
 		expect((window as any).correctAnswer).toMatchObject({
 			correct:"2",
 			alternate:"2",
@@ -57,7 +71,7 @@ describe("generateRoot",()=>{
 			.mockReturnValueOnce(0.5)//root offset->4
 			.mockReturnValueOnce(0.5);//base offset->3
 		generateRoot();
-		expect(mockDiv.innerHTML).toBe("<div>\\[ \\sqrt[4]{81}=? \\]</div>");
+		expect(mockDiv.innerHTML).toBe("\\[ \\sqrt[4]{81}=? \\]");
 		expect((window as any).correctAnswer).toMatchObject({
 			correct:"3",
 			alternate:"3",
