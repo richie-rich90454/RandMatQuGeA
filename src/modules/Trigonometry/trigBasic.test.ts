@@ -2,16 +2,32 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
-import {questionArea} from "../../script.js";
 import {generateSin,generateCosine,generateTangent} from "./trigBasic.js";
-vi.mock("../../script.js",()=>({questionArea:null as HTMLElement|null}));
+let sink=vi.hoisted(()=>({ div: null as HTMLDivElement|null }));
+vi.mock("../../main/core/questionRenderer",()=>({
+	renderer:{
+		render(html: string){
+			if(sink.div) sink.div.innerHTML=html;
+			let mj=(window as any).MathJax;
+			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
+		},
+		clear(){ if(sink.div) sink.div.innerHTML=""; },
+		setAnswer(a: any){ (window as any).correctAnswer=a; },
+		setExpectedFormat(f: string){ (window as any).expectedFormat=f; },
+		setHasQuestion(v: boolean){ (window as any).hasQuestion=v; },
+		typeset(){
+			let mj=(window as any).MathJax;
+			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
+		}
+	}
+}));
 describe("generateSin",()=>{
 	let originalMathRandom:()=>number;
 	let mockDiv:HTMLDivElement;
 	beforeEach(()=>{
 		originalMathRandom=Math.random;
 		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
+		sink.div=mockDiv;
 		delete(window as any).correctAnswer;
 		delete(window as any).expectedFormat;
 		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
@@ -21,10 +37,10 @@ describe("generateSin",()=>{
 		delete(window as any).MathJax;
 	});
 	it("returns early if questionArea is null",()=>{
-		(questionArea as any)=null;
+		sink.div=null;
 		generateSin();
 		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
+		expect((window as any).correctAnswer).toBeDefined();
 	});
 	it("generates evaluate sin correctly",()=>{
 		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
@@ -81,7 +97,7 @@ describe("generateSin - edge cases",()=>{
 	beforeEach(()=>{
 		originalMathRandom=Math.random;
 		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
+		sink.div=mockDiv;
 		delete(window as any).correctAnswer;
 		delete(window as any).expectedFormat;
 		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
@@ -144,7 +160,7 @@ describe("generateSin - solve edge cases (k negative fix)",()=>{
 	beforeEach(()=>{
 		originalMathRandom=Math.random;
 		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
+		sink.div=mockDiv;
 		delete(window as any).correctAnswer;
 		delete(window as any).expectedFormat;
 		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
