@@ -1,33 +1,47 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,afterEach,beforeEach}from"vitest";
-vi.mock("./dom.js",()=>{
-    let innerHTML="";
-    return{
-        topicGrid:{
-            get innerHTML(){return innerHTML;},
-            set innerHTML(v){innerHTML=v;},
-            appendChild:vi.fn(),
-        },
-        topicSearch:{value:""},
-        currentTopicDisplay:{textContent:""},
-        generateQuestionButton:{disabled:false,setAttribute:vi.fn()},
+vi.mock("./core/domRegistry",()=>{
+    let topicGridHTML="";
+    const topicGrid={
+        get innerHTML(){return topicGridHTML;},
+        set innerHTML(v:string){topicGridHTML=v;},
+        appendChild:vi.fn()
     };
+    const topicSearch={value:""};
+    const currentTopicDisplay={textContent:""};
+    const generateQuestionButton={disabled:false,setAttribute:vi.fn()};
+    const dom={
+        topicGrid,
+        topicSearch,
+        currentTopicDisplay,
+        generateQuestionButton,
+        displays:{topicGrid,currentTopicDisplay},
+        inputs:{topicSearch},
+        buttons:{generateQuestionButton}
+    };
+    return{dom};
 });
-vi.mock("./state.js",()=>{
+vi.mock("./core/stateStore",()=>{
     let selectedTopic:string|null=null;
     let currentMode="single";
     let scope="simple";
     let mentalScope="simple";
-    return{
+    const setSelectedTopic=vi.fn((t:string|null)=>{selectedTopic=t;});
+    const setCurrentMode=vi.fn((m:string)=>{currentMode=m;});
+    const setScope=vi.fn((s:string)=>{scope=s;});
+    const setMentalScope=vi.fn((s:string)=>{mentalScope=s;});
+    const appState={
         get selectedTopic(){return selectedTopic;},
+        set selectedTopic(v:string|null){selectedTopic=v;setSelectedTopic(v);},
         get currentMode(){return currentMode;},
         get scope(){return scope;},
         get mentalScope(){return mentalScope;},
-        setSelectedTopic:vi.fn((t:string|null)=>{selectedTopic=t;}),
-        setCurrentMode:vi.fn((m:"single"|"mental")=>{currentMode=m;}),
-        setScope:vi.fn((s:string)=>{scope=s;}),
-        setMentalScope:vi.fn((s:string)=>{mentalScope=s;}),
+        setSelectedTopic,
+        setCurrentMode,
+        setScope,
+        setMentalScope
     };
+    return{appState};
 });
 vi.mock("./ui.js",()=>({
     updateUIState:vi.fn(),
@@ -50,8 +64,10 @@ vi.mock("./constants.js",()=>({
     },
 }));
 import*as topics from"./topics.js";
-import*as state from"./state.js";
-import*as dom from"./dom.js";
+import*as stateStore from"./core/stateStore";
+let state:any=stateStore.appState;
+import*as domRegistry from"./core/domRegistry";
+let dom:any=domRegistry.dom;
 import*as ui from"./ui.js";
 describe("topics",()=>{
     afterEach(()=>{
