@@ -86,6 +86,8 @@ bower_components/
 # ── Tauri ─────────────────────────────────────────────────────────────────────
 src-tauri/target/
 src-tauri/WixTools/
+src-tauri/app.db
+*.db
 *.AppImage
 *.dmg
 *.deb
