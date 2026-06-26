@@ -4,6 +4,7 @@
  * @description Initializes the app, loads settings, sets up event listeners, and renders topics.
  * Removed automatic weak topics popup; now manual via button.
  */
+import "./style.css";
 import * as settings from "./main/settings";
 import * as ui from "./main/ui";
 import * as topicsModule from "./main/topics";

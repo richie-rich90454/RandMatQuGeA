@@ -7,7 +7,9 @@
     "permissions": [
         "core:path:default",
         "core:window:allow-set-theme",
+        "core:window:allow-theme",
         "core:window:allow-set-effects",
+        "core:event:allow-listen",
         "updater:default",
         "updater:allow-check",
         "process:default"

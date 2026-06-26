@@ -130,12 +130,24 @@ export function saveSettings():void{
     }
     applySettingsToApp();
 }
-export function previewSetting(field:string,value:any):void{
+export async function previewSetting(field:string,value:any):Promise<void>{
     switch (field){
         case "theme":
             if (value==="system"){
-                let prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
-                applyTheme(prefersDark?"dark":"light");
+                if (dom.appWindow){
+                    try{
+                        let tauriTheme=await dom.appWindow.theme();
+                        applyTheme(tauriTheme??"light");
+                    }
+                    catch(e){
+                        let prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
+                        applyTheme(prefersDark?"dark":"light");
+                    }
+                }
+                else{
+                    let prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
+                    applyTheme(prefersDark?"dark":"light");
+                }
             }
             else{
                 applyTheme(value);
@@ -217,10 +229,22 @@ export function previewSetting(field:string,value:any):void{
             break;
     }
 }
-export function applySettingsToApp():void{
+export async function applySettingsToApp():Promise<void>{
     if (settings.theme==="system"){
-        const prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
-        applyTheme(prefersDark?"dark":"light");
+        if (dom.appWindow){
+            try{
+                let tauriTheme=await dom.appWindow.theme();
+                applyTheme(tauriTheme??"light");
+            }
+            catch(e){
+                let prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
+                applyTheme(prefersDark?"dark":"light");
+            }
+        }
+        else{
+            let prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
+            applyTheme(prefersDark?"dark":"light");
+        }
     }
     else{
         applyTheme(settings.theme as "light"|"dark");

@@ -94,11 +94,11 @@ describe("initializeTheme",()=>{
         await initializeTheme();
         expect(clickHandler).not.toBeNull();
         mockSettings.theme="system";
-        clickHandler();
+        await clickHandler();
         expect(mockSettings.theme).toBe("dark");
-        clickHandler();
+        await clickHandler();
         expect(mockSettings.theme).toBe("light");
-        clickHandler();
+        await clickHandler();
         expect(mockSettings.theme).toBe("system");
     });
     it("should save theme preference",async()=>{
@@ -106,7 +106,7 @@ describe("initializeTheme",()=>{
         mockThemeToggle={addEventListener:(_event: string,handler: any)=>{clickHandler=handler;}};
         mockMatchMedia.mockReturnValue({matches:false,addEventListener:mockAddEventListener});
         await initializeTheme();
-        clickHandler();
+        await clickHandler();
         expect(localStorage.getItem("theme")).toBe("dark");
     });
     it("should apply saved theme on init",async()=>{
@@ -128,9 +128,51 @@ describe("initializeTheme",()=>{
         expect(mockApplyTheme).toHaveBeenCalledWith("light");
     });
     it("should sync theme with Tauri when available",async()=>{
-        mockAppWindow={theme:vi.fn().mockResolvedValue("dark"),setTheme:vi.fn()};
+        mockAppWindow={theme:vi.fn().mockResolvedValue("dark"),setTheme:vi.fn(),onThemeChanged:vi.fn().mockResolvedValue(vi.fn())};
         await initializeTheme();
         expect(mockAppWindow.theme).toHaveBeenCalled();
+        expect(mockApplyTheme).toHaveBeenCalledWith("dark");
+    });
+    it("should register onThemeChanged when appWindow is available",async()=>{
+        mockAppWindow={theme:vi.fn().mockResolvedValue("light"),setTheme:vi.fn(),onThemeChanged:vi.fn().mockResolvedValue(vi.fn())};
+        await initializeTheme();
+        expect(mockAppWindow.onThemeChanged).toHaveBeenCalledWith(expect.any(Function));
+    });
+    it("should attach themeToggle handler even when appWindow is present",async()=>{
+        let addEventListener=vi.fn();
+        mockThemeToggle={addEventListener};
+        mockAppWindow={theme:vi.fn().mockResolvedValue("light"),setTheme:vi.fn(),onThemeChanged:vi.fn().mockResolvedValue(vi.fn())};
+        await initializeTheme();
+        expect(addEventListener).toHaveBeenCalledWith("click",expect.any(Function));
+    });
+    it("should await appWindow.theme() for system branch in Tauri mode",async()=>{
+        mockSettings={theme:"system"};
+        mockAppWindow={theme:vi.fn().mockResolvedValue("dark"),setTheme:vi.fn(),onThemeChanged:vi.fn().mockResolvedValue(vi.fn())};
+        await initializeTheme();
+        expect(mockAppWindow.theme).toHaveBeenCalled();
+        expect(mockApplyTheme).toHaveBeenCalledWith("dark");
+    });
+    it("should apply saved non-system theme via Tauri path",async()=>{
+        localStorage.setItem("theme","dark");
+        mockAppWindow={theme:vi.fn().mockResolvedValue("light"),setTheme:vi.fn(),onThemeChanged:vi.fn().mockResolvedValue(vi.fn())};
+        await initializeTheme();
+        expect(mockApplyTheme).toHaveBeenCalledWith("dark");
+    });
+    it("should fall back to matchMedia when Tauri theme query throws",async()=>{
+        mockAppWindow={theme:vi.fn().mockRejectedValue(new Error("perm denied")),setTheme:vi.fn(),onThemeChanged:vi.fn().mockResolvedValue(vi.fn())};
+        mockMatchMedia.mockReturnValue({matches:true,addEventListener:mockAddEventListener});
+        await initializeTheme();
+        expect(mockApplyTheme).toHaveBeenCalledWith("dark");
+    });
+    it("should use appWindow.theme() in click handler system branch when appWindow is present",async()=>{
+        let clickHandler: any=null;
+        mockThemeToggle={addEventListener:(_event: string,handler: any)=>{clickHandler=handler;}};
+        mockAppWindow={theme:vi.fn().mockResolvedValue("dark"),setTheme:vi.fn(),onThemeChanged:vi.fn().mockResolvedValue(vi.fn())};
+        await initializeTheme();
+        mockSettings.theme="light";
+        await clickHandler();
+        expect(mockSettings.theme).toBe("system");
+        expect(mockAppWindow.theme).toHaveBeenCalledTimes(2);
         expect(mockApplyTheme).toHaveBeenCalledWith("dark");
     });
 });

@@ -6,6 +6,8 @@ import {visualizer} from "rollup-plugin-visualizer";
 let packageJson=JSON.parse(readFileSync(join(__dirname,"package.json"),"utf-8"));
 let version=packageJson.version;
 export default defineConfig({
+	clearScreen: false,
+	base: "./",
 	test:{
 		setupFiles:["./src/vitest.setup.ts"],
 		environment:"jsdom",
@@ -18,7 +20,7 @@ export default defineConfig({
 	build: {
 		outDir: "../dist",
 		emptyOutDir: true,
-		assetsDir: "assets",
+		assetsDir: "",
 		minify: "oxc",
 		target: "es2020",
 		cssMinify: true,
@@ -37,9 +39,9 @@ export default defineConfig({
 						let parts=id.split("node_modules/")[1].split("/");
 						let topLevel=parts[0];
 						if (topLevel.startsWith("@")){
-							let scoped=`${topLevel}/${parts[1]}`;
-							return `vendor-${scoped.replace("@","")}`;
-						}
+						let scoped=`${topLevel}/${parts[1]}`;
+						return `vendor-${scoped.replace("@","").replace("/","-")}`;
+					}
 						if (["three"].includes(topLevel)){
 							return `vendor-${topLevel}`;
 						}
@@ -67,16 +69,27 @@ export default defineConfig({
 				return html.replace(/__APP_VERSION__/g, version);
 			}
 		},
+		{
+			name: "strip-crossorigin",
+			transformIndexHtml(html){
+				return html.replace(/\s+crossorigin(="[^"]*")?/g, "");
+			}
+		},
 		visualizer({open: false, gzipSize: true, brotliSize: true})
 	],
 	server: {
-		host: "::",
+		host: false,
 		port: 1331,
-		open: false
+		strictPort: true,
+		open: false,
+		watch: {
+			ignored: ["**/src-tauri/**"]
+		}
 	},
 	preview: {
-		host: "::",
+		host: false,
 		port: 1331,
+		strictPort: true,
 		open: false
 	}
 });

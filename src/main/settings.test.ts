@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
-import{describe,it,expect,vi,afterEach}from"vitest";
+import{describe,it,expect,vi,afterEach,beforeEach}from"vitest";
+let mockAppWindow:any=null;
 vi.mock("./core/domRegistry",()=>{
     const settings={
         settingsTheme:{value:"system"},
@@ -40,7 +41,7 @@ vi.mock("./core/domRegistry",()=>{
         settings,
         inputs,
         modals:{settingsModal:null},
-        appWindow:null,
+        get appWindow(){return mockAppWindow;},
         displays:{previewDiv:null}
     };
     return{dom};
@@ -69,6 +70,9 @@ vi.mock("mathjs",()=>{
 });
 import*as settings from"./settings.js";
 describe("settings",()=>{
+    beforeEach(()=>{
+        mockAppWindow=null;
+    });
     afterEach(()=>{
         localStorage.clear();
     });
@@ -168,16 +172,23 @@ describe("settings",()=>{
         });
     });
     describe("previewSetting",()=>{
-        it("should preview theme change to dark",()=>{
-            settings.previewSetting("theme","dark");
+        it("should preview theme change to dark",async()=>{
+            await settings.previewSetting("theme","dark");
             expect(document.documentElement.classList.contains("dark")).toBe(true);
         });
-        it("should preview theme change to light",()=>{
-            settings.previewSetting("theme","light");
+        it("should preview theme change to light",async()=>{
+            await settings.previewSetting("theme","light");
             expect(document.documentElement.classList.contains("light")).toBe(true);
         });
-        it("should preview theme change to system",()=>{
-            settings.previewSetting("theme","system");
+        it("should preview theme change to system",async()=>{
+            await settings.previewSetting("theme","system");
+        });
+        it("should preview theme system via Tauri when appWindow is available",async()=>{
+            mockAppWindow={theme:vi.fn().mockResolvedValue("dark"),setTheme:vi.fn().mockResolvedValue(undefined)};
+            settings.settings.theme="system";
+            await settings.previewSetting("theme","system");
+            expect(mockAppWindow.theme).toHaveBeenCalled();
+            expect(document.documentElement.classList.contains("dark")).toBe(true);
         });
         it("should preview font change to opendyslexic",()=>{
             settings.previewSetting("font","opendyslexic");
@@ -228,6 +239,31 @@ describe("settings",()=>{
         it("should preview notifications toggle",()=>{
             settings.previewSetting("notifications",false);
             expect(settings.settings.notifications).toBe(false);
+        });
+    });
+    describe("applySettingsToApp",()=>{
+        it("should use appWindow.theme() when appWindow is available and theme is system",async()=>{
+            mockAppWindow={theme:vi.fn().mockResolvedValue("dark"),setTheme:vi.fn().mockResolvedValue(undefined)};
+            settings.settings.theme="system";
+            await settings.applySettingsToApp();
+            expect(mockAppWindow.theme).toHaveBeenCalled();
+            expect(document.documentElement.classList.contains("dark")).toBe(true);
+        });
+        it("should fall back to matchMedia when appWindow is null and theme is system",async()=>{
+            settings.settings.theme="system";
+            await settings.applySettingsToApp();
+            expect(document.documentElement.classList.contains("light")).toBe(true);
+        });
+        it("should apply non-system theme directly",async()=>{
+            settings.settings.theme="dark";
+            await settings.applySettingsToApp();
+            expect(document.documentElement.classList.contains("dark")).toBe(true);
+        });
+        it("should fall back to matchMedia when appWindow.theme() throws",async()=>{
+            mockAppWindow={theme:vi.fn().mockRejectedValue(new Error("perm denied")),setTheme:vi.fn().mockResolvedValue(undefined)};
+            settings.settings.theme="system";
+            await settings.applySettingsToApp();
+            expect(document.documentElement.classList.contains("light")).toBe(true);
         });
     });
     describe("checkAnswerFast",()=>{

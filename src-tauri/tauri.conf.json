@@ -6,7 +6,7 @@
     "build": {
         "frontendDist": "../dist",
         "beforeDevCommand": "npm run dev",
-        "beforeBuildCommand": "",
+        "beforeBuildCommand": "npm run build",
         "devUrl": "http://localhost:1331"
     },
     "app": {
@@ -18,11 +18,12 @@
                 "height": 800,
                 "resizable": true,
                 "fullscreen": false,
-                "transparent": true
+                "transparent": false
             }
         ],
         "security": {
             "csp": null,
+            "dangerousDisableAssetCspModification": true,
             "capabilities": [
                 "default"
             ]
