@@ -207,6 +207,11 @@ export function insertSymbol(symbol: string): void{
 }
 export function copyCorrectAnswer(): void{
     if(!questionState.correctAnswer||!questionState.correctAnswer.correct)return;
+    if(!navigator.clipboard){
+        console.warn("Clipboard API unavailable");
+        showNotification("Clipboard not available in this environment","warning");
+        return;
+    }
     navigator.clipboard.writeText(questionState.correctAnswer.correct).then(()=>{
         showNotification("Answer copied to clipboard","info");
     }).catch(()=>{
@@ -227,9 +232,21 @@ export function hideShortcutsModal(): void{
     if(dom.modals.shortcutsModal)dom.modals.shortcutsModal.classList.remove("show");
 }
 export function showOnboarding(): void{
-    if(!localStorage.getItem("onboardingShown")){
+    let alreadyShown=false;
+    try{
+        alreadyShown=!!localStorage.getItem("onboardingShown");
+    }
+    catch(e){
+        console.log("Failed to read onboarding flag from localStorage:",e);
+    }
+    if(!alreadyShown){
         if(dom.modals.onboardingOverlay)dom.modals.onboardingOverlay.classList.add("show");
-        localStorage.setItem("onboardingShown","true");
+        try{
+            localStorage.setItem("onboardingShown","true");
+        }
+        catch(e){
+            console.log("Failed to persist onboarding flag to localStorage:",e);
+        }
     }
 }
 export function hideOnboarding(): void{

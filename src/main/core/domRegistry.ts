@@ -3,16 +3,18 @@ export class DomRegistry{
     private cache: Map<string,HTMLElement|null>=new Map();
     private _appWindow: Window|null=null;
     getElement<T extends HTMLElement>(id: string): T|null{
-        if(!this.cache.has(id)){
-            this.cache.set(id,document.getElementById(id));
-        }
-        return this.cache.get(id) as T|null;
+        const cached=this.cache.get(id);
+        if(cached!==undefined&&cached!==null)return cached as T|null;
+        const el=document.getElementById(id);
+        this.cache.set(id,el);
+        return el as T|null;
     }
     queryElement<T extends HTMLElement>(selector: string): T|null{
-        if(!this.cache.has(selector)){
-            this.cache.set(selector,document.querySelector(selector));
-        }
-        return this.cache.get(selector) as T|null;
+        const cached=this.cache.get(selector);
+        if(cached!==undefined&&cached!==null)return cached as T|null;
+        const el=document.querySelector(selector) as HTMLElement|null;
+        this.cache.set(selector,el);
+        return el as T|null;
     }
     get appWindow(): Window|null{
         if(!this._appWindow){
@@ -124,7 +126,6 @@ export class DomRegistry{
             get settingsVibration(){return self.getElement<HTMLInputElement>("settings-vibration");},
             get settingsMcqChoices(){return self.getElement<HTMLInputElement>("settings-mcq-choices");},
             get settingsAdaptive(){return self.getElement<HTMLInputElement>("settings-adaptive");},
-            get settingsShowWeakPopup(){return self.getElement<HTMLInputElement>("settings-show-weak-popup");},
         };
     }
     get session(){

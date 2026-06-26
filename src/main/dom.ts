@@ -88,7 +88,6 @@ export let mcqToggle: HTMLInputElement|null=document.getElementById("mcq-toggle"
 export let mcqChoicesContainer: HTMLElement|null=document.getElementById("mcq-choices-container");
 export let settingsMcqChoices: HTMLInputElement|null=document.getElementById("settings-mcq-choices") as HTMLInputElement|null;
 export let settingsAdaptive: HTMLInputElement|null=document.getElementById("settings-adaptive") as HTMLInputElement|null;
-export let settingsShowWeakPopup: HTMLInputElement|null = document.getElementById("settings-show-weak-popup") as HTMLInputElement|null;
 try{
     appWindow=getCurrentWindow();
 }

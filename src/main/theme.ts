@@ -2,7 +2,13 @@ import {dom} from "./core/domRegistry";
 import * as settings from "./settings";
 
 export async function initializeTheme(): Promise<void>{
-    let savedTheme=localStorage.getItem("theme");
+    let savedTheme:string|null=null;
+    try{
+        savedTheme=localStorage.getItem("theme");
+    }
+    catch(e){
+        console.log("Failed to read theme from localStorage:",e);
+    }
     if (savedTheme==="light"||savedTheme==="dark"){
         settings.settings.theme=savedTheme;
     }

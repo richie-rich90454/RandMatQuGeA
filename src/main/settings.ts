@@ -45,7 +45,13 @@ export let settings={
     showWeakTopicsPopup:true
 };
 export function loadSettings():void{
-    const saved=localStorage.getItem("appSettings");
+    let saved:string|null=null;
+    try{
+        saved=localStorage.getItem("appSettings");
+    }
+    catch(e){
+        console.warn("Failed to read settings from localStorage", e);
+    }
     if (saved){
         try{
             const parsed=JSON.parse(saved);
@@ -81,7 +87,6 @@ export function loadSettings():void{
     if (dom.inputs.mcqToggle) dom.inputs.mcqToggle.checked=settings.mcqMode;
     if (dom.settings.settingsMcqChoices) dom.settings.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
     if (dom.settings.settingsAdaptive) dom.settings.settingsAdaptive.checked=settings.adaptive;
-    if (dom.settings.settingsShowWeakPopup) dom.settings.settingsShowWeakPopup.checked = settings.showWeakTopicsPopup;
     applySettingsToApp();
 }
 export function saveSettings():void{
@@ -117,8 +122,12 @@ export function saveSettings():void{
         }
     }
     if (dom.settings.settingsAdaptive) settings.adaptive=dom.settings.settingsAdaptive.checked;
-    if (dom.settings.settingsShowWeakPopup) settings.showWeakTopicsPopup = dom.settings.settingsShowWeakPopup.checked;
-    localStorage.setItem("appSettings",JSON.stringify(settings));
+    try{
+        localStorage.setItem("appSettings",JSON.stringify(settings));
+    }
+    catch(e){
+        console.warn("Failed to persist settings to localStorage", e);
+    }
     applySettingsToApp();
 }
 export function previewSetting(field:string,value:any):void{
@@ -227,7 +236,6 @@ export function applySettingsToApp():void{
     if (dom.inputs.mcqToggle) dom.inputs.mcqToggle.checked=settings.mcqMode;
     if (dom.settings.settingsMcqChoices) dom.settings.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
     if (dom.settings.settingsAdaptive) dom.settings.settingsAdaptive.checked=settings.adaptive;
-    if (dom.settings.settingsShowWeakPopup) dom.settings.settingsShowWeakPopup.checked=settings.showWeakTopicsPopup;
     if (settings.perfMaster){
         applyPerformanceMaster(true);
     }
@@ -264,7 +272,6 @@ export function resetSettings():void{
     if (dom.inputs.mcqToggle) dom.inputs.mcqToggle.checked=false;
     if (dom.settings.settingsMcqChoices) dom.settings.settingsMcqChoices.value="4";
     if (dom.settings.settingsAdaptive) dom.settings.settingsAdaptive.checked=true;
-    if (dom.settings.settingsShowWeakPopup) dom.settings.settingsShowWeakPopup.checked=true;
     saveSettings();
 }
 export function openSettings():void{

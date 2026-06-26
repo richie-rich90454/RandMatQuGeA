@@ -18,15 +18,15 @@ export interface MathJaxConfig{
 	svg:{
 		fontCache: string;
 	};
-	typeset: ()=>void;
-	typesetPromise?: (elements?: HTMLElement[])=>Promise<void>;
+	typeset?: (els: Element[])=>void;
+	typesetPromise?: (els?: Element[])=>Promise<void>;
 	startup?:{
 		promise: Promise<void>;
 	};
 }
 declare global{
 	interface Window{
-		MathJax: MathJaxConfig;
+		MathJax?: MathJaxConfig;
 		correctAnswer: CorrectAnswer;
 		expectedFormat: string;
 		hasQuestion: boolean;

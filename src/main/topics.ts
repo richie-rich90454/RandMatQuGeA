@@ -5,6 +5,8 @@ import {topics,scopeTopics} from "./constants";
 let gridInitialized=false;
 let topicElements: Map<string, HTMLButtonElement>=new Map();
 export function resetTopicGrid(): void{
+    const grid=dom.displays.topicGrid;
+    if(grid)grid.innerHTML="";
     gridInitialized=false;
     topicElements.clear();
 }
