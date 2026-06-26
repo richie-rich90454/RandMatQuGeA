@@ -11,24 +11,11 @@
         <link rel="preload" href="/LibertinusMath-Regular.ttf" as="font" type="font/ttf" crossorigin>
         <link rel="preload" href="/NotoSans-VariableFont_wdth_wght.ttf" as="font" type="font/ttf" crossorigin>
         <link rel="preload" href="/OpenDyslexic-Regular.woff2" as="font" type="font/woff2" crossorigin>
-        <link rel="stylesheet" href="/katex.min.css">
+        <link rel="preload" href="/katex.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/katex.min.css"></noscript>
         <script defer src="/katex.min.js"></script>
-        <link rel="stylesheet" href="style.css">
-        <script>
-            window.MathJax={
-                tex: {
-                    inlineMath: [["$", "$"], ["\\(", "\\)"]],
-                    displayMath: [["$$", "$$"], ["\\[", "\\]"]]
-                },
-                svg: {
-                    fontCache: "global"
-                },
-                options: {
-                    ignoreHtmlClass: "tex2jax_ignore",
-                    processHtmlClass: "tex2jax_process"
-                }
-            };
-        </script>
+        <link rel="stylesheet" href="/style.css">
+        <script defer src="/mathjax-config.js"></script>
         <script id="MathJax-script" async src="/mathjax/tex-chtml.js"></script>
     </head>
     <body>

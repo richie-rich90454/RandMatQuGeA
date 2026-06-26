@@ -45,6 +45,17 @@ export default defineConfig({
 						}
 						return "vendor-other";
 					}
+					if (id.includes("/src/modules/")||id.includes("\\src\\modules\\")){
+						let afterModules=id.split("modules")[1];
+						if (!afterModules){
+							return undefined;
+						}
+						let segs=afterModules.split(/[/\\]/).filter(Boolean);
+						if (segs.length===0){
+							return undefined;
+						}
+						return `vendor-modules-${segs[0].toLowerCase()}`;
+					}
 				}
 			}
 		}
