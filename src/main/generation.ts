@@ -18,9 +18,9 @@ import{generateChoicesForCurrentQuestion}from"./mcq";
 import{invoke}from"@tauri-apps/api/core";
 import * as settings from "./settings";
 import{startQuestionTimer}from"./answer";
-async function applyAdaptiveRecommendation(): Promise<void>{
+async function applyAdaptiveRecommendation(): Promise<boolean>{
     console.log("[Adaptive] Called, adaptive setting =", settings.settings.adaptive);
-    if (!settings.settings.adaptive) return;
+    if (!settings.settings.adaptive) return false;
     try{
         console.log("[Adaptive] Invoking get_next_question_recommendation with:", {
             currentTopic: appState.selectedTopic,
@@ -42,6 +42,7 @@ async function applyAdaptiveRecommendation(): Promise<void>{
             appState.selectedTopic=rec.weak_topic;
             topics.selectTopic(rec.weak_topic);
             ui.showNotification(`Focusing on your weak area: ${rec.weak_topic}`, 'info');
+            return true;
         }
         else if (rec.weak_topic === appState.selectedTopic){
             console.log("[Adaptive] Weak topic is the same as current - no switch needed.");
@@ -52,17 +53,26 @@ async function applyAdaptiveRecommendation(): Promise<void>{
     }catch(e){
         console.error("[Adaptive] Recommendation failed:", e);
     }
+    return false;
 }
 export function debounceGenerate(): void{
     if (appState.generateDebounceTimeout) clearTimeout(appState.generateDebounceTimeout);
     appState.generateDebounceTimeout=setTimeout(()=>{
-        generateQuestion();
+        generateQuestion().catch((err: unknown)=>console.error("generateQuestion failed:",err));
         appState.generateDebounceTimeout=null;
     },150);
 }
-export async function generateQuestion(): Promise<void>{
-    await applyAdaptiveRecommendation();
-    if (appState.shuffle&&appState.currentMode==="single"){
+export async function generateQuestion(explicitTopicId?: string): Promise<void>{
+    const hasExplicitTopic=typeof explicitTopicId==="string"&&explicitTopicId.length>0;
+    let adaptiveActive=false;
+    if(hasExplicitTopic){
+        appState.selectedTopic=explicitTopicId;
+        topics.selectTopic(explicitTopicId);
+    }
+    else{
+        adaptiveActive=await applyAdaptiveRecommendation();
+    }
+    if (!adaptiveActive&&!hasExplicitTopic&&appState.shuffle&&appState.currentMode==="single"){
         const randomTopic=topics.pickRandomTopic();
         if (randomTopic){
             topics.selectTopic(randomTopic);

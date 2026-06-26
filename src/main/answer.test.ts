@@ -140,7 +140,7 @@ vi.mock('./ui', () => ({
 	updatePreviewDebounced: vi.fn(),
 }));
 vi.mock('./generation', () => ({
-	generateQuestion: vi.fn(),
+	generateQuestion: vi.fn(() => Promise.resolve()),
 }));
 vi.mock("mathjs",()=>{
 	const evaluate=vi.fn((expr:string,scope?:any)=>{

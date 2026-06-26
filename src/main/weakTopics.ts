@@ -41,7 +41,7 @@ export async function checkAndShowWeakTopicsPopup(){
                 const topicId=(e.currentTarget as HTMLElement).getAttribute("data-topic");
                 if(topicId){
                     selectTopic(topicId);
-                    generateQuestion();
+                    generateQuestion(topicId);
                     weakTopicsModal?.classList.remove("show");
                 }
             });
@@ -53,7 +53,7 @@ export async function checkAndShowWeakTopicsPopup(){
             practiceAllBtn.onclick=()=>{
                 if(weak.length>0){
                     selectTopic(weak[0].topic_id);
-                    generateQuestion();
+                    generateQuestion(weak[0].topic_id);
                 }
                 weakTopicsModal?.classList.remove("show");
             };

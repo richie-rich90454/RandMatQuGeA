@@ -413,17 +413,32 @@ export async function setupEventListeners(): Promise<void>{
             }
         });
     }
-    const printWorksheet=await import("./printWorksheet");
-    printWorksheet.initPrintModal();
-    const printWorksheetBtn=document.getElementById("print-worksheet-btn");
-    if (printWorksheetBtn) printWorksheetBtn.addEventListener("click", printWorksheet.openPrintModal);
-    const dataManagement=await import("./dataManagement");
-    dataManagement.initDataModal();
-    const weakTopics=await import("./weakTopics");
-    const recommendBtn=document.getElementById("recommend-btn");
-    if (recommendBtn) recommendBtn.addEventListener("click", ()=>{
-        weakTopics.checkAndShowWeakTopicsPopup().catch(console.warn);
-    });
-    const manageDataBtn=document.getElementById("manage-data-btn");
-    if (manageDataBtn) manageDataBtn.addEventListener("click", dataManagement.openDataModal);
+    try{
+        const printWorksheet=await import("./printWorksheet");
+        printWorksheet.initPrintModal();
+        const printWorksheetBtn=document.getElementById("print-worksheet-btn");
+        if (printWorksheetBtn) printWorksheetBtn.addEventListener("click", printWorksheet.openPrintModal);
+    }
+    catch(err){
+        console.error("Failed to load printWorksheet module:",err);
+    }
+    try{
+        const dataManagement=await import("./dataManagement");
+        dataManagement.initDataModal();
+        const manageDataBtn=document.getElementById("manage-data-btn");
+        if (manageDataBtn) manageDataBtn.addEventListener("click", dataManagement.openDataModal);
+    }
+    catch(err){
+        console.error("Failed to load dataManagement module:",err);
+    }
+    try{
+        const weakTopics=await import("./weakTopics");
+        const recommendBtn=document.getElementById("recommend-btn");
+        if (recommendBtn) recommendBtn.addEventListener("click", ()=>{
+            weakTopics.checkAndShowWeakTopicsPopup().catch(console.warn);
+        });
+    }
+    catch(err){
+        console.error("Failed to load weakTopics module:",err);
+    }
 }

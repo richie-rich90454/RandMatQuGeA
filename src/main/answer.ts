@@ -578,7 +578,7 @@ let numCorrect=mathjs.evaluate(funcCorrect);
     if (appState.currentMode==="single"&&appState.autocontinue){
         if (appState.autoTimeout) clearTimeout(appState.autoTimeout);
         appState.autoTimeout=setTimeout(()=>{
-            generation.generateQuestion();
+            generation.generateQuestion().catch((err: unknown)=>console.error("autocontinue generateQuestion failed:",err));
             appState.autoTimeout=null;
         },settings.settings.autoCheckDelay);
     }
