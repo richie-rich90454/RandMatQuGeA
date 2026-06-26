@@ -37,7 +37,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 
 - **Node.js**: Version 18 or higher
 - **Rust**: Latest stable version (install via [rustup](https://rustup.rs/))
-- **Tauri CLI**: Install with `cargo install tauri-cli`
+- **Tauri CLI**: Provided via the project's `@tauri-apps/cli` devDependency; run Tauri commands with `npm run tauri ...` (no separate install needed).
 - **Platform-specific dependencies**:  
   - **Windows**: Microsoft Visual Studio C++ build tools  
   - **macOS**: Xcode Command Line Tools  
@@ -68,19 +68,31 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 ```
 .
 ├── src/                    # Frontend source code (TypeScript, CSS, HTML)
-│   ├── assets/             # Static assets
-│   ├── components/         # Reusable UI components
+│   ├── index.html          # Main web application interface
+│   ├── script.ts           # App entry / wiring
+│   ├── style.css           # Global styles
+│   ├── main/               # Core application code
+│   │   ├── core/           # domRegistry, questionState, stateStore, questionRenderer
+│   │   └── services/       # topicRegistry and other services
 │   ├── modules/            # Question generation modules (algebra, calculus, etc.)
-│   ├── utils/              # Helper functions (answer checking, formatting)
-│   ├── main.ts             # Frontend entry point
-│   └── style.css           # Global styles
-├── src-tauri/              # Rust backend
+│   │   ├── Algebra/
+│   │   ├── Arithmetic/
+│   │   ├── Calculus/
+│   │   ├── DiscreteMathematics/
+│   │   ├── Geometry/
+│   │   ├── LinearAlgebra/
+│   │   └── Trigonometry/
+│   └── types/              # TypeScript type definitions (global.d.ts)
+├── src-tauri/              # Rust backend (Tauri v2)
 │   ├── src/
-│   │   └── lib.rs          # Main library logic
-│   ├── Cargo.toml          # Rust dependencies
-│   └── tauri.conf.json     # Tauri configuration
-├── tests/                  # Test files (Vitest)
+│   │   ├── lib.rs          # Main library logic
+│   │   └── main.rs         # Entry point (calls lib)
+│   ├── Cargo.toml          # Rust dependencies (sqlx, tauri, etc.)
+│   └── tauri.conf.json     # Tauri configuration (window, tray, updater)
+├── public/                 # Public assets (fonts, MathJax, KaTeX)
 ├── package.json            # Node dependencies and scripts
+├── vite.config.ts          # Vite build configuration
+├── tsconfig.json           # TypeScript configuration
 └── README.md               # Project overview
 ```
 
@@ -136,10 +148,10 @@ The generated bundles will be located in `src-tauri/target/release/bundle/`.
 
 ### TypeScript/JavaScript
 
-- Use **2 spaces** for indentation (configured in `.editorconfig`).
-- Prefer `const` over `let`; avoid `var`.
+- Use **tabs** for indentation (configured in `.editorconfig` and `AGENTS.md`).
+- Prefer `let`/`const` over `var`; follow the `AGENTS.md` formatting rules (tabs, no blank lines, braces on the same line).
 - Use **named exports** instead of default exports where possible.
-- Run `npm run lint` (ESLint) to check for issues.
+- Run `npm run typecheck` (TypeScript strict, `tsc --noEmit`) to type-check; there is no ESLint setup.
 
 ### CSS
 
@@ -157,11 +169,13 @@ The generated bundles will be located in `src-tauri/target/release/bundle/`.
 
 ## Testing
 
-We use **Vitest** for unit testing. Tests are located in the `tests/` directory.
+We use **Vitest** for unit testing. Tests are colocated with source as `*.test.ts` files (e.g., `src/main/answer.test.ts`, `src/modules/Algebra/basics/generateFraction.test.ts`).
 
 To run tests:
 ```bash
-npm run test
+npm test            # watch mode (local development)
+npm run test:run    # single non-watch run (CI / one-shot)
+npm run check       # typecheck + non-watch tests
 ```
 
 Write tests for new features and bug fixes when applicable. Aim to cover edge cases, especially in answer‑checking logic.
