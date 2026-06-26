@@ -84,24 +84,38 @@ function handleMathShortcuts(e: KeyboardEvent): void{
     }
 }
 export async function setupEventListeners(): Promise<void>{
-    if (!dom.buttons.generateQuestionButton||!dom.buttons.checkAnswerButton||!dom.inputs.userAnswer||!dom.buttons.themeToggle||!dom.buttons.helpButton||!dom.buttons.settingsButton||!dom.buttons.modeSingleBtn||!dom.buttons.modeMentalBtn||!dom.session.mentalControls||!dom.session.singleControls||!dom.inputs.difficultySelect||!dom.displays.timerDisplay||!dom.displays.scoreDisplay||!dom.buttons.startSessionBtn) return;
-    dom.buttons.generateQuestionButton.addEventListener("click",generation.debounceGenerate);
-    dom.buttons.checkAnswerButton.addEventListener("click",()=>{
-        if (appState.currentMode==="single") answer.checkAnswer();
-        else if (appState.sessionActive) session.handleMentalAnswer();
-    });
-    dom.inputs.userAnswer.addEventListener("keyup",function (e: KeyboardEvent){
-        if (e.shiftKey&&e.key==="Enter"){
-            if (!questionState.hasQuestion) return;
-            if (dom.buttons.checkAnswerButton?.disabled) return;
+    if (dom.buttons.generateQuestionButton){
+        dom.buttons.generateQuestionButton.addEventListener("click",generation.debounceGenerate);
+    }
+    else{
+        console.warn("Missing element for listener: generateQuestionButton");
+    }
+    if (dom.buttons.checkAnswerButton){
+        dom.buttons.checkAnswerButton.addEventListener("click",()=>{
             if (appState.currentMode==="single") answer.checkAnswer();
             else if (appState.sessionActive) session.handleMentalAnswer();
-        }
-    });
-    dom.inputs.userAnswer.addEventListener("input",()=>{
-        ui.updatePreviewDebounced();
-    });
-    dom.inputs.userAnswer.addEventListener("keydown",handleMathShortcuts);
+        });
+    }
+    else{
+        console.warn("Missing element for listener: checkAnswerButton");
+    }
+    if (dom.inputs.userAnswer){
+        dom.inputs.userAnswer.addEventListener("keyup",function (e: KeyboardEvent){
+            if (e.shiftKey&&e.key==="Enter"){
+                if (!questionState.hasQuestion) return;
+                if (dom.buttons.checkAnswerButton?.disabled) return;
+                if (appState.currentMode==="single") answer.checkAnswer();
+                else if (appState.sessionActive) session.handleMentalAnswer();
+            }
+        });
+        dom.inputs.userAnswer.addEventListener("input",()=>{
+            ui.updatePreviewDebounced();
+        });
+        dom.inputs.userAnswer.addEventListener("keydown",handleMathShortcuts);
+    }
+    else{
+        console.warn("Missing element for listener: userAnswer");
+    }
     document.addEventListener("keydown",(e: KeyboardEvent)=>{
         if (e.ctrlKey||e.metaKey){
             switch (e.key){
@@ -151,10 +165,20 @@ export async function setupEventListeners(): Promise<void>{
             });
         }
     });
-    dom.buttons.helpButton.addEventListener("click",function (){
-        ui.showNotification("Select a topic, generate a question, enter your answer, and check it!","info");
-    });
-    dom.buttons.settingsButton.addEventListener("click",settings.openSettings);
+    if (dom.buttons.helpButton){
+        dom.buttons.helpButton.addEventListener("click",function (){
+            ui.showNotification("Select a topic, generate a question, enter your answer, and check it!","info");
+        });
+    }
+    else{
+        console.warn("Missing element for listener: helpButton");
+    }
+    if (dom.buttons.settingsButton){
+        dom.buttons.settingsButton.addEventListener("click",settings.openSettings);
+    }
+    else{
+        console.warn("Missing element for listener: settingsButton");
+    }
     if (dom.buttons.settingsClose) dom.buttons.settingsClose.addEventListener("click",settings.closeSettings);
     if (dom.buttons.settingsSave) dom.buttons.settingsSave.addEventListener("click",()=>{
         settings.saveSettings();
@@ -277,19 +301,39 @@ export async function setupEventListeners(): Promise<void>{
             }
         });
     }
-    dom.buttons.modeSingleBtn.addEventListener("click",switchToSingle);
-    dom.buttons.modeMentalBtn.addEventListener("click",switchToMental);
-    dom.inputs.difficultySelect.addEventListener("change",function (e: Event){
-        appState.currentDifficulty=(e.target as HTMLSelectElement).value;
-    });
-    dom.buttons.startSessionBtn.addEventListener("click",()=>{
-        if (appState.sessionActive){
-            session.stopMentalSession();
-        }
-        else{
-            session.startMentalSession();
-        }
-    });
+    if (dom.buttons.modeSingleBtn){
+        dom.buttons.modeSingleBtn.addEventListener("click",switchToSingle);
+    }
+    else{
+        console.warn("Missing element for listener: modeSingleBtn");
+    }
+    if (dom.buttons.modeMentalBtn){
+        dom.buttons.modeMentalBtn.addEventListener("click",switchToMental);
+    }
+    else{
+        console.warn("Missing element for listener: modeMentalBtn");
+    }
+    if (dom.inputs.difficultySelect){
+        dom.inputs.difficultySelect.addEventListener("change",function (e: Event){
+            appState.currentDifficulty=(e.target as HTMLSelectElement).value;
+        });
+    }
+    else{
+        console.warn("Missing element for listener: difficultySelect");
+    }
+    if (dom.buttons.startSessionBtn){
+        dom.buttons.startSessionBtn.addEventListener("click",()=>{
+            if (appState.sessionActive){
+                session.stopMentalSession();
+            }
+            else{
+                session.startMentalSession();
+            }
+        });
+    }
+    else{
+        console.warn("Missing element for listener: startSessionBtn");
+    }
     if (dom.buttons.pauseSessionBtn){
         dom.buttons.pauseSessionBtn.addEventListener("click",session.pauseMentalSession);
     }

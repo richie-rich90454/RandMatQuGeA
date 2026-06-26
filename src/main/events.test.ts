@@ -319,12 +319,12 @@ describe("setupEventListeners",()=>{
     it("should not throw when called",async()=>{
         await expect(setupEventListeners()).resolves.not.toThrow();
     });
-    it("should return early if required DOM elements missing",async()=>{
+    it("should skip missing elements without aborting setup",async()=>{
         const orig=dom.generateQuestionButton;
         (dom as any).generateQuestionButton=null;
         (dom.checkAnswerButton as any).addEventListener.mockClear();
         await setupEventListeners();
-        expect((dom.checkAnswerButton as any).addEventListener).not.toHaveBeenCalled();
+        expect((dom.checkAnswerButton as any).addEventListener).toHaveBeenCalled();
         (dom as any).generateQuestionButton=orig;
     });
 });

@@ -16,7 +16,7 @@ export * from "./main/state";
 questionState.correctAnswer={correct:"",alternate:"",display:""};
 questionState.expectedFormat="";
 questionState.hasQuestion=false;
-function initApp(): void{
+async function initApp(): Promise<void>{
     settings.loadSettings();
     ui.syncSettingsToState();
     if (settings.settings.defaultMode==="mental"){
@@ -25,12 +25,32 @@ function initApp(): void{
     else{
         events.switchToSingle();
     }
-    events.setupEventListeners();
-    theme.initializeTheme();
+    try{
+        await events.setupEventListeners();
+    }
+    catch(err){
+        console.error("setupEventListeners failed:",err);
+    }
+    try{
+        await theme.initializeTheme();
+    }
+    catch(err){
+        console.error("initializeTheme failed:",err);
+    }
     ui.updateUIState();
-    session.restoreSessionSnapshot();
+    try{
+        await session.restoreSessionSnapshot();
+    }
+    catch(err){
+        console.error("restoreSessionSnapshot failed:",err);
+    }
     topicsModule.renderTopicGrid();
-    session.updateLeaderboard();
+    try{
+        await session.updateLeaderboard();
+    }
+    catch(err){
+        console.error("updateLeaderboard failed:",err);
+    }
     ui.showOnboarding();
     if ("serviceWorker" in navigator){
         navigator.serviceWorker.register("/sw.js").catch(()=>{
@@ -38,9 +58,12 @@ function initApp(): void{
         });
     }
 }
+function startApp(): void{
+    initApp().catch((err: unknown)=>console.error("initApp failed:",err));
+}
 if (document.readyState==="loading"){
-    document.addEventListener("DOMContentLoaded",initApp);
+    document.addEventListener("DOMContentLoaded",startApp);
 }
 else{
-    initApp();
+    startApp();
 }
