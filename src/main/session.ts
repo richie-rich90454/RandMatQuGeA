@@ -15,6 +15,7 @@ import {getAudioContext} from "./answer";
 import { appState } from "./core/stateStore";
 import { dom } from "./core/domRegistry";
 import { questionState } from "./core/questionState";
+import { renderer } from "./core/questionRenderer";
 let _previousDeleteHandler: ((e: Event)=>void)|null=null;
 export function saveSessionSnapshot(): void{
     if(!appState.sessionActive)return;
@@ -190,9 +191,7 @@ export async function generateNextMentalQuestion(): Promise<void>{
     dom.inputs.userAnswer.removeAttribute("aria-disabled");
     dom.inputs.userAnswer.focus();
     ui.updatePreview();
-    if(window.MathJax&&window.MathJax.typesetPromise){
-        window.MathJax.typesetPromise([dom.displays.questionArea]).catch((err: any)=>console.log("MathJax typeset error:",err));
-    }
+    renderer.typeset();
 }
 export async function handleMentalAnswer(answer?: string): Promise<void>{
     if(!appState.sessionActive||appState.sessionPaused)return;

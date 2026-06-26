@@ -15,12 +15,20 @@ export class QuestionRenderer{
     setExpectedFormat(text: string): void{
         questionState.expectedFormat=text;
     }
-    typeset(): void{
-        if(window.MathJax&&window.MathJax.typesetPromise){
-            let area=this.registry.displays.questionArea;
-            if(area){
-                window.MathJax.typesetPromise([area]).catch((err: any)=>console.log("MathJax typeset error:",err));
+    async typeset(): Promise<void>{
+        if(!window.MathJax||!window.MathJax.typesetPromise)return;
+        let area=this.registry.displays.questionArea;
+        if(!area)return;
+        try{
+            if(window.MathJax.startup&&window.MathJax.startup.promise){
+                await window.MathJax.startup.promise;
             }
+            if(window.MathJax.typesetPromise){
+                await window.MathJax.typesetPromise([area]);
+            }
+        }
+        catch(err){
+            console.log("MathJax typeset error:",err);
         }
     }
     clear(): void{

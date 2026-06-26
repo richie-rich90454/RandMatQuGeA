@@ -20,6 +20,9 @@ export interface MathJaxConfig{
 	};
 	typeset: ()=>void;
 	typesetPromise?: (elements?: HTMLElement[])=>Promise<void>;
+	startup?:{
+		promise: Promise<void>;
+	};
 }
 declare global{
 	interface Window{

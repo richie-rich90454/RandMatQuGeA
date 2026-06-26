@@ -344,9 +344,16 @@ export function applyPerformanceMaster(enabled:boolean):void{
         applyAnimations(settings.perfAnimations);
     }
 }
-function updateMathJaxColors():void{
-    if (window.MathJax&&window.MathJax.typesetPromise){
-        window.MathJax.typesetPromise().catch((_err:any)=>console.log("MathJax re-render error:",_err));
+async function updateMathJaxColors():Promise<void>{
+    if(!window.MathJax||!window.MathJax.typesetPromise)return;
+    try{
+        if(window.MathJax.startup&&window.MathJax.startup.promise){
+            await window.MathJax.startup.promise;
+        }
+        await window.MathJax.typesetPromise();
+    }
+    catch(err){
+        console.log("MathJax re-render error:",err);
     }
 }
 export async function isAnswerCorrect(userInput:string,correct:string,alternate?:string):Promise<boolean>{
