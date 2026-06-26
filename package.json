@@ -4,15 +4,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "start": "go run main.go",
     "build:typescript": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "build:web": "vite build",
     "build": "npm run build:typescript && npm run build:web",
-    "build:go": "go build -o server main.go",
     "start:nodejs": "vite preview",
     "tauri": "tauri",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:run": "vitest run",
+    "test:coverage": "vitest --coverage",
+    "check": "npm run build:typescript && npm run test:run"
   },
   "keywords": [
     "math",
@@ -30,13 +31,9 @@
     "@tauri-apps/plugin-process": "^2.3.1",
     "@tauri-apps/plugin-sql": "^2.3.2",
     "@tauri-apps/plugin-updater": "^2.10.0",
-    "cssnano": "^7.1.2",
-    "fs": "^0.0.1-security",
     "mathjax": "^4.1.1",
     "mathjs": "^15.2.0",
-    "path": "^0.12.7",
     "semver": "^7.7.4",
-    "terser": "^5.39.0",
     "three": "^0.183.2"
   },
   "description": "Random math question generator made with HTML, CSS, and JS.",
@@ -50,9 +47,6 @@
     "rollup-plugin-visualizer": "^7.0.1",
     "typescript": "^6.0.2",
     "vite": "^8.0.16",
-    "vite-plugin-compression": "^0.5.1",
-    "vite-plugin-copy": "^0.1.6",
-    "vite-plugin-static-copy": "^3.3.0",
     "vitest": "^4.1.0"
   }
 }
