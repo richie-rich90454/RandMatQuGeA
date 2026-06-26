@@ -197,6 +197,7 @@ export async function checkAnswer(userInput?: string): Promise<void>{
     }
     if (!dom.inputs.userAnswer||!dom.displays.answerResults) return;
     if (!questionState.hasQuestion){
+        dom.displays.answerResults.textContent="No question loaded. Please generate a question first.";
         dom.displays.answerResults.className="results-display incorrect";
         return;
     }
@@ -523,7 +524,7 @@ let numCorrect=mathjs.evaluate(funcCorrect);
         navigator.vibrate(isCorrect?50:100);
     }
     // Render the correct answer using KaTeX (fallback to plain text if KaTeX unavailable or errors)
-    const answerToDisplay=(questionState.correctAnswer as any).display||questionState.correctAnswer.correct;
+    const answerToDisplay=questionState.correctAnswer.display||questionState.correctAnswer.correct||"(no answer available)";
     let answerHtml='';
     if (window.katex){
         try{
@@ -569,9 +570,11 @@ let numCorrect=mathjs.evaluate(funcCorrect);
         dom.displays.answerResults.classList.add("incorrect-flash");
         setTimeout(()=>dom.displays.answerResults?.classList.remove("incorrect-flash"),300);
     }
-    dom.inputs.userAnswer.value="";
-    ui.updatePreview();
-    dom.inputs.userAnswer.focus();
+    if(!appState.mcqMode){
+        dom.inputs.userAnswer.value="";
+        ui.updatePreview();
+        dom.inputs.userAnswer.focus();
+    }
     if (appState.currentMode==="single"&&appState.autocontinue){
         if (appState.autoTimeout) clearTimeout(appState.autoTimeout);
         appState.autoTimeout=setTimeout(()=>{

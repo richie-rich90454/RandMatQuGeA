@@ -228,6 +228,7 @@ import*as stateStore from"./core/stateStore";
 let state:any=stateStore.appState;
 import*as domRegistry from"./core/domRegistry";
 let dom:any=domRegistry.dom;
+import{questionState}from"./core/questionState";
 import * as session from "./session.js";
 import{gt as semverGt}from"semver";
 import*as generation from"./generation.js";
@@ -371,9 +372,11 @@ describe("keyboard shortcuts",()=>{
     });
     it("should handle Enter key in answer box",()=>{
         expect(keyupHandler).toBeDefined();
+        questionState.hasQuestion=true;
         let mockEvent={shiftKey:true,key:"Enter",preventDefault:vi.fn(),ctrlKey:false,metaKey:false};
         keyupHandler(mockEvent);
         expect(answer.checkAnswer).toHaveBeenCalled();
+        questionState.hasQuestion=false;
     });
     it("should handle Escape key to close modals",()=>{
         expect(escapeKeydownHandler).toBeDefined();

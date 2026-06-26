@@ -6,6 +6,7 @@
  */
 import {dom} from "./core/domRegistry";
 import {appState} from "./core/stateStore";
+import {questionState} from "./core/questionState";
 import * as settings from "./settings";
 import * as ui from "./ui";
 import * as topics from "./topics";
@@ -91,6 +92,8 @@ export async function setupEventListeners(): Promise<void>{
     });
     dom.inputs.userAnswer.addEventListener("keyup",function (e: KeyboardEvent){
         if (e.shiftKey&&e.key==="Enter"){
+            if (!questionState.hasQuestion) return;
+            if (dom.buttons.checkAnswerButton?.disabled) return;
             if (appState.currentMode==="single") answer.checkAnswer();
             else if (appState.sessionActive) session.handleMentalAnswer();
         }
@@ -108,6 +111,8 @@ export async function setupEventListeners(): Promise<void>{
                     break;
                 case "Enter":
                     if (e.shiftKey) break;
+                    if (!questionState.hasQuestion) break;
+                    if (dom.buttons.checkAnswerButton?.disabled) break;
                     e.preventDefault();
                     if (appState.currentMode==="single") answer.checkAnswer();
                     else if (appState.sessionActive) session.handleMentalAnswer();

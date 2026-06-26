@@ -97,8 +97,8 @@ export function updateUIState(): void{
     let hasQuestion=questionState.hasQuestion||(questionState.correctAnswer&&!!questionState.correctAnswer.correct);
     dom.buttons.generateQuestionButton.disabled=!hasTopic;
     dom.buttons.generateQuestionButton.setAttribute("aria-disabled",String(!hasTopic));
-    dom.buttons.checkAnswerButton.disabled=!hasTopic||!hasQuestion;
-    dom.buttons.checkAnswerButton.setAttribute("aria-disabled",String(!hasTopic||!hasQuestion));
+    dom.buttons.checkAnswerButton.disabled=!hasTopic||!hasQuestion||appState.mcqMode;
+    dom.buttons.checkAnswerButton.setAttribute("aria-disabled",String(!hasTopic||!hasQuestion||appState.mcqMode));
     if(hasTopic&&hasQuestion){
         dom.buttons.generateQuestionButton.innerHTML=`
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
@@ -294,11 +294,17 @@ export function renderMcqChoices(choices: string[]): void{
         btn.addEventListener("click",()=>{
             if(appState.currentMode==="mental"){
                 if(appState.sessionActive&&!appState.sessionPaused){
-                    session.handleMcqChoice(choice);
+                    session.handleMcqChoice(choice).catch((err: unknown)=>console.error("handleMcqChoice failed:",err));
                 }
             }
             else{
                 answer.checkAnswer(choice);
+            }
+        });
+        btn.addEventListener("keydown",(e: KeyboardEvent)=>{
+            if(e.key==="Enter"||e.key===" "){
+                e.preventDefault();
+                btn.click();
             }
         });
         dom.displays.mcqChoicesContainer!.appendChild(btn);

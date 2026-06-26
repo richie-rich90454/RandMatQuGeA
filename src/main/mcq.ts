@@ -1,5 +1,6 @@
 import {appState} from "./core/stateStore";
 import {questionState} from "./core/questionState";
+import {dom} from "./core/domRegistry";
 import * as settings from "./settings";
 import * as ui from "./ui";
 let mathjsModule: any=null;
@@ -150,7 +151,12 @@ function generateTextFallbackDistractors(answer: string, count: number): string[
 export async function generateChoicesForCurrentQuestion(): Promise<void>{
     if (!appState.mcqMode) return;
     const correctObj=questionState.correctAnswer;
-    if (!correctObj || !correctObj.correct) return;
+    if (!correctObj || !correctObj.correct){
+        if (dom.displays.mcqChoicesContainer){
+            dom.displays.mcqChoicesContainer.innerHTML='<div class="empty-state"><p>No correct answer available — try another topic.</p></div>';
+        }
+        return;
+    }
     const count=settings.settings.mcqChoicesCount;
     let choices: string[];
     if (correctObj.choices && Array.isArray(correctObj.choices) && correctObj.choices.length>=count){

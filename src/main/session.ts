@@ -15,6 +15,7 @@ import {getAudioContext} from "./answer";
 import { appState } from "./core/stateStore";
 import { dom } from "./core/domRegistry";
 import { questionState } from "./core/questionState";
+let _previousDeleteHandler: ((e: Event)=>void)|null=null;
 export function saveSessionSnapshot(): void{
     if(!appState.sessionActive)return;
     const snapshot={
@@ -164,7 +165,7 @@ export async function generateNextMentalQuestion(): Promise<void>{
         ui.updateUIState();
         appState.currentQuestionStartTime=Date.now();
         if(appState.mcqMode){
-            void generateChoicesForCurrentQuestion();
+            await generateChoicesForCurrentQuestion();
             if(dom.inputs.userAnswer)dom.inputs.userAnswer.style.display="none";
             if(dom.displays.mathToolbar)dom.displays.mathToolbar.style.display="none";
             if(dom.displays.mcqChoicesContainer)dom.displays.mcqChoicesContainer.style.display="flex";
@@ -281,8 +282,8 @@ export async function handleMentalAnswer(answer?: string): Promise<void>{
         appState.mentalNextQuestionTimeout=null;
     },settings.settings.autoCheckDelay);
 }
-export function handleMcqChoice(choice: string): void{
-    handleMentalAnswer(choice);
+export async function handleMcqChoice(choice: string): Promise<void>{
+    await handleMentalAnswer(choice);
 }
 export function startMentalSession(): void{
     if(!appState.selectedTopic&&!appState.mentalShuffle){
@@ -440,7 +441,7 @@ export async function updateLeaderboard(): Promise<void>{
             if(dom.session.leaderboardCard)dom.session.leaderboardCard.classList.add("hidden");
             return;
         }
-        let recent=scores.slice(-10).reverse();
+        let recent=scores.slice(0,10);
         let html='<div style="display:flex; flex-direction:column; gap:var(--spacing-xs);">';
         for(const s of recent){
             const topicName=topicList.find(t=>t.id===s.topic)?.name||s.topic;
@@ -448,27 +449,26 @@ export async function updateLeaderboard(): Promise<void>{
         }
         html+='</div>';
         dom.displays.leaderboardContent.innerHTML=html;
-        const deleteButtons = document.querySelectorAll(".delete-score-btn");
-        for(const btn of deleteButtons){
-            btn.removeEventListener("click", (window as any).__deleteHandler);
-            const handler = async (e: Event) => {
-                e.stopPropagation();
-                const id = parseInt((e.currentTarget as HTMLElement).getAttribute("data-id")||"0");
-                if(id && confirm("Delete this score entry?")){
-                    try{
-                        await invoke("delete_score",{id});
-                        ui.showNotification("Score deleted","info");
-                        await updateLeaderboard();
-                    }
-                    catch(err){
-                        console.error("Delete failed:",err);
-                        ui.showNotification("Failed to delete score","warning");
-                    }
+        const deleteHandler=async (e: Event)=>{
+            const target=e.target as HTMLElement;
+            if(!target.classList.contains("delete-score-btn")) return;
+            e.stopPropagation();
+            const id=parseInt(target.getAttribute("data-id")||"0");
+            if(id && confirm("Delete this score entry?")){
+                try{
+                    await invoke("delete_score",{id});
+                    ui.showNotification("Score deleted","info");
+                    await updateLeaderboard();
                 }
-            };
-            btn.addEventListener("click", handler);
-            (window as any).__deleteHandler = handler;
-        }
+                catch(err){
+                    console.error("Delete failed:",err);
+                    ui.showNotification("Failed to delete score","warning");
+                }
+            }
+        };
+        if(_previousDeleteHandler) dom.displays.leaderboardContent.removeEventListener("click",_previousDeleteHandler);
+        _previousDeleteHandler=deleteHandler;
+        dom.displays.leaderboardContent.addEventListener("click",deleteHandler);
         if(dom.session.leaderboardCard){
             dom.session.leaderboardCard.classList.remove("hidden");
             dom.session.leaderboardCard.style.display="block";
