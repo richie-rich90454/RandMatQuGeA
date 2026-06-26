@@ -44,7 +44,7 @@ static ALLOW_CLOSE: AtomicBool = AtomicBool::new(false);
 fn check_math(user_expr: String, correct_expr: String, alternate: Option<String>) -> bool {
     let user_num = user_expr.trim().parse::<f64>();
     let correct_num = correct_expr.trim().parse::<f64>();
-    if let (Ok(u), Ok(c)) = (user_num, correct_num) {
+    if let (Ok(u), Ok(c)) = (&user_num, &correct_num) {
         return (u - c).abs() < 1e-6;
     }
     if user_expr.replace(' ', "").to_lowercase() == correct_expr.replace(' ', "").to_lowercase() {
