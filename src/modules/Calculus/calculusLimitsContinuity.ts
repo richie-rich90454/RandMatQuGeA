@@ -1,6 +1,7 @@
 import {questionArea} from "../../script.js";
 // @ts-expect-error - latexToPlain is imported for potential future use
 import {getMaxCoeff, latexToPlain} from "./calculusUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 /**
  * Generates a random limits and continuity question and displays it in the global question area.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -269,11 +270,11 @@ export function generateLimitsContinuity(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
 		else uniqueChoices=[plainCorrectAnswer];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

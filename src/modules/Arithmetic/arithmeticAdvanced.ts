@@ -1,5 +1,6 @@
 import {questionArea} from "../../script.js";
 import {getMaxForDifficulty, isPrime, gcd} from "./arithmeticUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 /**
  * Generates and displays a random whole number and place value question (place value, expanded form, or rounding).
  * Includes custom multiple‑choice options for MCQ mode.
@@ -62,12 +63,12 @@ export function generateWholeNumberPlaceValue(difficulty?: string): void{
 			if (pos<digits.length-1) choices.push(Math.pow(10,pos+1).toString());
 			choices.push(placeName.replace(/s$/,''));
 			let uniqueChoices=[...new Set(choices)];
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: correctNumber,
 				alternate: correctName,
 				display: correctNumber,
 				choices: uniqueChoices.slice(0,4)
-			};
+			});
 			hint="Enter a number (e.g., 500)";
 			break;
 		}
@@ -91,12 +92,12 @@ export function generateWholeNumberPlaceValue(difficulty?: string): void{
 			choices.push(parts.reverse().join(" + "));
 			choices.push(num.toString());
 			let uniqueChoices=[...new Set(choices)];
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: expanded,
 				alternate: expanded,
 				display: expanded,
 				choices: uniqueChoices.slice(0,4)
-			};
+			});
 			hint="Enter as 200 + 30 + 4";
 			break;
 		}
@@ -111,17 +112,17 @@ export function generateWholeNumberPlaceValue(difficulty?: string): void{
 			choices.push((Math.ceil(num/place)*place).toString());
 			choices.push(num.toString());
 			let uniqueChoices=[...new Set(choices)];
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: rounded.toString(),
 				alternate: rounded.toString(),
 				display: rounded.toString(),
 				choices: uniqueChoices.slice(0,4)
-			};
+			});
 			hint="Enter a number";
 			break;
 		}
 	}
-	window.expectedFormat=hint;
+	renderer.setExpectedFormat(hint);
 	if (window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise();
 	}
@@ -172,13 +173,13 @@ export function generateNumberLineOrdering(difficulty?: string): void{
 	choices.push(perm.join(", "));
 	choices.push(numbers.join(", "));
 	let uniqueChoices=[...new Set(choices)];
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correctOrder,
 		alternate: correctOrder,
 		display: correctOrder,
 		choices: uniqueChoices.slice(0,4)
-	};
-	window.expectedFormat="Enter numbers separated by commas, e.g., -3, 0, 5, 7";
+	});
+	renderer.setExpectedFormat("Enter numbers separated by commas, e.g., -3, 0, 5, 7");
 	if (window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise();
 	}
@@ -233,12 +234,12 @@ export function generateDivisibility(difficulty?: string): void{
 			choices.push("A number is divisible by " + d + " if it is even.");
 			choices.push("A number is divisible by " + d + " if the sum of its digits is divisible by " + d + ".");
 			let uniqueChoices=[...new Set(choices)];
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: correctRule,
 				alternate: correctRule,
 				display: correctRule,
 				choices: uniqueChoices.slice(0,4)
-			};
+			});
 			hint="Enter the rule in your own words";
 			break;
 		}
@@ -251,12 +252,12 @@ export function generateDivisibility(difficulty?: string): void{
 			choices.push("neither");
 			choices.push("both");
 			let uniqueChoices=[...new Set(choices)];
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: correctAnswer,
 				alternate: correctAnswer,
 				display: correctAnswer,
 				choices: uniqueChoices.slice(0,4)
-			};
+			});
 			hint="Enter 'prime' or 'composite'";
 			break;
 		}
@@ -275,17 +276,17 @@ export function generateDivisibility(difficulty?: string): void{
 			choices.push("maybe");
 			choices.push("always");
 			let uniqueChoices=[...new Set(choices)];
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: correctAnswer,
 				alternate: correctAnswer,
 				display: correctAnswer,
 				choices: uniqueChoices.slice(0,4)
-			};
+			});
 			hint="Enter 'yes' or 'no'";
 			break;
 		}
 	}
-	window.expectedFormat=hint;
+	renderer.setExpectedFormat(hint);
 	if (window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise();
 	}
@@ -332,12 +333,12 @@ export function generateGCFLCM(difficulty?: string): void{
 			choices.push((a+b).toString());
 			choices.push(l.toString());
 			let uniqueChoices=[...new Set(choices)];
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: g.toString(),
 				alternate: g.toString(),
 				display: g.toString(),
 				choices: uniqueChoices.slice(0,4)
-			};
+			});
 			hint="Enter a number";
 			break;
 		}
@@ -349,12 +350,12 @@ export function generateGCFLCM(difficulty?: string): void{
 			choices.push((a*b).toString());
 			choices.push(g.toString());
 			let uniqueChoices=[...new Set(choices)];
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: l.toString(),
 				alternate: l.toString(),
 				display: l.toString(),
 				choices: uniqueChoices.slice(0,4)
-			};
+			});
 			hint="Enter a number";
 			break;
 		}
@@ -366,17 +367,17 @@ export function generateGCFLCM(difficulty?: string): void{
 			choices.push((a+b).toString());
 			choices.push(l.toString());
 			let uniqueChoices=[...new Set(choices)];
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: g.toString(),
 				alternate: g.toString(),
 				display: g.toString(),
 				choices: uniqueChoices.slice(0,4)
-			};
+			});
 			hint="Enter a number";
 			break;
 		}
 	}
-	window.expectedFormat=hint;
+	renderer.setExpectedFormat(hint);
 	if (window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise();
 	}

@@ -207,10 +207,10 @@ describe("generateRelatedRates - edge cases",()=>{
         expect((window as any).expectedFormat).toBeDefined();
         expect(typeof (window as any).expectedFormat).toBe("string");
     });
-    it("should set hasQuestion to true",()=>{
+    it("should populate correctAnswer.correct",()=>{
         Math.random=vi.fn().mockReturnValueOnce(0.05);
         generateRelatedRates();
-        expect((window as any).hasQuestion).toBe(true);
+        expect((window as any).correctAnswer.correct).toBeTruthy();
     });
     it("should handle repeated calls",()=>{
         Math.random=vi.fn().mockReturnValueOnce(0.05);

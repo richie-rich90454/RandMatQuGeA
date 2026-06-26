@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty, getOrdinal} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 interface SeriesType{
 	expr: string;
 	conv: string;
@@ -109,11 +110,11 @@ export function generateSeries(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: plainCorrectAnswer,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

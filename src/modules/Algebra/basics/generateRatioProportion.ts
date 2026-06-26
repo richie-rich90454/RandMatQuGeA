@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {gcd, getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Generates a ratio/proportion question (simplify ratio, solve proportion, map scale, or unit rate) with MCQ distractors.
  * @fileoverview Ratios, proportions, scales, unit rates. Sets window.correctAnswer with numeric or plain ratio and plausible wrong answers.
@@ -101,11 +102,11 @@ export function generateRatioProportion(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

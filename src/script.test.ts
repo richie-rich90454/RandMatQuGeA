@@ -33,7 +33,7 @@ import*as sessionMod from"./main/session.js";
 import*as _uiMod from"./main/ui.js";
 describe("script",()=>{
     it("should set window globals on load",()=>{
-        expect(window.correctAnswer).toEqual({correct:""});
+        expect(window.correctAnswer).toEqual({correct:"", alternate:"", display:""});
         expect(window.expectedFormat).toBe("");
         expect(window.hasQuestion).toBe(false);
     });
@@ -43,7 +43,7 @@ describe("script initialization",()=>{
         expect(window.correctAnswer).toBeDefined();
     });
     it("should not throw when called",()=>{
-        expect(window.correctAnswer).toEqual({correct:""});
+        expect(window.correctAnswer).toEqual({correct:"", alternate:"", display:""});
     });
     it("should call loadSettings",()=>{
         expect(settingsMod.loadSettings).toHaveBeenCalled();

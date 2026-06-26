@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Rational graph analysis: domain, asymptotes, holes.
  * @fileoverview Generates rational graph analysis questions with MCQ distractors.
@@ -86,11 +87,11 @@ export function generateRationalGraphAnalysis(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

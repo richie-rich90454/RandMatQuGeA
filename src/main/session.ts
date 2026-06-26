@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file session.ts - Manages mental math sessions, timer, scoring, and leaderboard with delete functionality.
  * @date 2026-04-12
  * @description Handles start, pause, skip, end of mental sessions, tracks scores, saves to SQLite,
@@ -146,9 +146,20 @@ export async function generateNextMentalQuestion(): Promise<void>{
         dom.displays.answerResults.innerHTML='<div class="empty-state">...</div>';
     }
     if(dom.buttons.copyAnswerBtn)dom.buttons.copyAnswerBtn.style.display="none";
+    questionState.correctAnswer={correct:"",alternate:"",display:""};
+    questionState.expectedFormat="";
+    questionState.hasQuestion=false;
+    dom.buttons.checkAnswerButton.disabled=true;
+    dom.inputs.userAnswer.disabled=true;
     dom.displays.questionArea.innerHTML=`\n    <div class="loading-state">\n      <div class="spinner"></div>\n      <p>Generating...</p>\n    </div>\n  `;
     try{
         await callGenerator(appState.selectedTopic,appState.currentDifficulty);
+        if(!questionState.correctAnswer.correct){
+            dom.displays.questionArea.innerHTML='<div class="empty-state">Could not generate question. Please try another topic.</div>';
+            questionState.hasQuestion=false;
+            endMentalSession();
+            return;
+        }
         questionState.hasQuestion=true;
         ui.updateUIState();
         appState.currentQuestionStartTime=Date.now();

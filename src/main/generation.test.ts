@@ -169,6 +169,10 @@ describe("generateQuestion",()=>{
         state.setMcqMode(false);
         state.setShuffle(false);
         vi.clearAllMocks();
+        callGeneratorMock.mockImplementation(()=>{
+            (window as any).correctAnswer={correct:"42",alternate:"42",display:"42"};
+            (window as any).expectedFormat="decimal";
+        });
     });
     it("should be a function",()=>{
         expect(typeof generateQuestion).toBe("function");
@@ -267,6 +271,10 @@ describe("generateQuestion - edge cases",()=>{
         (window as any).hasQuestion=false;
         callGeneratorMock.mockReset();
         vi.clearAllMocks();
+        callGeneratorMock.mockImplementation(()=>{
+            (window as any).correctAnswer={correct:"42",alternate:"42",display:"42"};
+            (window as any).expectedFormat="decimal";
+        });
     });
     it("should handle null topic gracefully",async()=>{
         state.setSelectedTopic(null);
@@ -295,10 +303,8 @@ describe("generateQuestion - edge cases",()=>{
     });
     it("should update expected format display",async()=>{
         state.setSelectedTopic("add");
-        (window as any).expectedFormat="decimal";
         await generateQuestion();
         expect(dom.expectedFormatDiv!.textContent).toBe("Expected format: decimal");
-        delete (window as any).expectedFormat;
     });
     it("should clear previous answer state",async()=>{
         state.setSelectedTopic("add");
@@ -313,9 +319,12 @@ describe("generateQuestion - edge cases",()=>{
     });
     it("should handle generator returning empty string",async()=>{
         state.setSelectedTopic("add");
-        callGeneratorMock.mockReturnValue("");
+        callGeneratorMock.mockImplementation(()=>{
+            (window as any).correctAnswer={correct:"",alternate:"",display:""};
+            (window as any).expectedFormat="";
+        });
         await generateQuestion();
-        expect((window as any).hasQuestion).toBe(true);
+        expect((window as any).hasQuestion).toBe(false);
         callGeneratorMock.mockReset();
     });
     it("should handle generator throwing error",async()=>{

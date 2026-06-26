@@ -6,6 +6,7 @@
 import {questionArea} from "../../script.js";
 import {getMaxForDifficulty} from "../Algebra/algebraUtils.js";
 import {formatPiFraction} from "./trigUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 export function generateDegreesToRadians(difficulty?: string): void{
 	if(!questionArea) return;
 	questionArea.innerHTML="";
@@ -43,13 +44,13 @@ export function generateDegreesToRadians(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: angleRad.toFixed(4)+" rad",
 		display: exact,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as a decimal (e.g., 0.7854 rad) or exact expression (e.g., π/4 rad)";
+	});
+	renderer.setExpectedFormat("Enter as a decimal (e.g., 0.7854 rad) or exact expression (e.g., π/4 rad)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateRadiansToDegrees(difficulty?: string): void{
@@ -85,13 +86,13 @@ export function generateRadiansToDegrees(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: angleDeg,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as a number with ° (e.g., 45°)";
+	});
+	renderer.setExpectedFormat("Enter as a number with ° (e.g., 45°)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateArcLength(difficulty?: string): void{
@@ -128,13 +129,13 @@ export function generateArcLength(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a number (e.g., 15.71)";
+	});
+	renderer.setExpectedFormat("Enter a number (e.g., 15.71)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateAngularLinearSpeed(difficulty?: string): void{
@@ -172,13 +173,13 @@ export function generateAngularLinearSpeed(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a number (e.g., 6.28)";
+	});
+	renderer.setExpectedFormat("Enter a number (e.g., 6.28)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateRightTriangleDefs(difficulty?: string): void{
@@ -230,13 +231,13 @@ export function generateRightTriangleDefs(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as a fraction (e.g., opposite/hypotenuse)";
+	});
+	renderer.setExpectedFormat("Enter as a fraction (e.g., opposite/hypotenuse)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateSpecialTriangle(difficulty?: string): void{
@@ -264,12 +265,12 @@ export function generateSpecialTriangle(difficulty?: string): void{
 				if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 				else uniqueChoices=[correct];
 			}
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: correct,
 				alternate: `${long.toFixed(2)}, ${hyp}`,
 				display: correct,
 				choices: uniqueChoices
-			};
+			});
 		}
 		else{
 			const long=Math.floor(Math.random()*maxSide)+1;
@@ -288,12 +289,12 @@ export function generateSpecialTriangle(difficulty?: string): void{
 				if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 				else uniqueChoices=[correct];
 			}
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: correct,
 				alternate: `${short.toFixed(2)}, ${hyp.toFixed(2)}`,
 				display: correct,
 				choices: uniqueChoices
-			};
+			});
 		}
 	}
 	else{
@@ -312,14 +313,14 @@ export function generateSpecialTriangle(difficulty?: string): void{
 			if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 			else uniqueChoices=[correct];
 		}
-		window.correctAnswer={
+		renderer.setAnswer({
 			correct: correct,
 			alternate: correct,
 			display: correct,
 			choices: uniqueChoices
-		};
+		});
 	}
-	window.expectedFormat="Enter numbers separated by commas or phrases";
+	renderer.setExpectedFormat("Enter numbers separated by commas or phrases");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateElevationDepression(difficulty?: string): void{
@@ -352,12 +353,12 @@ export function generateElevationDepression(difficulty?: string): void{
 			if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 			else uniqueChoices=[correct];
 		}
-		window.correctAnswer={
+		renderer.setAnswer({
 			correct: correct,
 			alternate: correct,
 			display: correct,
 			choices: uniqueChoices
-		};
+		});
 	}
 	else{
 		const heightKnown=Math.floor(Math.random()*(distMax-distMin+1))+distMin;
@@ -374,14 +375,14 @@ export function generateElevationDepression(difficulty?: string): void{
 			if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 			else uniqueChoices=[correct];
 		}
-		window.correctAnswer={
+		renderer.setAnswer({
 			correct: correct,
 			alternate: correct,
 			display: correct,
 			choices: uniqueChoices
-		};
+		});
 	}
-	window.expectedFormat="Enter a number (e.g., 15.2)";
+	renderer.setExpectedFormat("Enter a number (e.g., 15.2)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateReferenceAngle(difficulty?: string): void{
@@ -414,13 +415,13 @@ export function generateReferenceAngle(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: ref+"°",
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a number (e.g., 30)";
+	});
+	renderer.setExpectedFormat("Enter a number (e.g., 30)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateASTCSign(difficulty?: string): void{
@@ -453,13 +454,13 @@ export function generateASTCSign(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter 'positive' or 'negative'";
+	});
+	renderer.setExpectedFormat("Enter 'positive' or 'negative'");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateSumDifference(difficulty?: string): void{
@@ -504,13 +505,13 @@ export function generateSumDifference(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal (e.g., 0.7071) or exact expression (e.g., √2/2)";
+	});
+	renderer.setExpectedFormat("Enter a decimal (e.g., 0.7071) or exact expression (e.g., √2/2)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateDoubleAngle(difficulty?: string): void{
@@ -544,13 +545,13 @@ export function generateDoubleAngle(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal (e.g., 0.8660) or exact expression";
+	});
+	renderer.setExpectedFormat("Enter a decimal (e.g., 0.8660) or exact expression");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateHalfAngle(difficulty?: string): void{
@@ -584,13 +585,13 @@ export function generateHalfAngle(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a decimal (e.g., 0.2588) or exact expression";
+	});
+	renderer.setExpectedFormat("Enter a decimal (e.g., 0.2588) or exact expression");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generatePolarToRectangular(difficulty?: string): void{
@@ -626,13 +627,13 @@ export function generatePolarToRectangular(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: `(${x}, ${y})`,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as (x, y)";
+	});
+	renderer.setExpectedFormat("Enter as (x, y)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateRectangularToPolar(difficulty?: string): void{
@@ -670,13 +671,13 @@ export function generateRectangularToPolar(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: `(${r}, ${thetaDeg})`,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as (r, θ°)";
+	});
+	renderer.setExpectedFormat("Enter as (r, θ°)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generatePolarDistance(difficulty?: string): void{
@@ -703,13 +704,13 @@ export function generatePolarDistance(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a number";
+	});
+	renderer.setExpectedFormat("Enter a number");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generatePolarGraphEquation(difficulty?: string): void{
@@ -776,13 +777,13 @@ export function generatePolarGraphEquation(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a short description (e.g., 'rose with 4 petals')";
+	});
+	renderer.setExpectedFormat("Enter a short description (e.g., 'rose with 4 petals')");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateParametricToCartesian(difficulty?: string): void{
@@ -851,13 +852,13 @@ export function generateParametricToCartesian(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: correct,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter the Cartesian equation (e.g., y = 2x + 3)";
+	});
+	renderer.setExpectedFormat("Enter the Cartesian equation (e.g., y = 2x + 3)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateParametricMotion(difficulty?: string): void{
@@ -884,13 +885,13 @@ export function generateParametricMotion(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: `(${x.toFixed(2)}, ${y.toFixed(2)})`,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as (x, y)";
+	});
+	renderer.setExpectedFormat("Enter as (x, y)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateComplexPolarForm(difficulty?: string): void{
@@ -917,13 +918,13 @@ export function generateComplexPolarForm(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: `${r} cis ${thetaDeg}°`,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as 'r cis θ°' or r(cos θ + i sin θ)";
+	});
+	renderer.setExpectedFormat("Enter as 'r cis θ°' or r(cos θ + i sin θ)");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateComplexMultiplyDivide(difficulty?: string): void{
@@ -958,13 +959,13 @@ export function generateComplexMultiplyDivide(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: `${resultR} cis ${resultThetaDeg}°`,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as 'r cis θ°' or expanded form";
+	});
+	renderer.setExpectedFormat("Enter as 'r cis θ°' or expanded form");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateDeMoivre(difficulty?: string): void{
@@ -990,13 +991,13 @@ export function generateDeMoivre(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: `${newR} cis ${newThetaDeg}°`,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as 'r cis θ°' or expanded form";
+	});
+	renderer.setExpectedFormat("Enter as 'r cis θ°' or expanded form");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }
 export function generateComplexRoots(difficulty?: string): void{
@@ -1037,12 +1038,12 @@ export function generateComplexRoots(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: angles.join("; "),
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as 'r1 cis θ1°; r2 cis θ2°; ...'";
+	});
+	renderer.setExpectedFormat("Enter as 'r1 cis θ1°; r2 cis θ2°; ...'");
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }

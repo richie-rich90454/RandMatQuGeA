@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Linear word problems: consecutive integers, money, distance, age, mixture.
  * @fileoverview Generates linear word problems with MCQ distractors. Sets window.correctAnswer with correct result and display.
@@ -111,11 +112,11 @@ export function generateLinearWordProblem(difficulty?: string): void{
 	expectedFormat=expectedFormats[type]||"Enter a number";
 	questionArea.innerHTML=problemText;
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

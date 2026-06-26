@@ -1,5 +1,6 @@
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 function gcd(a: number, b: number): number{
 	while(b){
 		let t=b;
@@ -443,11 +444,11 @@ export function generateIntegral(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctNorm;
 		else uniqueChoices=[correctNorm];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correctNorm,
 		alternate: altNorm,
 		display: latexAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter the integral as an expression, e.g., 2x^3/3+5x^2/2+C, 1/3 sin(3x)+C, etc.";
+	});
+	renderer.setExpectedFormat("Enter the integral as an expression, e.g., 2x^3/3+5x^2/2+C, 1/3 sin(3x)+C, etc.");
 }

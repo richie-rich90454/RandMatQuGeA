@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Real number operations: absolute, distance, order, interval.
  * @fileoverview Generates real number operation questions with MCQ distractors.
@@ -143,11 +144,11 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

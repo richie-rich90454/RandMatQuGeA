@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Synthetic division: divide, remainder, factor.
  * @fileoverview Generates synthetic division questions with MCQ distractors.
@@ -93,11 +94,11 @@ export function generateSyntheticDivision(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

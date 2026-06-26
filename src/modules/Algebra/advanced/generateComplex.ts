@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Complex number operations: addition, subtraction, multiplication, division, powers of i.
  * @fileoverview Generates complex number arithmetic questions with MCQ distractors. Sets window.correctAnswer with correct result and display.
@@ -136,11 +137,11 @@ export function generateComplex(difficulty?: string): void{
 	questionArea.innerHTML=mathExpression;
 	questionArea.style.whiteSpace="pre-wrap";
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

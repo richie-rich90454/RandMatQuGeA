@@ -1,4 +1,5 @@
 import {questionArea} from "../../../script.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Logarithmic modeling: Richter scale, pH, decibels.
  * @fileoverview Generates logarithmic modeling questions with MCQ distractors.
@@ -88,11 +89,11 @@ export function generateLogarithmicModeling(): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

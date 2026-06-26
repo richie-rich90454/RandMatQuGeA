@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {gcd, getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Generates a fraction arithmetic question (add, subtract, multiply, divide, simplify, or convert decimal to fraction) with MCQ distractors.
  * @fileoverview Fraction operations. Sets window.correctAnswer with plain fraction string and LaTeX display, plus plausible wrong answers.
@@ -158,11 +159,11 @@ export function generateFraction(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

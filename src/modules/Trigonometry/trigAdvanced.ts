@@ -5,6 +5,7 @@
  */
 import {questionArea} from "../../script.js";
 import {formatPiFraction} from "./trigUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 export function generateInverseTrig(difficulty?: string): void{
 	if(!questionArea) return;
 	questionArea.innerHTML="";
@@ -93,13 +94,13 @@ export function generateInverseTrig(difficulty?: string): void{
 	textDiv.innerHTML=questionText;
 	textDiv.style.marginBottom="10px";
 	container.appendChild(textDiv);
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correctAnswerStr,
 		alternate: alternateAnswerStr,
 		display: displayAnswerStr,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=hint;
+	});
+	renderer.setExpectedFormat(hint);
 	if(window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise();
 	}
@@ -192,12 +193,12 @@ export function generateTrigEquations(difficulty?: string): void{
 				if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswerStr;
 				else uniqueChoices=[correctAnswerStr];
 			}
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: correctAnswerStr,
 				alternate: alternateAnswerStr,
 				display: displayAnswerStr,
 				choices: uniqueChoices
-			};
+			});
 			break;
 		}
 		case "multiple_angle":{
@@ -282,12 +283,12 @@ export function generateTrigEquations(difficulty?: string): void{
 				if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswerStr;
 				else uniqueChoices=[correctAnswerStr];
 			}
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: correctAnswerStr,
 				alternate: alternateAnswerStr,
 				display: displayAnswerStr,
 				choices: uniqueChoices
-			};
+			});
 			break;
 		}
 		case "using_identity":{
@@ -366,12 +367,12 @@ export function generateTrigEquations(difficulty?: string): void{
 				if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswerStr;
 				else uniqueChoices=[correctAnswerStr];
 			}
-			window.correctAnswer={
+			renderer.setAnswer({
 				correct: correctAnswerStr,
 				alternate: alternateAnswerStr,
 				display: displayAnswerStr,
 				choices: uniqueChoices
-			};
+			});
 			break;
 		}
 	}
@@ -384,7 +385,7 @@ export function generateTrigEquations(difficulty?: string): void{
 	textDiv.innerHTML=questionText;
 	textDiv.style.marginBottom="10px";
 	container.appendChild(textDiv);
-	window.expectedFormat=hint;
+	renderer.setExpectedFormat(hint);
 	if(window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise();
 	}
@@ -719,12 +720,12 @@ export function generateTrigGraphs(difficulty?: string): void{
 	textDiv.innerHTML=questionText;
 	textDiv.style.marginTop="10px";
 	container.appendChild(textDiv);
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correctAnswerStr,
 		alternate: alternateAnswerStr,
 		display: displayAnswerStr,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=hint;
+	});
+	renderer.setExpectedFormat(hint);
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
 }

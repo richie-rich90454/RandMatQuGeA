@@ -1,4 +1,3 @@
-import {dom} from "./core/domRegistry";
 import { topicRegistry, registerTopic } from "./services/topicRegistry";
 let moduleCache: Map<string, any>=new Map();
 async function loadModule(scope: string): Promise<any>{
@@ -161,14 +160,13 @@ registerTopic("linear_graph","algebra","generateLinearGraphing");
 registerTopic("nonlinear_graph","algebra","generateNonLinearGraphing");
 export async function generateQuestion(topicId: string, difficulty: string): Promise<void>{
     const entry=topicRegistry.getTopic(topicId);
-    if (entry){
-        const mod=await loadModule(entry.scope);
-        const generator=mod[entry.fn];
-        if (generator){
-            generator(difficulty);
-        }
+    if (!entry){
+        throw new Error("Unknown topic: "+topicId);
     }
-    else{
-        if (dom.displays.questionArea) dom.displays.questionArea.innerHTML=`<div class="empty-state"><p>Unknown topic</p></div>`;
+    const mod=await loadModule(entry.scope);
+    const generator=mod[entry.fn];
+    if (!generator){
+        throw new Error("Generator function not found: "+entry.fn);
     }
+    generator(difficulty);
 }

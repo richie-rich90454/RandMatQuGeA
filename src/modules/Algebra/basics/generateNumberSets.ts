@@ -1,4 +1,5 @@
 import {questionArea} from "../../../script.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Generates a question about number sets (identify, classify, or compare numbers) with MCQ distractors.
  * @fileoverview Number sets identification. Sets window.correctAnswer with plain text description and plausible wrong answers.
@@ -84,11 +85,11 @@ export function generateNumberSets(_difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

@@ -13,7 +13,7 @@ import * as theme from "./main/theme";
 import {questionState} from "./main/core/questionState";
 export * from "./main/dom";
 export * from "./main/state";
-questionState.correctAnswer={correct:""};
+questionState.correctAnswer={correct:"",alternate:"",display:""};
 questionState.expectedFormat="";
 questionState.hasQuestion=false;
 function initApp(): void{

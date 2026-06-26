@@ -1,5 +1,6 @@
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 function getAppropriateStep(range: number, targetTicks: number=6): number{
 	if(range<=0) return 1;
 	let rawStep=range/targetTicks;
@@ -385,13 +386,13 @@ export function generateGraphicalCalculus(difficulty?: string): void{
 		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
 		else uniqueChoices=[plainCorrectAnswer];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
 function drawLimitGraph(coeff: number, holeX: number, holeY: number): HTMLCanvasElement{
 	let canvas=document.createElement("canvas");

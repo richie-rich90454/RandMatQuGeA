@@ -92,6 +92,11 @@ export async function generateQuestion(): Promise<void>{
     dom.displays.answerResults.className="results-display";
     dom.inputs.userAnswer.value="";
     if (dom.displays.expectedFormatDiv) dom.displays.expectedFormatDiv.textContent="";
+    questionState.correctAnswer={correct:"",alternate:"",display:""};
+    questionState.expectedFormat="";
+    questionState.hasQuestion=false;
+    dom.buttons.checkAnswerButton.disabled=true;
+    dom.inputs.userAnswer.disabled=true;
     renderer.render(`
     <div class="loading-state">
       <div class="spinner"></div>
@@ -100,6 +105,12 @@ export async function generateQuestion(): Promise<void>{
   `);
     try {
         await callGenerator(appState.selectedTopic,appState.currentDifficulty);
+        if (!questionState.correctAnswer.correct){
+            renderer.render(`<div class="empty-state"><p>Could not generate question. Please try another topic.</p></div>`);
+            questionState.hasQuestion=false;
+            ui.updateUIState();
+            return;
+        }
         questionState.hasQuestion=true;
         if (appState.mcqMode){
             await generateChoicesForCurrentQuestion();

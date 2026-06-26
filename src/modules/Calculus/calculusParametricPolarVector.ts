@@ -1,5 +1,6 @@
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 /**
  * Generates and displays a random question involving parametric equations, polar coordinates, or vector-valued functions.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -286,11 +287,11 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

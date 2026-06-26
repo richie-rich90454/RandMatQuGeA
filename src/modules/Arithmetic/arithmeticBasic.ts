@@ -1,5 +1,6 @@
 import {questionArea} from "../../script.js";
 import {getRangeForDifficulty} from "./arithmeticUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 /**
  * Generates and displays a random addition question.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -40,13 +41,13 @@ export function generateAddition(difficulty?: string): void{
 	choices.push((correctNumber+0.1).toFixed(3));
 	choices.push((correctNumber*2).toFixed(3));
 	let uniqueChoices=[...new Set(choices)];
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: result,
 		alternate: result,
 		display: result,
 		choices: uniqueChoices.slice(0,4)
-	};
-	window.expectedFormat="Enter a number (up to 3 decimals)";
+	});
+	renderer.setExpectedFormat("Enter a number (up to 3 decimals)");
 	if (window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise();
 	}
@@ -88,13 +89,13 @@ export function generateSubtraction(difficulty?: string): void{
 	choices.push((correctNumber+0.1).toFixed(3));
 	choices.push((correctNumber*2).toFixed(3));
 	let uniqueChoices=[...new Set(choices)];
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: result,
 		alternate: result,
 		display: result,
 		choices: uniqueChoices.slice(0,4)
-	};
-	window.expectedFormat="Enter a number (up to 3 decimals)";
+	});
+	renderer.setExpectedFormat("Enter a number (up to 3 decimals)");
 	if (window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise();
 	}
@@ -138,13 +139,13 @@ export function generateMultiplication(difficulty?: string): void{
 	choices.push((correctNumber+0.1).toFixed(2));
 	choices.push((correctNumber*1.5).toFixed(2));
 	let uniqueChoices=[...new Set(choices)];
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: rounded,
 		alternate: actualAnswer.toFixed(5),
 		display: rounded,
 		choices: uniqueChoices.slice(0,4)
-	};
-	window.expectedFormat="Enter a number rounded to 2 decimal places";
+	});
+	renderer.setExpectedFormat("Enter a number rounded to 2 decimal places");
 	if (window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise();
 	}
@@ -189,13 +190,13 @@ export function generateDivision(difficulty?: string): void{
 	choices.push((correctNumber+0.1).toFixed(2));
 	choices.push((correctNumber*1.5).toFixed(2));
 	let uniqueChoices=[...new Set(choices)];
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: rounded,
 		alternate: actualAnswer.toFixed(5),
 		display: rounded,
 		choices: uniqueChoices.slice(0,4)
-	};
-	window.expectedFormat="Enter a number rounded to 2 decimal places";
+	});
+	renderer.setExpectedFormat("Enter a number rounded to 2 decimal places");
 	if (window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise();
 	}

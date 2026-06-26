@@ -5,6 +5,7 @@
  */
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 
 export function generateInverseFunctions(difficulty?: string): void{
 	if (!questionArea) return;
@@ -65,13 +66,13 @@ export function generateInverseFunctions(difficulty?: string): void{
 		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=hint;
+	});
+	renderer.setExpectedFormat(hint);
 	if (window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise();
 	}

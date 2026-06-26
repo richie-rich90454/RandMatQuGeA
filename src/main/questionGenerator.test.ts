@@ -167,8 +167,8 @@ describe("questionGenerator",()=>{
     it("generateQuestion should not throw for valid topic",async()=>{
         await expect(generateQuestion("add","easy")).resolves.not.toThrow();
     });
-    it("generateQuestion should not throw for unknown topic",async()=>{
-        await expect(generateQuestion("nonexistent","easy")).resolves.not.toThrow();
+    it("generateQuestion should throw for unknown topic",async()=>{
+        await expect(generateQuestion("nonexistent","easy")).rejects.toThrow("Unknown topic: nonexistent");
     });
 });
 describe("generateQuestion",()=>{
@@ -203,14 +203,14 @@ describe("generateQuestion",()=>{
     it("should handle hard difficulty",async()=>{
         await expect(generateQuestion("add","hard")).resolves.not.toThrow();
     });
-    it("should handle unknown topic gracefully",async()=>{
-        await expect(generateQuestion("unknown_topic","easy")).resolves.not.toThrow();
+    it("should throw on unknown topic",async()=>{
+        await expect(generateQuestion("unknown_topic","easy")).rejects.toThrow("Unknown topic: unknown_topic");
     });
-    it("should handle null topic",async()=>{
-        await expect(generateQuestion(null as any,"easy")).resolves.not.toThrow();
+    it("should throw on null topic",async()=>{
+        await expect(generateQuestion(null as any,"easy")).rejects.toThrow();
     });
-    it("should handle empty string topic",async()=>{
-        await expect(generateQuestion("","easy")).resolves.not.toThrow();
+    it("should throw on empty string topic",async()=>{
+        await expect(generateQuestion("","easy")).rejects.toThrow("Unknown topic:");
     });
     it("should call appropriate generator for arithmetic topics",async()=>{
         await expect(generateQuestion("add","easy")).resolves.not.toThrow();

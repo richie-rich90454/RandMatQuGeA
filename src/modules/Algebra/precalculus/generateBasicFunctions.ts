@@ -1,4 +1,5 @@
 import {questionArea} from "../../../script.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Basic functions: identify or give property.
  * @fileoverview Generates basic function questions with MCQ distractors.
@@ -78,11 +79,11 @@ export function generateBasicFunctions(): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

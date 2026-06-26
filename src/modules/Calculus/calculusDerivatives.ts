@@ -1,5 +1,6 @@
 import {questionArea} from "../../script.js";
 import {getMaxCoeff, trigFunctions, expFunctions, logFunctions, latexToPlain} from "./calculusUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 /**
  * Generates a random differentiation question and displays it in the global question area.
  *
@@ -445,11 +446,11 @@ export function generateDerivative(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: plainCorrectDerivative,
 		alternate: plainCorrectDerivative,
 		display: correctDerivative,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter the derivative as an expression, e.g., 2x+3, cos(x), etc.";
+	});
+	renderer.setExpectedFormat("Enter the derivative as an expression, e.g., 2x+3, cos(x), etc.");
 }

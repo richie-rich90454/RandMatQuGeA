@@ -5,6 +5,7 @@
  */
 import {questionArea} from "../../script.js";
 import {Vector2D, getRange} from "./linearAlgebraUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 
 export function generateVector(difficulty?: string): void{
 	if(!questionArea) return;
@@ -304,11 +305,11 @@ export function generateVector(difficulty?: string): void{
 	if(window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: correct,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter the answer as appropriate";
+	});
+	renderer.setExpectedFormat("Enter the answer as appropriate");
 }

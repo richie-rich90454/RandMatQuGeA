@@ -5,6 +5,7 @@
  */
 import {questionArea} from "../../script.js";
 import {getRange} from "./linearAlgebraUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 
 function generate3x3Matrix(range: number): number[][]{
 	let mat: number[][]=[];
@@ -72,13 +73,13 @@ export function generateSystem3x3(difficulty?: string): void{
 	if(window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correctLaTeX,
 		alternate: `x=${x}, y=${y}, z=${z}`,
 		display: correctLaTeX,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as x=..., y=..., z=... or (x,y,z)";
+	});
+	renderer.setExpectedFormat("Enter as x=..., y=..., z=... or (x,y,z)");
 }
 
 export function generateRowEchelon3x3(difficulty?: string): void{
@@ -125,13 +126,13 @@ export function generateRowEchelon3x3(difficulty?: string): void{
 	if(window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correctLaTeX,
 		alternate: alternateStr,
 		display: correctLaTeX,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as [a,b,c;d,e,f;g,h,i]";
+	});
+	renderer.setExpectedFormat("Enter as [a,b,c;d,e,f;g,h,i]");
 }
 
 export function generatePartialFractions(difficulty?: string): void{
@@ -202,8 +203,8 @@ export function generatePartialFractions(difficulty?: string): void{
 	if(window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
-	window.correctAnswer={ correct: answer, alternate: alternate, display: answer, choices: uniqueChoices };
-	window.expectedFormat="Enter the partial fractions expression";
+	renderer.setAnswer({ correct: answer, alternate: alternate, display: answer, choices: uniqueChoices });
+	renderer.setExpectedFormat("Enter the partial fractions expression");
 }
 
 export function generateLinearProgramming(difficulty?: string): void{
@@ -295,8 +296,8 @@ export function generateLinearProgramming(difficulty?: string): void{
 	if(window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
-	window.correctAnswer={ correct: answer, alternate: answer, display: answer, choices: uniqueChoices };
-	window.expectedFormat="Enter as 'z = value at (x,y)'";
+	renderer.setAnswer({ correct: answer, alternate: answer, display: answer, choices: uniqueChoices });
+	renderer.setExpectedFormat("Enter as 'z = value at (x,y)'");
 }
 
 export function generateVector3D(difficulty?: string): void{
@@ -405,8 +406,8 @@ export function generateVector3D(difficulty?: string): void{
 	if(window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
-	window.correctAnswer={ correct: answer, alternate: alternate, display: answer, choices: uniqueChoices };
-	window.expectedFormat=hint;
+	renderer.setAnswer({ correct: answer, alternate: alternate, display: answer, choices: uniqueChoices });
+	renderer.setExpectedFormat(hint);
 }
 
 export function generateLine3D(difficulty?: string): void{
@@ -440,8 +441,8 @@ export function generateLine3D(difficulty?: string): void{
 	if(window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
-	window.correctAnswer={ correct: answer, alternate: answer, display: answer, choices: uniqueChoices };
-	window.expectedFormat="Enter as (x, y, z)";
+	renderer.setAnswer({ correct: answer, alternate: answer, display: answer, choices: uniqueChoices });
+	renderer.setExpectedFormat("Enter as (x, y, z)");
 }
 export function generatePlane3D(difficulty?: string): void{
 	if(!questionArea) return;
@@ -477,7 +478,7 @@ export function generatePlane3D(difficulty?: string): void{
 			else uniqueChoices=[correct];
 		}
 		choices=uniqueChoices;
-		window.expectedFormat="Enter a number";
+		renderer.setExpectedFormat("Enter a number");
 	}
 	else{
 		mathExpression=`Find the equation of the plane that passes through \\( (${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)}) \\) and has normal vector \\( \\langle ${normal.x.toFixed(2)}, ${normal.y.toFixed(2)}, ${normal.z.toFixed(2)} \\rangle \\).`;
@@ -497,7 +498,7 @@ export function generatePlane3D(difficulty?: string): void{
 			else uniqueChoices=[correct];
 		}
 		choices=uniqueChoices;
-		window.expectedFormat="Enter as ax + by + cz = d";
+		renderer.setExpectedFormat("Enter as ax + by + cz = d");
 	}
 	let mathContainer=document.createElement("div");
 	mathContainer.innerHTML=mathExpression;
@@ -505,10 +506,10 @@ export function generatePlane3D(difficulty?: string): void{
 	if(window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: answer,
 		alternate: alternate,
 		display: answer,
 		choices: choices
-	};
+	});
 }

@@ -324,6 +324,9 @@ describe("session",()=>{
     describe("session scoring",()=>{
         beforeEach(()=>{
             vi.clearAllMocks();
+            (window as any).hasQuestion=true;
+            (window as any).correctAnswer={correct:"42",alternate:"42",display:"42"};
+            vi.mocked(settings.checkAnswerFast).mockResolvedValue(true);
         });
         it("should increment correct count on correct answer",async()=>{
             state.setSessionActive(true);

@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Generates an order‑of‑operations question (basic, with exponents, or with parentheses) with MCQ distractors.
  * @fileoverview Order of operations evaluation. Sets window.correctAnswer with numeric result and plausible wrong answers.
@@ -83,11 +84,11 @@ export function generateOrderOfOperations(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 function formatScientific(value: number, precision: number): { mantissa: number; exponent: number }{
 	let exponent=Math.floor(Math.log10(Math.abs(value)));
 	let mantissa=value/Math.pow(10,exponent);
@@ -123,11 +124,11 @@ export function generateScientificNotation(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

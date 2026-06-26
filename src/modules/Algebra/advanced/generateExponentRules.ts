@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Exponent rules: product, quotient, power, negative, zero.
  * @fileoverview Generates questions on exponent rules with MCQ distractors. Sets window.correctAnswer with correct expression and display.
@@ -89,11 +90,11 @@ export function generateExponentRules(difficulty?: string): void{
 		else uniqueChoices=[correct];
 	}
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

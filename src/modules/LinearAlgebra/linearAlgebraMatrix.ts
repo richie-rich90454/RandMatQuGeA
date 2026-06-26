@@ -5,6 +5,7 @@
  */
 import {questionArea} from "../../script.js";
 import {Matrix2x2, getRange, matrixToString} from "./linearAlgebraUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 
 export function generateMatrix(difficulty?: string): void{
 	if(!questionArea) return;
@@ -390,11 +391,11 @@ export function generateMatrix(difficulty?: string): void{
 	if(window.MathJax?.typesetPromise){
 		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correctLaTeX,
 		alternate: alternate,
 		display: correctLaTeX,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as [a,b,c,d] or a b;c d";
+	});
+	renderer.setExpectedFormat("Enter as [a,b,c,d] or a b;c d");
 }

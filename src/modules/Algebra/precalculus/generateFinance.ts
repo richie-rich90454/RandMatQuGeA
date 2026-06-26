@@ -1,4 +1,5 @@
 import {questionArea} from "../../../script.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Finance: compound interest, continuous, APY, annuity.
  * @fileoverview Generates finance questions with MCQ distractors.
@@ -102,11 +103,11 @@ export function generateFinance(): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

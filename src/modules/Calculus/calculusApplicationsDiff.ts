@@ -1,5 +1,6 @@
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 /**
  * Generates and displays a random "applications of derivatives" question in the global `questionArea`.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -358,11 +359,11 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

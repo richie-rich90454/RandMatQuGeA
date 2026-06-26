@@ -7,6 +7,7 @@
  */
 import {questionArea} from "../../script.js";
 import {getMaxForDifficulty} from "./algebraUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 
 export function generatePolynomial(difficulty?: string): void{
 	if(!questionArea) return;
@@ -99,13 +100,13 @@ export function generatePolynomial(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
 
 export function generatePolynomialDivision(difficulty?: string): void{
@@ -182,13 +183,13 @@ export function generatePolynomialDivision(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
 
 export function generateFactoring(difficulty?: string): void{
@@ -300,13 +301,13 @@ export function generateFactoring(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
 
 export function generateFunctionConcepts(difficulty?: string): void{
@@ -397,13 +398,13 @@ export function generateFunctionConcepts(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
 
 export function generateLinearGraphing(difficulty?: string): void{
@@ -515,13 +516,13 @@ export function generateLinearGraphing(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
 
 export function generateNonLinearGraphing(difficulty?: string): void{
@@ -617,11 +618,11 @@ export function generateNonLinearGraphing(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }

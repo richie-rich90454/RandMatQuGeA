@@ -1,5 +1,6 @@
 import {questionArea} from "../../script.js";
 import {getMaxCoeff} from "./calculusUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 
 /**
  * Generates and displays a random limit question in the global `questionArea`.
@@ -138,14 +139,13 @@ export function generateLimit(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a number or 'avg=... inst=...'";
-	window.hasQuestion=true;
+	});
+	renderer.setExpectedFormat("Enter a number or 'avg=... inst=...'");
 }
 
 /**
@@ -365,12 +365,11 @@ export function generateRelatedRates(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter a number or compound answer (e.g., 'dy/dt=-1.5 dtheta/dt=0.2')";
-	window.hasQuestion=true;
+	});
+	renderer.setExpectedFormat("Enter a number or compound answer (e.g., 'dy/dt=-1.5 dtheta/dt=0.2')");
 }

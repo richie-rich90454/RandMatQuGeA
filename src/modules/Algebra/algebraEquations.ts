@@ -8,6 +8,7 @@
  */
 import {questionArea} from "../../script.js";
 import {getMaxForDifficulty} from "./algebraUtils.js";
+import {renderer} from "../../main/core/questionRenderer";
 
 export function generateLinearEquation(difficulty?: string): void{
 	if(!questionArea) return;
@@ -135,13 +136,13 @@ export function generateLinearEquation(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
 
 export function generateQuadraticEquation(difficulty?: string): void{
@@ -271,13 +272,13 @@ export function generateQuadraticEquation(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
 
 export function generateLinearInequality(difficulty?: string): void{
@@ -369,13 +370,13 @@ export function generateLinearInequality(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
 
 export function generateQuadraticInequality(difficulty?: string): void{
@@ -454,13 +455,13 @@ export function generateQuadraticInequality(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
 
 export function generateRationalInequality(difficulty?: string): void{
@@ -504,13 +505,13 @@ export function generateRationalInequality(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter intervals e.g., (-∞,2) ∪ (5,∞)";
+	});
+	renderer.setExpectedFormat("Enter intervals e.g., (-∞,2) ∪ (5,∞)");
 }
 
 export function generateSystem2x2(difficulty?: string): void{
@@ -618,13 +619,13 @@ export function generateSystem2x2(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
 
 export function generateSystem3x3(difficulty?: string): void{
@@ -669,11 +670,11 @@ export function generateSystem3x3(difficulty?: string): void{
 			console.log("MathJax typeset error:", err)
 		);
 	}
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat="Enter as (x, y, z)";
+	});
+	renderer.setExpectedFormat("Enter as (x, y, z)");
 }

@@ -1,5 +1,6 @@
 import {questionArea} from "../../../script.js";
 import {factorial, getMaxForDifficulty} from "../algebraUtils.js";
+import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Factorial questions: basic, division, equation, approximation, prime exponent.
  * @fileoverview Generates factorial questions with MCQ distractors. Sets window.correctAnswer with correct result and display.
@@ -108,11 +109,11 @@ export function generateFactorial(difficulty?: string): void{
 		else uniqueChoices=[correct];
 	}
 	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
-	window.correctAnswer={
+	renderer.setAnswer({
 		correct: correct,
 		alternate: alternate,
 		display: display,
 		choices: uniqueChoices
-	};
-	window.expectedFormat=expectedFormat;
+	});
+	renderer.setExpectedFormat(expectedFormat);
 }
