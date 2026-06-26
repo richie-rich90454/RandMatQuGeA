@@ -56,7 +56,7 @@ export default defineConfig({
 				return html.replace(/__APP_VERSION__/g, version);
 			}
 		},
-		visualizer({open: true, gzipSize: true, brotliSize: true})
+		visualizer({open: false, gzipSize: true, brotliSize: true})
 	],
 	server: {
 		host: "::",
