@@ -34,7 +34,8 @@ impl Difficulty {
 }
 impl From<&str> for Difficulty {
     fn from(s: &str) -> Self {
-        match s {
+        let lower = s.to_lowercase();
+        match lower.as_str() {
             "easy" => Difficulty::Easy,
             "hard" => Difficulty::Hard,
             _ => Difficulty::Medium,

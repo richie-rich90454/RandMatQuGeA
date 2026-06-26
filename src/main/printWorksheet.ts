@@ -8,6 +8,7 @@
 import { topics, scopeTopics } from "./constants";
 import { generateQuestion as callGenerator } from "./questionGenerator";
 import {dom} from "./core/domRegistry";
+import {questionState} from "./core/questionState";
 let modal: HTMLElement|null=null;
 let questionCountSelect: HTMLSelectElement|null=null;
 let topicSelect: HTMLSelectElement|null=null;
@@ -29,9 +30,6 @@ function wrapLatexIfNeeded(text: string): string{
         return `\\(${text}\\)`;
     }
     return text;
-}
-function escapeLatexForJs(latex: string): string{
-    return latex.replace(/\\/g, "\\\\");
 }
 async function captureRawLatexDuringGeneration(generator: ()=>Promise<void>): Promise<string>{
     let originalMathJaxTypesetPromise=(window as any).MathJax?.typesetPromise;
@@ -121,15 +119,21 @@ async function generateQuestionText(topicId: string, difficulty: string): Promis
     }
     let originalHtml=dom.displays.questionArea.innerHTML;
     let originalCorrectAnswer=(window as any).correctAnswer;
+    let originalQsCorrect=questionState.correctAnswer;
+    let originalQsFormat=questionState.expectedFormat;
+    let originalQsHas=questionState.hasQuestion;
     try{
         let latexSource=await captureRawLatexDuringGeneration(()=>callGenerator(topicId, difficulty));
-        let ansObj=(window as any).correctAnswer;
+        let ansObj=questionState.correctAnswer;
         let answerDisplay=wrapLatexIfNeeded(ansObj?.display||ansObj?.correct||"");
         return { html: latexSource, answerDisplay };
     }
     finally{
         dom.displays.questionArea.innerHTML=originalHtml;
         (window as any).correctAnswer=originalCorrectAnswer;
+        questionState.correctAnswer=originalQsCorrect;
+        questionState.expectedFormat=originalQsFormat;
+        questionState.hasQuestion=originalQsHas;
     }
 }
 function updateTopicDropdown(): void{
@@ -180,7 +184,7 @@ async function generateWorksheet(): Promise<void>{
     for (let q of questions){
         questionsHtml+=`
             <li class="question-item">
-                <div class="question-text">${escapeLatexForJs(q.html)}</div>
+                <div class="question-text">${q.html}</div>
                 <div class="answer-space"></div>
             </li>`;
     }
@@ -188,7 +192,7 @@ async function generateWorksheet(): Promise<void>{
     if (includeAnswers){
         answersHtml=`<div class="answer-key"><h2>Answer Key</h2><ol id="answer-key" class="no-mathjax">`;
         for (let q of questions){
-            answersHtml+=`<li>${escapeLatexForJs(q.answerDisplay)}</li>`;
+            answersHtml+=`<li>${q.answerDisplay}</li>`;
         }
         answersHtml+=`</ol></div>`;
     }
@@ -200,6 +204,7 @@ async function generateWorksheet(): Promise<void>{
     let fullHtml=`<!DOCTYPE html>
 <html>
 <head>
+    <base href="${location.origin}/">
     <meta charset="UTF-8">
     <title>Math Worksheet</title>
     <script>

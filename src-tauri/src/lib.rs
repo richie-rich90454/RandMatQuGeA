@@ -41,13 +41,29 @@ struct DbState {
 #[cfg(desktop)]
 static ALLOW_CLOSE: AtomicBool = AtomicBool::new(false);
 #[tauri::command]
-fn check_math(user_expr: String, correct_expr: String) -> bool {
+fn check_math(user_expr: String, correct_expr: String, alternate: Option<String>) -> bool {
     let user_num = user_expr.trim().parse::<f64>();
     let correct_num = correct_expr.trim().parse::<f64>();
     if let (Ok(u), Ok(c)) = (user_num, correct_num) {
         return (u - c).abs() < 1e-6;
     }
-    user_expr.replace(' ', "").to_lowercase() == correct_expr.replace(' ', "").to_lowercase()
+    if user_expr.replace(' ', "").to_lowercase() == correct_expr.replace(' ', "").to_lowercase() {
+        return true;
+    }
+    if let Some(alt) = alternate {
+        let user_norm = user_expr.trim().to_lowercase();
+        let alt_norm = alt.trim().to_lowercase();
+        if user_norm == alt_norm {
+            return true;
+        }
+        let alt_num = alt.trim().parse::<f64>();
+        if let (Ok(u), Ok(a)) = (user_num, alt_num) {
+            if (u - a).abs() < 1e-6 {
+                return true;
+            }
+        }
+    }
+    false
 }
 #[tauri::command]
 async fn save_score(
@@ -95,37 +111,24 @@ async fn save_performance(
     error_type: Option<String>,
 ) -> Result<(), String> {
     let pool = &state.pool;
-    let update_result = sqlx::query(
-        "UPDATE user_topic_stats 
-		 SET attempts = attempts + 1,
-			 correct = correct + ?,
-			 total_response_time_ms = total_response_time_ms + ?,
-			 last_error_type = ?,
-			 last_updated = CURRENT_TIMESTAMP
-		 WHERE topic_id = ? AND difficulty = ?",
+    sqlx::query(
+        "INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms, last_error_type)
+         VALUES (?, ?, 1, ?, ?, ?)
+         ON CONFLICT(topic_id, difficulty) DO UPDATE SET
+             attempts = user_topic_stats.attempts + 1,
+             correct = user_topic_stats.correct + excluded.correct,
+             total_response_time_ms = user_topic_stats.total_response_time_ms + excluded.total_response_time_ms,
+             last_error_type = excluded.last_error_type,
+             last_updated = CURRENT_TIMESTAMP",
     )
+    .bind(&topic_id)
+    .bind(&difficulty)
     .bind(if correct { 1 } else { 0 })
     .bind(response_time_ms as i64)
     .bind(&error_type)
-    .bind(&topic_id)
-    .bind(&difficulty)
     .execute(pool)
     .await
     .map_err(|e| e.to_string())?;
-    if update_result.rows_affected() == 0 {
-        sqlx::query(
-			"INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms, last_error_type)
-			 VALUES (?, ?, 1, ?, ?, ?)"
-		)
-		.bind(&topic_id)
-		.bind(&difficulty)
-		.bind(if correct { 1 } else { 0 })
-		.bind(response_time_ms as i64)
-		.bind(&error_type)
-		.execute(pool)
-		.await
-		.map_err(|e| e.to_string())?;
-    }
     Ok(())
 }
 #[tauri::command]
@@ -141,8 +144,12 @@ async fn get_next_question_recommendation(
         .await
         .map_err(|e| e.to_string())?;
     let new_difficulty = if let Some(s) = stats {
-        let accuracy = s.correct as f64 / s.attempts as f64;
-        adaptive::recommend_next_difficulty(accuracy)
+        if s.attempts == 0 {
+            Difficulty::Medium
+        } else {
+            let accuracy = s.correct as f64 / s.attempts as f64;
+            adaptive::recommend_next_difficulty(accuracy)
+        }
     } else {
         Difficulty::Medium
     };
@@ -162,13 +169,14 @@ async fn get_weak_topics(
     let pool = &state.pool;
     let limit_val = limit.unwrap_or(5);
     let rows: Vec<(String, Option<f64>, Option<i32>)> = sqlx::query_as(
-        "SELECT topic_id, 
-				CAST(SUM(correct) AS REAL) / SUM(attempts) as accuracy,
-				SUM(attempts) as total_attempts
-		 FROM user_topic_stats
-		 GROUP BY topic_id
-		 ORDER BY accuracy ASC
-		 LIMIT ?",
+        "SELECT topic_id,
+            COALESCE(CAST(SUM(correct) AS REAL) / NULLIF(SUM(attempts), 0), 0.0) as accuracy,
+            SUM(attempts) as total_attempts
+         FROM user_topic_stats
+         GROUP BY topic_id
+         HAVING SUM(attempts) > 0
+         ORDER BY accuracy ASC
+         LIMIT ?",
     )
     .bind(limit_val as i32)
     .fetch_all(pool)
@@ -192,13 +200,13 @@ async fn get_performance_stats(
 ) -> Result<Vec<serde_json::Value>, String> {
     let pool = &state.pool;
     let mut builder = sqlx::QueryBuilder::new(
-        "SELECT topic_id, difficulty, 
-				SUM(attempts) as total_attempts,
-				SUM(correct) as total_correct,
-				CAST(SUM(correct) AS REAL) / SUM(attempts) as accuracy,
-				AVG(total_response_time_ms) as avg_response_time
-		 FROM user_topic_stats
-		 WHERE 1=1",
+        "SELECT topic_id, difficulty,
+            SUM(attempts) as total_attempts,
+            SUM(correct) as total_correct,
+            COALESCE(CAST(SUM(correct) AS REAL) / NULLIF(SUM(attempts), 0), 0.0) as accuracy,
+            COALESCE(AVG(total_response_time_ms), 0.0) as avg_response_time
+         FROM user_topic_stats
+         WHERE 1=1",
     );
     if let Some(diff) = difficulty {
         builder.push(" AND difficulty = ");
@@ -209,7 +217,7 @@ async fn get_performance_stats(
         builder.push_bind(format!("-{} days", d));
         builder.push(")");
     }
-    builder.push(" GROUP BY topic_id, difficulty ORDER BY accuracy ASC");
+    builder.push(" GROUP BY topic_id, difficulty HAVING SUM(attempts) > 0 ORDER BY accuracy ASC");
     let results = builder
         .build_query_as::<(String, String, i64, i64, f64, f64)>()
         .fetch_all(pool)
@@ -357,7 +365,7 @@ pub fn run() {
                 let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
                 let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
                 let _tray = TrayIconBuilder::with_id("main")
-                    .icon(app.default_window_icon().unwrap().clone())
+                    .icon(app.default_window_icon().expect("default window icon must be configured").clone())
                     .menu(&menu)
                     .on_menu_event(move |app, event| match event.id.as_ref() {
                         "quit" => {
@@ -569,24 +577,36 @@ mod tests {
     }
     #[test]
     fn should_handle_check_math_with_identical_expressions() {
-        assert!(check_math("x^2+1".to_string(), "x^2+1".to_string()));
+        assert!(check_math("x^2+1".to_string(), "x^2+1".to_string(), None));
     }
     #[test]
     fn should_handle_check_math_with_different_expressions() {
-        assert!(!check_math("x^2+1".to_string(), "x^2+2".to_string()));
+        assert!(!check_math("x^2+1".to_string(), "x^2+2".to_string(), None));
     }
     #[test]
     fn should_handle_check_math_with_empty_strings() {
-        assert!(check_math("".to_string(), "".to_string()));
+        assert!(check_math("".to_string(), "".to_string(), None));
     }
     #[test]
     fn should_handle_check_math_with_whitespace() {
-        assert!(check_math(" x + 1 ".to_string(), "x+1".to_string()));
+        assert!(check_math(" x + 1 ".to_string(), "x+1".to_string(), None));
     }
     #[test]
     fn should_handle_check_math_with_numeric_strings() {
-        assert!(check_math("3.14".to_string(), "3.14".to_string()));
-        assert!(!check_math("3.14".to_string(), "2.71".to_string()));
+        assert!(check_math("3.14".to_string(), "3.14".to_string(), None));
+        assert!(!check_math("3.14".to_string(), "2.71".to_string(), None));
+    }
+    #[test]
+    fn should_handle_check_math_with_matching_alternate() {
+        assert!(check_math("1/2".to_string(), "0.5".to_string(), Some("1/2".to_string())));
+    }
+    #[test]
+    fn should_handle_check_math_with_alternate_decimal_match() {
+        assert!(check_math("0.5".to_string(), "1/2".to_string(), Some("0.50".to_string())));
+    }
+    #[test]
+    fn should_handle_check_math_with_non_matching_alternate() {
+        assert!(!check_math("x+1".to_string(), "x+2".to_string(), Some("y+1".to_string())));
     }
     #[tokio::test]
     async fn should_handle_save_score_entry_creation() {

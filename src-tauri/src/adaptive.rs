@@ -35,7 +35,11 @@ pub async fn fetch_stats_for_topic(
     .fetch_optional(pool)
     .await?;
     if let Some((attempts, correct, total_time)) = row {
-        let avg_time = total_time as f64 / attempts as f64;
+        let avg_time = if attempts == 0 {
+            0.0
+        } else {
+            total_time as f64 / attempts as f64
+        };
         Ok(Some(TopicStats {
             topic_id: topic_id.clone(),
             difficulty,
@@ -58,12 +62,13 @@ pub fn recommend_next_difficulty(accuracy: f64) -> Difficulty {
 }
 pub async fn find_weakest_topic(pool: &SqlitePool) -> Result<Option<String>, sqlx::Error> {
     let row: Option<(String, f64)> = sqlx::query_as(
-        "SELECT topic_id, 
-				CAST(SUM(correct) AS REAL) / SUM(attempts) as accuracy
-		 FROM user_topic_stats
-		 GROUP BY topic_id
-		 ORDER BY accuracy ASC
-		 LIMIT 1",
+        "SELECT topic_id,
+            COALESCE(CAST(SUM(correct) AS REAL) / NULLIF(SUM(attempts), 0), 0.0) as accuracy
+         FROM user_topic_stats
+         GROUP BY topic_id
+         HAVING SUM(attempts) > 0
+         ORDER BY accuracy ASC
+         LIMIT 1",
     )
     .fetch_optional(pool)
     .await?;
