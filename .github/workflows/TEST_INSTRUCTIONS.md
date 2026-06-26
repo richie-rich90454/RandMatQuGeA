@@ -9,10 +9,9 @@ This workflow automatically builds and packages the Math Question Generator appl
 - Runs when a new GitHub Release is created
 - Builds all platforms in parallel
 
-### 2. **Build Targets (7 platforms total)**
+### 2. **Build Targets (4 platforms total)**
 
 **Windows:**
-- 32-bit (i686-pc-windows-msvc) → `.exe` installer
 - 64-bit (x86_64-pc-windows-msvc) → `.exe` installer
 
 **macOS:**
@@ -20,13 +19,11 @@ This workflow automatically builds and packages the Math Question Generator appl
 - Apple Silicon (aarch64-apple-darwin) → `.dmg` bundle
 
 **Linux:**
-- 32-bit (i686-unknown-linux-gnu) → `.AppImage` + `.deb`
 - 64-bit (x86_64-unknown-linux-gnu) → `.AppImage` + `.deb`
-- ARM64 (aarch64-unknown-linux-gnu) → `.AppImage` + `.deb`
 
 ### 3. **Outputs**
 - Web application build (static files)
-- Desktop installers for all 7 platforms
+- Desktop installers for all 4 platforms
 - Auto-generated release notes with download links
 
 ## How to Test the Workflow
@@ -50,7 +47,7 @@ You can manually trigger the workflow from the Actions tab:
 
 ### Successful Build:
 - ✅ Web application built and packaged
-- ✅ 7 desktop installers created (one for each platform)
+- ✅ 4 desktop installers created (one for each platform)
 - ✅ All artifacts uploaded to the GitHub Release
 - ✅ Auto-generated release notes with download links
 
@@ -91,7 +88,7 @@ You can manually trigger the workflow from the Actions tab:
 - Final artifacts are attached to the GitHub Release
 
 ## Next Steps After Testing
-1. Verify all 7 installers work on their respective platforms
+1. Verify all 4 installers work on their respective platforms
 2. Test the web build deployment
 3. Update project documentation with release instructions
 4. Consider setting up automated testing before builds
