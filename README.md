@@ -7,13 +7,13 @@
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/richie-rich90454/random-math-question-generator-app?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/random-math-question-generator-app/releases)
 [![Live Demo](https://img.shields.io/badge/demo-live-green?style=for-the-badge&logo=vercel&logoColor=white)](https://math.richardsblogs.com/)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/typescript-5.9.3-%23007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/typescript-6.0.2-%23007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tauri](https://img.shields.io/badge/tauri-v2-%2324C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app/)
-[![Rust](https://img.shields.io/badge/rust-1.85.0-%23DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![Vite](https://img.shields.io/badge/vite-8.0.1-%23646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Rust](https://img.shields.io/badge/rust-1.89.0-%23DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Vite](https://img.shields.io/badge/vite-8.0.16-%23646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![MathJax](https://img.shields.io/badge/MathJax-4.1.1-007ACC?style=for-the-badge&logo=mathjax&logoColor=white)](https://www.mathjax.org/)
 [![KaTeX](https://img.shields.io/badge/KaTeX-0.16.11-007ACC?style=for-the-badge&logo=katex&logoColor=white)](https://katex.org/)
-[![Math.js](https://img.shields.io/badge/math.js-15.1.1-007ACC?style=for-the-badge&logo=math.js&logoColor=white)](https://mathjs.org/)
+[![Math.js](https://img.shields.io/badge/math.js-15.2.0-007ACC?style=for-the-badge&logo=math.js&logoColor=white)](https://mathjs.org/)
 [![SQLite](https://img.shields.io/badge/sqlite-embedded-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
 [![Offline First](https://img.shields.io/badge/offline-first-success?style=for-the-badge&logo=offline&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Offline_service_workers)
 [![Lightweight](https://img.shields.io/badge/binary-lightweight-blue?style=for-the-badge&logo=webpack&logoColor=white)](https://tauri.app/)
@@ -136,12 +136,12 @@ npm run tauri build
 
 - **Frontend**: HTML5, CSS3 (Custom Properties), TypeScript (ES2020)
 - **Math Rendering**: [MathJax](https://www.mathjax.org/) 4.1.1 and [KaTeX](https://katex.org/) 0.16.11 for beautiful mathematical notation
-- **Build Tool**: [Vite](https://vitejs.dev/) 8.0.1 with TypeScript support for fast development and optimized builds
-- **Math Engine**: [Math.js](https://mathjs.org/) 15.1.1 for complex calculations and equivalence checking
-- **Desktop Framework**: [Tauri](https://tauri.app/) v2 (Rust 1.85.0) with plugins for system tray, global shortcuts, and SQLite
+- **Build Tool**: [Vite](https://vitejs.dev/) 8.0.16 with TypeScript support for fast development and optimized builds
+- **Math Engine**: [Math.js](https://mathjs.org/) 15.2.0 for complex calculations and equivalence checking
+- **Desktop Framework**: [Tauri](https://tauri.app/) v2 (Rust 1.89.0) with plugins for system tray, global shortcuts, and SQLite
 - **Database**: [SQLite](https://sqlite.org/) via `sqlx` for persistent score storage
-- **Type Safety**: TypeScript 5.9.3 with strict configuration and comprehensive type definitions
-- **Build Tools**: Vite 8.0.1 with oxc minification and LightningCSS
+- **Type Safety**: TypeScript 6.0.2 with strict configuration and comprehensive type definitions
+- **Build Tools**: Vite 8.0.16 with oxc minification and LightningCSS
 - **Package Manager**: npm with Node.js 18+
 
 ## 📁 Project Structure (Simplified)
@@ -150,9 +150,12 @@ npm run tauri build
 random_math_question_generator/
 ├── src/                          # Source code directory
 │   ├── index.html               # Main web application interface
-│   ├── script.ts                # Core application logic (TypeScript)
+│   ├── script.ts                # App entry / wiring (TypeScript)
 │   ├── style.css                # Responsive styling
-│   ├── types/                   # TypeScript type definitions
+│   ├── types/                   # TypeScript type definitions (global.d.ts)
+│   ├── main/                    # Core application code
+│   │   ├── core/                # domRegistry, questionState, stateStore, questionRenderer
+│   │   └── services/            # topicRegistry and other services
 │   ├── modules/                 # Modular math question generators
 │   │   ├── Algebra/             # 40+ topic‑specific generator files
 │   │   ├── Arithmetic/          # Basic arithmetic generators
@@ -161,16 +164,13 @@ random_math_question_generator/
 │   │   ├── Trigonometry/        # Trig function generators
 │   │   ├── DiscreteMathematics/ # Combinatorics & probability
 │   │   └── Geometry/            # Area, volume, triangle generators
-│   ├── components/              # UI components
-│   ├── utils/                   # Utility functions (answer checking, formatting)
-│   └── assets/                  # Static assets
 ├── src-tauri/                   # Tauri desktop application
 │   ├── src/
 │   │   ├── lib.rs               # Main application logic
 │   │   └── main.rs              # Entry point (calls lib)
 │   ├── Cargo.toml               # Rust dependencies (sqlx, tauri‑utils, etc.)
 │   └── tauri.conf.json          # Tauri configuration (window effects, tray, etc.)
-├── public/                      # Public assets (fonts, MathJax)
+├── public/                      # Public assets (fonts, MathJax, KaTeX)
 ├── dist/                        # Build output
 ├── vite.config.ts               # Vite build configuration
 ├── tsconfig.json                # TypeScript configuration
