@@ -41,7 +41,16 @@ export async function initializeTheme(): Promise<void>{
         dom.buttons.themeToggle.addEventListener("click",()=>{
             let next=settings.settings.theme==="system"?"dark":settings.settings.theme==="dark"?"light":"system";
             settings.settings.theme=next;
-            localStorage.setItem("theme",next);
+            try{
+                localStorage.setItem("theme",next);
+            }
+            catch(e){
+                console.log("Failed to persist theme to localStorage:",e);
+            }
+            if(dom.settings&&dom.settings.settingsTheme){
+                dom.settings.settingsTheme.value=next;
+            }
+            settings.saveSettings();
             if (next==="system"){
                 let prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;
                 settings.applyTheme(prefersDark?"dark":"light");

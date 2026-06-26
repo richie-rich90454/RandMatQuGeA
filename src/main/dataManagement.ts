@@ -45,12 +45,18 @@ async function loadData(){
         if(deleteAllBtn){
             deleteAllBtn.onclick=async()=>{
                 if(confirm("Delete ALL performance data? This cannot be undone.")){
-                    for(const s of stats){
-                        await invoke("delete_performance_record",{topicId:s.topic_id,difficulty:s.difficulty});
+                    try{
+                        for(const s of stats){
+                            await invoke("delete_performance_record",{topicId:s.topic_id,difficulty:s.difficulty});
+                        }
+                        ui.showNotification("All performance data deleted.","info");
+                        await loadData();
+                        updateLeaderboard();
                     }
-                    ui.showNotification("All performance data deleted.","info");
-                    await loadData();
-                    updateLeaderboard();
+                    catch(err){
+                        console.error("Failed to delete all data:",err);
+                        if(dataList)dataList.textContent="Error: "+(err instanceof Error?err.message:String(err));
+                    }
                 }
             };
         }
@@ -58,17 +64,23 @@ async function loadData(){
         if(resetAllBtn){
             resetAllBtn.onclick=async()=>{
                 if(confirm("HARD RESET: This will delete ALL scores and performance data. This cannot be undone. Are you sure?")){
-                    await invoke("reset_all_data");
-                    ui.showNotification("All data has been reset.","info");
-                    await loadData();
-                    updateLeaderboard();
+                    try{
+                        await invoke("reset_all_data");
+                        ui.showNotification("All data has been reset.","info");
+                        await loadData();
+                        updateLeaderboard();
+                    }
+                    catch(err){
+                        console.error("Failed to reset all data:",err);
+                        if(dataList)dataList.textContent="Error: "+(err instanceof Error?err.message:String(err));
+                    }
                 }
             };
         }
     }
     catch(err){
         console.error("Failed to load stats:",err);
-        dataList.innerHTML=`<p style="color:var(--error);">Error loading data: ${err}</p>`;
+        if(dataList)dataList.textContent="Error loading data: "+(err instanceof Error?err.message:String(err));
     }
 }
 function attachDeleteEvents(){
@@ -77,9 +89,15 @@ function attachDeleteEvents(){
             const topic=(e.currentTarget as HTMLElement).getAttribute("data-topic");
             const diff=(e.currentTarget as HTMLElement).getAttribute("data-diff");
             if(topic&&diff&&confirm(`Delete all records for ${topic} (${diff})?`)){
-                await invoke("delete_performance_record",{topicId:topic,difficulty:diff});
-                ui.showNotification(`Deleted ${topic} (${diff})`,"info");
-                await loadData();
+                try{
+                    await invoke("delete_performance_record",{topicId:topic,difficulty:diff});
+                    ui.showNotification(`Deleted ${topic} (${diff})`,"info");
+                    await loadData();
+                }
+                catch(err){
+                    console.error("Failed to delete record:",err);
+                    if(dataList)dataList.textContent="Error: "+(err instanceof Error?err.message:String(err));
+                }
             }
         });
     });

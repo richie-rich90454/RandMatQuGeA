@@ -151,15 +151,6 @@ export async function setupEventListeners(): Promise<void>{
             });
         }
     });
-    dom.buttons.themeToggle.addEventListener("click",function (){
-        let isDark=document.documentElement.classList.contains("dark");
-        settings.applyTheme(isDark?"light":"dark");
-        if (dom.settings.settingsTheme){
-            dom.settings.settingsTheme.value=isDark?"light":"dark";
-            settings.settings.theme=dom.settings.settingsTheme.value as "light"|"dark";
-            settings.saveSettings();
-        }
-    });
     dom.buttons.helpButton.addEventListener("click",function (){
         ui.showNotification("Select a topic, generate a question, enter your answer, and check it!","info");
     });

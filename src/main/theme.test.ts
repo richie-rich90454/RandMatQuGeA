@@ -15,6 +15,7 @@ vi.mock("./core/domRegistry",()=>({
 vi.mock("./settings.js",()=>({
     get settings(){return mockSettings;},
     applyTheme:(t: any)=>mockApplyTheme(t),
+    saveSettings:vi.fn(),
 }));
 let mockSettings={theme:"system"};
 let mockThemeToggle: any=null;
