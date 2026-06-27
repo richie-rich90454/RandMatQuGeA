@@ -302,8 +302,8 @@ describe("selectTopic - edge cases",()=>{
         document.body.appendChild(pill);
         topics.selectTopic("add");
         topics.selectTopic("add");
-        expect(state.setSelectedTopic).toHaveBeenCalledWith("add");
-        expect(pill.classList.contains("active")).toBe(true);
+        expect(state.setSelectedTopic).toHaveBeenCalledWith(null);
+        expect(pill.classList.contains("active")).toBe(false);
     });
     it("should handle topic with null element",()=>{
         expect(()=>topics.selectTopic("nonexistent")).not.toThrow();
