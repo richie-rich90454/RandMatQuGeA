@@ -21,6 +21,7 @@ import{startQuestionTimer}from"./answer";
 async function applyAdaptiveRecommendation(): Promise<boolean>{
     console.log("[Adaptive] Called, adaptive setting =", settings.settings.adaptive);
     if (!settings.settings.adaptive) return false;
+    let adjusted:boolean=false;
     try{
         console.log("[Adaptive] Invoking get_next_question_recommendation with:", {
             currentTopic: appState.selectedTopic,
@@ -31,29 +32,22 @@ async function applyAdaptiveRecommendation(): Promise<boolean>{
             currentDifficulty: appState.currentDifficulty
         }) as { difficulty: string; weak_topic: string | null };
         console.log("[Adaptive] Received recommendation:", rec);
-        if (rec.difficulty&&rec.difficulty !== appState.currentDifficulty){
-            console.log(`[Adaptive] Changing difficulty from ${appState.currentDifficulty} to ${rec.difficulty}`);
-            appState.currentDifficulty=rec.difficulty;
-            if (dom.inputs.difficultySelect) dom.inputs.difficultySelect.value=rec.difficulty;
-            ui.showNotification(`Difficulty adjusted to ${rec.difficulty} based on your performance`, 'info');
-        }
-        if (rec.weak_topic&&rec.weak_topic !== appState.selectedTopic){
-            console.log(`[Adaptive] Switching topic from ${appState.selectedTopic} to weak topic: ${rec.weak_topic}`);
-            appState.selectedTopic=rec.weak_topic;
-            topics.selectTopic(rec.weak_topic);
-            ui.showNotification(`Focusing on your weak area: ${rec.weak_topic}`, 'info');
-            return true;
-        }
-        else if (rec.weak_topic === appState.selectedTopic){
-            console.log("[Adaptive] Weak topic is the same as current - no switch needed.");
-        }
-        else{
-            console.log("[Adaptive] No weak topic detected yet. Keep practicing!");
+        if (!appState.userPickedDifficulty){
+            if (rec.difficulty&&rec.difficulty !== appState.currentDifficulty){
+                console.log(`[Adaptive] Changing difficulty from ${appState.currentDifficulty} to ${rec.difficulty}`);
+                appState.currentDifficulty=rec.difficulty;
+                if (dom.inputs.difficultySelect) dom.inputs.difficultySelect.value=rec.difficulty;
+                settings.settings.difficulty=rec.difficulty;
+                settings.saveSettings();
+                ui.showNotification(`Difficulty adjusted to ${rec.difficulty} based on your performance`, 'info');
+                adjusted=true;
+            }
+            appState.userPickedDifficulty=false;
         }
     }catch(e){
         console.error("[Adaptive] Recommendation failed:", e);
     }
-    return false;
+    return adjusted;
 }
 export function debounceGenerate(): void{
     if (appState.generateDebounceTimeout) clearTimeout(appState.generateDebounceTimeout);
@@ -63,11 +57,17 @@ export function debounceGenerate(): void{
     },150);
 }
 export async function generateQuestion(explicitTopicId?: string): Promise<void>{
-    const hasExplicitTopic=typeof explicitTopicId==="string"&&explicitTopicId.length>0;
+    if (appState.isGenerating) return;
+    appState.isGenerating=true;
+    try{
+    if(!explicitTopicId&&appState.weakTopicQueue.length>0){
+        explicitTopicId=appState.weakTopicQueue.shift()||undefined;
+    }
+    let hasExplicitTopic=typeof explicitTopicId==="string"&&explicitTopicId.length>0;
     let adaptiveActive=false;
     if(hasExplicitTopic){
-        appState.selectedTopic=explicitTopicId;
-        topics.selectTopic(explicitTopicId);
+        appState.selectedTopic=explicitTopicId!;
+        topics.selectTopic(explicitTopicId!);
     }
     else{
         adaptiveActive=await applyAdaptiveRecommendation();
@@ -100,6 +100,7 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
     </div>
   `;
     dom.displays.answerResults.className="results-display";
+    if (dom.buttons.copyAnswerBtn) dom.buttons.copyAnswerBtn.classList.add("hidden");
     dom.inputs.userAnswer.value="";
     if (dom.displays.expectedFormatDiv) dom.displays.expectedFormatDiv.textContent="";
     questionState.correctAnswer={correct:"",alternate:"",display:""};
@@ -118,6 +119,8 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
         if (!questionState.correctAnswer.correct){
             renderer.render(`<div class="empty-state"><p>Could not generate question. Please try another topic.</p></div>`);
             questionState.hasQuestion=false;
+            dom.inputs.userAnswer.disabled=false;
+            dom.buttons.checkAnswerButton.disabled=true;
             ui.updateUIState();
             return;
         }
@@ -137,6 +140,8 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
             </div>
         `);
         questionState.hasQuestion=false;
+        dom.inputs.userAnswer.disabled=false;
+        dom.buttons.checkAnswerButton.disabled=true;
         ui.updateUIState();
         return;
     }
@@ -151,6 +156,10 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
     ui.updatePreview();
     ui.updateUIState();
     renderer.typeset();
+    }
+    finally{
+        appState.isGenerating=false;
+    }
 }
 export async function practiceWeakAreas(): Promise<void>{
     try{

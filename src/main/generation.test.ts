@@ -28,6 +28,7 @@ vi.mock("./core/stateStore",()=>{
     let autoTimeout:any=null;
     let generateDebounceTimeout:any=null;
     let mcqMode=false;
+    let weakTopicQueue:string[]=[];
     const setSelectedTopic=vi.fn((t:string|null)=>{selectedTopic=t;});
     const setCurrentDifficulty=vi.fn((d:string)=>{currentDifficulty=d;});
     const setGenerateDebounceTimeout=vi.fn((t:any)=>{generateDebounceTimeout=t;});
@@ -50,6 +51,8 @@ vi.mock("./core/stateStore",()=>{
         set generateDebounceTimeout(v:any){generateDebounceTimeout=v;setGenerateDebounceTimeout(v);},
         get mcqMode(){return mcqMode;},
         set mcqMode(v:boolean){mcqMode=v;setMcqMode(v);},
+        get weakTopicQueue(){return weakTopicQueue;},
+        set weakTopicQueue(v:string[]){weakTopicQueue=v;},
         setSelectedTopic,
         setCurrentDifficulty,
         setGenerateDebounceTimeout,
