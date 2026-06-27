@@ -1,24 +1,24 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 vi.mock("./core/domRegistry",()=>{
-    const timerDisplay={innerHTML:"",style:{display:""}};
+    const timerDisplay={innerHTML:"",style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
     const scoreDisplay={innerHTML:""};
-    const mentalProgressBar={style:{width:""},setAttribute:vi.fn()};
+    const mentalProgressBar={style:{width:""},setAttribute:vi.fn(),classList:{add:vi.fn(),remove:vi.fn()}};
     const startSessionBtn={textContent:"",classList:{add:vi.fn(),remove:vi.fn()}};
     const pauseSessionBtn={style:{display:""},innerHTML:"",setAttribute:vi.fn()};
     const skipQuestionBtn={style:{display:""}};
-    const userAnswer={value:"",disabled:false,focus:vi.fn(),style:{display:"none"},removeAttribute:vi.fn(),setAttribute:vi.fn()};
+    const userAnswer={value:"",disabled:false,focus:vi.fn(),style:{display:"none"},removeAttribute:vi.fn(),setAttribute:vi.fn(),classList:{add:vi.fn(),remove:vi.fn()}};
     const answerResults={innerHTML:"",className:"",classList:{add:vi.fn(),remove:vi.fn()}};
     const questionArea={innerHTML:""};
     const checkAnswerButton={disabled:false,setAttribute:vi.fn(),removeAttribute:vi.fn()};
     const currentTopicDisplay={textContent:""};
-    const copyAnswerBtn={style:{display:""}};
+    const copyAnswerBtn={style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
     const expectedFormatDiv={textContent:""};
     const leaderboardContent={innerHTML:""};
     const leaderboardCard={classList:{add:vi.fn(),remove:vi.fn()},style:{display:""}};
-    const mcqChoicesContainer={style:{display:""}};
-    const mathToolbar={style:{display:""}};
-    const statisticsPanel={style:{display:""}};
+    const mcqChoicesContainer={style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
+    const mathToolbar={style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
+    const statisticsPanel={style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
     const accuracyStat={textContent:""};
     const avgTimeStat={textContent:""};
     const unlimitedToggle={checked:false};
@@ -478,12 +478,12 @@ describe("session",()=>{
                 currentDifficulty:"hard",
                 mentalShuffle:false,
                 mentalScope:"simple",
-                selectedTopic:"multiply",
+                selectedTopic:"mult",
                 timestamp:Date.now()
             };
             localStorage.setItem("mentalSessionSnapshot",JSON.stringify(snapshot));
             restoreSessionSnapshot();
-            expect(state.setSelectedTopic).toHaveBeenCalledWith("multiply");
+            expect(state.setSelectedTopic).toHaveBeenCalledWith("mult");
             localStorage.removeItem("mentalSessionSnapshot");
         });
         it("should restore score from snapshot",()=>{
