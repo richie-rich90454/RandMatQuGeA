@@ -168,5 +168,5 @@ export async function generateQuestion(topicId: string, difficulty: string): Pro
     if (!generator){
         throw new Error("Generator function not found: "+entry.fn);
     }
-    generator(difficulty);
+    await generator(difficulty);
 }
