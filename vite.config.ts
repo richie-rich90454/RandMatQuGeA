@@ -9,7 +9,7 @@ export default defineConfig({
 	clearScreen: false,
 	base: "./",
 	test:{
-		setupFiles:["./src/vitest.setup.ts"],
+		setupFiles:["./vitest.setup.ts"],
 		environment:"jsdom",
 		testTimeout:10000,
 		pool:"forks",
