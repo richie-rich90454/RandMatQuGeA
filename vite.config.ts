@@ -26,53 +26,13 @@ export default defineConfig({
 		cssMinify: true,
 		cssCodeSplit: true,
 		modulePreload: {polyfill: false},
-		chunkSizeWarningLimit: 2000,
-		rolldownOptions: {
-			output: {
-				codeSplitting: true,
-				manualChunks(id){
-					if (id.includes("node_modules")){
-						if (id.includes("node_modules/mathjs/")){
-							let parts=id.split("node_modules/mathjs/")[1].split("/");
-							return `vendor-mathjs-${parts[0]}`;
-						}
-						let parts=id.split("node_modules/")[1].split("/");
-						let topLevel=parts[0];
-						if (topLevel.startsWith("@")){
-						let scoped=`${topLevel}/${parts[1]}`;
-						return `vendor-${scoped.replace("@","").replace("/","-")}`;
-					}
-						if (["three"].includes(topLevel)){
-							return `vendor-${topLevel}`;
-						}
-						return "vendor-other";
-					}
-					if (id.includes("/src/modules/")||id.includes("\\src\\modules\\")){
-						let afterModules=id.split("modules")[1];
-						if (!afterModules){
-							return undefined;
-						}
-						let segs=afterModules.split(/[/\\]/).filter(Boolean);
-						if (segs.length===0){
-							return undefined;
-						}
-						return `vendor-modules-${segs[0].toLowerCase()}`;
-					}
-				}
-			}
-		}
+		chunkSizeWarningLimit: 2000
 	},
 	plugins: [
 		{
 			name: "inject-version",
 			transformIndexHtml(html){
 				return html.replace(/__APP_VERSION__/g, version);
-			}
-		},
-		{
-			name: "strip-crossorigin",
-			transformIndexHtml(html){
-				return html.replace(/\s+crossorigin(="[^"]*")?/g, "");
 			}
 		},
 		visualizer({open: false, gzipSize: true, brotliSize: true})
