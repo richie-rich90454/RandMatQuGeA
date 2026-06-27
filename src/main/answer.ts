@@ -190,7 +190,13 @@ function tryEvaluate(expr: string): any{
  * @throws No exceptions are thrown; errors are caught and logged, with user‑friendly notifications.
  */
 export async function checkAnswer(userInput?: string): Promise<void>{
-    await ensureMathjs();
+    try{
+        await ensureMathjs();
+    }
+    catch(e){
+        ui.showNotification("Math engine failed to load. Please reload the app.","warning");
+        return;
+    }
     if (!appState.selectedTopic){
         ui.showNotification("Please select a topic and generate a question first","warning");
         return;
@@ -549,7 +555,7 @@ let numCorrect=mathjs.evaluate(funcCorrect);
       </div>
     `;
         dom.displays.answerResults.className="results-display correct";
-        if (dom.buttons.copyAnswerBtn) dom.buttons.copyAnswerBtn.style.display="inline-flex";
+        if (dom.buttons.copyAnswerBtn){dom.buttons.copyAnswerBtn.classList.remove("hidden");dom.buttons.copyAnswerBtn.style.display="";}
         dom.displays.answerResults.classList.add("correct-flash");
         setTimeout(()=>dom.displays.answerResults?.classList.remove("correct-flash"),300);
     }
@@ -566,7 +572,7 @@ let numCorrect=mathjs.evaluate(funcCorrect);
       </div>
     `;
         dom.displays.answerResults.className="results-display incorrect";
-        if (dom.buttons.copyAnswerBtn) dom.buttons.copyAnswerBtn.style.display="inline-flex";
+        if (dom.buttons.copyAnswerBtn){dom.buttons.copyAnswerBtn.classList.remove("hidden");dom.buttons.copyAnswerBtn.style.display="";}
         dom.displays.answerResults.classList.add("incorrect-flash");
         setTimeout(()=>dom.displays.answerResults?.classList.remove("incorrect-flash"),300);
     }
