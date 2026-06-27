@@ -1,6 +1,6 @@
 [package]
 name = "random_math_question_generator"
-version = "2.1.1"
+version = "4.0.0"
 description = "Random math question generator made with HTML, CSS, and JS."
 authors = ["richie-rich90454"]
 license = "Apache-2.0"

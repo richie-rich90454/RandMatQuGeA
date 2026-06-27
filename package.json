@@ -1,6 +1,6 @@
 {
   "name": "randmatqugea",
-  "version": "2.1.1",
+  "version": "2.2.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -26,26 +26,26 @@
   "author": "richie-rich90454",
   "license": "Apache-2.0",
   "dependencies": {
-    "@tauri-apps/api": "^2.11.0",
-    "@tauri-apps/plugin-global-shortcut": "^2.3.1",
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-global-shortcut": "^2.3.2",
     "@tauri-apps/plugin-process": "^2.3.1",
-    "@tauri-apps/plugin-sql": "^2.3.2",
-    "@tauri-apps/plugin-updater": "^2.10.0",
-    "mathjax": "^4.1.1",
+    "@tauri-apps/plugin-sql": "^2.4.0",
+    "@tauri-apps/plugin-updater": "^2.10.1",
+    "mathjax": "^4.1.2",
     "mathjs": "^15.2.0",
-    "semver": "^7.7.4",
-    "three": "^0.183.2"
+    "semver": "^7.8.5",
+    "three": "^0.185.0"
   },
   "description": "Random math question generator made with HTML, CSS, and JS.",
   "devDependencies": {
-    "@tauri-apps/cli": "^2.11.2",
-    "@types/node": "^25.9.4",
+    "@tauri-apps/cli": "^2.11.3",
+    "@types/node": "^26.0.1",
     "@types/semver": "^7.7.1",
-    "@types/three": "^0.183.1",
-    "jsdom": "^29.0.1",
+    "@types/three": "^0.185.0",
+    "jsdom": "^29.1.1",
     "rollup-plugin-visualizer": "^7.0.1",
-    "typescript": "^6.0.2",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.0"
+    "typescript": "^6.0.3",
+    "vite": "^8.1.0",
+    "vitest": "^4.1.9"
   }
 }
