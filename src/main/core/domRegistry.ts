@@ -2,6 +2,7 @@ import {getCurrentWindow,type Window} from "@tauri-apps/api/window";
 export class DomRegistry{
     private cache: Map<string,HTMLElement|null>=new Map();
     private _appWindow: Window|null=null;
+    private appWindowChecked: boolean=false;
     getElement<T extends HTMLElement>(id: string): T|null{
         const cached=this.cache.get(id);
         if(cached!==undefined&&cached!==null)return cached as T|null;
@@ -17,11 +18,13 @@ export class DomRegistry{
         return el as T|null;
     }
     get appWindow(): Window|null{
+        if(this.appWindowChecked) return null;
         if(!this._appWindow){
             try{
                 this._appWindow=getCurrentWindow();
             }
             catch(e){
+                this.appWindowChecked=true;
                 console.log("Not running in Tauri environment, theme sync disabled.");
             }
         }
@@ -98,6 +101,9 @@ export class DomRegistry{
             get settingsModal(){return self.getElement("settings-modal");},
             get shortcutsModal(){return self.getElement("shortcuts-modal");},
             get onboardingOverlay(){return self.getElement("onboarding-overlay");},
+            get printModal(){return self.getElement("print-modal");},
+            get weakTopicsModal(){return self.getElement("weak-topics-modal");},
+            get dataModal(){return self.getElement("data-modal");},
             get answerCard(){return self.queryElement(".answer-card");},
         };
     }
