@@ -145,13 +145,13 @@ async fn get_next_question_recommendation(
         .map_err(|e| e.to_string())?;
     let new_difficulty = if let Some(s) = stats {
         if s.attempts == 0 {
-            Difficulty::Medium
+            diff
         } else {
             let accuracy = s.correct as f64 / s.attempts as f64;
             adaptive::recommend_next_difficulty(accuracy)
         }
     } else {
-        Difficulty::Medium
+        diff
     };
     let weak_topic = adaptive::find_weakest_topic(pool)
         .await
