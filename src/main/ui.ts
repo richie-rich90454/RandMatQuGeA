@@ -17,8 +17,8 @@ export function syncSettingsToState(): void{
     appState.shuffle=settings.settings.shuffle;
     appState.autocontinue=settings.settings.autoContinue;
     appState.currentDifficulty=settings.settings.difficulty;
-    appState.mentalScope=settings.settings.scope;
-    appState.mentalShuffle=settings.settings.shuffle;
+    appState.mentalScope=settings.settings.mentalScope;
+    appState.mentalShuffle=settings.settings.mentalShuffle;
     appState.maxQuestions=settings.settings.maxQuestions;
     appState.timeLeft=settings.settings.timer;
     appState.mcqMode=settings.settings.mcqMode;
@@ -81,14 +81,14 @@ export function setSessionButton(isActive: boolean): void{
     if(isActive){
         dom.buttons.startSessionBtn.textContent="Stop Session";
         dom.buttons.startSessionBtn.classList.add("stop-session");
-        if(dom.buttons.pauseSessionBtn)dom.buttons.pauseSessionBtn.style.display="inline-flex";
-        if(dom.buttons.skipQuestionBtn)dom.buttons.skipQuestionBtn.style.display="inline-flex";
+        if(dom.buttons.pauseSessionBtn)dom.buttons.pauseSessionBtn.classList.remove("hidden");
+        if(dom.buttons.skipQuestionBtn)dom.buttons.skipQuestionBtn.classList.remove("hidden");
     }
     else{
         dom.buttons.startSessionBtn.textContent="Start Session";
         dom.buttons.startSessionBtn.classList.remove("stop-session");
-        if(dom.buttons.pauseSessionBtn)dom.buttons.pauseSessionBtn.style.display="none";
-        if(dom.buttons.skipQuestionBtn)dom.buttons.skipQuestionBtn.style.display="none";
+        if(dom.buttons.pauseSessionBtn)dom.buttons.pauseSessionBtn.classList.add("hidden");
+        if(dom.buttons.skipQuestionBtn)dom.buttons.skipQuestionBtn.classList.add("hidden");
     }
 }
 export function updateUIState(): void{
@@ -118,22 +118,25 @@ export function updateUIState(): void{
     `;
     }
     if(appState.mcqMode){
-        if(dom.inputs.userAnswer)dom.inputs.userAnswer.style.display="none";
-        if(dom.displays.mathToolbar)dom.displays.mathToolbar.style.display="none";
-        if(dom.displays.mcqChoicesContainer)dom.displays.mcqChoicesContainer.style.display="flex";
-        if(dom.displays.expectedFormatDiv)dom.displays.expectedFormatDiv.style.display="none";
-        if(dom.displays.previewDiv)dom.displays.previewDiv.style.display="none";
+        if(dom.inputs.userAnswer)dom.inputs.userAnswer.classList.add("hidden");
+        if(dom.displays.mathToolbar)dom.displays.mathToolbar.classList.add("hidden");
+        if(dom.displays.mcqChoicesContainer)dom.displays.mcqChoicesContainer.classList.remove("hidden");
+        if(dom.displays.expectedFormatDiv)dom.displays.expectedFormatDiv.classList.add("hidden");
+        if(dom.displays.previewDiv)dom.displays.previewDiv.classList.add("hidden");
     }
     else{
-        if(dom.inputs.userAnswer)dom.inputs.userAnswer.style.display="block";
-        if(dom.displays.mathToolbar)dom.displays.mathToolbar.style.display="flex";
-        if(dom.displays.mcqChoicesContainer)dom.displays.mcqChoicesContainer.style.display="none";
-        if(dom.displays.expectedFormatDiv)dom.displays.expectedFormatDiv.style.display="block";
-        if(dom.displays.previewDiv)dom.displays.previewDiv.style.display="block";
+        if(dom.inputs.userAnswer)dom.inputs.userAnswer.classList.remove("hidden");
+        if(dom.displays.mathToolbar)dom.displays.mathToolbar.classList.remove("hidden");
+        if(dom.displays.mcqChoicesContainer)dom.displays.mcqChoicesContainer.classList.add("hidden");
+        if(dom.displays.expectedFormatDiv)dom.displays.expectedFormatDiv.classList.remove("hidden");
+        if(dom.displays.previewDiv){
+            if(settings.settings.perfPreview)dom.displays.previewDiv.classList.remove("hidden");
+            else dom.displays.previewDiv.classList.add("hidden");
+        }
     }
 }
 export function showNotification(message: string,type: "info"|"warning"="info"): void{
-    if(!settings.settings.notifications)return;
+    if(!settings.settings.notifications&&type==="info")return;
     let notification=document.createElement("div");
     notification.className=`notification notification-${type}`;
     notification.textContent=message;
@@ -157,6 +160,7 @@ export function updatePreview(): void{
         return;
     }
     try{
+        if(!(window as any).katex)return;
         window.katex.render(input,dom.displays.previewDiv,{
             throwOnError:false,
             displayMode:false
@@ -226,10 +230,10 @@ export function clearAnswer(): void{
     }
 }
 export function showShortcutsModal(): void{
-    if(dom.modals.shortcutsModal)dom.modals.shortcutsModal.classList.add("show");
+    if(dom.modals.shortcutsModal){dom.modals.shortcutsModal.classList.remove("hidden");dom.modals.shortcutsModal.classList.add("show");}
 }
 export function hideShortcutsModal(): void{
-    if(dom.modals.shortcutsModal)dom.modals.shortcutsModal.classList.remove("show");
+    if(dom.modals.shortcutsModal){dom.modals.shortcutsModal.classList.remove("show");dom.modals.shortcutsModal.classList.add("hidden");}
 }
 export function showOnboarding(): void{
     let alreadyShown=false;
@@ -240,7 +244,7 @@ export function showOnboarding(): void{
         console.log("Failed to read onboarding flag from localStorage:",e);
     }
     if(!alreadyShown){
-        if(dom.modals.onboardingOverlay)dom.modals.onboardingOverlay.classList.add("show");
+        if(dom.modals.onboardingOverlay){dom.modals.onboardingOverlay.classList.remove("hidden");dom.modals.onboardingOverlay.classList.add("show");}
         try{
             localStorage.setItem("onboardingShown","true");
         }
@@ -250,7 +254,7 @@ export function showOnboarding(): void{
     }
 }
 export function hideOnboarding(): void{
-    if(dom.modals.onboardingOverlay)dom.modals.onboardingOverlay.classList.remove("show");
+    if(dom.modals.onboardingOverlay){dom.modals.onboardingOverlay.classList.remove("show");dom.modals.onboardingOverlay.classList.add("hidden");}
 }
 export function updateStatistics(): void{
     if(!dom.displays.accuracyStat||!dom.displays.avgTimeStat)return;
@@ -269,21 +273,24 @@ export function toggleMcqMode(): void{
     appState.mcqMode=isMcq;
     if(appState.currentMode!=="mental"&&appState.currentMode!=="single")return;
     if(isMcq){
-        if(dom.inputs.userAnswer)dom.inputs.userAnswer.style.display="none";
-        if(dom.displays.mathToolbar)dom.displays.mathToolbar.style.display="none";
-        if(dom.displays.mcqChoicesContainer)dom.displays.mcqChoicesContainer.style.display="flex";
-        if(dom.displays.expectedFormatDiv)dom.displays.expectedFormatDiv.style.display="none";
-        if(dom.displays.previewDiv)dom.displays.previewDiv.style.display="none";
+        if(dom.inputs.userAnswer)dom.inputs.userAnswer.classList.add("hidden");
+        if(dom.displays.mathToolbar)dom.displays.mathToolbar.classList.add("hidden");
+        if(dom.displays.mcqChoicesContainer)dom.displays.mcqChoicesContainer.classList.remove("hidden");
+        if(dom.displays.expectedFormatDiv)dom.displays.expectedFormatDiv.classList.add("hidden");
+        if(dom.displays.previewDiv)dom.displays.previewDiv.classList.add("hidden");
         if(questionState.hasQuestion&&questionState.correctAnswer.correct){
-            void generateChoicesForCurrentQuestion();
+            generateChoicesForCurrentQuestion().catch((err: unknown)=>console.error("generateChoicesForCurrentQuestion failed:",err));
         }
     }
     else{
-        if(dom.inputs.userAnswer)dom.inputs.userAnswer.style.display="block";
-        if(dom.displays.mathToolbar)dom.displays.mathToolbar.style.display="flex";
-        if(dom.displays.mcqChoicesContainer)dom.displays.mcqChoicesContainer.style.display="none";
-        if(dom.displays.expectedFormatDiv)dom.displays.expectedFormatDiv.style.display="block";
-        if(dom.displays.previewDiv)dom.displays.previewDiv.style.display="block";
+        if(dom.inputs.userAnswer)dom.inputs.userAnswer.classList.remove("hidden");
+        if(dom.displays.mathToolbar)dom.displays.mathToolbar.classList.remove("hidden");
+        if(dom.displays.mcqChoicesContainer)dom.displays.mcqChoicesContainer.classList.add("hidden");
+        if(dom.displays.expectedFormatDiv)dom.displays.expectedFormatDiv.classList.remove("hidden");
+        if(dom.displays.previewDiv){
+            if(settings.settings.perfPreview)dom.displays.previewDiv.classList.remove("hidden");
+            else dom.displays.previewDiv.classList.add("hidden");
+        }
     }
 }
 export function renderMcqChoices(choices: string[]): void{
@@ -315,7 +322,7 @@ export function renderMcqChoices(choices: string[]): void{
                 }
             }
             else{
-                answer.checkAnswer(choice);
+                answer.checkAnswer(choice).catch((err: unknown)=>console.error("checkAnswer failed:",err));
             }
         });
         btn.addEventListener("keydown",(e: KeyboardEvent)=>{
