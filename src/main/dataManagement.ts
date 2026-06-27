@@ -16,6 +16,7 @@ export async function openDataModal(){
     dataList=document.getElementById("data-list");
     await loadData();
     modal.classList.add("show");
+    modal.classList.remove("hidden");
 }
 async function loadData(){
     if(!dataList)return;
@@ -107,6 +108,9 @@ export function initDataModal(){
     if(!modal)return;
     const closeBtn=document.getElementById("data-close");
     const refreshBtn=document.getElementById("data-refresh");
-    if(closeBtn)closeBtn.onclick=()=>modal?.classList.remove("show");
+    if(closeBtn)closeBtn.onclick=()=>{
+        modal?.classList.remove("show");
+        modal?.classList.add("hidden");
+    };
     if(refreshBtn)refreshBtn.onclick=loadData;
 }
