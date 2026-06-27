@@ -4,7 +4,7 @@ vi.mock("./topics.js",()=>({
     selectTopic:vi.fn(),
 }));
 vi.mock("./generation.js",()=>({
-    generateQuestion:vi.fn(),
+    generateQuestion:vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("./settings.js",()=>({
     settings:{showWeakTopicsPopup:true},
