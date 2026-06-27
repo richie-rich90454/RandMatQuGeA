@@ -39,7 +39,6 @@
   "description": "Random math question generator made with HTML, CSS, and JS.",
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.2",
-    "@types/mathjs": "^9.4.2",
     "@types/node": "^25.9.4",
     "@types/semver": "^7.7.1",
     "@types/three": "^0.183.1",
