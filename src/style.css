@@ -13,6 +13,8 @@
     --surface: rgba(255, 255, 255, 0.15);
     --surface-alt: rgba(241, 245, 249, 0.15);
     --surface-elevated: rgba(255, 255, 255, 0.2);
+    --surface-modal: rgba(248, 250, 252, 0.95);
+    --surface-modal-alt: rgba(241, 245, 249, 0.95);
     --text-primary: #1E293B;
     --text-secondary: #64748B;
     --text-tertiary: #94A3B8;
@@ -59,6 +61,8 @@
     --surface: rgba(255, 255, 255, 0.15);
     --surface-alt: rgba(241, 245, 249, 0.15);
     --surface-elevated: rgba(255, 255, 255, 0.2);
+    --surface-modal: rgba(248, 250, 252, 0.95);
+    --surface-modal-alt: rgba(241, 245, 249, 0.95);
     --text-primary: #1E293B;
     --text-secondary: #64748B;
     --text-tertiary: #94A3B8;
@@ -85,6 +89,8 @@
     --surface: rgba(30, 41, 59, 0.15);
     --surface-alt: rgba(51, 65, 85, 0.15);
     --surface-elevated: rgba(45, 55, 72, 0.2);
+    --surface-modal: rgba(30, 41, 59, 0.95);
+    --surface-modal-alt: rgba(51, 65, 85, 0.95);
     --text-primary: #F1F5F9;
     --text-secondary: #a0aec0;
     --border: rgba(71, 85, 105, 0.4);
@@ -114,6 +120,8 @@
         --surface: rgba(30, 41, 59, 0.15);
         --surface-alt: rgba(51, 65, 85, 0.15);
         --surface-elevated: rgba(45, 55, 72, 0.2);
+        --surface-modal: rgba(30, 41, 59, 0.95);
+        --surface-modal-alt: rgba(51, 65, 85, 0.95);
         --text-primary: #F1F5F9;
         --text-secondary: #a0aec0;
         --border: rgba(71, 85, 105, 0.4);
@@ -257,11 +265,6 @@ body{
 .primary-button,
 .secondary-button,
 .topic-pill,
-.modal-content,
-.modal-header,
-.modal-footer,
-.setting-item select,
-.setting-item input[type="number"],
 .math-toolbar-btn{
     background: var(--surface);
 }
@@ -926,7 +929,7 @@ input[type="checkbox"]:hover{
 #clear-answer:hover svg{
     color: var(--primary);
 }
-.answer-input:not(:placeholder-shown) + #clear-answer{
+#answer-box:not(.hidden):not(:placeholder-shown) + #clear-answer{
     display: flex;
 }
 .symbols-hint{
@@ -1228,11 +1231,11 @@ input[type="checkbox"]:hover{
     justify-content: center;
 }
 .modal.show{
-    display: flex;
+    display: flex !important;
 }
 .modal-content{
-    background: var(--surface-elevated);
-    border: 1px solid var(--border);
+    background: var(--surface-modal);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-xl), var(--shadow-glass);
     width: 90%;
@@ -1257,7 +1260,7 @@ input[type="checkbox"]:hover{
     align-items: center;
     padding: var(--spacing-md) var(--spacing-lg);
     border-bottom: 1px solid var(--divider);
-    background: var(--surface-alt);
+    background: var(--surface-modal-alt);
 }
 .modal-header h2{
     font-size: 1.1rem;
@@ -1274,7 +1277,7 @@ input[type="checkbox"]:hover{
     padding: var(--spacing-md) var(--spacing-lg);
     border-top: 1px solid var(--divider);
     text-align: right;
-    background: var(--surface-alt);
+    background: var(--surface-modal-alt);
 }
 #settings-tab-basic,
 #settings-tab-advanced{
@@ -1289,10 +1292,15 @@ input[type="checkbox"]:hover{
 #settings-tab-advanced.active{
     color: var(--primary);
     border-bottom-color: var(--primary);
-    background: var(--surface);
+    background: var(--surface-modal-alt);
 }
 .settings-panel{
     display: block;
+}
+.settings-tabs{
+    display: flex;
+    margin-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--divider);
 }
 .settings-section{
     margin-bottom: var(--spacing-xl);
@@ -1399,8 +1407,8 @@ input[type="checkbox"]:hover{
 #pause-session, #skip-question{
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
-#pause-session[style*="display: inline-flex"],
-#skip-question[style*="display: inline-flex"]{
+#pause-session:not(.hidden),
+#skip-question:not(.hidden){
     opacity: 1;
     transform: scale(1);
 }
@@ -1673,8 +1681,8 @@ hr.context-menu-divider{
     width: 160px;
     padding: var(--spacing-xs) var(--spacing-xl) var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--radius-md);
-    border: 1px solid var(--border);
-    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    background: var(--surface-modal-alt);
     color: var(--text-primary);
     font-size: 0.8rem;
     box-shadow: var(--shadow-sm);
@@ -1691,8 +1699,8 @@ hr.context-menu-divider{
     width: 160px;
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--radius-md);
-    border: 1px solid var(--border);
-    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    background: var(--surface-modal-alt);
     color: var(--text-primary);
     font-size: 0.8rem;
     box-shadow: var(--shadow-sm);
@@ -1701,9 +1709,9 @@ hr.context-menu-divider{
     transition: all var(--transition-fast);
 }
 .setting-item input[type="number"]:hover{
-    border-color: rgba(255, 255, 255, 0.3);
-    background: var(--surface-elevated);
-    box-shadow: var(--shadow-glass);
+    border-color: var(--primary-light);
+    background: var(--surface-modal-alt);
+    box-shadow: var(--shadow-md);
 }
 .setting-item input[type="number"]:focus{
     outline: none;
