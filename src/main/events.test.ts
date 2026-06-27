@@ -23,8 +23,8 @@ vi.mock("./core/domRegistry",()=>{
     const settingsButton=btnProps();
     const modeSingleBtn=btnProps();
     const modeMentalBtn=btnProps();
-    const mentalControls={style:{display:""}};
-    const singleControls={style:{display:""}};
+    const mentalControls={style:{display:""},classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()}};
+    const singleControls={style:{display:""},classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()}};
     const difficultySelect=btnProps({value:"medium"});
     const timerDisplay={innerHTML:""};
     const scoreDisplay={innerHTML:""};
@@ -70,7 +70,7 @@ vi.mock("./core/domRegistry",()=>{
     const shortcutsGotit=btnProps();
     const shortcutsModal=modalProps();
     const leaderboardClose=btnProps();
-    const leaderboardCard={style:{display:""}};
+    const leaderboardCard={style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
     const onboardingClose=btnProps();
     const onboardingGotit=btnProps();
     const onboardingOverlay=modalProps();
@@ -82,8 +82,8 @@ vi.mock("./core/domRegistry",()=>{
     const settingsMcqChoices=btnProps({value:"4"});
     const settingsTabBasic=btnProps();
     const settingsTabAdvanced=btnProps();
-    const settingsBasicPanel={style:{display:""}};
-    const settingsAdvancedPanel={style:{display:""}};
+    const settingsBasicPanel={style:{display:""},classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()}};
+    const settingsAdvancedPanel={style:{display:""},classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()}};
     const mcqChoicesContainer={style:{display:""}};
     const previewDiv={style:{display:""}};
     const expectedFormatDiv={style:{display:""}};
@@ -202,15 +202,15 @@ vi.mock("./generation.js",()=>({
     debounceGenerate:vi.fn(),
 }));
 vi.mock("./answer.js",()=>({
-    checkAnswer:vi.fn(),
+    checkAnswer:vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("./session.js",()=>({
-    endMentalSession:vi.fn(),
+    endMentalSession:vi.fn().mockResolvedValue(undefined),
     startMentalSession:vi.fn(),
     stopMentalSession:vi.fn(),
     pauseMentalSession:vi.fn(),
     skipMentalQuestion:vi.fn(),
-    handleMentalAnswer:vi.fn(),
+    handleMentalAnswer:vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("./printWorksheet.js",()=>({
     initPrintModal:vi.fn(),
