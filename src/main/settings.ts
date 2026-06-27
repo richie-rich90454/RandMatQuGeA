@@ -11,6 +11,16 @@ import {appState} from "./core/stateStore";
 import {questionState} from "./core/questionState";
 import {invoke} from "@tauri-apps/api/core";
 import {generateChoicesForCurrentQuestion} from "./mcq";
+const THEME_ICON_SYSTEM=`<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/></svg>`;
+const THEME_ICON_DARK=`<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4C12.92 3.04 12.46 3 12 3z"/></svg>`;
+const THEME_ICON_LIGHT=`<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>`;
+function updateThemeIcon(theme:"system"|"dark"|"light"):void{
+    const btn=dom.buttons.themeToggle;
+    if (!btn) return;
+    if (theme==="system") btn.innerHTML=THEME_ICON_SYSTEM;
+    else if (theme==="dark") btn.innerHTML=THEME_ICON_DARK;
+    else btn.innerHTML=THEME_ICON_LIGHT;
+}
 let mathjsModule: any=null;
 async function ensureMathjs(): Promise<any>{
     if(mathjsModule) return mathjsModule;
@@ -22,7 +32,9 @@ export let settings={
     defaultMode:"single",
     autoContinue:false,
     shuffle:false,
+    mentalShuffle:false,
     scope:"simple",
+    mentalScope:"simple",
     difficulty:"medium",
     timer:30,
     maxQuestions:5,
@@ -85,6 +97,8 @@ export function loadSettings():void{
     if (dom.settings.settingsVibration) dom.settings.settingsVibration.checked=settings.vibration;
     if (dom.inputs.unlimitedToggle) dom.inputs.unlimitedToggle.checked=settings.unlimitedMode;
     if (dom.inputs.mcqToggle) dom.inputs.mcqToggle.checked=settings.mcqMode;
+    if (dom.inputs.mentalScopeSelect) dom.inputs.mentalScopeSelect.value=settings.mentalScope;
+    if (dom.inputs.mentalShuffleToggle) dom.inputs.mentalShuffleToggle.checked=settings.mentalShuffle;
     if (dom.settings.settingsMcqChoices) dom.settings.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
     if (dom.settings.settingsAdaptive) dom.settings.settingsAdaptive.checked=settings.adaptive;
     applySettingsToApp();
@@ -112,12 +126,14 @@ export function saveSettings():void{
     if (dom.settings.settingsVibration) settings.vibration=dom.settings.settingsVibration.checked;
     if (dom.inputs.unlimitedToggle) settings.unlimitedMode=dom.inputs.unlimitedToggle.checked;
     if (dom.inputs.mcqToggle) settings.mcqMode=dom.inputs.mcqToggle.checked;
+    if (dom.inputs.mentalScopeSelect) settings.mentalScope=dom.inputs.mentalScopeSelect.value;
+    if (dom.inputs.mentalShuffleToggle) settings.mentalShuffle=dom.inputs.mentalShuffleToggle.checked;
     if (dom.settings.settingsMcqChoices){
         const newCount=parseInt(dom.settings.settingsMcqChoices.value)||4;
         if (settings.mcqChoicesCount!==newCount){
             settings.mcqChoicesCount=newCount;
             if (appState.mcqMode&&questionState.hasQuestion&&questionState.correctAnswer.correct){
-                void generateChoicesForCurrentQuestion();
+                generateChoicesForCurrentQuestion().catch((e: unknown)=>console.error("generateChoicesForCurrentQuestion failed:",e));
             }
         }
     }
@@ -128,7 +144,7 @@ export function saveSettings():void{
     catch(e){
         console.warn("Failed to persist settings to localStorage", e);
     }
-    applySettingsToApp();
+    applySettingsToApp().catch((err: unknown)=>console.error("applySettingsToApp failed:",err));
 }
 export async function previewSetting(field:string,value:any):Promise<void>{
     switch (field){
@@ -252,9 +268,9 @@ export async function applySettingsToApp():Promise<void>{
     applyFont(settings.font);
     if (dom.inputs.autocontinueToggle) dom.inputs.autocontinueToggle.checked=settings.autoContinue;
     if (dom.inputs.shuffleToggle) dom.inputs.shuffleToggle.checked=settings.shuffle;
-    if (dom.inputs.mentalShuffleToggle) dom.inputs.mentalShuffleToggle.checked=settings.shuffle;
+    if (dom.inputs.mentalShuffleToggle) dom.inputs.mentalShuffleToggle.checked=settings.mentalShuffle;
     if (dom.inputs.scopeSelect) dom.inputs.scopeSelect.value=settings.scope;
-    if (dom.inputs.mentalScopeSelect) dom.inputs.mentalScopeSelect.value=settings.scope;
+    if (dom.inputs.mentalScopeSelect) dom.inputs.mentalScopeSelect.value=settings.mentalScope;
     if (dom.inputs.difficultySelect) dom.inputs.difficultySelect.value=settings.difficulty;
     if (dom.inputs.unlimitedToggle) dom.inputs.unlimitedToggle.checked=settings.unlimitedMode;
     if (dom.inputs.mcqToggle) dom.inputs.mcqToggle.checked=settings.mcqMode;
@@ -294,16 +310,18 @@ export function resetSettings():void{
     if (dom.settings.settingsVibration) dom.settings.settingsVibration.checked=false;
     if (dom.inputs.unlimitedToggle) dom.inputs.unlimitedToggle.checked=false;
     if (dom.inputs.mcqToggle) dom.inputs.mcqToggle.checked=false;
+    if (dom.inputs.mentalScopeSelect) dom.inputs.mentalScopeSelect.value="simple";
+    if (dom.inputs.mentalShuffleToggle) dom.inputs.mentalShuffleToggle.checked=false;
     if (dom.settings.settingsMcqChoices) dom.settings.settingsMcqChoices.value="4";
     if (dom.settings.settingsAdaptive) dom.settings.settingsAdaptive.checked=true;
     saveSettings();
 }
 export function openSettings():void{
     loadSettings();
-    if (dom.modals.settingsModal) dom.modals.settingsModal.classList.add("show");
+    if (dom.modals.settingsModal){ dom.modals.settingsModal.classList.remove("hidden"); dom.modals.settingsModal.classList.add("show"); }
 }
 export function closeSettings():void{
-    if (dom.modals.settingsModal) dom.modals.settingsModal.classList.remove("show");
+    if (dom.modals.settingsModal){ dom.modals.settingsModal.classList.remove("show"); dom.modals.settingsModal.classList.add("hidden"); }
 }
 export function applyTheme(theme:"light"|"dark"):void{
     let root=document.documentElement;
@@ -315,7 +333,13 @@ export function applyTheme(theme:"light"|"dark"):void{
         root.classList.add("light");
         root.classList.remove("dark");
     }
-    localStorage.setItem("theme",theme);
+    updateThemeIcon(settings.theme as "system"|"dark"|"light");
+    try{
+        localStorage.setItem("theme",theme);
+    }
+    catch(e){
+        console.warn("Failed to persist theme to localStorage",e);
+    }
     updateMathJaxColors();
     if (dom.appWindow){
         dom.appWindow.setTheme(theme).catch(err=>console.log("Failed to set window theme:",err));
@@ -329,7 +353,7 @@ export function applyFont(font:string):void{
 }
 export function applyWaveBackground(enabled:boolean):void{
     const wave=document.getElementById("wave-container");
-    if (wave) wave.style.display=enabled?"block":"none";
+    if (wave) wave.classList.toggle("hidden", !enabled);
 }
 export function applyBlurEffects(enabled:boolean):void{
     const root=document.documentElement;
@@ -337,7 +361,7 @@ export function applyBlurEffects(enabled:boolean):void{
     else root.classList.add("no-blur");
 }
 export function applyLivePreview(enabled:boolean):void{
-    if (dom.displays.previewDiv) dom.displays.previewDiv.style.display=enabled?"block":"none";
+    if (dom.displays.previewDiv) dom.displays.previewDiv.classList.toggle("hidden", !enabled);
 }
 export function applyAnimations(enabled:boolean):void{
     const root=document.documentElement;

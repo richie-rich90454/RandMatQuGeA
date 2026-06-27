@@ -42,7 +42,8 @@ vi.mock("./core/domRegistry",()=>{
         inputs,
         modals:{settingsModal:null},
         get appWindow(){return mockAppWindow;},
-        displays:{previewDiv:null}
+        displays:{previewDiv:null},
+        buttons:{themeToggle:null}
     };
     return{dom};
 });
