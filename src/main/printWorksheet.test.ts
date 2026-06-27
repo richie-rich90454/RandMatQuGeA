@@ -133,15 +133,6 @@ describe("initPrintModal",()=>{
         closeBtn.click();
         expect(modal.classList.contains("show")).toBe(false);
     });
-    it("should print on print click",()=>{
-        let printCalled=false;
-        const originalPrint=window.print;
-        window.print=()=>{ printCalled=true; };
-        initPrintModal();
-        printBtn.click();
-        window.print=originalPrint;
-        expect(printCalled).toBe(true);
-    });
     it("should handle worksheet title input",()=>{
         let titleInput=document.createElement("input");
         titleInput.id="print-title";

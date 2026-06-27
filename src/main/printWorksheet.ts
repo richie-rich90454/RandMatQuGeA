@@ -190,7 +190,7 @@ async function generateWorksheet(): Promise<void>{
     }
     let answersHtml="";
     if (includeAnswers){
-        answersHtml=`<div class="answer-key"><h2>Answer Key</h2><ol id="answer-key" class="no-mathjax">`;
+        answersHtml=`<div class="answer-key"><h2>Answer Key</h2><ol id="answer-key" class="mathjax-process">`;
         for (let q of questions){
             answersHtml+=`<li>${q.answerDisplay}</li>`;
         }
@@ -220,8 +220,6 @@ async function generateWorksheet(): Promise<void>{
     <script src="/mathjax/tex-chtml.js" defer></script>
     <link rel="stylesheet" href="/katex.min.css">
     <script defer src="/katex.min.js"></script>
-    <script defer src="/auto-render.min.js"
-        onload="renderMathInElement(document.getElementById('answer-key'), { delimiters: [{left: '\\\\\\\\(', right: '\\\\\\\\)', display: false}] });"></script>
     <style>
         body{
             font-family: "Times New Roman", serif;
@@ -306,6 +304,7 @@ async function generateWorksheet(): Promise<void>{
     }
 }
 export function openPrintModal(): void{
+    modal?.classList.remove("hidden");
     modal?.classList.add("show");
 }
 export function initPrintModal(): void{
@@ -316,11 +315,9 @@ export function initPrintModal(): void{
     scopeSelect=document.getElementById("print-scope") as HTMLSelectElement;
     difficultySelect=document.getElementById("print-difficulty") as HTMLSelectElement;
     answerKeyCheckbox=document.getElementById("print-answer-key") as HTMLInputElement;
-    let printBtn=document.getElementById("print-button");
     let generateBtn=document.getElementById("print-generate");
     let closeBtn=document.getElementById("print-close");
-    if (printBtn) printBtn.addEventListener("click", ()=>window.print());
-    if (closeBtn) closeBtn.addEventListener("click", ()=>modal?.classList.remove("show"));
+    if (closeBtn) closeBtn.addEventListener("click", ()=>{modal?.classList.remove("show");modal?.classList.add("hidden");});
     if (generateBtn) generateBtn.addEventListener("click", generateWorksheet);
     scopeSelect?.addEventListener("change", updateTopicDropdown);
     updateTopicDropdown();
