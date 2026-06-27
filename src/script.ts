@@ -7,7 +7,6 @@
 import "./style.css";
 import * as settings from "./main/settings";
 import * as ui from "./main/ui";
-import * as topicsModule from "./main/topics";
 import * as session from "./main/session";
 import * as events from "./main/events";
 import * as theme from "./main/theme";
@@ -45,7 +44,6 @@ async function initApp(): Promise<void>{
     catch(err){
         console.error("restoreSessionSnapshot failed:",err);
     }
-    topicsModule.renderTopicGrid();
     try{
         await session.updateLeaderboard();
     }
@@ -53,8 +51,8 @@ async function initApp(): Promise<void>{
         console.error("updateLeaderboard failed:",err);
     }
     ui.showOnboarding();
-    if ("serviceWorker" in navigator){
-        navigator.serviceWorker.register("/sw.js").catch(()=>{
+    if (import.meta.env.PROD && "serviceWorker" in navigator){
+        navigator.serviceWorker.register(import.meta.env.BASE_URL+"sw.js").catch(()=>{
             // SW registration failed - app still works
         });
     }

@@ -27,7 +27,6 @@ vi.mock("./main/theme.js",()=>({
 import"./script.js";
 import*as settingsMod from"./main/settings.js";
 import*as themeMod from"./main/theme.js";
-import*as topicsMod from"./main/topics.js";
 import*as eventsMod from"./main/events.js";
 import*as sessionMod from"./main/session.js";
 import*as _uiMod from"./main/ui.js";
@@ -50,9 +49,6 @@ describe("script initialization",()=>{
     });
     it("should call initializeTheme",()=>{
         expect(themeMod.initializeTheme).toHaveBeenCalled();
-    });
-    it("should call renderTopicGrid",()=>{
-        expect(topicsMod.renderTopicGrid).toHaveBeenCalled();
     });
     it("should call setupEventListeners",()=>{
         expect(eventsMod.setupEventListeners).toHaveBeenCalled();
