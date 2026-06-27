@@ -25,6 +25,10 @@ export class AppState{
 	private _currentQuestionStartTime: number|null=null;
 	private _mcqMode: boolean=false;
 	private _mcqChoices: string[]=[];
+	private _userPickedDifficulty: boolean=false;
+	private _answering: boolean=false;
+	private _isGenerating: boolean=false;
+	private _weakTopicQueue: string[]=[];
 	get selectedTopic(): string|null{return this._selectedTopic;}
 	set selectedTopic(value: string|null){this._selectedTopic=value;}
 	get currentMode(): "single"|"mental"{return this._currentMode;}
@@ -75,5 +79,13 @@ export class AppState{
 	set mcqMode(value: boolean){this._mcqMode=value;}
 	get mcqChoices(): string[]{return this._mcqChoices;}
 	set mcqChoices(value: string[]){this._mcqChoices=value;}
+	get userPickedDifficulty(): boolean{return this._userPickedDifficulty;}
+	set userPickedDifficulty(value: boolean){this._userPickedDifficulty=value;}
+	get answering(): boolean{return this._answering;}
+	set answering(value: boolean){this._answering=value;}
+	get isGenerating(): boolean{return this._isGenerating;}
+	set isGenerating(value: boolean){this._isGenerating=value;}
+	get weakTopicQueue(): string[]{return this._weakTopicQueue;}
+	set weakTopicQueue(value: string[]){this._weakTopicQueue=value;}
 }
 export let appState: AppState=new AppState();
