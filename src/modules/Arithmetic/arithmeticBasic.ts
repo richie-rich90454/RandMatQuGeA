@@ -49,7 +49,7 @@ export function generateAddition(difficulty?: string): void{
 	});
 	renderer.setExpectedFormat("Enter a number (up to 3 decimals)");
 	if (window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise();
+		window.MathJax.typesetPromise().catch(()=>{});
 	}
 }
 /**
@@ -97,7 +97,7 @@ export function generateSubtraction(difficulty?: string): void{
 	});
 	renderer.setExpectedFormat("Enter a number (up to 3 decimals)");
 	if (window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise();
+		window.MathJax.typesetPromise().catch(()=>{});
 	}
 }
 /**
@@ -147,7 +147,7 @@ export function generateMultiplication(difficulty?: string): void{
 	});
 	renderer.setExpectedFormat("Enter a number rounded to 2 decimal places");
 	if (window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise();
+		window.MathJax.typesetPromise().catch(()=>{});
 	}
 }
 /**
@@ -198,6 +198,6 @@ export function generateDivision(difficulty?: string): void{
 	});
 	renderer.setExpectedFormat("Enter a number rounded to 2 decimal places");
 	if (window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise();
+		window.MathJax.typesetPromise().catch(()=>{});
 	}
 }

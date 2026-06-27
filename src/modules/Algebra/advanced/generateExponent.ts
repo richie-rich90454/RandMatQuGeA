@@ -122,5 +122,5 @@ export function generateExponent(difficulty?: string): void{
 		choices: uniqueChoices
 	});
 	renderer.setExpectedFormat(hint);
-	if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
+	if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise().catch(()=>{});
 }
