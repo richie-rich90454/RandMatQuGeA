@@ -32,9 +32,9 @@ declare global{
 		expectedFormat: string;
 		hasQuestion: boolean;
 		__TAURI__?: any;
-		katex: any;
+		katex?: any;
 	}
 }
-declare module "three";
-declare module "three/addons/controls/OrbitControls.js";
+declare module "three/examples/jsm/controls/OrbitControls.js";
+declare module "three/examples/jsm/renderers/CSS2DRenderer.js";
 export {};
