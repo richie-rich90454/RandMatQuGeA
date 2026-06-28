@@ -7,9 +7,7 @@
  * and a live preview pane.
  */
 import { topics, scopeTopics } from "./constants";
-import { generateQuestion as callGenerator } from "./questionGenerator";
-import { dom } from "./core/domRegistry";
-import { questionState } from "./core/questionState";
+import { generateQuestionDto } from "./questionGenerator";
 let modal: HTMLElement | null = null;
 let questionCountSelect: HTMLSelectElement | null = null;
 let topicSelect: HTMLSelectElement | null = null;
@@ -56,120 +54,13 @@ function escapeHtml(text: string): string{
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&#39;");
 }
-function wrapLatexIfNeeded(text: string): string{
+export function wrapLatexIfNeeded(text: string): string{
 	if (!text) return "";
-	if (text.match(/\\\(.*\\\)/) || text.match(/\$\$.*\$\$/) || text.match(/\$.*\$/)) return text;
+	if (/\\\((.+?)\\\)/.test(text) || /\$\$(.+?)\$\$/.test(text) || /\$([^$]+?)\$/.test(text)) return text;
 	if (/\\[a-zA-Z]+|[_^]|[{}]|\\[(){}\[\]]/.test(text)){
 		return `\\(${text}\\)`;
 	}
 	return text;
-}
-async function captureRawLatexDuringGeneration(generator: ()=>Promise<void>): Promise<string>{
-	let originalMathJaxTypesetPromise = (window as any).MathJax?.typesetPromise;
-	let originalMathJaxTypeset = (window as any).MathJax?.typeset;
-	let originalKatexRender = (window as any).katex?.render;
-	let originalKatexRenderToString = (window as any).katex?.renderToString;
-	let capturedLatex = "";
-	let captureMathJaxElement = (el: HTMLElement)=>{
-		if (!capturedLatex){
-			capturedLatex = el.innerHTML;
-		}
-	};
-	let captureKatex = (latex: string, element: HTMLElement)=>{
-		if (!capturedLatex){
-			capturedLatex = latex;
-		}
-		if (originalKatexRender){
-			originalKatexRender(latex, element);
-		}
-		else{
-			element.innerHTML = latex;
-		}
-	};
-	if ((window as any).MathJax){
-		if (originalMathJaxTypesetPromise){
-			(window as any).MathJax.typesetPromise = async (elements?: any[])=>{
-				if (elements && elements.length){
-					for (let el of elements){
-						if (el instanceof HTMLElement){
-							captureMathJaxElement(el);
-							break;
-						}
-					}
-				}
-				return originalMathJaxTypesetPromise.call((window as any).MathJax, elements);
-			};
-		}
-		if (originalMathJaxTypeset){
-			(window as any).MathJax.typeset = (elements?: any[])=>{
-				if (elements && elements.length){
-					for (let el of elements){
-						if (el instanceof HTMLElement){
-							captureMathJaxElement(el);
-							break;
-						}
-					}
-				}
-				return originalMathJaxTypeset.call((window as any).MathJax, elements);
-			};
-		}
-	}
-	if ((window as any).katex){
-		(window as any).katex.render = captureKatex;
-		if (originalKatexRenderToString){
-			(window as any).katex.renderToString = (latex: string)=>{
-				if (!capturedLatex){
-					capturedLatex = latex;
-				}
-				return originalKatexRenderToString(latex);
-			};
-		}
-	}
-	try{
-		dom.displays.questionArea!.innerHTML = "";
-		await generator();
-	}
-	finally{
-		if (originalMathJaxTypesetPromise) (window as any).MathJax.typesetPromise = originalMathJaxTypesetPromise;
-		if (originalMathJaxTypeset) (window as any).MathJax.typeset = originalMathJaxTypeset;
-		if (originalKatexRender) (window as any).katex.render = originalKatexRender;
-		if (originalKatexRenderToString) (window as any).katex.renderToString = originalKatexRenderToString;
-	}
-	if (!capturedLatex && dom.displays.questionArea){
-		let temp = document.createElement("div");
-		temp.innerHTML = dom.displays.questionArea.innerHTML;
-		temp.querySelectorAll("canvas, script, style, [data-threejs]").forEach(el=>el.remove());
-		capturedLatex = temp.innerHTML;
-	}
-	let cleanDiv = document.createElement("div");
-	cleanDiv.innerHTML = capturedLatex;
-	cleanDiv.querySelectorAll("canvas, script, style, [data-threejs]").forEach(el=>el.remove());
-	return cleanDiv.innerHTML;
-}
-async function generateQuestionText(topicId: string, difficulty: string): Promise<{ html: string; answerDisplay: string }>{
-	if (!dom.displays.questionArea){
-		return { html: "\\text{Error: Question area not found}", answerDisplay: "" };
-	}
-	let originalHtml = dom.displays.questionArea.innerHTML;
-	let originalCorrectAnswer = (window as any).correctAnswer;
-	let originalQsCorrect = questionState.correctAnswer;
-	let originalQsFormat = questionState.expectedFormat;
-	let originalQsHas = questionState.hasQuestion;
-	try{
-		let latexSource = await captureRawLatexDuringGeneration(async()=>{
-			await callGenerator(topicId, difficulty);
-		});
-		let ansObj = questionState.correctAnswer;
-		let answerDisplay = wrapLatexIfNeeded(ansObj?.display || ansObj?.correct || "");
-		return { html: latexSource, answerDisplay };
-	}
-	finally{
-		dom.displays.questionArea.innerHTML = originalHtml;
-		(window as any).correctAnswer = originalCorrectAnswer;
-		questionState.correctAnswer = originalQsCorrect;
-		questionState.expectedFormat = originalQsFormat;
-		questionState.hasQuestion = originalQsHas;
-	}
 }
 function updateTopicDropdown(): void{
 	if (!topicSelect || !scopeSelect) return;
@@ -231,10 +122,10 @@ async function generateQuestions(opts: WorksheetOptions): Promise<GeneratedQuest
 		let diff = pickDifficulty(opts.difficulty);
 		let topicName = topics.find(t=>t.id === selectedTopic)?.name || selectedTopic;
 		try{
-			let q = await generateQuestionText(selectedTopic, diff);
+			let dto = await generateQuestionDto(selectedTopic, diff);
 			questions.push({
-				html: q.html,
-				answerDisplay: q.answerDisplay,
+				html: dto.latex,
+				answerDisplay: wrapLatexIfNeeded(dto.display || dto.correct || ""),
 				topicId: selectedTopic,
 				topicName,
 				difficulty: diff
@@ -324,7 +215,7 @@ function renderToHiddenDiv(html: string): HTMLElement{
 	document.body.appendChild(container);
 	return container;
 }
-function renderKatexInElement(el: HTMLElement): void{
+export function renderKatexInElement(el: HTMLElement): void{
 	let katexRef: any = (window as any).katex;
 	if (!katexRef) return;
 	let renderToString = (latex: string, displayMode: boolean): string=>{
@@ -334,6 +225,34 @@ function renderKatexInElement(el: HTMLElement): void{
 		catch{
 			return latex;
 		}
+	};
+	let splitAndRender = (text: string, displayMode: boolean): string=>{
+		let pattern = displayMode ? /(\$\$.+?\$\$)/g : /(\\\(.+?\\\)|\$\$.+?\$\$|\$[^$]+?\$)/g;
+		let parts = text.split(pattern);
+		let result = "";
+		for (let part of parts){
+			if (!part) continue;
+			if (displayMode && /^\$\$.+\$\$$/.test(part)){
+				let inner = part.slice(2, -2);
+				result += renderToString(inner, true);
+			}
+			else if (/^\\\(.+\\\)$/.test(part)){
+				let inner = part.slice(2, -2);
+				result += renderToString(inner, false);
+			}
+			else if (/^\$\$.+\$\$$/.test(part)){
+				let inner = part.slice(2, -2);
+				result += renderToString(inner, true);
+			}
+			else if (/^\$[^$]+\$$/.test(part)){
+				let inner = part.slice(1, -1);
+				result += renderToString(inner, false);
+			}
+			else{
+				result += part;
+			}
+		}
+		return result;
 	};
 	let processNode = (node: HTMLElement)=>{
 		let walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null);
@@ -347,7 +266,7 @@ function renderKatexInElement(el: HTMLElement): void{
 			let parent = textNode.parentElement;
 			if (!parent) continue;
 			let isDisplay = parent.tagName === "DIV" && (parent.className || "").includes("ws-question-text");
-			let rendered = renderToString(text, isDisplay);
+			let rendered = splitAndRender(text, isDisplay);
 			if (rendered !== text){
 				let span = document.createElement("span");
 				span.innerHTML = rendered;
@@ -491,10 +410,6 @@ async function updatePreview(worksheetEl: HTMLElement): Promise<void>{
 }
 async function generateWorksheet(): Promise<void>{
 	if (isGenerating) return;
-	if (!dom.displays.questionArea){
-		alert("Question area not available.");
-		return;
-	}
 	isGenerating = true;
 	if (exportBtn){
 		exportBtn.disabled = true;
