@@ -1,5 +1,9 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
+const mockInvoke=vi.hoisted(()=>vi.fn().mockResolvedValue(undefined));
+vi.mock("@tauri-apps/api/core",()=>({
+	invoke: mockInvoke,
+}));
 vi.mock("./questionGenerator.js",()=>({
 	generateQuestionDto:vi.fn().mockResolvedValue({
 		latex: "\\(x^2 + 1\\)",
@@ -8,6 +12,23 @@ vi.mock("./questionGenerator.js",()=>({
 		display: "2",
 		choices: ["2","3"],
 		expectedFormat: "Enter a number"
+	}),
+}));
+vi.mock("html2canvas",()=>({
+	default: vi.fn().mockResolvedValue(document.createElement("canvas")),
+}));
+vi.mock("jspdf",()=>({
+	jsPDF: vi.fn().mockImplementation(()=>{
+		return {
+			internal:{pageSize:{getWidth:()=>612,getHeight:()=>792},getNumberOfPages:()=>1},
+			setPage: vi.fn(),
+			setFontSize: vi.fn(),
+			setTextColor: vi.fn(),
+			text: vi.fn(),
+			addImage: vi.fn(),
+			addPage: vi.fn(),
+			save: vi.fn(),
+		};
 	}),
 }));
 import{initPrintModal,openPrintModal,closePrintModal,renderKatexInElement,wrapLatexIfNeeded}from"./printWorksheet.js";
@@ -49,6 +70,10 @@ function createPrintModal():HTMLElement{
 	date.type="date";
 	let period=append("print-period-input","input") as HTMLInputElement;
 	period.type="text";
+	let seed=append("print-seed-input","input") as HTMLInputElement;
+	seed.type="text";
+	let copySeed=append("print-copy-seed","button") as HTMLButtonElement;
+	copySeed.classList.add("hidden");
 	append("print-preview","div");
 	document.body.appendChild(modal);
 	return modal;
@@ -250,5 +275,61 @@ describe("closePrintModal",()=>{
 describe("worksheet DTO generation",()=>{
 	it("generateQuestionDto is called (not generateQuestion) for worksheet mode",()=>{
 		expect(typeof generateQuestionDto).toBe("function");
+	});
+});
+describe("seed wiring",()=>{
+	let modal:HTMLElement;
+	let generateBtn:HTMLButtonElement;
+	let seedInput:HTMLInputElement;
+	let copySeedBtn:HTMLButtonElement;
+	beforeEach(()=>{
+		modal=createPrintModal();
+		generateBtn=modal.querySelector("#print-generate") as HTMLButtonElement;
+		seedInput=modal.querySelector("#print-seed-input") as HTMLInputElement;
+		copySeedBtn=modal.querySelector("#print-copy-seed") as HTMLButtonElement;
+		vi.spyOn(window,"alert").mockImplementation(()=>{});
+		vi.mocked(generateQuestionDto).mockResolvedValue({
+			latex: "\\(x^2 + 1\\)",
+			correct: "2",
+			alternate: "2",
+			display: "2",
+			choices: ["2","3"],
+			expectedFormat: "Enter a number"
+		});
+		mockInvoke.mockReset();
+		mockInvoke.mockResolvedValue(undefined);
+	});
+	afterEach(()=>{
+		modal.remove();
+		vi.restoreAllMocks();
+	});
+	it("should populate seed input after generation with random seed",async ()=>{
+		mockInvoke.mockResolvedValue(12345 as any);
+		initPrintModal();
+		generateBtn.click();
+		await vi.waitFor(()=>{
+			expect(seedInput.value).toBe("12345");
+		});
+	});
+	it("should show copy seed button after generation",async ()=>{
+		mockInvoke.mockResolvedValue(99999 as any);
+		initPrintModal();
+		generateBtn.click();
+		await vi.waitFor(()=>{
+			expect(copySeedBtn.classList.contains("hidden")).toBe(false);
+		});
+	});
+	it("should use seed from input when provided",async ()=>{
+		seedInput.value="42";
+		mockInvoke.mockResolvedValue(99999 as any);
+		initPrintModal();
+		generateBtn.click();
+		await vi.waitFor(()=>{
+			expect(seedInput.value).toBe("42");
+		});
+	});
+	it("should hide copy seed button by default",()=>{
+		initPrintModal();
+		expect(copySeedBtn.classList.contains("hidden")).toBe(true);
 	});
 });

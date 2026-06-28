@@ -8,6 +8,9 @@
  */
 import { topics, scopeTopics } from "./constants";
 import { generateQuestionDto } from "./questionGenerator";
+import { invoke } from "@tauri-apps/api/core";
+import { seededRng } from "./core/rng";
+import type { RngFn } from "../types/global";
 let modal: HTMLElement | null = null;
 let questionCountSelect: HTMLSelectElement | null = null;
 let topicSelect: HTMLSelectElement | null = null;
@@ -20,6 +23,8 @@ let titleInput: HTMLInputElement | null = null;
 let nameInput: HTMLInputElement | null = null;
 let dateInput: HTMLInputElement | null = null;
 let periodInput: HTMLInputElement | null = null;
+let seedInput: HTMLInputElement | null = null;
+let copySeedBtn: HTMLButtonElement | null = null;
 let previewPane: HTMLElement | null = null;
 let exportBtn: HTMLButtonElement | null = null;
 let closeBtn: HTMLButtonElement | null = null;
@@ -38,6 +43,7 @@ interface WorksheetOptions{
 	studentName: string;
 	date: string;
 	period: string;
+	seed: number;
 }
 interface GeneratedQuestion{
 	html: string;
@@ -93,18 +99,19 @@ function readOptions(): WorksheetOptions{
 		title: titleInput?.value?.trim() || "Math Worksheet",
 		studentName: nameInput?.value?.trim() || "",
 		date: dateInput?.value || today,
-		period: periodInput?.value?.trim() || ""
+		period: periodInput?.value?.trim() || "",
+		seed: 0
 	};
 }
-function pickDifficulty(difficulty: string): string{
+function pickDifficulty(difficulty: string, rng: RngFn): string{
 	if (difficulty === "mixed"){
 		let levels = ["easy", "medium", "hard"];
-		return levels[Math.floor(Math.random() * 3)];
+		return levels[Math.floor(rng() * 3)];
 	}
 	return difficulty;
 }
-function pickTopic(topicList: string[]): string{
-	return topicList[Math.floor(Math.random() * topicList.length)];
+function pickTopic(topicList: string[], rng: RngFn): string{
+	return topicList[Math.floor(rng() * topicList.length)];
 }
 function buildTopicList(opts: WorksheetOptions): string[]{
 	if (opts.topic === "all"){
@@ -113,16 +120,37 @@ function buildTopicList(opts: WorksheetOptions): string[]{
 	}
 	return [opts.topic];
 }
-async function generateQuestions(opts: WorksheetOptions): Promise<GeneratedQuestion[]>{
+function isTauriAvailable(): boolean{
+	return typeof (window as any).__TAURI_INTERNALS__ !== "undefined" || typeof (window as any).__TAURI__ !== "undefined";
+}
+async function resolveSeed(): Promise<number>{
+	let inputVal = seedInput?.value?.trim() || "";
+	if (inputVal){
+		let parsed = parseInt(inputVal, 10);
+		if (!isNaN(parsed) && parsed > 0) return parsed;
+	}
+	if (isTauriAvailable()){
+		try{
+			let seed = await invoke<number>("generate_worksheet_seed");
+			if (typeof seed === "number" && seed > 0) return seed;
+		}
+		catch (err){
+			console.error("Failed to invoke generate_worksheet_seed:", err);
+		}
+	}
+	// Web-mode fallback: derive a seed from Date.now() XOR Math.random()
+	return ((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+}
+async function generateQuestions(opts: WorksheetOptions, rng: RngFn): Promise<GeneratedQuestion[]>{
 	let topicList = buildTopicList(opts);
 	if (topicList.length === 0) return [];
 	let questions: GeneratedQuestion[] = [];
 	for (let i = 0; i < opts.count; i++){
-		let selectedTopic = pickTopic(topicList);
-		let diff = pickDifficulty(opts.difficulty);
+		let selectedTopic = pickTopic(topicList, rng);
+		let diff = pickDifficulty(opts.difficulty, rng);
 		let topicName = topics.find(t=>t.id === selectedTopic)?.name || selectedTopic;
 		try{
-			let dto = await generateQuestionDto(selectedTopic, diff);
+			let dto = await generateQuestionDto(selectedTopic, diff, rng);
 			questions.push({
 				html: dto.latex,
 				answerDisplay: wrapLatexIfNeeded(dto.display || dto.correct || ""),
@@ -420,7 +448,10 @@ async function generateWorksheet(): Promise<void>{
 	}
 	try{
 		let opts = readOptions();
-		let questions = await generateQuestions(opts);
+		let seed = await resolveSeed();
+		opts.seed = seed;
+		let rng = seededRng(seed);
+		let questions = await generateQuestions(opts, rng);
 		if (questions.length === 0){
 			alert("No questions could be generated. Please select a different topic or scope.");
 			if (previewPane) previewPane.innerHTML = "";
@@ -431,6 +462,8 @@ async function generateWorksheet(): Promise<void>{
 		renderKatexInElement(worksheetEl);
 		lastWorksheetEl = worksheetEl;
 		lastWorksheetOpts = opts;
+		if (seedInput) seedInput.value = String(seed);
+		if (copySeedBtn) copySeedBtn.classList.remove("hidden");
 		await updatePreview(worksheetEl);
 	}
 	catch (err){
@@ -493,6 +526,8 @@ export function initPrintModal(): void{
 	nameInput = document.getElementById("print-name-input") as HTMLInputElement;
 	dateInput = document.getElementById("print-date-input") as HTMLInputElement;
 	periodInput = document.getElementById("print-period-input") as HTMLInputElement;
+	seedInput = document.getElementById("print-seed-input") as HTMLInputElement;
+	copySeedBtn = document.getElementById("print-copy-seed") as HTMLButtonElement;
 	previewPane = document.getElementById("print-preview");
 	exportBtn = document.getElementById("print-export-pdf") as HTMLButtonElement;
 	closeBtn = document.getElementById("print-close") as HTMLButtonElement;
