@@ -174,7 +174,7 @@ async fn get_weak_topics(
             SUM(attempts) as total_attempts
          FROM user_topic_stats
          GROUP BY topic_id
-         HAVING SUM(attempts) > 0
+         HAVING SUM(attempts) >= 3 AND COALESCE(CAST(SUM(correct) AS REAL) / NULLIF(SUM(attempts), 0), 0.0) < 0.7
          ORDER BY accuracy ASC
          LIMIT ?",
     )
@@ -252,6 +252,15 @@ async fn delete_performance_record(
     Ok(())
 }
 #[tauri::command]
+async fn delete_all_performance_records(state: tauri::State<'_, DbState>) -> Result<(), String> {
+    let pool = &state.pool;
+    sqlx::query("DELETE FROM user_topic_stats")
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+#[tauri::command]
 async fn delete_score(state: tauri::State<'_, DbState>, id: i32) -> Result<(), String> {
     let pool = &state.pool;
     sqlx::query("DELETE FROM scores WHERE id = ?")
@@ -289,6 +298,7 @@ pub fn run() {
             get_weak_topics,
             get_performance_stats,
             delete_performance_record,
+            delete_all_performance_records,
             delete_score,
             reset_all_data,
         ])
@@ -829,5 +839,122 @@ mod tests {
         assert_eq!(results[0].1, "easy");
         assert_eq!(results[0].2, 10);
         assert_eq!(results[0].3, 8);
+    }
+    #[tokio::test]
+    async fn should_apply_weak_topics_filter_server_side() {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        sqlx::query(
+            "CREATE TABLE user_topic_stats (
+                topic_id TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                attempts INTEGER DEFAULT 0,
+                correct INTEGER DEFAULT 0,
+                total_response_time_ms INTEGER DEFAULT 0,
+                last_error_type TEXT,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (topic_id, difficulty)
+            )",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        // Weak topic: 5 attempts, 2 correct -> accuracy 0.4 (< 0.7)
+        sqlx::query("INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms) VALUES (?, ?, ?, ?, ?)")
+            .bind("algebra")
+            .bind("easy")
+            .bind(5)
+            .bind(2)
+            .bind(500i64)
+            .execute(&pool)
+            .await
+            .unwrap();
+        // Strong topic: 4 attempts, 4 correct -> accuracy 1.0 (>= 0.7), should be filtered out
+        sqlx::query("INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms) VALUES (?, ?, ?, ?, ?)")
+            .bind("calculus")
+            .bind("easy")
+            .bind(4)
+            .bind(4)
+            .bind(400i64)
+            .execute(&pool)
+            .await
+            .unwrap();
+        // Too few attempts: 2 attempts, 0 correct -> accuracy 0.0 but attempts < 3, filtered out
+        sqlx::query("INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms) VALUES (?, ?, ?, ?, ?)")
+            .bind("geometry")
+            .bind("easy")
+            .bind(2)
+            .bind(0)
+            .bind(300i64)
+            .execute(&pool)
+            .await
+            .unwrap();
+        let rows: Vec<(String, Option<f64>, Option<i32>)> = sqlx::query_as(
+            "SELECT topic_id,
+                COALESCE(CAST(SUM(correct) AS REAL) / NULLIF(SUM(attempts), 0), 0.0) as accuracy,
+                SUM(attempts) as total_attempts
+             FROM user_topic_stats
+             GROUP BY topic_id
+             HAVING SUM(attempts) >= 3 AND COALESCE(CAST(SUM(correct) AS REAL) / NULLIF(SUM(attempts), 0), 0.0) < 0.7
+             ORDER BY accuracy ASC
+             LIMIT ?",
+        )
+        .bind(5i32)
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].0, "algebra");
+        assert_eq!(rows[0].2.unwrap_or(0), 5);
+    }
+    #[tokio::test]
+    async fn should_handle_delete_all_performance_records_clearing_table() {
+        let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
+        sqlx::query(
+            "CREATE TABLE user_topic_stats (
+                topic_id TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                attempts INTEGER DEFAULT 0,
+                correct INTEGER DEFAULT 0,
+                total_response_time_ms INTEGER DEFAULT 0,
+                last_error_type TEXT,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (topic_id, difficulty)
+            )",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+        sqlx::query("INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms) VALUES (?, ?, ?, ?, ?)")
+            .bind("algebra")
+            .bind("easy")
+            .bind(5)
+            .bind(2)
+            .bind(500i64)
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO user_topic_stats (topic_id, difficulty, attempts, correct, total_response_time_ms) VALUES (?, ?, ?, ?, ?)")
+            .bind("calculus")
+            .bind("hard")
+            .bind(3)
+            .bind(1)
+            .bind(900i64)
+            .execute(&pool)
+            .await
+            .unwrap();
+        let count_before: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM user_topic_stats")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(count_before.0, 2);
+        sqlx::query("DELETE FROM user_topic_stats")
+            .execute(&pool)
+            .await
+            .unwrap();
+        let count_after: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM user_topic_stats")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(count_after.0, 0);
     }
 }

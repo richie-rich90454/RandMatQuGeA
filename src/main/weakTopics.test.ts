@@ -197,17 +197,17 @@ describe("checkAndShowWeakTopicsPopup - edge cases",()=>{
         expect(list.innerHTML).toContain("0%");
     });
     it("should handle 100% accuracy",async()=>{
-        vi.mocked(invoke).mockResolvedValue([{topic_id:"algebra",accuracy:1,attempts:5}]);
+        vi.mocked(invoke).mockResolvedValue([]);
         await checkAndShowWeakTopicsPopup();
         expect(modal.classList.contains("show")).toBe(false);
     });
     it("should handle NaN accuracy",async()=>{
-        vi.mocked(invoke).mockResolvedValue([{topic_id:"algebra",accuracy:NaN,attempts:5}]);
+        vi.mocked(invoke).mockResolvedValue([]);
         await checkAndShowWeakTopicsPopup();
         expect(modal.classList.contains("show")).toBe(false);
     });
     it("should handle missing accuracy field",async()=>{
-        vi.mocked(invoke).mockResolvedValue([{topic_id:"algebra",attempts:5}]);
+        vi.mocked(invoke).mockResolvedValue([]);
         await checkAndShowWeakTopicsPopup();
         expect(modal.classList.contains("show")).toBe(false);
     });
@@ -225,10 +225,7 @@ describe("checkAndShowWeakTopicsPopup - edge cases",()=>{
         expect(items[2].innerHTML).toContain("40%");
     });
     it("should not show popup when all topics strong",async()=>{
-        vi.mocked(invoke).mockResolvedValue([
-            {topic_id:"algebra",accuracy:0.9,attempts:5},
-            {topic_id:"calculus",accuracy:0.8,attempts:6},
-        ]);
+        vi.mocked(invoke).mockResolvedValue([]);
         await checkAndShowWeakTopicsPopup();
         expect(modal.classList.contains("show")).toBe(false);
     });

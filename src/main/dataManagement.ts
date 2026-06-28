@@ -47,9 +47,7 @@ async function loadData(){
             deleteAllBtn.onclick=async()=>{
                 if(confirm("Delete ALL performance data? This cannot be undone.")){
                     try{
-                        for(const s of stats){
-                            await invoke("delete_performance_record",{topicId:s.topic_id,difficulty:s.difficulty});
-                        }
+                        await invoke("delete_all_performance_records");
                         ui.showNotification("All performance data deleted.","info");
                         await loadData();
                         updateLeaderboard();

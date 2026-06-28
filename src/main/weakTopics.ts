@@ -18,13 +18,11 @@ export async function checkAndShowWeakTopicsPopup(){
     try{
         const weakTopics=await invoke("get_weak_topics",{limit:5})as Array<{topic_id:string,accuracy:number,attempts:number}>;
         if(!weakTopics||weakTopics.length===0){ui.showNotification("No weak topics yet — answer more questions to get recommendations.","info");return;}
-        const weak=weakTopics.filter((t:{topic_id:string,accuracy:number,attempts:number})=>t.accuracy<0.7&&t.attempts>=3);
-        if(weak.length===0){ui.showNotification("No weak topics yet — answer more questions to get recommendations.","info");return;}
         weakTopicsModal=document.getElementById("weak-topics-modal");
         weakTopicsList=document.getElementById("weak-topics-list");
         if(!weakTopicsModal||!weakTopicsList)return;
         weakTopicsList.innerHTML="";
-        for(const topic of weak){
+        for(const topic of weakTopics){
             const topicName=topics.find((t:{id:string,name:string})=>t.id===topic.topic_id)?.name||topic.topic_id;
             const accuracyPercent=Math.round(topic.accuracy*100);
             const item=document.createElement("div");
@@ -53,8 +51,8 @@ export async function checkAndShowWeakTopicsPopup(){
         const practiceAllBtn=document.getElementById("weak-topics-practice-all");
         if(practiceAllBtn){
             practiceAllBtn.onclick=()=>{
-                if(weak.length>0){
-                    appState.weakTopicQueue=weak.map((t:{topic_id:string,accuracy:number,attempts:number})=>t.topic_id);
+                if(weakTopics.length>0){
+                    appState.weakTopicQueue=weakTopics.map((t:{topic_id:string,accuracy:number,attempts:number})=>t.topic_id);
                     const firstTopic=appState.weakTopicQueue.shift();
                     if(firstTopic){
                         selectTopic(firstTopic);

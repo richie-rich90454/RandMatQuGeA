@@ -158,7 +158,7 @@ describe("initDataModal",()=>{
         expect(confirmSpy).toHaveBeenCalledWith("HARD RESET: This will delete ALL scores and performance data. This cannot be undone. Are you sure?");
         confirmSpy.mockRestore();
     });
-    it("should invoke delete_score command",async()=>{
+    it("should invoke delete_all_performance_records command",async()=>{
         vi.mocked(invoke).mockResolvedValue([{topic_id:"add",difficulty:"easy",accuracy:0.8,attempts:5,avg_time_ms:1200}]);
         const confirmSpy=vi.spyOn(window,"confirm").mockReturnValue(true);
         await openDataModal();
@@ -167,7 +167,7 @@ describe("initDataModal",()=>{
         if(btn&&btn.onclick){
             await (btn.onclick as unknown as EventListener)(new MouseEvent("click"));
         }
-        expect(invoke).toHaveBeenCalledWith("delete_performance_record",{topicId:"add",difficulty:"easy"});
+        expect(invoke).toHaveBeenCalledWith("delete_all_performance_records");
         confirmSpy.mockRestore();
     });
     it("should invoke reset_all_data command",async()=>{
