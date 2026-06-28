@@ -1,7 +1,6 @@
-import {questionArea} from "../../script.js";
+import type {RngFn, QuestionDto} from "../../types/global";
 // @ts-expect-error - latexToPlain is imported for potential future use
 import {getMaxCoeff, latexToPlain} from "./calculusUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
 /**
  * Generates a random advanced integration or differential equations question.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -22,18 +21,16 @@ import {renderer} from "../../main/core/questionRenderer";
  *                     that influences the maximum coefficient value used in
  *                     generated expressions. If omitted, a default moderate value
  *                     is used (via `getMaxCoeff` from `./calculusUtils.js`).
- * @returns void
+ * @returns QuestionDto
  * @date 2026-04-18
  *
  * @example
  * generateIntegrationAdvanced();
  * generateIntegrationAdvanced("hard");
  */
-export function generateIntegrationAdvanced(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let questionTypes=["avgValue","areaBetweenX","areaBetweenY","areaMultiple","volumeCrossSquare","volumeCrossSemi","volumeDisc","volumeDiscOther","volumeWasher","volumeWasherOther","arcLength","parts","partialFractions","improper","selectTechnique","diffEqModel","verifySolution","slopeField","euler","separationGeneral","separationParticular","exponentialModel","logisticModel","logisticFullAnalysis","improperVerticalAsymptote","polarArcLength","parametricArcLength","completingSquareInverseTrig"];
-	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
+	let questionType=questionTypes[Math.floor(rng()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
 	let latexAnswer="";
@@ -42,8 +39,8 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 	let choices: string[]=[];
 	switch(questionType){
 		case "avgValue":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
 			if(a<b){ let t=a; a=b; b=t; }
 			mathExpression=`\\[ \\text{Average value of } f(x)=x^2 \\text{ on } [${b},${a}]. \\]`;
 			let val=(((a*a*a - b*b*b)/3) / (a - b));
@@ -59,7 +56,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "areaBetweenX":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Area between } y=x^2 \\text{ and } y=${a}x. \\]`;
 			let intersect=a;
 			let val=(intersect*intersect*intersect)/6;
@@ -75,7 +72,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "areaBetweenY":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Area between } x=y^2 \\text{ and } x=y+${a}. \\]`;
 			let intersect1=(1-Math.sqrt(1+4*a))/2;
 			let intersect2=(1+Math.sqrt(1+4*a))/2;
@@ -106,7 +103,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "volumeCrossSquare":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Base: } y=x^2, y=${a}. \\text{ Cross sections perpendicular to y-axis are squares. Volume?} \\]`;
 			let val=2*a*a;
 			plainCorrectAnswer=val.toFixed(2);
@@ -121,7 +118,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "volumeCrossSemi":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Base: } y=x^2, y=${a}. \\text{ Cross sections perpendicular to x-axis are semicircles. Volume?} \\]`;
 			let val=(2*Math.PI/15)*Math.pow(a, 2.5);
 			plainCorrectAnswer=val.toFixed(2);
@@ -136,7 +133,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "volumeDisc":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Volume when } y=\\sqrt{x} \\text{ from } 0 \\text{ to } ${a} \\text{ revolved about x-axis.} \\]`;
 			let val=Math.PI*a*a/2;
 			plainCorrectAnswer=val.toFixed(2);
@@ -151,7 +148,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "volumeDiscOther":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Volume when } y=x^2, y=0, x=0 \\text{ to } ${a} \\text{ revolved about } y=-1. \\]`;
 			let val=Math.PI*(Math.pow(a,5)/5 + 2*Math.pow(a,3)/3);
 			plainCorrectAnswer=val.toFixed(2);
@@ -166,7 +163,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "volumeWasher":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Volume when region between } y=x^2 \\text{ and } y=${a}x \\text{ revolved about x-axis.} \\]`;
 			let intersect=a;
 			let val=Math.PI*(Math.pow(intersect,5)/3 - Math.pow(intersect,5)/5);
@@ -182,7 +179,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "volumeWasherOther":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Volume when same region revolved about } y=-1. \\]`;
 			let intersect=a;
 			let val=Math.PI*(Math.pow(intersect,5)/3 + Math.pow(intersect,3)/3 - Math.pow(intersect,5)/5);
@@ -198,7 +195,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "arcLength":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Length of } y=x^{3/2} \\text{ from } 0 \\text{ to } ${a}. \\]`;
 			let len=(8/27)*(Math.pow(1 + 9*a/4, 1.5) - 1);
 			plainCorrectAnswer=len.toFixed(2);
@@ -213,7 +210,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "parts":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\int x e^{${a}x} \\,dx \\]`;
 			plainCorrectAnswer=`(1/${a})x e^(${a}x) - (1/${a*a}) e^(${a}x) + C`;
 			latexAnswer=`\\frac{1}{${a}}x e^{${a}x} - \\frac{1}{${a*a}} e^{${a}x} + C`;
@@ -227,7 +224,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "partialFractions":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			let sqrtA=Math.sqrt(a).toFixed(2);
 			mathExpression=`\\[ \\int \\frac{1}{x^2-${a}} \\,dx \\]`;
 			plainCorrectAnswer=`(1/(2*${sqrtA})) ln| (x-${sqrtA})/(x+${sqrtA}) | + C`;
@@ -242,7 +239,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "improper":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\int_1^\\infty \\frac{1}{x^{${a}}} \\,dx \\]`;
 			if(a>1){
 				let val=(1/(a-1)).toFixed(2);
@@ -265,7 +262,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 		}
 		case "selectTechnique":{
 			let options=["Substitution","Partial fractions","Integration by parts","Trig substitution"];
-			let correctIdx=Math.floor(Math.random()*options.length);
+			let correctIdx=Math.floor(rng()*options.length);
 			plainCorrectAnswer=options[correctIdx];
 			latexAnswer=`\\text{${options[correctIdx]}}`;
 			mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{4-x^2}} \\] Best technique? A) ${options[0]} B) ${options[1]} C) ${options[2]} D) ${options[3]}`;
@@ -275,7 +272,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "diffEqModel":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Rate of growth proportional to population with constant ${a}. Write DE.} \\]`;
 			plainCorrectAnswer=`dP/dt=${a}P`;
 			latexAnswer=`\\frac{dP}{dt}=${a}P`;
@@ -289,7 +286,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "verifySolution":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Verify } y=e^{${a}x} \\text{ solves } y''-${a*a}y=0. \\]`;
 			plainCorrectAnswer="yes";
 			latexAnswer="\\text{yes}";
@@ -306,7 +303,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "euler":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\frac{dy}{dx}=x+${a}y, y(1)=0, \\text{ step }0.1, \\text{ approximate } y(1.2). \\]`;
 			let y=0;
 			let x=1;
@@ -326,7 +323,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "separationGeneral":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\frac{dy}{dx}=${a}xy \\]`;
 			let halfA=(a/2).toFixed(2);
 			plainCorrectAnswer=`y=C e^(${halfA}x^2)`;
@@ -341,7 +338,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "separationParticular":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\frac{dy}{dx}=${a}xy, y(0)=1 \\]`;
 			let halfA=(a/2).toFixed(2);
 			plainCorrectAnswer=`y=e^(${halfA}x^2)`;
@@ -356,7 +353,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "exponentialModel":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Half-life } ${a} \\text{ years, find decay constant.} \\]`;
 			let val=Math.LN2/a;
 			plainCorrectAnswer=val.toFixed(3);
@@ -371,7 +368,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "logisticModel":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Carrying capacity } ${a}0, \\text{ growth rate }0.5, \\text{ write logistic DE.} \\]`;
 			plainCorrectAnswer=`dP/dt=0.5P(1 - P/${a}0)`;
 			latexAnswer=`\\frac{dP}{dt}=0.5P\\left(1-\\frac{P}{${a}0}\\right)`;
@@ -385,7 +382,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "logisticFullAnalysis":{
-			let K=Math.floor(Math.random()*maxCoeff*2)+20;
+			let K=Math.floor(rng()*maxCoeff*2)+20;
 			let r=0.05;
 			let P0=Math.floor(K/10)+5;
 			mathExpression=`\\[ \\text{The population of a fish farm follows } \\frac{dP}{dt}=${r}P\\left(1-\\frac{P}{${K}}\\right),\\ P(0)=${P0}. \\] \\[ \\text{(a) What is the carrying capacity? (b) When is the population growing fastest? (c) Find } \\lim_{t\\to\\infty} P(t). \\]`;
@@ -400,7 +397,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "improperVerticalAsymptote":{
-			let a=Math.floor(Math.random()*maxCoeff)+2;
+			let a=Math.floor(rng()*maxCoeff)+2;
 			mathExpression=`\\[ \\int_0^1 \\frac{1}{\\sqrt{${a*a}-x^2}} \\,dx \\]`;
 			let val=Math.asin(1/a);
 			plainCorrectAnswer=val.toFixed(4);
@@ -410,7 +407,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "polarArcLength":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Find the length of the polar curve } r=${a}(1+\\cos\\theta) \\text{ from } \\theta=0 \\text{ to } \\theta=\\pi. \\]`;
 			let len=4*a;
 			plainCorrectAnswer=len.toFixed(2);
@@ -420,7 +417,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "parametricArcLength":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Find the arc length of } x=t^3,\\ y=t^2 \\text{ from } t=0 \\text{ to } t=1. \\]`;
 			let len=(13*Math.sqrt(13)-8)/27;
 			let val=len*a;
@@ -435,7 +432,7 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 		case "completingSquareInverseTrig":{
-			let a=Math.floor(Math.random()*maxCoeff)+2;
+			let a=Math.floor(rng()*maxCoeff)+2;
 			mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{${2*a}x - x^2}} \\]`;
 			plainCorrectAnswer=`arcsin((x-${a})/${a})+C`;
 			latexAnswer=`\\arcsin\\left(\\frac{x-${a}}{${a}}\\right)+C`;
@@ -448,26 +445,19 @@ export function generateIntegrationAdvanced(difficulty?: string): void{
 			break;
 		}
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
 	let uniqueChoices=[...new Set(choices.map(c=>c.toLowerCase()))];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	let correctLower=plainCorrectAnswer.toLowerCase();
 	if(!uniqueChoices.includes(correctLower)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctLower;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctLower;
 		else uniqueChoices=[correctLower];
 	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }

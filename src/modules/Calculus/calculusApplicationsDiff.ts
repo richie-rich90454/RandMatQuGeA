@@ -1,6 +1,5 @@
-import {questionArea} from "../../script.js";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./calculusUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
 /**
  * Generates and displays a random "applications of derivatives" question in the global `questionArea`.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -8,7 +7,7 @@ import {renderer} from "../../main/core/questionRenderer";
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
  *                     Influences the maximum coefficient value used in generated expressions
  *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
- * @returns void
+ * @returns QuestionDto
  * @date 2026-04-18
  *
  * @remarks
@@ -45,11 +44,9 @@ import {renderer} from "../../main/core/questionRenderer";
  * generateApplicationsDiff();
  * generateApplicationsDiff("hard");
  */
-export function generateApplicationsDiff(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateApplicationsDiff(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let questionTypes=["linearization","lhopital","mvt","evt","incDec","firstDerivativeTest","candidatesTest","concavity","secondDerivativeTest","graphSketch","connecting","optimization","implicitBehavior","rectangleOptimization","boxOptimization","cylinderOptimization","fencingOptimization","ladderOptimization"];
-	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
+	let questionType=questionTypes[Math.floor(rng()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
 	let latexAnswer="";
@@ -58,9 +55,9 @@ export function generateApplicationsDiff(difficulty?: string): void{
 	let choices: string[]=[];
 	switch(questionType){
 		case "linearization":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
-			let x0=Math.floor(Math.random()*5)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
+			let x0=Math.floor(rng()*5)+1;
 			let point=a*x0+b;
 			let approx=Math.sqrt(point)+(0.1)/(2*Math.sqrt(point));
 			mathExpression=`\\[ \\text{Use linear approximation to estimate } \\sqrt{${point+0.1}}. \\]`;
@@ -76,7 +73,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "lhopital":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\lim_{x\\to 0} \\frac{e^{${a}x}-1}{x} \\]`;
 			plainCorrectAnswer=a.toString();
 			latexAnswer=plainCorrectAnswer;
@@ -89,7 +86,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "mvt":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ f(x)=x^3-${a}x \\text{ on } [-1,1]. \\text{ Find } c \\text{ satisfying MVT.} \\]`;
 			let c=1/Math.sqrt(3);
 			plainCorrectAnswer=c.toFixed(2);
@@ -104,7 +101,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "evt":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Find critical points of } f(x)=x^3-${a}x^2+2 \\text{ on } [0,3]. \\]`;
 			let cp1=0;
 			let cp2=(2*a)/3;
@@ -129,7 +126,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "incDec":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Intervals where } f(x)=x^3-${a}x^2+1 \\text{ is increasing.} \\]`;
 			let cp=2*a/3;
 			plainCorrectAnswer=`(-\\infty, 0) \\text{ and } (${cp.toFixed(2)}, \\infty)`;
@@ -143,7 +140,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "firstDerivativeTest":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ f(x)=x^4-${a}x^3. \\text{ Classify critical points.} \\]`;
 			let cp2=(3*a)/4;
 			plainCorrectAnswer=`x=0 saddle, x=${cp2.toFixed(2)} local min`;
@@ -157,7 +154,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "candidatesTest":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ f(x)=x^3-${a}x \\text{ on } [0,3]. \\text{ Find absolute max.} \\]`;
 			let maxVal=Math.max(0, 27-3*a, Math.pow(Math.sqrt(a/3),3)-a*Math.sqrt(a/3));
 			if(isNaN(maxVal)){
@@ -175,7 +172,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "concavity":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ f(x)=x^3-${a}x^2. \\text{ Intervals of concavity.} \\]`;
 			let inflection=a/3;
 			plainCorrectAnswer=`down on (-\\infty, ${inflection.toFixed(2)}), up on (${inflection.toFixed(2)}, \\infty)`;
@@ -189,7 +186,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "secondDerivativeTest":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ f(x)=x^3-${a}x. \\text{ Use second derivative test at } x=0. \\]`;
 			plainCorrectAnswer="inconclusive";
 			latexAnswer=`\\text{inconclusive}`;
@@ -226,7 +223,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "optimization":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Two numbers sum to } ${a}. \\text{ Maximize product.} \\]`;
 			let numVal=a/2;
 			let numStr=numVal.toString();
@@ -241,7 +238,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "implicitBehavior":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			if(a<2) a=2;
 			let yVal=Math.sqrt(a-1);
 			mathExpression=`\\[ \\text{Slope of tangent to } x^2+y^2=${a} \\text{ at } (1,${yVal.toFixed(2)}). \\]`;
@@ -258,7 +255,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "rectangleOptimization":{
-			let fencing=Math.floor(Math.random()*maxCoeff*20)+100;
+			let fencing=Math.floor(rng()*maxCoeff*20)+100;
 			mathExpression=`\\[ \\text{A farmer has ${fencing} ft of fencing to enclose a rectangular field and subdivide it into two equal plots with a fence parallel to one side. Find dimensions that maximize total area.} \\]`;
 			let width=fencing/6;
 			let length=fencing/4;
@@ -273,7 +270,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "boxOptimization":{
-			let side=Math.floor(Math.random()*maxCoeff*10)+10;
+			let side=Math.floor(rng()*maxCoeff*10)+10;
 			mathExpression=`\\[ \\text{An open‑top box is made from a ${side}-in by ${side}-in square by cutting equal squares from each corner and folding up. Find the cut‑out side length that maximizes volume.} \\]`;
 			let optimalCut=side/6;
 			let maxVol=2*Math.pow(side,3)/27;
@@ -287,7 +284,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "cylinderOptimization":{
-			let volume=Math.floor(Math.random()*maxCoeff*100)+200;
+			let volume=Math.floor(rng()*maxCoeff*100)+200;
 			mathExpression=`\\[ \\text{A cylindrical can must hold ${volume} cm}^3 \\text{ of liquid. Find dimensions (radius and height) that minimize surface area (including both ends).} \\]`;
 			let radius=Math.pow(volume/(2*Math.PI), 1/3);
 			let height=volume/(Math.PI*radius*radius);
@@ -302,7 +299,7 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "fencingOptimization":{
-			let fencing=Math.floor(Math.random()*maxCoeff*20)+100;
+			let fencing=Math.floor(rng()*maxCoeff*20)+100;
 			mathExpression=`\\[ \\text{A rancher has ${fencing} m of fencing to enclose a rectangular pasture along a straight river (no fence on river side). What dimensions give the greatest area?} \\]`;
 			let width=fencing/2;
 			let length=fencing/4;
@@ -317,8 +314,8 @@ export function generateApplicationsDiff(difficulty?: string): void{
 			break;
 		}
 		case "ladderOptimization":{
-			let fenceHt=Math.floor(Math.random()*maxCoeff*2)+4;
-			let distFromBuilding=Math.floor(Math.random()*maxCoeff*2)+6;
+			let fenceHt=Math.floor(rng()*maxCoeff*2)+4;
+			let distFromBuilding=Math.floor(rng()*maxCoeff*2)+6;
 			mathExpression=`\\[ \\text{A ${fenceHt}-ft tall fence runs parallel to a building at a distance of ${distFromBuilding} ft. Find the shortest ladder that reaches from the ground over the fence to the building.} \\]`;
 			let ladderLength=Math.pow(Math.pow(fenceHt, 2/3)+Math.pow(distFromBuilding, 2/3), 3/2);
 			plainCorrectAnswer=ladderLength.toFixed(2);
@@ -344,26 +341,19 @@ export function generateApplicationsDiff(difficulty?: string): void{
 	}
 	if(!found){
 		if(uniqueChoices.length>0){
-			let randomIndex=Math.floor(Math.random()*uniqueChoices.length);
+			let randomIndex=Math.floor(rng()*uniqueChoices.length);
 			uniqueChoices[randomIndex]=plainCorrectAnswer;
 		}
 		else{
 			uniqueChoices=[plainCorrectAnswer];
 		}
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }

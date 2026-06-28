@@ -1,35 +1,30 @@
-import {questionArea} from "../../script.js";
-// @ts-expect-error - latexToPlain is imported for potential future use
-import {getMaxCoeff, latexToPlain} from "./calculusUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
+import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxCoeff} from "./calculusUtils.js";
 /**
- * Generates a random limits and continuity question and displays it in the global question area.
- * Includes custom multiple‑choice options for MCQ mode.
+ * Generates a random limits and continuity question and returns it as a QuestionDto.
  *
  * The function randomly selects a question type from a predefined list covering limit notation,
  * estimation from tables, limit properties, algebraic manipulation, the Squeeze theorem,
  * discontinuity types, continuity conditions, continuity intervals, removable discontinuities,
  * asymptotes, the Intermediate Value Theorem (IVT), selection of appropriate limit procedures,
  * and the conceptual connection between average and instantaneous rates of change.
- * It constructs a LaTeX expression for the problem, computes the correct answer (as a plain‑text
- * string), appends the formatted question to the DOM, triggers MathJax rendering, and sets global
- * variables for answer validation.
+ * It constructs a LaTeX expression for the problem, computes the correct answer (as a plain-text
+ * string), and returns a QuestionDto for answer validation.
  *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that influences
  *                     the maximum coefficient value used in generated expressions. If omitted,
  *                     a default moderate value is used (via `getMaxCoeff` from `./calculusUtils.js`).
- * @returns void
+ * @param rng - Optional random number generator (defaults to Math.random).
+ * @returns QuestionDto
  * @date 2026-04-18
  *
  * @example
  * generateLimitsContinuity();
  * generateLimitsContinuity("hard");
  */
-export function generateLimitsContinuity(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateLimitsContinuity(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let questionTypes=["limitNotation","limitFromTable","limitProperties","limitManipulation","limitSqueeze","discontinuityType","continuityConditions","continuityInterval","removeDiscontinuity","verticalAsymptote","horizontalAsymptote","ivt","selectProcedure","instantaneousRateConceptual"];
-	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
+	let questionType=questionTypes[Math.floor(rng()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
 	let latexAnswer="";
@@ -38,8 +33,8 @@ export function generateLimitsContinuity(difficulty?: string): void{
 	let choices: string[]=[];
 	switch(questionType){
 		case "limitNotation":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let c=Math.floor(Math.random()*5)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let c=Math.floor(rng()*5)+1;
 			let b=a*c*c;
 			mathExpression=`\\[ \\text{Use limit notation to describe the behavior of } f(x)=\\frac{${a}x^2-${b}}{x-${c}} \\text{ as } x \\to ${c}. \\]`;
 			let val=2*a*c;
@@ -54,10 +49,10 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "limitFromTable":{
-			let x0=Math.floor(Math.random()*3)+2;
+			let x0=Math.floor(rng()*3)+2;
 			let values: number[]=[];
 			for(let i=0;i<5;i++){
-				values.push(Math.random()*10);
+				values.push(rng()*10);
 			}
 			let tableStr="";
 			for(let i=0;i<5;i++){
@@ -76,10 +71,10 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "limitProperties":{
-			let limF=Math.floor(Math.random()*10)+1;
-			let limG=Math.floor(Math.random()*10)+1;
-			let coeff1=Math.floor(Math.random()*maxCoeff)+1;
-			let coeff2=Math.floor(Math.random()*maxCoeff)+1;
+			let limF=Math.floor(rng()*10)+1;
+			let limG=Math.floor(rng()*10)+1;
+			let coeff1=Math.floor(rng()*maxCoeff)+1;
+			let coeff2=Math.floor(rng()*maxCoeff)+1;
 			let result=coeff1*limF+coeff2*limG;
 			mathExpression=`\\[ \\text{If } \\lim_{x\\to 3}f(x)=${limF} \\text{ and } \\lim_{x\\to 3}g(x)=${limG}, \\text{ find } \\lim_{x\\to 3}[${coeff1}f(x)+${coeff2}g(x)]. \\]`;
 			plainCorrectAnswer=result.toString();
@@ -93,9 +88,9 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "limitManipulation":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
-			let c=Math.floor(Math.random()*5)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
+			let c=Math.floor(rng()*5)+1;
 			let result=(2*a*Math.sqrt(c))/b;
 			mathExpression=`\\[ \\lim_{x\\to ${c}} \\frac{${a}x-${a*c}}{${b}\\sqrt{x}-${b}\\sqrt{${c}}} \\]`;
 			plainCorrectAnswer=result.toFixed(2);
@@ -110,7 +105,7 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "limitSqueeze":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\lim_{x\\to 0} x^${a} \\cos\\left(\\frac{1}{x}\\right) \\]`;
 			plainCorrectAnswer="0";
 			latexAnswer="0";
@@ -119,8 +114,8 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "discontinuityType":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
 			let root=Math.sqrt(b/a).toFixed(2);
 			mathExpression=`\\[ f(x)=\\frac{${a}x^2-${b}}{x-${root}} \\]`;
 			plainCorrectAnswer="removable";
@@ -142,7 +137,7 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "continuityInterval":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			let sqrtA=Math.sqrt(a).toFixed(2);
 			mathExpression=`\\[ \\text{Find the interval(s) where } f(x)=\\sqrt{${a}-x^2} \\text{ is continuous.} \\]`;
 			plainCorrectAnswer=`[-${sqrtA},${sqrtA}]`;
@@ -156,8 +151,8 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "removeDiscontinuity":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let c=Math.floor(Math.random()*5)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let c=Math.floor(rng()*5)+1;
 			let val=2*a*c;
 			mathExpression=`\\[ \\text{Define } f(${c}) \\text{ so that } f(x)=\\frac{${a}x^2-${a*c*c}}{x-${c}} \\text{ is continuous at } x=${c}. \\]`;
 			plainCorrectAnswer=val.toString();
@@ -172,8 +167,8 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "verticalAsymptote":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
 			let sqrtBVal=Math.sqrt(b);
 			let sqrtBStr=sqrtBVal.toFixed(2);
 			mathExpression=`\\[ \\text{Find vertical asymptotes of } f(x)=\\frac{${a}x+1}{x^2-${b}}. \\]`;
@@ -189,8 +184,8 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "horizontalAsymptote":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\lim_{x\\to\\infty} \\frac{${a}x^2-${b}}{${a}x^2+1} \\]`;
 			plainCorrectAnswer="1";
 			latexAnswer="1";
@@ -199,14 +194,14 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "ivt":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
 			let f1=1-a-b;
 			let f2=8-2*a-b;
 			let attempts=0;
 			while(f1*f2>=0&&attempts<100){
-				a=Math.floor(Math.random()*maxCoeff)+1;
-				b=Math.floor(Math.random()*maxCoeff)+1;
+				a=Math.floor(rng()*maxCoeff)+1;
+				b=Math.floor(rng()*maxCoeff)+1;
 				f1=1-a-b;
 				f2=8-2*a-b;
 				attempts++;
@@ -241,7 +236,7 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 		case "instantaneousRateConceptual":{
-			let t0=Math.floor(Math.random()*3)+1;
+			let t0=Math.floor(rng()*3)+1;
 			let s=(t: number)=>t*t;
 			let avgVelOverInterval=(s(t0+0.1)-s(t0))/0.1;
 			let exactInstVel=2*t0;
@@ -256,25 +251,18 @@ export function generateLimitsContinuity(difficulty?: string): void{
 			break;
 		}
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(plainCorrectAnswer)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
 		else uniqueChoices=[plainCorrectAnswer];
 	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }

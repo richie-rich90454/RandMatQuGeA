@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {describe,it,expect,vi} from "vitest";
 import{
 	getMaxCoeff,
 	latexToPlain,
@@ -20,10 +20,6 @@ import{
 	generateParametricPolarVector,
 	generateSequencesSeries,
 }from "./index";
-import {questionArea} from "../../script.js";
-vi.mock("../../script.js",()=>({
-	questionArea: null as HTMLElement|null
-}));
 describe("index barrel",()=>{
 	it("exports calculusUtils functions",()=>{
 		expect(getMaxCoeff).toBeDefined();
@@ -76,65 +72,57 @@ describe("index barrel",()=>{
 		expect(typeof generateSequencesSeries).toBe("function");
 	});
 });
-describe("index barrel — window side effects",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typeset:vi.fn()};
+describe("index barrel — DTO return",()=>{
+	it("should return QuestionDto with correct/alternate",()=>{
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValue(0.5);
+		const dto=generateDerivative(undefined, rng);
+		expect(dto).toBeDefined();
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(typeof dto.correct).toBe("string");
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn()
+	it("should return QuestionDto with expectedFormat",()=>{
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.1)
 			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateDerivative();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
-		expect((window as any).correctAnswer).toHaveProperty("alternate");
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateDerivative();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
+			.mockReturnValueOnce(0.3)
+			.mockReturnValue(0.5);
+		const dto=generateDerivative(undefined, rng);
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
 	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.1)
 			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateDerivative("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
+			.mockReturnValueOnce(0.3)
+			.mockReturnValue(0.5);
+		const dto=generateDerivative("easy", rng);
+		expect(dto).toBeDefined();
+		expect(dto).toHaveProperty("correct");
 	});
 	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.1)
 			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateDerivative("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
+			.mockReturnValueOnce(0.3)
+			.mockReturnValue(0.5);
+		const dto=generateDerivative("medium", rng);
+		expect(dto).toBeDefined();
+		expect(dto).toHaveProperty("correct");
 	});
 	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.1)
 			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateDerivative("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
+			.mockReturnValueOnce(0.3)
+			.mockReturnValue(0.5);
+		const dto=generateDerivative("hard", rng);
+		expect(dto).toBeDefined();
+		expect(dto).toHaveProperty("correct");
 	});
 });

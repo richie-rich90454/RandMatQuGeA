@@ -1,6 +1,5 @@
-import {questionArea} from "../../script.js";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff, trigFunctions, expFunctions, logFunctions, latexToPlain} from "./calculusUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
 /**
  * Generates a random differentiation question and displays it in the global question area.
  *
@@ -16,7 +15,7 @@ import {renderer} from "../../main/core/questionRenderer";
  *                     influences the maximum coefficient value used in generated
  *                     expressions. If omitted, a default moderate value is used
  *                     (via `getMaxCoeff`).
- * @returns void
+ * @returns QuestionDto
  * @date 2026-04-18
  *
  * @remarks
@@ -39,11 +38,9 @@ import {renderer} from "../../main/core/questionRenderer";
  * generateDerivative();
  * generateDerivative("hard");
  */
-export function generateDerivative(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateDerivative(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let questionTypes=["polynomial","trigonometric","exponential","logarithmic","product","quotient","chain","implicit","higherOrder","motion","logDiff","inverseTrig","implicitAdvanced"];
-	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
+	let questionType=questionTypes[Math.floor(rng()*questionTypes.length)];
 	let polynomial="";
 	let correctDerivative="";
 	let plainCorrectDerivative="";
@@ -52,11 +49,11 @@ export function generateDerivative(difficulty?: string): void{
 	let choices: string[]=[];
 	switch(questionType){
 		case "polynomial":{
-			let numTerms=Math.floor(Math.random()*4)+2;
+			let numTerms=Math.floor(rng()*4)+2;
 			let exponents=new Set<number>();
 			let expAttempts=0;
 			while(exponents.size<numTerms&&expAttempts<100){
-				exponents.add(Math.floor(Math.random()*11));
+				exponents.add(Math.floor(rng()*11));
 				expAttempts++;
 			}
 			let fillExp=0;
@@ -68,13 +65,13 @@ export function generateDerivative(difficulty?: string): void{
 			for(let exponent of exponentsArray){
 				let coeff;
 				if(exponent===0){
-					coeff=Math.floor(Math.random()*100)+1;
+					coeff=Math.floor(rng()*100)+1;
 				}
 				else if(exponent===1){
-					coeff=Math.floor(Math.random()*maxCoeff)+1;
+					coeff=Math.floor(rng()*maxCoeff)+1;
 				}
 				else{
-					coeff=Math.floor(Math.random()*maxCoeff*2)+1;
+					coeff=Math.floor(rng()*maxCoeff*2)+1;
 				}
 				coefficients.push(coeff);
 			}
@@ -188,8 +185,8 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "trigonometric":{
-			let trig=trigFunctions[Math.floor(Math.random()*trigFunctions.length)];
-			let coeff=Math.floor(Math.random()*maxCoeff)+1;
+			let trig=trigFunctions[Math.floor(rng()*trigFunctions.length)];
+			let coeff=Math.floor(rng()*maxCoeff)+1;
 			polynomial=`${coeff} ${trig.func}`;
 			correctDerivative=`${coeff} \\cdot ${trig.deriv}`;
 			plainCorrectDerivative=`${coeff}*${trig.plainDeriv}`;
@@ -209,8 +206,8 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "exponential":{
-			let exp=expFunctions[Math.floor(Math.random()*expFunctions.length)];
-			let coeff=Math.floor(Math.random()*maxCoeff)+1;
+			let exp=expFunctions[Math.floor(rng()*expFunctions.length)];
+			let coeff=Math.floor(rng()*maxCoeff)+1;
 			polynomial=`${coeff} ${exp.func}`;
 			correctDerivative=`${coeff} \\cdot ${exp.deriv}`;
 			plainCorrectDerivative=`${coeff}*${exp.plainDeriv}`;
@@ -222,7 +219,7 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "logarithmic":{
-			let log=logFunctions[Math.floor(Math.random()*logFunctions.length)];
+			let log=logFunctions[Math.floor(rng()*logFunctions.length)];
 			polynomial=log.func;
 			correctDerivative=log.deriv;
 			plainCorrectDerivative=log.plainDeriv;
@@ -234,9 +231,9 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "product":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			let linear=`${a}x`;
-			let trigProd=trigFunctions[Math.floor(Math.random()*trigFunctions.length)];
+			let trigProd=trigFunctions[Math.floor(rng()*trigFunctions.length)];
 			polynomial=`(${linear}) \\cdot (${trigProd.func})`;
 			correctDerivative=`${a} \\cdot ${trigProd.func}+(${linear}) \\cdot (${trigProd.deriv})`;
 			plainCorrectDerivative=`${a}*${latexToPlain(trigProd.func)}+(${linear})*${trigProd.plainDeriv}`;
@@ -248,9 +245,9 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "quotient":{
-			let b=Math.floor(Math.random()*maxCoeff)+1;
-			let c=Math.floor(Math.random()*6);
-			let trigQuot=trigFunctions[Math.floor(Math.random()*trigFunctions.length)];
+			let b=Math.floor(rng()*maxCoeff)+1;
+			let c=Math.floor(rng()*6);
+			let trigQuot=trigFunctions[Math.floor(rng()*trigFunctions.length)];
 			let num=`${b}x+${c}`;
 			polynomial=`\\frac{${num}}{${trigQuot.func}}`;
 			correctDerivative=`\\frac{${b} \\cdot ${trigQuot.func}-(${num}) \\cdot ${trigQuot.deriv}}{(${trigQuot.func})^{2}}`;
@@ -263,13 +260,13 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "chain":{
-			let chainType=Math.floor(Math.random()*3);
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*3);
+			let chainType=Math.floor(rng()*3);
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*3);
 			let inner=`${a}x+${b}`;
 			let plainInner=`${a}x+${b}`;
 			if(chainType===0){
-				let trigFunc=trigFunctions[Math.floor(Math.random()*2)];
+				let trigFunc=trigFunctions[Math.floor(rng()*2)];
 				polynomial=`${trigFunc.func.replace("x", inner)}`;
 				correctDerivative=`${trigFunc.deriv.replace("x", inner)} \\cdot ${a}`;
 				plainCorrectDerivative=`${trigFunc.plainDeriv.replace("x", plainInner)}*${a}`;
@@ -288,7 +285,7 @@ export function generateDerivative(difficulty?: string): void{
 				choices.push(`e^(${plainInner})*${a+1}`);
 			}
 			else{
-				let k=Math.floor(Math.random()*3)+2;
+				let k=Math.floor(rng()*3)+2;
 				polynomial=`(${inner})^{${k}}`;
 				correctDerivative=`${k} (${inner})^{${k-1}} \\cdot ${a}`;
 				plainCorrectDerivative=`${k}*(${plainInner})^${k-1}*${a}`;
@@ -300,8 +297,8 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "implicit":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
 			polynomial=`${a}x^{2}+${b}y^{2}=1`;
 			correctDerivative=`-\\frac{${a}x}{${b}y}`;
 			plainCorrectDerivative=`-(${a}x)/(${b}y)`;
@@ -313,10 +310,10 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "higherOrder":{
-			let coeff=Math.floor(Math.random()*maxCoeff*2)+1;
-			let exp=Math.floor(Math.random()*4)+2;
+			let coeff=Math.floor(rng()*maxCoeff*2)+1;
+			let exp=Math.floor(rng()*4)+2;
 			polynomial=`${coeff}x^{${exp}}`;
-			let order=Math.floor(Math.random()*2)+2;
+			let order=Math.floor(rng()*2)+2;
 			let deriv=coeff;
 			let currExp=exp;
 			for(let i=0;i<order;i++){
@@ -347,8 +344,8 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "motion":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
 			polynomial=`${a}t^{2}+${b}t`;
 			correctDerivative=`${2*a}t+${b}`;
 			plainCorrectDerivative=`${2*a}t+${b}`;
@@ -360,9 +357,9 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "logDiff":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
-			let c=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
+			let c=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Use logarithmic differentiation to find } \\frac{dy}{dx} \\text{ for } y=(${b}x+${c})^{${a}\\sin x} \\]`;
 			plainCorrectDerivative=`(${b}x+${c})^(${a}*sin(x))*(${a}*cos(x)*ln(${b}x+${c})+(${a}*${b}*sin(x))/(${b}x+${c}))`;
 			correctDerivative=`(${b}x+${c})^{${a}\\sin x}\\left(${a}\\cos x\\ln(${b}x+${c})+\\frac{${a}${b}\\sin x}{${b}x+${c}}\\right)`;
@@ -373,8 +370,8 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "inverseTrig":{
-			let subType=Math.floor(Math.random()*3);
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let subType=Math.floor(rng()*3);
+			let a=Math.floor(rng()*maxCoeff)+1;
 			if(subType===0){
 				polynomial=`\\arcsin(${a}x)`;
 				correctDerivative=`\\frac{${a}}{\\sqrt{1-${a*a}x^{2}}}`;
@@ -398,16 +395,16 @@ export function generateDerivative(difficulty?: string): void{
 			break;
 		}
 		case "implicitAdvanced":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
-			let c=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
+			let c=Math.floor(rng()*maxCoeff)+1;
 			let x0=1;
-			let y0=Math.floor(Math.random()*3)+1;
+			let y0=Math.floor(rng()*3)+1;
 			let constant=a*x0*x0+b*x0*y0+c*y0*y0;
 			let denominator=b*x0+2*c*y0;
 			let attempts=0;
 			while(denominator===0&&attempts<10){
-				y0=Math.floor(Math.random()*3)+1;
+				y0=Math.floor(rng()*3)+1;
 				constant=a*x0*x0+b*x0*y0+c*y0*y0;
 				denominator=b*x0+2*c*y0;
 				attempts++;
@@ -435,22 +432,15 @@ export function generateDerivative(difficulty?: string): void{
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(plainCorrectDerivative)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectDerivative;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectDerivative;
 		else uniqueChoices=[plainCorrectDerivative];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: plainCorrectDerivative,
 		alternate: plainCorrectDerivative,
 		display: correctDerivative,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter the derivative as an expression, e.g., 2x+3, cos(x), etc.");
+		choices: uniqueChoices,
+		expectedFormat: "Enter the derivative as an expression, e.g., 2x+3, cos(x), etc."
+	};
 }

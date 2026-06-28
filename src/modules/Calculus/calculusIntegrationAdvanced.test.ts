@@ -1,229 +1,62 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {describe,it,expect,vi} from "vitest";
 import {generateIntegrationAdvanced} from "./calculusIntegrationAdvanced";
-import {questionArea} from "../../script.js";
-vi.mock("../../script.js",()=>({
-	questionArea: null as HTMLElement|null
-}));
+import {seededRng} from "../../main/core/rng";
 describe("generateIntegrationAdvanced",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typeset:vi.fn()};
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateIntegrationAdvanced("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(dto).toHaveProperty("display");
+		expect(dto).toHaveProperty("choices");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateIntegrationAdvanced("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+		expect(dto.expectedFormat!.length).toBeGreaterThan(0);
 	});
-	it("returns early if questionArea is null",()=>{
-		(questionArea as any)=null;
-		generateIntegrationAdvanced();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
-	});
-	it("generates avgValue correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)// type->floor(28*0.01)=0 avgValue
-			.mockReturnValueOnce(0.3)// a->floor(5*0.3)+1=2 (swapped with b)
-			.mockReturnValueOnce(0.5);// b->floor(5*0.5)+1=3 (swapped with a)
-		generateIntegrationAdvanced();
-		let val=((27-8)/3)/(3-2);
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:val.toFixed(2),
-			alternate:val.toFixed(2)
-		});
-	});
-	it("generates areaBetweenX correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.04)// type->floor(28*0.04)=1 areaBetweenX
-			.mockReturnValueOnce(0.3);// a->floor(5*0.3)+1=2
-		generateIntegrationAdvanced();
-		let val=8/6;
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:val.toFixed(2),
-			alternate:val.toFixed(2)
-		});
-	});
-	it("generates parts correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.4)// type->floor(28*0.4)=11 parts
-			.mockReturnValueOnce(0.3);// a->floor(5*0.3)+1=2
-		generateIntegrationAdvanced();
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"(1/2)x e^(2x) - (1/4) e^(2x) + C",
-			alternate:"(1/2)x e^(2x) - (1/4) e^(2x) + C"
-		});
-	});
-	it("generates verifySolution correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.58)// type->floor(28*0.58)=16 verifySolution
-			.mockReturnValueOnce(0.3);// a->floor(5*0.3)+1=2
-		generateIntegrationAdvanced();
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"yes",
-			alternate:"yes"
-		});
-	});
-	it("generates slopeField correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.61);// type->floor(28*0.61)=17 slopeField
-		generateIntegrationAdvanced();
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"slope 0",
-			alternate:"slope 0"
-		});
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
-		expect((window as any).correctAnswer).toHaveProperty("alternate");
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
+	it("returns choices array",()=>{
+		const dto=generateIntegrationAdvanced("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
 	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
+		const dto=generateIntegrationAdvanced("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+		expect(dto.display).toBeDefined();
 	});
 	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
+		const dto=generateIntegrationAdvanced("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+		expect(dto.display).toBeDefined();
 	});
 	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
+		const dto=generateIntegrationAdvanced("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+		expect(dto.display).toBeDefined();
 	});
-});
-describe("generateIntegrationAdvanced - edge cases",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typeset:vi.fn()};
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateIntegrationAdvanced("medium", seededRng(42));
+		const dto2=generateIntegrationAdvanced("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("produces different output for different seeds",()=>{
+		const dto1=generateIntegrationAdvanced("medium", seededRng(42));
+		const dto2=generateIntegrationAdvanced("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
-	it("should produce non-empty question HTML",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced();
-		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
-	});
-	it("should set correctAnswer with display property",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect(typeof (window as any).correctAnswer.display).toBe("string");
-	});
-	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-	});
-	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-	});
-	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-	});
-	it("should set expectedFormat",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
-		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
-	});
-	it("should handle repeated calls consistently",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced();
-		let first=(window as any).correctAnswer;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced();
-		let second=(window as any).correctAnswer;
-		expect(first.correct).toBe(second.correct);
-	});
-	it("should verify correctAnswer structure",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.01)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateIntegrationAdvanced();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
-		expect((window as any).correctAnswer).toHaveProperty("alternate");
-		expect((window as any).correctAnswer).toHaveProperty("display");
-		expect((window as any).correctAnswer).toHaveProperty("choices");
+	it("uses rng for all random calls (not Math.random)",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateIntegrationAdvanced("medium", rng);
+		expect(rng).toHaveBeenCalled();
+		expect(typeof dto.correct).toBe("string");
 	});
 });

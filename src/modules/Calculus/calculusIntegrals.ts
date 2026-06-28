@@ -1,6 +1,5 @@
-import {questionArea} from "../../script.js";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./calculusUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
 function gcd(a: number, b: number): number{
 	while(b){
 		let t=b;
@@ -35,16 +34,14 @@ function formatFraction(num: number, den: number): string{
  * @module calculusIntegral
  * @date 2026-04-18
  */
-export function generateIntegral(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateIntegral(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const questionTypes=[
 		"polynomial","trigonometric","exponential","logarithmic",
 		"substitution","definite","initialValue","area","motion",
 		"inverseTrig","completingSquare","logisticModel","improperVertical",
 		"polarArcLength","parametricArcLength"
 	];
-	const questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
+	const questionType=questionTypes[Math.floor(rng()*questionTypes.length)];
 	const maxCoeff=getMaxCoeff(difficulty);
 	let mathExpression="";
 	let plainCorrectIntegral="";
@@ -53,11 +50,11 @@ export function generateIntegral(difficulty?: string): void{
 	let choices: string[]=[];
 	switch(questionType){
 		case "polynomial":{
-			const numTerms=Math.floor(Math.random()*4)+2;
+			const numTerms=Math.floor(rng()*4)+2;
 			const exponents=new Set<number>();
 			let expAttempts=0;
 			while(exponents.size<numTerms&&expAttempts<100){
-				exponents.add(Math.floor(Math.random()*11));
+				exponents.add(Math.floor(rng()*11));
 				expAttempts++;
 			}
 			let fillExp=0;
@@ -69,13 +66,13 @@ export function generateIntegral(difficulty?: string): void{
 			for(const exp of exponentsArray){
 				let coeff;
 				if(exp===0){
-					coeff=Math.floor(Math.random()*100)+1;
+					coeff=Math.floor(rng()*100)+1;
 				}
 				else if(exp===1){
-					coeff=Math.floor(Math.random()*maxCoeff)+1;
+					coeff=Math.floor(rng()*maxCoeff)+1;
 				}
 				else{
-					coeff=Math.floor(Math.random()*maxCoeff*2)+1;
+					coeff=Math.floor(rng()*maxCoeff*2)+1;
 				}
 				coefficients.push(coeff);
 			}
@@ -136,9 +133,9 @@ export function generateIntegral(difficulty?: string): void{
 				{ func: "sec tan", target: "sec", sign: 1 },
 				{ func: "csc cot", target: "csc", sign: -1 }
 			];
-			const chosen=trigOptions[Math.floor(Math.random()*trigOptions.length)];
-			const a=Math.floor(Math.random()*maxCoeff)+1;
-			const coeff=Math.floor(Math.random()*maxCoeff)+1;
+			const chosen=trigOptions[Math.floor(rng()*trigOptions.length)];
+			const a=Math.floor(rng()*maxCoeff)+1;
+			const coeff=Math.floor(rng()*maxCoeff)+1;
 			const funcStr=`${coeff} ${chosen.func}(${a}x)`;
 			mathExpression=`\\[ \\int ${funcStr} \\,dx=? \\]`;
 			const decimalCoeff=coeff/a;
@@ -176,9 +173,9 @@ export function generateIntegral(difficulty?: string): void{
 			break;
 		}
 		case "exponential":{
-			const base=Math.random()<0.5?"e":Math.floor(Math.random()*3)+2;
-			const a=Math.floor(Math.random()*maxCoeff)+1;
-			const coeff=Math.floor(Math.random()*maxCoeff)+1;
+			const base=rng()<0.5?"e":Math.floor(rng()*3)+2;
+			const a=Math.floor(rng()*maxCoeff)+1;
+			const coeff=Math.floor(rng()*maxCoeff)+1;
 			if(base==="e"){
 				mathExpression=`\\[ \\int ${coeff}e^{${a}x} \\,dx=? \\]`;
 				plainCorrectIntegral=`${formatNumber(coeff/a)}e^(${a}x)+C`;
@@ -205,7 +202,7 @@ export function generateIntegral(difficulty?: string): void{
 			break;
 		}
 		case "logarithmic":{
-			const coeff=Math.floor(Math.random()*maxCoeff)+1;
+			const coeff=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\int \\frac{${coeff}}{x} \\,dx=? \\]`;
 			plainCorrectIntegral=`${coeff}ln|x|+C`;
 			latexAnswer=`${coeff}\\ln|x|+C`;
@@ -218,10 +215,10 @@ export function generateIntegral(difficulty?: string): void{
 			break;
 		}
 		case "substitution":{
-			const a=Math.floor(Math.random()*maxCoeff)+1;
-			const b=Math.floor(Math.random()*5);
-			const power=Math.floor(Math.random()*3)+2;
-			const coeff=Math.floor(Math.random()*maxCoeff)+1;
+			const a=Math.floor(rng()*maxCoeff)+1;
+			const b=Math.floor(rng()*5);
+			const power=Math.floor(rng()*3)+2;
+			const coeff=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\int ${coeff}(${a}x+${b})^{${power}} \\,dx=? \\]`;
 			const newPower=power+1;
 			const factor=coeff/(a*newPower);
@@ -238,10 +235,10 @@ export function generateIntegral(difficulty?: string): void{
 		}
 		case "definite":{
 			const numTerms=3;
-			const exponents=Array.from({ length: numTerms },()=>Math.floor(Math.random()*4));
-			const coefficients=exponents.map(()=>Math.floor(Math.random()*maxCoeff)+1);
+			const exponents=Array.from({ length: numTerms },()=>Math.floor(rng()*4));
+			const coefficients=exponents.map(()=>Math.floor(rng()*maxCoeff)+1);
 			const lower=1;
-			const upper=Math.floor(Math.random()*5)+2;
+			const upper=Math.floor(rng()*5)+2;
 			const polyTerms=coefficients.map((c,i)=>`${c}x^{${exponents[i]}}`);
 			const polynomial=polyTerms.join("+");
 			mathExpression=`\\[ \\int_{${lower}}^{${upper}} (${polynomial}) \\,dx=? \\]`;
@@ -270,10 +267,10 @@ export function generateIntegral(difficulty?: string): void{
 			break;
 		}
 		case "initialValue":{
-			const coeff=Math.floor(Math.random()*maxCoeff)+1;
-			const exponent=Math.floor(Math.random()*3)+1;
-			const xVal=Math.floor(Math.random()*3)+1;
-			const yVal=Math.floor(Math.random()*20)+5;
+			const coeff=Math.floor(rng()*maxCoeff)+1;
+			const exponent=Math.floor(rng()*3)+1;
+			const xVal=Math.floor(rng()*3)+1;
+			const yVal=Math.floor(rng()*20)+5;
 			const polynomial=`${coeff}x^${exponent}`;
 			const antiderivCoeff=coeff/(exponent+1);
 			const c=yVal-antiderivCoeff*Math.pow(xVal,exponent+1);
@@ -295,9 +292,9 @@ export function generateIntegral(difficulty?: string): void{
 				{ expr: "sqrt(x)", antideriv: (x: number) => (2/3)*Math.pow(x,1.5) },
 				{ expr: "2^x", antideriv: (x: number) => Math.pow(2,x)/Math.log(2) }
 			];
-			const chosen=funcs[Math.floor(Math.random()*funcs.length)];
+			const chosen=funcs[Math.floor(rng()*funcs.length)];
 			const a=0;
-			const b=Math.floor(Math.random()*4)+1;
+			const b=Math.floor(rng()*4)+1;
 			const area=chosen.antideriv(b)-chosen.antideriv(a);
 			plainCorrectIntegral=formatNumber(area);
 			latexAnswer=plainCorrectIntegral;
@@ -310,7 +307,7 @@ export function generateIntegral(difficulty?: string): void{
 			break;
 		}
 		case "motion":{
-			const coeff=Math.floor(Math.random()*maxCoeff)+1;
+			const coeff=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Find position from velocity } v(t) = ${coeff}t^2 \\]`;
 			plainCorrectIntegral=`${formatNumber(coeff/3)}t^3 + C`;
 			alternateAnswer=`${coeff}t^3/3 + C`;
@@ -325,8 +322,8 @@ export function generateIntegral(difficulty?: string): void{
 		}
 		case "inverseTrig":{
 			const subtypes=["arcsin","arctan","arcsec"];
-			const sub=subtypes[Math.floor(Math.random()*subtypes.length)];
-			const a=Math.floor(Math.random()*maxCoeff)+1;
+			const sub=subtypes[Math.floor(rng()*subtypes.length)];
+			const a=Math.floor(rng()*maxCoeff)+1;
 			if(sub==="arcsin"){
 				mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{${a*a}-x^2}} \\]`;
 				plainCorrectIntegral=`arcsin(x/${a})+C`;
@@ -360,7 +357,7 @@ export function generateIntegral(difficulty?: string): void{
 			break;
 		}
 		case "completingSquare":{
-			const a=Math.floor(Math.random()*maxCoeff)+2;
+			const a=Math.floor(rng()*maxCoeff)+2;
 			mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{${2*a}x - x^2}} \\]`;
 			plainCorrectIntegral=`arcsin((x-${a})/${a})+C`;
 			latexAnswer=`\\arcsin\\left(\\frac{x-${a}}{${a}}\\right)+C`;
@@ -372,7 +369,7 @@ export function generateIntegral(difficulty?: string): void{
 			break;
 		}
 		case "logisticModel":{
-			const K=Math.floor(Math.random()*maxCoeff*2)+20;
+			const K=Math.floor(rng()*maxCoeff*2)+20;
 			const r=0.05;
 			const P0=Math.floor(K/10)+5;
 			mathExpression=`\\[ \\text{Solve } \\frac{dP}{dt}=${r}P\\left(1-\\frac{P}{${K}}\\right),\\ P(0)=${P0}. \\] \\[ \\text{Find } \\lim_{t\\to\\infty}P(t). \\]`;
@@ -393,7 +390,7 @@ export function generateIntegral(difficulty?: string): void{
 			break;
 		}
 		case "polarArcLength":{
-			const a=Math.floor(Math.random()*maxCoeff)+1;
+			const a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Length of } r=${a}(1+\\cos\\theta),\\ 0\\le\\theta\\le\\pi. \\]`;
 			const len=4*a;
 			plainCorrectIntegral=len.toFixed(2);
@@ -402,7 +399,7 @@ export function generateIntegral(difficulty?: string): void{
 			break;
 		}
 		case "parametricArcLength":{
-			const a=Math.floor(Math.random()*maxCoeff)+1;
+			const a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Arc length of } x=${a}t^3,\\ y=${a}t^2,\\ 0\\le t\\le 1. \\]`;
 			const len=a*(13*Math.sqrt(13)-8)/27;
 			plainCorrectIntegral=len.toFixed(4);
@@ -423,14 +420,6 @@ export function generateIntegral(difficulty?: string): void{
 			break;
 		}
 	}
-	const mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
 	const normalize=(s: string)=>
 		s.replace(/\s+/g,"")
 		 .replace(/\^{/g,"^")
@@ -441,14 +430,15 @@ export function generateIntegral(difficulty?: string): void{
 	let uniqueChoices=[...new Set(choices.map(normalize))];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correctNorm)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctNorm;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctNorm;
 		else uniqueChoices=[correctNorm];
 	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctNorm,
 		alternate: altNorm,
 		display: latexAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter the integral as an expression, e.g., 2x^3/3+5x^2/2+C, 1/3 sin(3x)+C, etc.");
+		choices: uniqueChoices,
+		expectedFormat: "Enter the integral as an expression, e.g., 2x^3/3+5x^2/2+C, 1/3 sin(3x)+C, etc."
+	};
 }
