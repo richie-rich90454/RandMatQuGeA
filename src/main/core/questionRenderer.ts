@@ -1,6 +1,6 @@
 import{DomRegistry,dom}from"./domRegistry";
 import{questionState}from"./questionState";
-import{type CorrectAnswer}from"../../types/global";
+import{type CorrectAnswer,type QuestionDto}from"../../types/global";
 export class QuestionRenderer{
     private registry: DomRegistry;
     constructor(registry: DomRegistry){
@@ -10,6 +10,47 @@ export class QuestionRenderer{
         let area=this.registry.displays.questionArea;
         if(!area)return;
         area.innerHTML=html;
+        this.typeset();
+    }
+    applyQuestionDto(dto: QuestionDto): void{
+        let area=this.registry.displays.questionArea;
+        if(area){
+            area.innerHTML=dto.latex;
+        }
+        let answer: CorrectAnswer={
+            correct: dto.correct,
+            alternate: dto.alternate,
+            display: dto.display,
+            choices: dto.choices
+        };
+        this.setAnswer(answer);
+        if(dto.expectedFormat!==undefined){
+            this.setExpectedFormat(dto.expectedFormat);
+        }
+        this.setHasQuestion(true);
+        let mcqContainer=this.registry.displays.mcqChoicesContainer;
+        if(mcqContainer){
+            mcqContainer.innerHTML="";
+            if(dto.choices&&dto.choices.length>0){
+                for(let choice of dto.choices){
+                    let btn=document.createElement("button");
+                    btn.className="mcq-choice";
+                    btn.textContent=choice;
+                    btn.dataset.value=choice;
+                    mcqContainer.appendChild(btn);
+                }
+                mcqContainer.classList.remove("hidden");
+            }
+            else{
+                mcqContainer.classList.add("hidden");
+            }
+        }
+        if(dto.hint){
+            let hintArea=this.registry.displays.previewDiv;
+            if(hintArea){
+                hintArea.setAttribute("data-hint", dto.hint);
+            }
+        }
         this.typeset();
     }
     setExpectedFormat(text: string): void{

@@ -11,6 +11,16 @@ export interface CorrectAnswer{
 	display?: string;
 	choices?: string[];
 }
+export type RngFn=()=>number;
+export interface QuestionDto{
+	latex: string;
+	correct: string;
+	alternate?: string;
+	display?: string;
+	choices?: string[];
+	expectedFormat?: string;
+	hint?: string;
+}
 export interface MathJaxConfig{
 	tex:{
 		inlineMath: string[][];
