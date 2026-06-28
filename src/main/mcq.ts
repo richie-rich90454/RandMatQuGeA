@@ -3,13 +3,15 @@ import {questionState} from "./core/questionState";
 import {dom} from "./core/domRegistry";
 import * as settings from "./settings";
 import * as ui from "./ui";
+import type { RngFn } from "../types/global";
 let mathjsModule: any=null;
 async function ensureMathjs(): Promise<any>{
     if(mathjsModule) return mathjsModule;
     mathjsModule=await import("mathjs");
     return mathjsModule;
 }
-export async function generateDistractors(correctAnswer: string, count: number): Promise<string[]>{
+export async function generateDistractors(correctAnswer: string, count: number, rng?: RngFn): Promise<string[]>{
+    let r: RngFn = rng ?? Math.random;
     let num: number|null=null;
     try{
         const evaluated=(await ensureMathjs()).evaluate(correctAnswer);
@@ -18,28 +20,28 @@ export async function generateDistractors(correctAnswer: string, count: number):
         }
     } catch(e){}
     if (num!==null){
-        return generateNumericDistractors(num, correctAnswer, count);
+        return generateNumericDistractors(num, correctAnswer, count, r);
     }
-    const patternDistractors=generatePatternDistractors(correctAnswer, count);
+    const patternDistractors=generatePatternDistractors(correctAnswer, count, r);
     if (patternDistractors.length>=count){
         return patternDistractors;
     }
-    return generateTextFallbackDistractors(correctAnswer, count);
+    return generateTextFallbackDistractors(correctAnswer, count, r);
 }
-function generateNumericDistractors(num: number, original: string, count: number): string[]{
+function generateNumericDistractors(num: number, original: string, count: number, rng: RngFn): string[]{
     const distractors=new Set<string>();
     distractors.add(original);
     const ops=[
-        ()=>num+(Math.random()*20-10),
-        ()=>num*(Math.random()*2+0.5),
-        ()=>num+(Math.random()>0.5?1:-1),
+        ()=>num+(rng()*20-10),
+        ()=>num*(rng()*2+0.5),
+        ()=>num+(rng()>0.5?1:-1),
         ()=>-num,
-        ()=>Math.round(num*(Math.random()*0.5+0.75)*100)/100,
-        ()=>num>=0?Math.pow(num,0.5):num+Math.random()*5,
-        ()=>num+Math.random()*5
+        ()=>Math.round(num*(rng()*0.5+0.75)*100)/100,
+        ()=>num>=0?Math.pow(num,0.5):num+rng()*5,
+        ()=>num+rng()*5
     ];
     while(distractors.size<count){
-        const op=ops[Math.floor(Math.random()*ops.length)];
+        const op=ops[Math.floor(rng()*ops.length)];
         let variant=op();
         variant=Math.round(variant*100)/100;
         const str=variant.toString();
@@ -49,7 +51,7 @@ function generateNumericDistractors(num: number, original: string, count: number
     }
     distractors.delete(original);
     const all=Array.from(distractors);
-    const correctPos=Math.floor(Math.random()*(all.length+1));
+    const correctPos=Math.floor(rng()*(all.length+1));
     all.splice(correctPos,0,original);
     let result=all.slice(0,count);
     if (!result.includes(original)){
@@ -57,7 +59,7 @@ function generateNumericDistractors(num: number, original: string, count: number
     }
     return result;
 }
-function generatePatternDistractors(answer: string, count: number): string[]{
+function generatePatternDistractors(answer: string, count: number, rng: RngFn): string[]{
     const distractors=new Set<string>();
     distractors.add(answer);
     let match=answer.match(/center\s*\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)\s*,\s*radius\s*(-?\d+(?:\.\d+)?)/i);
@@ -117,11 +119,11 @@ function generatePatternDistractors(answer: string, count: number): string[]{
     }
     distractors.delete(answer);
     const all=Array.from(distractors);
-    const correctPos=Math.floor(Math.random()*(all.length+1));
+    const correctPos=Math.floor(rng()*(all.length+1));
     all.splice(correctPos,0,answer);
     return all.slice(0,count);
 }
-function generateTextFallbackDistractors(answer: string, count: number): string[]{
+function generateTextFallbackDistractors(answer: string, count: number, rng: RngFn): string[]{
     const distractors=new Set<string>();
     distractors.add(answer);
     const variations=[
@@ -146,7 +148,7 @@ function generateTextFallbackDistractors(answer: string, count: number): string[
     }
     distractors.delete(answer);
     const all=Array.from(distractors);
-    const correctPos=Math.floor(Math.random()*(all.length+1));
+    const correctPos=Math.floor(rng()*(all.length+1));
     all.splice(correctPos,0,answer);
     let result=all.slice(0,count);
     if (!result.includes(answer)){
@@ -154,8 +156,9 @@ function generateTextFallbackDistractors(answer: string, count: number): string[
     }
     return result;
 }
-export async function generateChoicesForCurrentQuestion(): Promise<void>{
+export async function generateChoicesForCurrentQuestion(rng?: RngFn): Promise<void>{
     if (!appState.mcqMode) return;
+    let r: RngFn = rng ?? Math.random;
     const correctObj=questionState.correctAnswer;
     if (!correctObj || !correctObj.correct){
         if (dom.displays.mcqChoicesContainer){
@@ -168,21 +171,21 @@ export async function generateChoicesForCurrentQuestion(): Promise<void>{
     if (correctObj.choices && Array.isArray(correctObj.choices) && correctObj.choices.length>=count){
         choices=[...correctObj.choices];
         for (let i=choices.length-1;i>0;i--){
-            const j=Math.floor(Math.random()*(i+1));
+            const j=Math.floor(r()*(i+1));
             [choices[i], choices[j]]=[choices[j], choices[i]];
         }
         if (!choices.includes(correctObj.correct)){
-            choices[Math.floor(Math.random()*choices.length)]=correctObj.correct;
+            choices[Math.floor(r()*choices.length)]=correctObj.correct;
         }
         if (choices.length>count){
             choices=choices.slice(0,count);
             if (!choices.includes(correctObj.correct)){
-                choices[Math.floor(Math.random()*choices.length)]=correctObj.correct;
+                choices[Math.floor(r()*choices.length)]=correctObj.correct;
             }
         }
     }
     else{
-        choices=await generateDistractors(correctObj.correct, count);
+        choices=await generateDistractors(correctObj.correct, count, r);
     }
     appState.mcqChoices=choices;
     ui.renderMcqChoices(choices);

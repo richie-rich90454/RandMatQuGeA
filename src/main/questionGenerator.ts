@@ -1,4 +1,6 @@
 import { topicRegistry, registerTopic } from "./services/topicRegistry";
+import { renderer } from "./core/questionRenderer";
+import type { RngFn, QuestionDto } from "../types/global";
 let moduleCache: Map<string, any>=new Map();
 async function loadModule(scope: string): Promise<any>{
     if (moduleCache.has(scope)){
@@ -158,7 +160,10 @@ registerTopic("factoring","algebra","generateFactoring");
 registerTopic("func_concepts","algebra","generateFunctionConcepts");
 registerTopic("linear_graph","algebra","generateLinearGraphing");
 registerTopic("nonlinear_graph","algebra","generateNonLinearGraphing");
-export async function generateQuestion(topicId: string, difficulty: string): Promise<void>{
+function isQuestionDto(value: unknown): value is QuestionDto{
+	return value!==null&&typeof value==="object"&&typeof (value as QuestionDto).latex==="string";
+}
+export async function generateQuestion(topicId: string, difficulty: string, rng?: RngFn): Promise<QuestionDto | void>{
     const entry=topicRegistry.getTopic(topicId);
     if (!entry){
         throw new Error("Unknown topic: "+topicId);
@@ -168,5 +173,25 @@ export async function generateQuestion(topicId: string, difficulty: string): Pro
     if (!generator){
         throw new Error("Generator function not found: "+entry.fn);
     }
-    await generator(difficulty);
+    const result=await generator(difficulty, rng);
+    if (isQuestionDto(result)){
+        renderer.applyQuestionDto(result);
+    }
+    return result;
+}
+export async function generateQuestionDto(topicId: string, difficulty: string, rng?: RngFn): Promise<QuestionDto>{
+    const entry=topicRegistry.getTopic(topicId);
+    if (!entry){
+        throw new Error("Unknown topic: "+topicId);
+    }
+    const mod=await loadModule(entry.scope);
+    const generator=mod[entry.fn];
+    if (!generator){
+        throw new Error("Generator function not found: "+entry.fn);
+    }
+    const result=await generator(difficulty, rng);
+    if (!isQuestionDto(result)){
+        throw new Error("Generator did not return a QuestionDto: "+topicId);
+    }
+    return result;
 }

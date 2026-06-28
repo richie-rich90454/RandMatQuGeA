@@ -156,7 +156,9 @@ async function generateQuestionText(topicId: string, difficulty: string): Promis
 	let originalQsFormat = questionState.expectedFormat;
 	let originalQsHas = questionState.hasQuestion;
 	try{
-		let latexSource = await captureRawLatexDuringGeneration(()=>callGenerator(topicId, difficulty));
+		let latexSource = await captureRawLatexDuringGeneration(async()=>{
+			await callGenerator(topicId, difficulty);
+		});
 		let ansObj = questionState.correctAnswer;
 		let answerDisplay = wrapLatexIfNeeded(ansObj?.display || ansObj?.correct || "");
 		return { html: latexSource, answerDisplay };

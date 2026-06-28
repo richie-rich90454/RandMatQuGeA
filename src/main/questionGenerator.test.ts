@@ -159,7 +159,8 @@ vi.mock("../modules/Geometry/index.js",()=>({
 vi.mock("./dom.js",()=>({
     questionArea:{innerHTML:""},
 }));
-import{generateQuestion}from"./questionGenerator.js";
+import{generateQuestion,generateQuestionDto}from"./questionGenerator.js";
+import{generateAddition}from"../modules/Arithmetic/index.js";
 describe("questionGenerator",()=>{
     it("should export generateQuestion",()=>{
         expect(typeof generateQuestion).toBe("function");
@@ -256,5 +257,41 @@ describe("generateQuestion",()=>{
         expect(first.correct).toBe(second.correct);
         expect(first.alternate).toBe(second.alternate);
         expect(first.display).toBe(second.display);
+    });
+});
+describe("generateQuestionDto",()=>{
+    it("should be a function",()=>{
+        expect(typeof generateQuestionDto).toBe("function");
+    });
+    it("should throw for unknown topic",async()=>{
+        await expect(generateQuestionDto("nonexistent","easy")).rejects.toThrow("Unknown topic: nonexistent");
+    });
+    it("should throw when generator does not return a DTO",async()=>{
+        await expect(generateQuestionDto("add","easy")).rejects.toThrow("Generator did not return a QuestionDto: add");
+    });
+    it("should return DTO when generator returns one",async()=>{
+        const mockAdd=vi.mocked(generateAddition);
+        const fakeDto={latex:"\\(2+2\\)",correct:"4",alternate:"4",display:"4"};
+        mockAdd.mockReturnValueOnce(fakeDto as any);
+        const dto=await generateQuestionDto("add","easy");
+        expect(dto).toBe(fakeDto);
+    });
+});
+describe("generateQuestion - DTO path",()=>{
+    it("should call applyQuestionDto when generator returns a DTO",async()=>{
+        const mockAdd=vi.mocked(generateAddition);
+        const fakeDto={latex:"\\(3+3\\)",correct:"6",alternate:"6",display:"6",expectedFormat:"Enter a number"};
+        mockAdd.mockReturnValueOnce(fakeDto as any);
+        await generateQuestion("add","easy");
+        expect(window.correctAnswer).toMatchObject({correct:"6",alternate:"6",display:"6"});
+        expect(window.expectedFormat).toBe("Enter a number");
+        expect(window.hasQuestion).toBe(true);
+    });
+    it("should pass rng to generator when provided",async()=>{
+        const mockAdd=vi.mocked(generateAddition);
+        mockAdd.mockClear();
+        const rng=():number=>0.5;
+        await generateQuestion("add","easy",rng);
+        expect(mockAdd).toHaveBeenCalledWith("easy",rng);
     });
 });
