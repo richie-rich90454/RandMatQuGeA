@@ -31,8 +31,12 @@ vi.mock("jspdf",()=>({
 		};
 	}),
 }));
+vi.mock("./ui.js",()=>({
+	showNotification: vi.fn(),
+}));
 import{initPrintModal,openPrintModal,closePrintModal,renderKatexInElement,wrapLatexIfNeeded}from"./printWorksheet.js";
 import{generateQuestionDto}from"./questionGenerator.js";
+import{showNotification}from"./ui.js";
 function createPrintModal():HTMLElement{
 	let modal=document.createElement("div");
 	modal.id="print-modal";
@@ -331,5 +335,81 @@ describe("seed wiring",()=>{
 	it("should hide copy seed button by default",()=>{
 		initPrintModal();
 		expect(copySeedBtn.classList.contains("hidden")).toBe(true);
+	});
+});
+describe("copy seed button",()=>{
+	let modal:HTMLElement;
+	let generateBtn:HTMLButtonElement;
+	let copySeedBtn:HTMLButtonElement;
+	let seedInput:HTMLInputElement;
+	beforeEach(()=>{
+		modal=createPrintModal();
+		generateBtn=modal.querySelector("#print-generate") as HTMLButtonElement;
+		copySeedBtn=modal.querySelector("#print-copy-seed") as HTMLButtonElement;
+		seedInput=modal.querySelector("#print-seed-input") as HTMLInputElement;
+		vi.spyOn(window,"alert").mockImplementation(()=>{});
+		vi.mocked(generateQuestionDto).mockResolvedValue({
+			latex: "\\(x^2 + 1\\)",
+			correct: "2",
+			alternate: "2",
+			display: "2",
+			choices: ["2","3"],
+			expectedFormat: "Enter a number"
+		});
+		vi.mocked(showNotification).mockReset();
+		mockInvoke.mockReset();
+		mockInvoke.mockResolvedValue(undefined);
+		Object.defineProperty(navigator,"clipboard",{
+			value:{writeText:vi.fn().mockResolvedValue(undefined)},
+			configurable:true,
+		});
+	});
+	afterEach(()=>{
+		modal.remove();
+		vi.restoreAllMocks();
+	});
+	it("should copy seed to clipboard when clicked after generation",async ()=>{
+		mockInvoke.mockResolvedValue(12345 as any);
+		initPrintModal();
+		generateBtn.click();
+		await vi.waitFor(()=>{
+			expect(seedInput.value).toBe("12345");
+		});
+		copySeedBtn.click();
+		await vi.waitFor(()=>{
+			expect(navigator.clipboard.writeText).toHaveBeenCalledWith("12345");
+		});
+	});
+	it("should show notification after copying seed",async ()=>{
+		mockInvoke.mockResolvedValue(777 as any);
+		initPrintModal();
+		generateBtn.click();
+		await vi.waitFor(()=>{
+			expect(seedInput.value).toBe("777");
+		});
+		copySeedBtn.click();
+		await vi.waitFor(()=>{
+			expect(showNotification).toHaveBeenCalledWith(expect.stringContaining("777"),expect.any(String));
+		});
+	});
+	it("should warn when no seed available",async ()=>{
+		seedInput.value="";
+		initPrintModal();
+		copySeedBtn.click();
+		await vi.waitFor(()=>{
+			expect(showNotification).toHaveBeenCalledWith(expect.stringContaining("No seed"),expect.any(String));
+		});
+	});
+	it("should warn when clipboard write fails",async ()=>{
+		Object.defineProperty(navigator,"clipboard",{
+			value:{writeText:vi.fn().mockRejectedValue(new Error("denied"))},
+			configurable:true,
+		});
+		seedInput.value="99";
+		initPrintModal();
+		copySeedBtn.click();
+		await vi.waitFor(()=>{
+			expect(showNotification).toHaveBeenCalledWith(expect.stringContaining("Failed to copy"),expect.any(String));
+		});
 	});
 });

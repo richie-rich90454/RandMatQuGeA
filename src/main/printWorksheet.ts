@@ -10,6 +10,7 @@ import { topics, scopeTopics } from "./constants";
 import { generateQuestionDto } from "./questionGenerator";
 import { invoke } from "@tauri-apps/api/core";
 import { seededRng } from "./core/rng";
+import { showNotification } from "./ui";
 import type { RngFn } from "../types/global";
 let modal: HTMLElement | null = null;
 let questionCountSelect: HTMLSelectElement | null = null;
@@ -502,6 +503,22 @@ async function handleExportPdf(): Promise<void>{
 		}
 	}
 }
+async function handleCopySeed(): Promise<void>{
+	if (!seedInput) return;
+	let seedVal = seedInput.value.trim();
+	if (!seedVal){
+		showNotification("No seed to copy yet. Generate a worksheet first.","warning");
+		return;
+	}
+	try{
+		await navigator.clipboard.writeText(seedVal);
+		showNotification(`Seed ${seedVal} copied to clipboard.`,"info");
+	}
+	catch (err){
+		console.error("Clipboard write failed:", err);
+		showNotification("Failed to copy seed to clipboard.","warning");
+	}
+}
 export function openPrintModal(): void{
 	modal?.classList.remove("hidden");
 	modal?.classList.add("show");
@@ -535,6 +552,7 @@ export function initPrintModal(): void{
 	if (closeBtn) closeBtn.addEventListener("click", closePrintModal);
 	if (generateBtn) generateBtn.addEventListener("click", ()=>{ generateWorksheet().catch((err: unknown)=>console.error("generateWorksheet failed:", err)); });
 	if (exportBtn) exportBtn.addEventListener("click", ()=>{ handleExportPdf().catch((err: unknown)=>console.error("handleExportPdf failed:", err)); });
+	if (copySeedBtn) copySeedBtn.addEventListener("click", ()=>{ handleCopySeed().catch((err: unknown)=>console.error("handleCopySeed failed:", err)); });
 	if (scopeSelect) scopeSelect.addEventListener("change", updateTopicDropdown);
 	updateTopicDropdown();
 }
