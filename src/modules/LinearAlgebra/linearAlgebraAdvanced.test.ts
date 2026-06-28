@@ -1,165 +1,286 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
-import {questionArea} from "../../script.js";
-import {generateSystem3x3,generateRowEchelon3x3,generatePartialFractions,generateVector3D} from "./linearAlgebraAdvanced.js";
-vi.mock("../../script.js",()=>({questionArea:null as HTMLElement|null}));
-vi.mock("./linearAlgebraUtils.js",()=>({
-	getRange:vi.fn(()=>3),
-	matrixToString:vi.fn((m:any,style="bmatrix")=>`\\begin{${style}} ${m.a} & ${m.b} \\\\ ${m.c} & ${m.d} \\end{${style}}`),
-	getDeterminant:vi.fn(()=>0),
-	formatMatrix:vi.fn(()=>""),
-	formatVector:vi.fn(()=>""),
-	getMatrixSize:vi.fn(()=>({rows:2,cols:2})),
-	getVectorDimension:vi.fn(()=>2),
-}));
+import {describe,it,expect} from "vitest";
+import {generateSystem3x3,generateRowEchelon3x3,generatePartialFractions,generateLinearProgramming,generateVector3D,generateLine3D,generatePlane3D} from "./linearAlgebraAdvanced.js";
+import {seededRng} from "../../main/core/rng";
 describe("generateSystem3x3",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateSystem3x3("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateSystem3x3("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("returns early if questionArea is null",()=>{
-		(questionArea as any)=null;
-		generateSystem3x3();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
+	it("returns choices array",()=>{
+		const dto=generateSystem3x3("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
-	it("generates 3x3 system correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toContain("x=");
-	});
-	it("generates row echelon correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateRowEchelon3x3();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates partial fractions correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generatePartialFractions();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates 3D vector correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.01);
-		generateVector3D();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toContain("x=");
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
+	it("includes correct answer in choices",()=>{
+		const dto=generateSystem3x3("medium", seededRng(42));
+		expect(dto.choices).toContain(dto.correct);
 	});
 	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).expectedFormat).toBeDefined();
+		const dto=generateSystem3x3("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).expectedFormat).toBeDefined();
+		const dto=generateSystem3x3("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).expectedFormat).toBeDefined();
+		const dto=generateSystem3x3("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateSystem3x3("medium", seededRng(42));
+		const dto2=generateSystem3x3("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateSystem3x3("medium", seededRng(42));
+		const dto2=generateSystem3x3("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });
-describe("generateSystem3x3 - edge cases",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+describe("generateRowEchelon3x3",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateRowEchelon3x3("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateRowEchelon3x3("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("should produce non-empty question HTML",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3();
-		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	it("returns choices array",()=>{
+		const dto=generateRowEchelon3x3("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
-	it("should set correctAnswer with display property",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect(typeof (window as any).correctAnswer.display).toBe("string");
-		expect((window as any).correctAnswer.display.length).toBeGreaterThan(0);
+	it("includes correct answer in choices",()=>{
+		const dto=generateRowEchelon3x3("medium", seededRng(42));
+		expect(dto.choices).toContain(dto.correct);
 	});
 	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-	});
-	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
+		const dto=generateRowEchelon3x3("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
+		const dto=generateRowEchelon3x3("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
-	it("should set expectedFormat",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
-		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateRowEchelon3x3("medium", seededRng(42));
+		const dto2=generateRowEchelon3x3("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("should handle repeated calls consistently",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3();
-		let first=(window as any).correctAnswer;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3();
-		let second=(window as any).correctAnswer;
-		expect(first.correct).toBe(second.correct);
-		expect(first.display).toBe(second.display);
+});
+describe("generatePartialFractions",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generatePartialFractions("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	it("should verify correctAnswer structure",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSystem3x3();
-		let ans=(window as any).correctAnswer;
-		expect(ans).toHaveProperty("correct");
-		expect(ans).toHaveProperty("display");
-		expect(ans).toHaveProperty("choices");
-		expect(Array.isArray(ans.choices)).toBe(true);
-		expect(ans.choices.length).toBeGreaterThanOrEqual(1);
+	it("returns expectedFormat string",()=>{
+		const dto=generatePartialFractions("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generatePartialFractions("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("includes correct answer in choices",()=>{
+		const dto=generatePartialFractions("medium", seededRng(42));
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generatePartialFractions("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generatePartialFractions("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generatePartialFractions("medium", seededRng(42));
+		const dto2=generatePartialFractions("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateLinearProgramming",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateLinearProgramming("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateLinearProgramming("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateLinearProgramming("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("includes correct answer in choices",()=>{
+		const dto=generateLinearProgramming("medium", seededRng(42));
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateLinearProgramming("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateLinearProgramming("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateLinearProgramming("medium", seededRng(42));
+		const dto2=generateLinearProgramming("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateVector3D",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateVector3D("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateVector3D("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateVector3D("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("includes correct answer in choices",()=>{
+		const dto=generateVector3D("medium", seededRng(42));
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateVector3D("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateVector3D("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateVector3D("medium", seededRng(42));
+		const dto2=generateVector3D("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateLine3D",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateLine3D("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateLine3D("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateLine3D("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("includes correct answer in choices",()=>{
+		const dto=generateLine3D("medium", seededRng(42));
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateLine3D("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateLine3D("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateLine3D("medium", seededRng(42));
+		const dto2=generateLine3D("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generatePlane3D",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generatePlane3D("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generatePlane3D("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generatePlane3D("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("includes correct answer in choices",()=>{
+		const dto=generatePlane3D("medium", seededRng(42));
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generatePlane3D("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generatePlane3D("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generatePlane3D("medium", seededRng(42));
+		const dto2=generatePlane3D("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generatePlane3D("medium", seededRng(42));
+		const dto2=generatePlane3D("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });

@@ -1,158 +1,61 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
-import {questionArea} from "../../script.js";
+import {describe,it,expect} from "vitest";
 import {generateVector} from "./linearAlgebraVector.js";
-vi.mock("../../script.js",()=>({questionArea:null as HTMLElement|null}));
-vi.mock("./linearAlgebraUtils.js",()=>({
-	getRange:vi.fn(()=>3),
-	matrixToString:vi.fn((m:any,style="bmatrix")=>`\\begin{${style}} ${m.a} & ${m.b} \\\\ ${m.c} & ${m.d} \\end{${style}}`),
-	getDeterminant:vi.fn(()=>0),
-	formatMatrix:vi.fn(()=>""),
-	formatVector:vi.fn(()=>""),
-	getMatrixSize:vi.fn(()=>({rows:2,cols:2})),
-	getVectorDimension:vi.fn(()=>2),
-}));
+import {seededRng} from "../../main/core/rng";
 describe("generateVector",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateVector("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateVector("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateVector("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("includes correct answer in choices",()=>{
+		const dto=generateVector("medium", seededRng(42));
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateVector("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generateVector("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateVector("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateVector("medium", seededRng(42));
+		const dto2=generateVector("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateVector("medium", seededRng(42));
+		const dto2=generateVector("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
+	it("does not mutate window globals",()=>{
 		delete(window as any).correctAnswer;
 		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
-	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
-	});
-	it("returns early if questionArea is null",()=>{
-		(questionArea as any)=null;
-		generateVector();
-		expect(mockDiv.innerHTML).toBe("");
+		generateVector("medium", seededRng(42));
 		expect((window as any).correctAnswer).toBeUndefined();
-	});
-	it("generates vector magnitude correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.01);
-		generateVector();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates vector direction correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.08);
-		generateVector();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates dot product correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.28);
-		generateVector();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates vector addition correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.86);
-		generateVector();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn().mockReturnValue(0.01);
-		generateVector();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn().mockReturnValue(0.01);
-		generateVector();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
-	});
-	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.01);
-		generateVector("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).expectedFormat).toBeDefined();
-	});
-	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.01);
-		generateVector("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).expectedFormat).toBeDefined();
-	});
-	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.01);
-		generateVector("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).expectedFormat).toBeDefined();
-	});
-});
-describe("generateVector - edge cases",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
-	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
-	});
-	it("should produce non-empty question HTML",()=>{
-		Math.random=vi.fn().mockReturnValue(0.01);
-		generateVector();
-		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
-	});
-	it("should set correctAnswer with display property",()=>{
-		Math.random=vi.fn().mockReturnValue(0.15);
-		generateVector();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect(typeof (window as any).correctAnswer.display).toBe("string");
-	});
-	it("should handle 2D vector",()=>{
-		Math.random=vi.fn().mockReturnValue(0.01);
-		generateVector();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-		expect((window as any).correctAnswer.choices.length).toBeGreaterThanOrEqual(1);
-	});
-	it("should handle 3D vector",()=>{
-		Math.random=vi.fn().mockReturnValue(0.22);
-		generateVector();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-		expect(typeof (window as any).correctAnswer.correct).toBe("string");
-	});
-	it("should handle unit vector",()=>{
-		Math.random=vi.fn().mockReturnValue(0.15);
-		generateVector();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-	});
-	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.01);
-		generateVector("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect((window as any).expectedFormat).toBeDefined();
-	});
-	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.35);
-		generateVector("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect((window as any).expectedFormat).toBeDefined();
-	});
-	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.68);
-		generateVector("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect((window as any).expectedFormat).toBeDefined();
+		expect((window as any).expectedFormat).toBeUndefined();
 	});
 });

@@ -1,23 +1,19 @@
 /**
  * Matrix operations: addition, subtraction, multiplication, inverse, transpose, scalar multiplication, power, row echelon, 2x2 system.
- * @fileoverview Generates 2x2 matrix questions with MCQ distractors.
+ * @fileoverview Generates 2x2 matrix questions with MCQ distractors. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-03-29
  */
-import {questionArea} from "../../script.js";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {Matrix2x2, getRange, matrixToString} from "./linearAlgebraUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
-
-export function generateMatrix(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateMatrix(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["add","subtract","multiply","inverse","system","transpose","scalar_mult","power","row_echelon"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let range=getRange(difficulty);
 	let generate2x2=(): Matrix2x2=>({
-		a: +(Math.random()*range*2-range).toFixed(2),
-		b: +(Math.random()*range*2-range).toFixed(2),
-		c: +(Math.random()*range*2-range).toFixed(2),
-		d: +(Math.random()*range*2-range).toFixed(2)
+		a: +(rng()*range*2-range).toFixed(2),
+		b: +(rng()*range*2-range).toFixed(2),
+		c: +(rng()*range*2-range).toFixed(2),
+		d: +(rng()*range*2-range).toFixed(2)
 	});
 	let mathExpression="";
 	let correctLaTeX="";
@@ -209,8 +205,8 @@ export function generateMatrix(difficulty?: string): void{
 		}
 		case "system":{
 			let A=generate2x2();
-			let x=+(Math.random()*range+1).toFixed(2);
-			let y=+(Math.random()*range+1).toFixed(2);
+			let x=+(rng()*range+1).toFixed(2);
+			let y=+(rng()*range+1).toFixed(2);
 			let B={
 				a: +(A.a*x+A.b*y).toFixed(2),
 				b: +(A.c*x+A.d*y).toFixed(2)
@@ -246,7 +242,7 @@ export function generateMatrix(difficulty?: string): void{
 		}
 		case "scalar_mult":{
 			let A=generate2x2();
-			let k=+(Math.random()*range*2-range).toFixed(1);
+			let k=+(rng()*range*2-range).toFixed(1);
 			let result: Matrix2x2={
 				a: +(k*A.a).toFixed(2),
 				b: +(k*A.b).toFixed(2),
@@ -382,20 +378,15 @@ export function generateMatrix(difficulty?: string): void{
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correctLaTeX)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctLaTeX;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctLaTeX;
 		else uniqueChoices=[correctLaTeX];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctLaTeX,
-		alternate: alternate,
+		alternate,
 		display: correctLaTeX,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter as [a,b,c,d] or a b;c d");
+		choices: uniqueChoices,
+		expectedFormat: "Enter as [a,b,c,d] or a b;c d"
+	};
 }

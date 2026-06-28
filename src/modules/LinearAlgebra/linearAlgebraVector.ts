@@ -1,24 +1,20 @@
 /**
  * Vector operations in 2D: magnitude, direction, unit, dot, angle, projection, parametric, polar conversion, polar graph, motion, De Moivre, addition, subtraction, parametric to Cartesian.
- * @fileoverview Generates 2D vector and polar coordinate questions with MCQ distractors. Sets window.correctAnswer with LaTeX display (pure LaTeX) and plain text alternate.
+ * @fileoverview Generates 2D vector and polar coordinate questions with MCQ distractors. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-03-29
  */
-import {questionArea} from "../../script.js";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {Vector2D, getRange} from "./linearAlgebraUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
-
-export function generateVector(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateVector(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["magnitude","direction","unit","dot","angle","projection","parametric","polar_convert","cartesian_convert","polar_graph","motion","de_moivre","add","subtract","parametric_to_cartesian"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let range=getRange(difficulty);
 	let generateNonZeroVector=(): Vector2D=>{
 		let x: number, y: number;
 		let attempts=0;
 		do{
-			x=Math.random()*range*2-range;
-			y=Math.random()*range*2-range;
+			x=rng()*range*2-range;
+			y=rng()*range*2-range;
 			attempts++;
 		} while(Math.abs(x)<0.1&&Math.abs(y)<0.1&&attempts<100);
 		if(Math.abs(x)<0.1&&Math.abs(y)<0.1){ x=1; y=0; }
@@ -136,8 +132,8 @@ export function generateVector(difficulty?: string): void{
 			break;
 		}
 		case "parametric":{
-			let pointX=(Math.random()*range*2-range).toFixed(1);
-			let pointY=(Math.random()*range*2-range).toFixed(1);
+			let pointX=(rng()*range*2-range).toFixed(1);
+			let pointY=(rng()*range*2-range).toFixed(1);
 			let dir=generateNonZeroVector();
 			mathExpression=`Write the parametric equations for the line that passes through \\((${pointX}, ${pointY})\\) and has direction vector \\(\\langle ${dir.x.toFixed(1)}, ${dir.y.toFixed(1)} \\rangle\\).`;
 			correct=`x=${pointX}+${dir.x.toFixed(1)}t, y=${pointY}+${dir.y.toFixed(1)}t`;
@@ -150,8 +146,8 @@ export function generateVector(difficulty?: string): void{
 			break;
 		}
 		case "polar_convert":{
-			let r=(Math.random()*range).toFixed(1);
-			let theta=(Math.random()*360-180).toFixed(0);
+			let r=(rng()*range).toFixed(1);
+			let theta=(rng()*360-180).toFixed(0);
 			let x=(parseFloat(r)*Math.cos(parseFloat(theta)*Math.PI/180)).toFixed(2);
 			let y=(parseFloat(r)*Math.sin(parseFloat(theta)*Math.PI/180)).toFixed(2);
 			mathExpression=`Convert the polar coordinate \\((${r}, ${theta}^{\\circ})\\) to Cartesian coordinates.`;
@@ -181,8 +177,8 @@ export function generateVector(difficulty?: string): void{
 			break;
 		}
 		case "polar_graph":{
-			let a=(Math.random()*range+1).toFixed(1);
-			let useSin=Math.random()<0.5;
+			let a=(rng()*range+1).toFixed(1);
+			let useSin=rng()<0.5;
 			if(useSin){
 				mathExpression=`Describe the graph of the polar equation \\(r=${a}\\sin\\theta\\). Use the format "A circle with center at (x, y) and radius (radius)" Use two decimal places.`;
 				let center=(parseFloat(a)/2).toFixed(2);
@@ -208,8 +204,8 @@ export function generateVector(difficulty?: string): void{
 			break;
 		}
 		case "motion":{
-			let posX=(Math.random()*range*2-range).toFixed(1);
-			let posY=(Math.random()*range*2-range).toFixed(1);
+			let posX=(rng()*range*2-range).toFixed(1);
+			let posY=(rng()*range*2-range).toFixed(1);
 			let v=generateNonZeroVector();
 			mathExpression=`A particle starts at \\((${posX}, ${posY})\\) and moves with constant velocity \\(\\langle ${v.x.toFixed(1)}, ${v.y.toFixed(1)} \\rangle\\). Write the position vector as a function of time \\(t\\).`;
 			correct=`\\langle ${posX}+${v.x.toFixed(1)}t, ${posY}+${v.y.toFixed(1)}t \\rangle`;
@@ -222,9 +218,9 @@ export function generateVector(difficulty?: string): void{
 			break;
 		}
 		case "de_moivre":{
-			let r=(Math.random()*range+1).toFixed(1);
-			let theta=Math.floor(Math.random()*360);
-			let n=Math.floor(Math.random()*3+2);
+			let r=(rng()*range+1).toFixed(1);
+			let theta=Math.floor(rng()*360);
+			let n=Math.floor(rng()*3+2);
 			let newR=(Math.pow(parseFloat(r), n)).toFixed(2);
 			let newTheta=(theta*n) % 360;
 			mathExpression=`Compute \\((${r}(\\cos ${theta}^{\\circ}+i\\sin ${theta}^{\\circ}))^{${n}}\\) using De Moivre's Theorem. Answer with degrees (no need to add deg).`;
@@ -268,8 +264,8 @@ export function generateVector(difficulty?: string): void{
 			break;
 		}
 		case "parametric_to_cartesian":{
-			let x0=(Math.random()*range*2-range).toFixed(1);
-			let y0=(Math.random()*range*2-range).toFixed(1);
+			let x0=(rng()*range*2-range).toFixed(1);
+			let y0=(rng()*range*2-range).toFixed(1);
 			let dir=generateNonZeroXVector();
 			let slopeNum=dir.y;
 			let slopeDen=dir.x;
@@ -296,20 +292,15 @@ export function generateVector(difficulty?: string): void{
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>console.log("MathJax error:",err));
-	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
+	return {
+		latex: mathExpression,
+		correct,
+		alternate,
 		display: correct,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter the answer as appropriate");
+		choices: uniqueChoices,
+		expectedFormat: "Enter the answer as appropriate"
+	};
 }
