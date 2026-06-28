@@ -39,29 +39,29 @@ pub fn strip_latex_delimiters(input: &str)->String{
 	result=result.replace("$","");
 	result
 }
-const PAGE_WIDTH: f64=215.9;
-const PAGE_HEIGHT: f64=279.4;
-const MARGIN: f64=19.0;
-const TITLE_SIZE: f64=18.0;
-const HEADER_SIZE: f64=11.0;
-const BODY_SIZE: f64=12.0;
-const ANSWER_SIZE: f64=11.0;
-const LINE_SPACING: f64=1.4;
-fn pt_to_mm(pt: f64)->f64{
+const PAGE_WIDTH: f32=215.9;
+const PAGE_HEIGHT: f32=279.4;
+const MARGIN: f32=19.0;
+const TITLE_SIZE: f32=18.0;
+const HEADER_SIZE: f32=11.0;
+const BODY_SIZE: f32=12.0;
+const ANSWER_SIZE: f32=11.0;
+const LINE_SPACING: f32=1.4;
+fn pt_to_mm(pt: f32)->f32{
 	pt*0.352778
 }
-fn line_height(font_size: f64)->f64{
+fn line_height(font_size: f32)->f32{
 	pt_to_mm(font_size)*LINE_SPACING
 }
-struct PdfWriter{
-	doc: PdfDocumentReference,
+struct PdfWriter<'a>{
+	doc: &'a PdfDocumentReference,
 	current_page: PdfPageIndex,
 	current_layer: PdfLayerIndex,
-	y_cursor: f64,
+	y_cursor: f32,
 	page_indices: Vec<(PdfPageIndex, PdfLayerIndex)>,
 }
-impl PdfWriter{
-	fn new(doc: PdfDocumentReference, first_page: PdfPageIndex, first_layer: PdfLayerIndex)->Self{
+impl<'a> PdfWriter<'a>{
+	fn new(doc: &'a PdfDocumentReference, first_page: PdfPageIndex, first_layer: PdfLayerIndex)->Self{
 		let mut page_indices=Vec::new();
 		page_indices.push((first_page, first_layer));
 		PdfWriter{
@@ -79,12 +79,12 @@ impl PdfWriter{
 		self.y_cursor=MARGIN;
 		self.page_indices.push((p, l));
 	}
-	fn ensure_space(&mut self, needed_mm: f64){
+	fn ensure_space(&mut self, needed_mm: f32){
 		if self.y_cursor+needed_mm > PAGE_HEIGHT-MARGIN{
 			self.new_page();
 		}
 	}
-	fn write_text(&mut self, text: &str, font_size: f64, font: &IndirectFontRef, indent_mm: f64){
+	fn write_text(&mut self, text: &str, font_size: f32, font: &IndirectFontRef, indent_mm: f32){
 		self.ensure_space(line_height(font_size));
 		let layer=self.doc.get_page(self.current_page).get_layer(self.current_layer);
 		let x=MARGIN+indent_mm;
@@ -92,10 +92,10 @@ impl PdfWriter{
 		layer.use_text(text, font_size, Mm(x), Mm(y), font);
 		self.y_cursor += line_height(font_size);
 	}
-	fn write_line(&mut self, text: &str, font_size: f64, font: &IndirectFontRef){
+	fn write_line(&mut self, text: &str, font_size: f32, font: &IndirectFontRef){
 		self.write_text(text, font_size, font, 0.0);
 	}
-	fn add_spacing(&mut self, mm: f64){
+	fn add_spacing(&mut self, mm: f32){
 		self.y_cursor += mm;
 	}
 }
@@ -114,7 +114,7 @@ pub fn export_worksheet_pdf_impl(
 		.map_err(|e| format!("Failed to load Helvetica: {}", e))?;
 	let bold_font=doc.add_builtin_font(BuiltinFont::HelveticaBold)
 		.map_err(|e| format!("Failed to load Helvetica-Bold: {}", e))?;
-	let mut writer=PdfWriter::new(doc.clone(), page1, layer1);
+	let mut writer=PdfWriter::new(&doc, page1, layer1);
 	// Title (centered, bold)
 	writer.write_line(&opts.title, TITLE_SIZE, &bold_font);
 	writer.add_spacing(line_height(HEADER_SIZE));
