@@ -1788,67 +1788,133 @@ hr.context-menu-divider{
         justify-content: space-between;
     }
 }
-.print-preview{
+.print-header-fields{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--spacing-md);
+}
+.print-toggles{
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+.print-toggles .setting-item{
+    flex: 1 1 auto;
+    min-width: 200px;
+}
+.print-preview-pane{
     margin-top: var(--spacing-lg);
     border-top: 1px solid var(--border);
     padding-top: var(--spacing-md);
-}
-.print-preview-content{
-    max-height: 400px;
+    min-height: 120px;
+    max-height: 360px;
     overflow-y: auto;
-    background: white;
-    color: black;
-    padding: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.6);
     border-radius: var(--radius-md);
-    font-family: monospace;
+    padding: var(--spacing-md);
 }
-.worksheet{
-    font-family: 'Times New Roman', serif;
-    font-size: 12pt;
-    margin: 0 auto;
-    padding: 0.5in;
+.print-preview-pane:empty::before{
+    content: "Click \"Generate Worksheet\" to preview.";
+    color: var(--text-muted, #888);
+    font-style: italic;
 }
-.worksheet h1, .worksheet h2{
+.ws-preview-wrapper{
     text-align: center;
 }
-.questions-list{
-    list-style: none;
-    counter-reset: question-counter;
+.ws-preview-img{
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-.question-item{
-    margin-bottom: 20px;
-    counter-increment: question-counter;
-    position: relative;
-    padding-left: 30px;
+.ws-preview-error, .ws-preview-loading{
+    padding: var(--spacing-lg);
+    text-align: center;
+    color: var(--text-muted, #888);
 }
-.question-item:before{
-    content: counter(question-counter) ".";
-    position: absolute;
-    left: 0;
-    font-weight: bold;
+.ws-preview-loading{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
 }
-.question-text{
-    margin-bottom: 10px;
+.ws-document{
+    font-family: 'Times New Roman', Georgia, serif;
+    font-size: 12pt;
+    line-height: 1.45;
+    color: #000000;
+    background: #ffffff;
 }
-.answer-space{
-    height: 1em;
+.ws-title{
+    text-align: center;
+    font-size: 18pt;
+    margin: 0 0 12px 0;
+}
+.ws-header-row{
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 8px;
+    font-size: 11pt;
+}
+.ws-field{
+    flex: 1 1 0;
+}
+.ws-meta{
+    display: flex;
+    justify-content: space-between;
+    font-size: 10pt;
+    color: #444444;
+    margin-bottom: 8px;
+}
+.ws-divider{
+    border: none;
+    border-top: 1px solid #000000;
+    margin: 8px 0 16px 0;
+}
+.ws-questions{
+    margin: 0;
+    padding-left: 24px;
+}
+.ws-question{
+    margin-bottom: 18px;
+    page-break-inside: avoid;
+}
+.ws-question-text{
+    margin-bottom: 6px;
+}
+.ws-answer-space{
+    min-height: 28px;
+    border-bottom: 1px dashed #888888;
+    margin-top: 4px;
+}
+.ws-answer-key{
+    margin-top: 24px;
+}
+.ws-answer-title{
+    font-size: 14pt;
+    text-decoration: underline;
+    margin-bottom: 8px;
+}
+.ws-answer-list{
+    margin: 0;
+    padding-left: 24px;
+}
+.ws-answer{
+    margin-bottom: 6px;
+    page-break-inside: avoid;
+}
+.ws-page-break{
+    page-break-after: always;
+    break-after: page;
+}
+.ws-empty{
+    color: #444444;
+    font-style: italic;
 }
 @media print{
-    body *{
-        visibility: hidden;
-    }
-    .print-preview-content, .print-preview-content *{
-        visibility: visible;
-    }
-    .print-preview-content{
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0.5in;
-    }
-    .modal, .modal-content, .print-options, .modal-footer, #print-generate, #print-do-print{
+    .modal{
         display: none !important;
     }
 }

@@ -552,18 +552,30 @@
                 <div class="modal-body">
                     <div class="print-options">
                         <div class="setting-item">
+                            <label for="print-title-input">Worksheet title</label>
+                            <input type="text" id="print-title-input" class="scope-select" value="Math Worksheet" placeholder="Math Worksheet">
+                        </div>
+                        <div class="print-header-fields">
+                            <div class="setting-item">
+                                <label for="print-name-input">Student name</label>
+                                <input type="text" id="print-name-input" class="scope-select" placeholder="Name">
+                            </div>
+                            <div class="setting-item">
+                                <label for="print-date-input">Date</label>
+                                <input type="date" id="print-date-input" class="scope-select">
+                            </div>
+                            <div class="setting-item">
+                                <label for="print-period-input">Period</label>
+                                <input type="text" id="print-period-input" class="scope-select" placeholder="Period">
+                            </div>
+                        </div>
+                        <div class="setting-item">
                             <label for="print-question-count">Number of questions</label>
                             <select id="print-question-count" class="scope-select">
                                 <option value="5">5</option>
                                 <option value="10" selected>10</option>
                                 <option value="20">20</option>
                                 <option value="30">30</option>
-                            </select>
-                        </div>
-                        <div class="setting-item">
-                            <label for="print-topic">Topic</label>
-                            <select id="print-topic" class="scope-select">
-                                <option value="all">All topics (from selected scope)</option>
                             </select>
                         </div>
                         <div class="setting-item">
@@ -577,6 +589,12 @@
                             </select>
                         </div>
                         <div class="setting-item">
+                            <label for="print-topic">Topic</label>
+                            <select id="print-topic" class="scope-select">
+                                <option value="all">All topics (from selected scope)</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
                             <label for="print-difficulty">Difficulty</label>
                             <select id="print-difficulty" class="scope-select">
                                 <option value="easy">Easy</option>
@@ -586,13 +604,30 @@
                             </select>
                         </div>
                         <div class="setting-item">
-                            <label for="print-answer-key">Include answer key</label>
-                            <input type="checkbox" id="print-answer-key" class="settings-checkbox" checked>
+                            <label for="print-answer-key-mode">Answer key</label>
+                            <select id="print-answer-key-mode" class="scope-select">
+                                <option value="none">None</option>
+                                <option value="append" selected>Append after questions</option>
+                                <option value="separate">Separate page</option>
+                                <option value="only">Answer key only</option>
+                            </select>
+                        </div>
+                        <div class="print-toggles">
+                            <div class="setting-item">
+                                <label for="print-page-numbers">Page numbers</label>
+                                <input type="checkbox" id="print-page-numbers" class="settings-checkbox">
+                            </div>
+                            <div class="setting-item">
+                                <label for="print-show-metadata">Show topic/difficulty metadata</label>
+                                <input type="checkbox" id="print-show-metadata" class="settings-checkbox" checked>
+                            </div>
                         </div>
                     </div>
+                    <div id="print-preview" class="print-preview-pane" aria-live="polite"></div>
                 </div>
                 <div class="modal-footer">
                     <button id="print-generate" class="primary-button">Generate Worksheet</button>
+                    <button id="print-export-pdf" class="primary-button">Export PDF</button>
                 </div>
             </div>
         </div>
