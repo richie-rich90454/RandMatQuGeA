@@ -42,8 +42,8 @@ async function applyAdaptiveRecommendation(): Promise<boolean>{
                 ui.showNotification(`Difficulty adjusted to ${rec.difficulty} based on your performance`, 'info');
                 adjusted=true;
             }
-            appState.userPickedDifficulty=false;
         }
+        appState.userPickedDifficulty=false;
     }catch(e){
         console.error("[Adaptive] Recommendation failed:", e);
     }
@@ -159,25 +159,5 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
     }
     finally{
         appState.isGenerating=false;
-    }
-}
-export async function practiceWeakAreas(): Promise<void>{
-    try{
-        const rec=await invoke('get_next_question_recommendation', {
-            currentTopic: appState.selectedTopic,
-            currentDifficulty: appState.currentDifficulty
-        }) as { difficulty: string; weak_topic: string | null };
-        if (!rec.weak_topic){
-            ui.showNotification('No weak areas detected yet - keep practicing!', 'info');
-            return;
-        }
-        appState.selectedTopic=rec.weak_topic;
-        topics.selectTopic(rec.weak_topic);
-        appState.currentDifficulty=rec.difficulty;
-        if (dom.inputs.difficultySelect) dom.inputs.difficultySelect.value=rec.difficulty;
-        await generateQuestion();
-        ui.showNotification(`Practicing ${rec.weak_topic} - you got this!`, 'info');
-    }catch(e){
-        console.warn('Failed to get weak areas:', e);
     }
 }

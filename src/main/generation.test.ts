@@ -107,7 +107,7 @@ vi.mock("./answer.js",()=>({
 vi.mock("@tauri-apps/api/core",()=>({
     invoke:vi.fn(()=>Promise.resolve({difficulty:"hard",weak_topic:"add"})),
 }));
-import{debounceGenerate,generateQuestion,practiceWeakAreas}from"./generation.js";
+import{debounceGenerate,generateQuestion}from"./generation.js";
 import*as stateStore from"./core/stateStore";
 let state:any=stateStore.appState;
 import{invoke}from"@tauri-apps/api/core";
@@ -130,9 +130,6 @@ describe("generation",()=>{
     });
     it("should export generateQuestion",()=>{
         expect(typeof generateQuestion).toBe("function");
-    });
-    it("should export practiceWeakAreas",()=>{
-        expect(typeof practiceWeakAreas).toBe("function");
     });
 });
 describe("debounceGenerate",()=>{
@@ -232,36 +229,6 @@ describe("generateQuestion",()=>{
         state.setShuffle(true);
         await generateQuestion();
         expect(pickRandomTopicMock).toHaveBeenCalled();
-    });
-});
-describe("practiceWeakAreas",()=>{
-    beforeEach(()=>{
-        state.setSelectedTopic(null);
-        state.setCurrentDifficulty("medium");
-        state.setMcqMode(false);
-        state.setShuffle(false);
-        vi.clearAllMocks();
-    });
-    it("should be a function",()=>{
-        expect(typeof practiceWeakAreas).toBe("function");
-    });
-    it("should not throw when called",async()=>{
-        await expect(practiceWeakAreas()).resolves.toBeUndefined();
-    });
-    it("should invoke get_next_question_recommendation",async()=>{
-        state.setSelectedTopic("add");
-        await practiceWeakAreas();
-        expect(invoke).toHaveBeenCalledWith("get_next_question_recommendation",expect.objectContaining({currentTopic:"add",currentDifficulty:expect.any(String)}));
-    });
-    it("should set recommended difficulty",async()=>{
-        state.setSelectedTopic("add");
-        await practiceWeakAreas();
-        expect(state.setCurrentDifficulty).toHaveBeenCalledWith("hard");
-    });
-    it("should generate question after recommendation",async()=>{
-        state.setSelectedTopic("add");
-        await practiceWeakAreas();
-        expect(callGeneratorMock).toHaveBeenCalled();
     });
 });
 describe("generateQuestion - edge cases",()=>{
