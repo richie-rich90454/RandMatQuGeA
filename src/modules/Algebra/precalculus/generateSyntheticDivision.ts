@@ -1,16 +1,13 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Synthetic division: divide, remainder, factor.
  * @fileoverview Generates synthetic division questions with MCQ distractors.
  * @date 2026-04-18
  */
-export function generateSyntheticDivision(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateSyntheticDivision(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	const types=["divide","remainder","factor"];
-	const type=types[Math.floor(Math.random()*types.length)];
+	const type=types[Math.floor(rng()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let expectedFormat="";
 	let correct="";
@@ -18,10 +15,10 @@ export function generateSyntheticDivision(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	const a=Math.floor(Math.random()*max)+1;
-	const b=Math.floor(Math.random()*max)+1;
-	const c=Math.floor(Math.random()*max)+1;
-	const d=Math.floor(Math.random()*max)+1;
+	const a=Math.floor(rng()*max)+1;
+	const b=Math.floor(rng()*max)+1;
+	const c=Math.floor(rng()*max)+1;
+	const d=Math.floor(rng()*max)+1;
 	switch(type){
 		case "divide":{
 			const dividend=`${a}x^3 + ${b}x^2 + ${c}x + ${d}`;
@@ -77,28 +74,19 @@ export function generateSyntheticDivision(difficulty?: string): void{
 			expectedFormat="Enter 'yes' or 'no'";
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }

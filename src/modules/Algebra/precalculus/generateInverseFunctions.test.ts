@@ -1,116 +1,68 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
+import {describe, it, expect, vi} from "vitest";
 import {generateInverseFunctions} from "./generateInverseFunctions";
-import {questionArea} from "../../../script.js";
-
-vi.mock("../../../script.js", ()=>({
-	questionArea: null as HTMLElement|null
-}));
-vi.mock("../algebraUtils.js",()=>({
-	factorial:vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
-	gcd:vi.fn(function g(a:number,b:number):number{return b===0?Math.abs(a):g(b,a%b);}),
-	getOrdinal:vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
-	getMaxForDifficulty:vi.fn(()=>5),
-}));
+import {seededRng} from "../../../main/core/rng";
 describe("generateInverseFunctions", ()=>{
-	let originalMathRandom: ()=>number;
-	let mockDiv: HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete (window as any).correctAnswer;
-		delete (window as any).expectedFormat;
-		(window as any).MathJax={typeset: vi.fn()};
-	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete (window as any).MathJax;
-	});
-	it("returns early if questionArea is null", ()=>{
-		(questionArea as any)=null;
-		generateInverseFunctions();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
-	});
-	it("generates find inverse question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0) // type "find"
-			.mockReturnValueOnce(0.3) // a -> floor(0.3*5)+1=1+1=2
-			.mockReturnValueOnce(0.6); // b -> floor(0.6*5)+1=3+1=4
-		generateInverseFunctions();
-		expect(mockDiv.innerHTML).toContain("Find the inverse");
-		expect((window as any).correctAnswer).toMatchObject({
-			alternate: "(x-4)/2"
-		});
-		expect((window as any).correctAnswer.correct).toContain("f^{-1}(x)");
-		expect((window as any).correctAnswer.display).toContain("f^{-1}(x)");
-	});
-	it("generates verify inverse question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.35) // type "verify"
-			.mockReturnValueOnce(0.3) // a
-			.mockReturnValueOnce(0.6); // b
-		generateInverseFunctions();
-		expect(mockDiv.innerHTML).toContain("Verify");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "true",
-			display: "true"
-		});
-	});
-	it("generates one-to-one question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.7) // type "onetoone"
-			.mockReturnValueOnce(0.3) // a
-			.mockReturnValueOnce(0.6); // b
-		generateInverseFunctions();
-		expect(mockDiv.innerHTML).toContain("one-to-one");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "no",
-			display: "no"
-		});
-	});
-	it("should set window.correctAnswer", ()=>{
-		Math.random=vi.fn()
+	it("generates find question correctly", ()=>{
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.6);
-		generateInverseFunctions();
-		expect((window as any).correctAnswer).toBeDefined();
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.2);
+		const dto=generateInverseFunctions("medium", rng);
+		expect(dto.latex).toContain("inverse");
+		expect(dto.correct).toBe("f^{-1}(x) = \\frac{x - 2}{1}");
+		expect(dto.alternate).toBe("(x-2)/1");
+		expect(dto.expectedFormat).toBe("Enter as (x-b)/a");
 	});
-	it("should set window.expectedFormat", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.6);
-		generateInverseFunctions();
-		expect((window as any).expectedFormat).toBeDefined();
+	it("generates verify question correctly", ()=>{
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.35)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.2);
+		const dto=generateInverseFunctions("medium", rng);
+		expect(dto.latex).toContain("inverses");
+		expect(dto.correct).toBe("true");
+		expect(dto.expectedFormat).toBe("Enter 'true' or 'false'");
+	});
+	it("generates onetoone question correctly", ()=>{
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.7)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.2);
+		const dto=generateInverseFunctions("medium", rng);
+		expect(dto.latex).toContain("one-to-one");
+		expect(dto.correct).toBe("no");
+		expect(dto.expectedFormat).toBe("Enter 'yes' or 'no'");
 	});
 	it("should handle easy difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.6);
-		generateInverseFunctions("easy");
-		expect(mockDiv.innerHTML).not.toBe("");
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.2);
+		const dto=generateInverseFunctions("easy", rng);
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle medium difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.6);
-		generateInverseFunctions("medium");
-		expect(mockDiv.innerHTML).not.toBe("");
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.2);
+		const dto=generateInverseFunctions("medium", rng);
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle hard difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.6);
-		generateInverseFunctions("hard");
-		expect(mockDiv.innerHTML).not.toBe("");
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.2);
+		const dto=generateInverseFunctions("hard", rng);
+		expect(dto.latex).not.toBe("");
+	});
+	it("returns deterministic output for same seed", ()=>{
+		const dto1=generateInverseFunctions("medium", seededRng(42));
+		const dto2=generateInverseFunctions("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
 });

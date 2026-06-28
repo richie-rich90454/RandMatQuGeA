@@ -1,125 +1,88 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
+import {describe, it, expect, vi} from "vitest";
 import {generateSyntheticDivision} from "./generateSyntheticDivision";
-import {questionArea} from "../../../script.js";
-
-vi.mock("../../../script.js", ()=>({
-	questionArea: null as HTMLElement|null
-}));
-vi.mock("../algebraUtils.js",()=>({
-	factorial:vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
-	gcd:vi.fn(function g(a:number,b:number):number{return b===0?Math.abs(a):g(b,a%b);}),
-	getOrdinal:vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
-	getMaxForDifficulty:vi.fn(()=>5),
-}));
+import {seededRng} from "../../../main/core/rng";
 describe("generateSyntheticDivision", ()=>{
-	let originalMathRandom: ()=>number;
-	let mockDiv: HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete (window as any).correctAnswer;
-		delete (window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise: vi.fn().mockResolvedValue(undefined)};
-	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete (window as any).MathJax;
-	});
-	it("returns early if questionArea is null", ()=>{
-		(questionArea as any)=null;
-		generateSyntheticDivision();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
-	});
 	it("generates divide question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0) // type "divide"
-			.mockReturnValueOnce(0.3) // a -> floor(0.3*5)+1=1+1=2
-			.mockReturnValueOnce(0.6) // b -> floor(0.6*5)+1=3+1=4
-			.mockReturnValueOnce(0.1) // c -> floor(0.1*5)+1=0+1=1
-			.mockReturnValueOnce(0.5); // d -> floor(0.5*5)+1=2+1=3
-		generateSyntheticDivision();
-		expect(mockDiv.innerHTML).toContain("synthetic division");
-		expect((window as any).expectedFormat).toBe("Enter polynomial");
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5);
+		const dto=generateSyntheticDivision("medium", rng);
+		expect(dto.latex).toBe("Use synthetic division to divide \\( 2x^3 + 4x^2 + 1x + 3 \\) by \\( x - 2 \\). (Enter quotient)");
+		expect(dto.correct).toBe("2x^2 + 8x + 17");
+		expect(dto.alternate).toBe("2x^2 + 8x + 17");
+		expect(dto.display).toBe("2x^2 + 8x + 17");
+		expect(dto.expectedFormat).toBe("Enter polynomial");
+		expect(dto.choices).toContain("2x^2 + 8x + 17");
 	});
 	it("generates remainder theorem question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.35) // type "remainder"
-			.mockReturnValueOnce(0.3) // a
-			.mockReturnValueOnce(0.6) // b
-			.mockReturnValueOnce(0.1) // c
-			.mockReturnValueOnce(0.5); // d
-		generateSyntheticDivision();
-		expect(mockDiv.innerHTML).toContain("Remainder Theorem");
-		expect((window as any).expectedFormat).toBe("Enter a number");
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.35)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.5);
+		const dto=generateSyntheticDivision("medium", rng);
+		expect(dto.latex).toBe("Use the Remainder Theorem to find the remainder when \\( 2x^2 + 4x + 1 \\) is divided by \\( x - 3 \\).");
+		expect(dto.correct).toBe("31");
+		expect(dto.alternate).toBe("31");
+		expect(dto.display).toBe("31");
+		expect(dto.expectedFormat).toBe("Enter a number");
+		expect(dto.choices).toContain("31");
 	});
 	it("generates factor question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.7) // type "factor"
-			.mockReturnValueOnce(0.3) // a -> 2
-			.mockReturnValueOnce(0.6) // b -> 4
-			.mockReturnValueOnce(0.1) // c (unused)
-			.mockReturnValueOnce(0.5); // d (unused)
-		generateSyntheticDivision();
-		expect(mockDiv.innerHTML).toContain("factor");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "yes",
-			display: "yes"
-		});
-	});
-	it("should set window.correctAnswer", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.7)
 			.mockReturnValueOnce(0.3)
 			.mockReturnValueOnce(0.6)
 			.mockReturnValueOnce(0.1)
 			.mockReturnValueOnce(0.5);
-		generateSyntheticDivision();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should set window.expectedFormat", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.6)
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.5);
-		generateSyntheticDivision();
-		expect((window as any).expectedFormat).toBeDefined();
+		const dto=generateSyntheticDivision("medium", rng);
+		expect(dto.latex).toBe("Is \\( x - 2 \\) a factor of \\( x^3 - 2x^2 + 4x - 8 \\)? (yes/no)");
+		expect(dto.correct).toBe("yes");
+		expect(dto.alternate).toBe("yes");
+		expect(dto.display).toBe("yes");
+		expect(dto.expectedFormat).toBe("Enter 'yes' or 'no'");
+		expect(dto.choices).toContain("yes");
 	});
 	it("should handle easy difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.3)
 			.mockReturnValueOnce(0.6)
 			.mockReturnValueOnce(0.1)
 			.mockReturnValueOnce(0.5);
-		generateSyntheticDivision("easy");
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateSyntheticDivision("easy", rng);
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle medium difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.3)
 			.mockReturnValueOnce(0.6)
 			.mockReturnValueOnce(0.1)
 			.mockReturnValueOnce(0.5);
-		generateSyntheticDivision("medium");
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateSyntheticDivision("medium", rng);
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle hard difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.3)
 			.mockReturnValueOnce(0.6)
 			.mockReturnValueOnce(0.1)
 			.mockReturnValueOnce(0.5);
-		generateSyntheticDivision("hard");
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateSyntheticDivision("hard", rng);
+		expect(dto.latex).not.toBe("");
+	});
+	it("returns deterministic output for same seed", ()=>{
+		const dto1=generateSyntheticDivision("medium", seededRng(42));
+		const dto2=generateSyntheticDivision("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
 });

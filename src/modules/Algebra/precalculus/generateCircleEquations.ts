@@ -1,16 +1,13 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Circle equations: standard form, center/radius, complete the square.
  * @fileoverview Generates circle equation questions with MCQ distractors.
  * @date 2026-04-18
  */
-export function generateCircleEquations(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateCircleEquations(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	const types=["standard","center_radius","complete_square"];
-	const type=types[Math.floor(Math.random()*types.length)];
+	const type=types[Math.floor(rng()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let expectedFormat="";
 	let correct="";
@@ -20,9 +17,9 @@ export function generateCircleEquations(difficulty?: string): void{
 	let choices:string[]=[];
 	switch(type){
 		case "standard":{
-			const h=Math.floor(Math.random()*max*2)-max;
-			const k=Math.floor(Math.random()*max*2)-max;
-			const r=Math.floor(Math.random()*max)+1;
+			const h=Math.floor(rng()*max*2)-max;
+			const k=Math.floor(rng()*max*2)-max;
+			const r=Math.floor(rng()*max)+1;
 			mathExpression=`Write the equation of a circle with center \\( (${h}, ${k}) \\) and radius \\( ${r} \\).`;
 			const eq=`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 = ${r}^2`;
 			const displayEq=`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 = ${r}^2`;
@@ -40,9 +37,9 @@ export function generateCircleEquations(difficulty?: string): void{
 			break;
 		}
 		case "center_radius":{
-			const h=Math.floor(Math.random()*max*2)-max;
-			const k=Math.floor(Math.random()*max*2)-max;
-			const r=Math.floor(Math.random()*max)+1;
+			const h=Math.floor(rng()*max*2)-max;
+			const k=Math.floor(rng()*max*2)-max;
+			const r=Math.floor(rng()*max)+1;
 			const eq=`(x ${h>=0?'-':'+'} ${Math.abs(h)})^2 + (y ${k>=0?'-':'+'} ${Math.abs(k)})^2 = ${r}^2`;
 			mathExpression=`Find the center and radius of the circle: \\( ${eq} \\).`;
 			const ans=`center (${h}, ${k}), radius ${r}`;
@@ -58,9 +55,9 @@ export function generateCircleEquations(difficulty?: string): void{
 			break;
 		}
 		case "complete_square":{
-			const h=Math.floor(Math.random()*max)+1;
-			const k=Math.floor(Math.random()*max)+1;
-			const r=Math.floor(Math.random()*max)+1;
+			const h=Math.floor(rng()*max)+1;
+			const k=Math.floor(rng()*max)+1;
+			const r=Math.floor(rng()*max)+1;
 			const xCoeff=-2*h;
 			const yCoeff=-2*k;
 			const constTerm=h*h+k*k-r*r;
@@ -78,28 +75,19 @@ export function generateCircleEquations(difficulty?: string): void{
 			expectedFormat="Enter as 'center (h,k), radius r'";
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }

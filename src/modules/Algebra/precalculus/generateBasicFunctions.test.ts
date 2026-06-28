@@ -1,111 +1,65 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
+import {describe, it, expect, vi} from "vitest";
 import {generateBasicFunctions} from "./generateBasicFunctions";
-import {questionArea} from "../../../script.js";
-vi.mock("../../../script.js", ()=>({
-	questionArea: null as HTMLElement|null
-}));
+import {seededRng} from "../../../main/core/rng";
 describe("generateBasicFunctions", ()=>{
-	let originalMathRandom: ()=>number;
-	let mockDiv: HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete (window as any).correctAnswer;
-		delete (window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise: vi.fn().mockResolvedValue(undefined)};
-	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete (window as any).MathJax;
-	});
-	it("returns early if questionArea is null", ()=>{
-		(questionArea as any)=null;
-		generateBasicFunctions();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
-	});
 	it("generates identify question type correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0) // chosen index 0 -> "identity"
-			.mockReturnValueOnce(0.0); // type index 0 -> "identify"
-		generateBasicFunctions();
-		expect(mockDiv.innerHTML).toContain("Identify the function");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "identity",
-			alternate: "identity",
-			display: "identity"
-		});
-		expect((window as any).expectedFormat).toBe("Enter the function name");
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.0);
+		const dto=generateBasicFunctions("medium", rng);
+		expect(dto.latex).toBe("Identify the function: \\( f(x)=x \\). (Enter name)");
+		expect(dto.correct).toBe("identity");
+		expect(dto.alternate).toBe("identity");
+		expect(dto.display).toBe("identity");
+		expect(dto.expectedFormat).toBe("Enter the function name");
+		expect(dto.choices).toContain("identity");
 	});
 	it("generates properties question type correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0) // chosen index 0 -> "identity"
-			.mockReturnValueOnce(0.5); // type index 1 -> "properties"
-		generateBasicFunctions();
-		expect(mockDiv.innerHTML).toContain("Give one key property");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "linear, odd, increasing",
-			alternate: "linear, odd, increasing",
-			display: "linear, odd, increasing"
-		});
-		expect((window as any).expectedFormat).toBe("Enter a property (e.g., 'even', 'increasing')");
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.5);
+		const dto=generateBasicFunctions("medium", rng);
+		expect(dto.latex).toContain("Give one key property");
+		expect(dto.correct).toBe("linear, odd, increasing");
+		expect(dto.alternate).toBe("linear, odd, increasing");
+		expect(dto.display).toBe("linear, odd, increasing");
+		expect(dto.expectedFormat).toBe("Enter a property (e.g., 'even', 'increasing')");
 	});
 	it("generates different function correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1) // chosen index 1 -> "squaring"
-			.mockReturnValueOnce(0.0); // type index 0 -> "identify"
-		generateBasicFunctions();
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "squaring",
-			display: "squaring"
-		});
-	});
-	it("does not call MathJax.typesetPromise if MathJax is missing", ()=>{
-		delete (window as any).MathJax;
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.1)
 			.mockReturnValueOnce(0.0);
-		generateBasicFunctions();
-		expect((window as any).MathJax).toBeUndefined();
-	});
-	it("should set window.correctAnswer", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.0);
-		generateBasicFunctions();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should set window.expectedFormat", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.0);
-		generateBasicFunctions();
-		expect((window as any).expectedFormat).toBeDefined();
+		const dto=generateBasicFunctions("medium", rng);
+		expect(dto.correct).toBe("squaring");
+		expect(dto.display).toBe("squaring");
 	});
 	it("should handle easy difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.0);
-		generateBasicFunctions();
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateBasicFunctions("easy", rng);
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle medium difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.0);
-		generateBasicFunctions();
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateBasicFunctions("medium", rng);
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle hard difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.0);
-		generateBasicFunctions();
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateBasicFunctions("hard", rng);
+		expect(dto.latex).not.toBe("");
+	});
+	it("returns deterministic output for same seed", ()=>{
+		const dto1=generateBasicFunctions("medium", seededRng(42));
+		const dto2=generateBasicFunctions("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
 });

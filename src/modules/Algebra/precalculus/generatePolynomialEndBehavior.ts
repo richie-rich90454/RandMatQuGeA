@@ -1,16 +1,13 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Polynomial end behavior: end behavior, multiplicity, IVT.
  * @fileoverview Generates polynomial property questions with MCQ distractors.
  * @date 2026-04-18
  */
-export function generatePolynomialEndBehavior(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generatePolynomialEndBehavior(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	const types=["endbehavior","multiplicity","ivt"];
-	const type=types[Math.floor(Math.random()*types.length)];
+	const type=types[Math.floor(rng()*types.length)];
 	const max=getMaxForDifficulty(difficulty,3);
 	let expectedFormat="";
 	let correct="";
@@ -18,12 +15,12 @@ export function generatePolynomialEndBehavior(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	const a=Math.floor(Math.random()*max)+1;
-	const b=Math.floor(Math.random()*max)+1;
+	const a=Math.floor(rng()*max)+1;
+	const b=Math.floor(rng()*max)+1;
 	switch(type){
 		case "endbehavior":{
-			const deg=Math.floor(Math.random()*2)+3;
-			const lc=Math.random()<0.5?1:-1;
+			const deg=Math.floor(rng()*2)+3;
+			const lc=rng()<0.5?1:-1;
 			const poly=lc===1?`x^${deg} + ...`:`-x^${deg} + ...`;
 			mathExpression=`Describe the end behavior of \\( ${poly} \\).`;
 			let desc="";
@@ -49,7 +46,7 @@ export function generatePolynomialEndBehavior(difficulty?: string): void{
 		}
 		case "multiplicity":{
 			const root=a;
-			const mult=Math.floor(Math.random()*2)+1;
+			const mult=Math.floor(rng()*2)+1;
 			const poly=`(x - ${root})^${mult}`;
 			mathExpression=`For the polynomial \\( ${poly} \\), what is the multiplicity of the root at x=${root}?`;
 			const ans=mult.toString();
@@ -65,8 +62,8 @@ export function generatePolynomialEndBehavior(difficulty?: string): void{
 			break;
 		}
 		case "ivt":{
-			const val1=Math.floor(Math.random()*10)-5;
-			const val2=val1+Math.floor(Math.random()*5)+2;
+			const val1=Math.floor(rng()*10)-5;
+			const val2=val1+Math.floor(rng()*5)+2;
 			const poly=`x^3 - ${a}x + ${b}`;
 			mathExpression=`Use the Intermediate Value Theorem to show that \\( ${poly} \\) has a root between ${val1} and ${val2}. (Enter yes/no if it applies)`;
 			correct="yes";
@@ -76,28 +73,19 @@ export function generatePolynomialEndBehavior(difficulty?: string): void{
 			expectedFormat="Enter 'yes' or 'no'";
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }

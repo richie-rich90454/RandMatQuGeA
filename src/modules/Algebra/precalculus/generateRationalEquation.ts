@@ -1,19 +1,16 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Rational equation: simple or extraneous.
  * @fileoverview Generates rational equation questions with MCQ distractors.
  * @date 2026-04-18
  */
-export function generateRationalEquation(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateRationalEquation(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	const max=getMaxForDifficulty(difficulty,5);
-	const a=Math.floor(Math.random()*max)+1;
-	const b=Math.floor(Math.random()*max)+1;
-	const c=Math.floor(Math.random()*max)+1;
-	const type=Math.random()<0.5?"simple":"extraneous";
+	const a=Math.floor(rng()*max)+1;
+	const b=Math.floor(rng()*max)+1;
+	const c=Math.floor(rng()*max)+1;
+	const type=rng()<0.5?"simple":"extraneous";
 	let expectedFormat="";
 	let correct="";
 	let alternate="";
@@ -21,11 +18,11 @@ export function generateRationalEquation(difficulty?: string): void{
 	let mathExpression="";
 	let choices:string[]=[];
 	if(type==="simple"){
-		const d=Math.floor(Math.random()*max)+1;
-		const e=Math.floor(Math.random()*max)+1;
-		const numA=Math.floor(Math.random()*max)+1;
-		const numB=Math.floor(Math.random()*max)+1;
-		const denC=Math.floor(Math.random()*max)+1;
+		const d=Math.floor(rng()*max)+1;
+		const e=Math.floor(rng()*max)+1;
+		const numA=Math.floor(rng()*max)+1;
+		const numB=Math.floor(rng()*max)+1;
+		const denC=Math.floor(rng()*max)+1;
 		const denD=d;
 		const denominatorVal=denC*e;
 		let x: number;
@@ -61,22 +58,15 @@ export function generateRationalEquation(difficulty?: string): void{
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }

@@ -1,118 +1,83 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
+import {describe, it, expect, vi} from "vitest";
 import {generateTransformations} from "./generateTransformations";
-import {questionArea} from "../../../script.js";
-
-vi.mock("../../../script.js", ()=>({
-	questionArea: null as HTMLElement|null
-}));
-vi.mock("../algebraUtils.js",()=>({
-	factorial:vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
-	gcd:vi.fn(function g(a:number,b:number):number{return b===0?Math.abs(a):g(b,a%b);}),
-	getOrdinal:vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
-	getMaxForDifficulty:vi.fn(()=>5),
-}));
+import {seededRng} from "../../../main/core/rng";
 describe("generateTransformations", ()=>{
-	let originalMathRandom: ()=>number;
-	let mockDiv: HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete (window as any).correctAnswer;
-		delete (window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise: vi.fn().mockResolvedValue(undefined)};
-	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete (window as any).MathJax;
-	});
-	it("returns early if questionArea is null", ()=>{
-		(questionArea as any)=null;
-		generateTransformations();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
-	});
 	it("generates translation question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0) // type "translation"
-			.mockReturnValueOnce(0.3) // h -> floor(0.3*5)+1=1+1=2
-			.mockReturnValueOnce(0.6) // k -> floor(0.6*5)+1=3+1=4
-			.mockReturnValueOnce(0.1); // a -> floor(0.1*2)+1=0+1=1
-		generateTransformations();
-		expect(mockDiv.innerHTML).toContain("shifted");
-		expect((window as any).expectedFormat).toBe("Enter as y = (x-h)^2 + k");
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1);
+		const dto=generateTransformations("medium", rng);
+		expect(dto.latex).toBe("If the graph of \\( y=x^2 \\) is shifted right by 2 and up by 4, what is the new equation?");
+		expect(dto.correct).toBe("y = (x - 2)^2 + 4");
+		expect(dto.alternate).toBe("y = (x - 2)^2 + 4");
+		expect(dto.display).toBe("y = (x - 2)^2 + 4");
+		expect(dto.expectedFormat).toBe("Enter as y = (x-h)^2 + k");
+		expect(dto.choices).toContain("y = (x - 2)^2 + 4");
 	});
 	it("generates reflection question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.35) // type "reflection"
-			.mockReturnValueOnce(0.3) // h
-			.mockReturnValueOnce(0.6) // k
-			.mockReturnValueOnce(0.1) // a
-			.mockReturnValueOnce(0.2); // axis -> Math.random()<0.5 -> "x-axis"
-		generateTransformations();
-		expect(mockDiv.innerHTML).toContain("reflected");
-		expect((window as any).expectedFormat).toBe("Enter equation");
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.35)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.1)
+			.mockReturnValueOnce(0.2);
+		const dto=generateTransformations("medium", rng);
+		expect(dto.latex).toBe("If the graph of \\( y=\\sqrt{x} \\) is reflected across the x-axis, what is the new equation?");
+		expect(dto.correct).toBe("y = -√x");
+		expect(dto.alternate).toBe("y = -√x");
+		expect(dto.display).toBe("y = -√x");
+		expect(dto.expectedFormat).toBe("Enter equation");
+		expect(dto.choices).toContain("y = -√x");
 	});
 	it("generates stretch question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.7) // type "stretch"
-			.mockReturnValueOnce(0.3) // h
-			.mockReturnValueOnce(0.6) // k
-			.mockReturnValueOnce(0.1); // a -> 1
-		generateTransformations();
-		expect(mockDiv.innerHTML).toContain("stretched");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "y = 1|x|",
-			display: "y = 1|x|"
-		});
-	});
-	it("should set window.correctAnswer", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.7)
 			.mockReturnValueOnce(0.3)
 			.mockReturnValueOnce(0.6)
-			.mockReturnValueOnce(0.1);
-		generateTransformations();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should set window.expectedFormat", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.6)
-			.mockReturnValueOnce(0.1);
-		generateTransformations();
-		expect((window as any).expectedFormat).toBeDefined();
+			.mockReturnValueOnce(0.6);
+		const dto=generateTransformations("medium", rng);
+		expect(dto.latex).toBe("If the graph of \\( y=|x| \\) is stretched vertically by a factor of 2, what is the new equation?");
+		expect(dto.correct).toBe("y = 2|x|");
+		expect(dto.alternate).toBe("y = 2|x|");
+		expect(dto.display).toBe("y = 2|x|");
+		expect(dto.expectedFormat).toBe("Enter equation");
+		expect(dto.choices).toContain("y = 2|x|");
 	});
 	it("should handle easy difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.3)
 			.mockReturnValueOnce(0.6)
 			.mockReturnValueOnce(0.1);
-		generateTransformations("easy");
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateTransformations("easy", rng);
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle medium difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.3)
 			.mockReturnValueOnce(0.6)
 			.mockReturnValueOnce(0.1);
-		generateTransformations("medium");
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateTransformations("medium", rng);
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle hard difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.3)
 			.mockReturnValueOnce(0.6)
 			.mockReturnValueOnce(0.1);
-		generateTransformations("hard");
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateTransformations("hard", rng);
+		expect(dto.latex).not.toBe("");
+	});
+	it("returns deterministic output for same seed", ()=>{
+		const dto1=generateTransformations("medium", seededRng(42));
+		const dto2=generateTransformations("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
 });

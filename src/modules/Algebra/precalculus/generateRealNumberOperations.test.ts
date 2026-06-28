@@ -1,122 +1,87 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
+import {describe, it, expect, vi} from "vitest";
 import {generateRealNumberOperations} from "./generateRealNumberOperations";
-import {questionArea} from "../../../script.js";
-
-vi.mock("../../../script.js", ()=>({
-	questionArea: null as HTMLElement|null
-}));
-vi.mock("../algebraUtils.js",()=>({
-	factorial:vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
-	gcd:vi.fn(function g(a:number,b:number):number{return b===0?Math.abs(a):g(b,a%b);}),
-	getOrdinal:vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
-	getMaxForDifficulty:vi.fn(()=>10),
-}));
+import {seededRng} from "../../../main/core/rng";
 describe("generateRealNumberOperations", ()=>{
-	let originalMathRandom: ()=>number;
-	let mockDiv: HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete (window as any).correctAnswer;
-		delete (window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise: vi.fn().mockResolvedValue(undefined)};
-	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete (window as any).MathJax;
-	});
-	it("returns early if questionArea is null", ()=>{
-		(questionArea as any)=null;
-		generateRealNumberOperations();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
-	});
 	it("generates absolute value question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0) // type "absolute"
-			.mockReturnValueOnce(0.3); // a -> floor(0.3*20)-10=6-10=-4
-		generateRealNumberOperations();
-		expect(mockDiv.innerHTML).toContain("|");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "4",
-			display: "4"
-		});
-	});
-	it("generates distance question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.25) // type "distance"
-			.mockReturnValueOnce(0.3) // a -> 3
-			.mockReturnValueOnce(0.6); // b -> 6
-		generateRealNumberOperations();
-		expect(mockDiv.innerHTML).toContain("distance");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "3",
-			display: "3"
-		});
-	});
-	it("generates order question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.5) // type "order"
-			.mockReturnValueOnce(0.3) // a
-			.mockReturnValueOnce(0.6) // b
-			.mockReturnValueOnce(0.1); // op index 0 -> "<"
-		generateRealNumberOperations();
-		expect(mockDiv.innerHTML).toContain("true or false");
-		expect((window as any).expectedFormat).toBe("Enter 'true' or 'false'");
-	});
-	it("generates interval question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.75) // type "interval"
-			.mockReturnValueOnce(0.3) // a -> floor(0.3*10)+1=3+1=4
-			.mockReturnValueOnce(0.6) // bOffset -> floor(0.6*10)+2=6+2=8 -> b=12
-			.mockReturnValueOnce(0.0); // intervalType index 0 -> "open"
-		generateRealNumberOperations();
-		expect(mockDiv.innerHTML).toContain("interval");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "all x such that 4 < x < 12",
-			display: "all x such that 4 < x < 12"
-		});
-	});
-	it("should set window.correctAnswer", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.3);
-		generateRealNumberOperations();
-		expect((window as any).correctAnswer).toBeDefined();
+		const dto=generateRealNumberOperations("medium", rng);
+		expect(dto.latex).toBe("Evaluate: \\( |-4| \\)");
+		expect(dto.correct).toBe("4");
+		expect(dto.alternate).toBe("4");
+		expect(dto.display).toBe("4");
+		expect(dto.expectedFormat).toBe("Enter a number");
+		expect(dto.choices).toContain("4");
 	});
-	it("should set window.expectedFormat", ()=>{
-		Math.random=vi.fn()
+	it("generates distance question correctly", ()=>{
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.25)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6);
+		const dto=generateRealNumberOperations("medium", rng);
+		expect(dto.latex).toBe("Find the distance between \\( 3 \\) and \\( 6 \\) on the number line.");
+		expect(dto.correct).toBe("3");
+		expect(dto.alternate).toBe("3");
+		expect(dto.display).toBe("3");
+		expect(dto.expectedFormat).toBe("Enter a number");
+		expect(dto.choices).toContain("3");
+	});
+	it("generates order question correctly", ()=>{
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.5)
 			.mockReturnValueOnce(0.3)
 			.mockReturnValueOnce(0.6)
 			.mockReturnValueOnce(0.1);
-		generateRealNumberOperations();
-		expect((window as any).expectedFormat).toBeDefined();
+		const dto=generateRealNumberOperations("medium", rng);
+		expect(dto.latex).toBe("Is the statement \\( 3 < 6 \\) true or false?");
+		expect(dto.correct).toBe("true");
+		expect(dto.alternate).toBe("true");
+		expect(dto.display).toBe("true");
+		expect(dto.expectedFormat).toBe("Enter 'true' or 'false'");
+		expect(dto.choices).toContain("true");
+	});
+	it("generates interval question correctly", ()=>{
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.75)
+			.mockReturnValueOnce(0.3)
+			.mockReturnValueOnce(0.6)
+			.mockReturnValueOnce(0.0);
+		const dto=generateRealNumberOperations("medium", rng);
+		expect(dto.latex).toBe("Write the interval \\( (4, 12) \\) in set-builder notation.");
+		expect(dto.correct).toBe("all x such that 4 < x < 12");
+		expect(dto.alternate).toBe("all x such that 4 < x < 12");
+		expect(dto.display).toBe("all x such that 4 < x < 12");
+		expect(dto.expectedFormat).toBe("Enter a description like 'x > 3' or interval");
+		expect(dto.choices).toContain("all x such that 4 < x < 12");
 	});
 	it("should handle easy difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.3);
-		generateRealNumberOperations("easy");
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateRealNumberOperations("easy", rng);
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle medium difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.3);
-		generateRealNumberOperations("medium");
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateRealNumberOperations("medium", rng);
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle hard difficulty", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
 			.mockReturnValueOnce(0.0)
 			.mockReturnValueOnce(0.3);
-		generateRealNumberOperations("hard");
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateRealNumberOperations("hard", rng);
+		expect(dto.latex).not.toBe("");
+	});
+	it("returns deterministic output for same seed", ()=>{
+		const dto1=generateRealNumberOperations("medium", seededRng(42));
+		const dto2=generateRealNumberOperations("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
 });

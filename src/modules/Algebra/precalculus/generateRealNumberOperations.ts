@@ -1,16 +1,13 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Real number operations: absolute, distance, order, interval.
  * @fileoverview Generates real number operation questions with MCQ distractors.
  * @date 2026-04-18
  */
-export function generateRealNumberOperations(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateRealNumberOperations(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	const types=["absolute","distance","order","interval"];
-	const type=types[Math.floor(Math.random()*types.length)];
+	const type=types[Math.floor(rng()*types.length)];
 	const max=getMaxForDifficulty(difficulty,10);
 	let expectedFormat="";
 	let correct="";
@@ -20,7 +17,7 @@ export function generateRealNumberOperations(difficulty?: string): void{
 	let choices:string[]=[];
 	switch(type){
 		case "absolute":{
-			const a=Math.floor(Math.random()*max*2)-max;
+			const a=Math.floor(rng()*max*2)-max;
 			mathExpression=`Evaluate: \\( |${a}| \\)`;
 			const ans=Math.abs(a).toString();
 			correct=ans;
@@ -35,8 +32,8 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			break;
 		}
 		case "distance":{
-			const a=Math.floor(Math.random()*max);
-			const b=Math.floor(Math.random()*max);
+			const a=Math.floor(rng()*max);
+			const b=Math.floor(rng()*max);
 			mathExpression=`Find the distance between \\( ${a} \\) and \\( ${b} \\) on the number line.`;
 			const dist=Math.abs(a-b).toString();
 			correct=dist;
@@ -52,10 +49,10 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			break;
 		}
 		case "order":{
-			const a=Math.floor(Math.random()*max);
-			const b=Math.floor(Math.random()*max);
+			const a=Math.floor(rng()*max);
+			const b=Math.floor(rng()*max);
 			const ops=["<",">","≤","≥"];
-			const op=ops[Math.floor(Math.random()*ops.length)];
+			const op=ops[Math.floor(rng()*ops.length)];
 			const trueForA=(op==="<"&&a<b)||(op===">"&&a>b)||(op==="≤"&&a<=b)||(op==="≥"&&a>=b);
 			const correctBool=trueForA?"true":"false";
 			correct=correctBool;
@@ -70,10 +67,10 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			break;
 		}
 		case "interval":{
-			const a=Math.floor(Math.random()*max)+1;
-			const b=a+Math.floor(Math.random()*max)+2;
+			const a=Math.floor(rng()*max)+1;
+			const b=a+Math.floor(rng()*max)+2;
 			const types=["open","closed","half-open","unbounded"];
-			const intervalType=types[Math.floor(Math.random()*types.length)];
+			const intervalType=types[Math.floor(rng()*types.length)];
 			let interval="";
 			let desc="";
 			switch(intervalType){
@@ -86,7 +83,7 @@ export function generateRealNumberOperations(difficulty?: string): void{
 					desc=`all x such that ${a} ≤ x ≤ ${b}`;
 					break;
 				case "half-open":
-					if(Math.random()<0.5){
+					if(rng()<0.5){
 						interval=`[${a}, ${b})`;
 						desc=`all x such that ${a} ≤ x < ${b}`;
 					}
@@ -96,7 +93,7 @@ export function generateRealNumberOperations(difficulty?: string): void{
 					}
 					break;
 				case "unbounded":
-					if(Math.random()<0.5){
+					if(rng()<0.5){
 						interval=`(${a}, ∞)`;
 						desc=`all x such that x > ${a}`;
 					}
@@ -127,28 +124,19 @@ export function generateRealNumberOperations(difficulty?: string): void{
 			expectedFormat="Enter a description like 'x > 3' or interval";
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }

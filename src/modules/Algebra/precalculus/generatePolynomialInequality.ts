@@ -1,14 +1,11 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Polynomial inequality: solve >0 with factoring.
  * @fileoverview Generates polynomial inequality questions with MCQ distractors.
  * @date 2026-04-18
  */
-export function generatePolynomialInequality(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generatePolynomialInequality(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let mathExpression="";
 	let expectedFormat="Enter intervals like (-∞,1) ∪ (3,∞)";
 	let correct="";
@@ -18,7 +15,7 @@ export function generatePolynomialInequality(difficulty?: string): void{
 	const max=getMaxForDifficulty(difficulty,3);
 	let roots: number[]=[];
 	for(let i=0;i<3;i++){
-		roots.push(Math.floor(Math.random()*max*2)-max);
+		roots.push(Math.floor(rng()*max*2)-max);
 	}
 	roots.sort((a,b)=>a-b);
 	const factors=roots.map(r=>`(x ${r>=0?'-':'+'} ${Math.abs(r)})`).join('');
@@ -59,22 +56,15 @@ export function generatePolynomialInequality(difficulty?: string): void{
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }

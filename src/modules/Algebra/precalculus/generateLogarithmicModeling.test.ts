@@ -1,93 +1,55 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
+import {describe, it, expect, vi} from "vitest";
 import {generateLogarithmicModeling} from "./generateLogarithmicModeling";
-import {questionArea} from "../../../script.js";
-vi.mock("../../../script.js", ()=>({
-	questionArea: null as HTMLElement|null
-}));
+import {seededRng} from "../../../main/core/rng";
 describe("generateLogarithmicModeling", ()=>{
-	let originalMathRandom: ()=>number;
-	let mockDiv: HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete (window as any).correctAnswer;
-		delete (window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise: vi.fn().mockResolvedValue(undefined)};
+	it("generates richter question correctly", ()=>{
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.9);
+		const dto=generateLogarithmicModeling("medium", rng);
+		expect(dto.latex).toContain("Richter");
+		expect(dto.correct).toBe("3.00");
+		expect(dto.display).toBe("3.00");
+		expect(dto.expectedFormat).toBe("Enter decimal");
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete (window as any).MathJax;
-	});
-	it("returns early if questionArea is null", ()=>{
-		(questionArea as any)=null;
-		generateLogarithmicModeling();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
-	});
-	it("generates Richter scale question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0) // type "richter"
-			.mockReturnValueOnce(0.5); // intensity -> floor(0.5*1000)+100=500+100=600
-		generateLogarithmicModeling();
-		expect(mockDiv.innerHTML).toContain("Richter");
-		expect((window as any).expectedFormat).toBe("Enter decimal");
-	});
-	it("generates pH question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.35) // type "ph"
-			.mockReturnValueOnce(0.5) // intensity (unused in ph)
-			.mockReturnValueOnce(0.5); // exponent -> -floor(0.5*7)-1=-3-1=-4
-		generateLogarithmicModeling();
-		expect(mockDiv.innerHTML).toContain("pH");
-		expect((window as any).expectedFormat).toBe("Enter decimal");
+	it("generates ph question correctly", ()=>{
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.35)
+			.mockReturnValueOnce(0.0)
+			.mockReturnValueOnce(0.0);
+		const dto=generateLogarithmicModeling("medium", rng);
+		expect(dto.latex).toContain("pH");
+		expect(dto.correct).toBe("1.00");
+		expect(dto.expectedFormat).toBe("Enter decimal");
 	});
 	it("generates decibel question correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.7) // type "decibel"
-			.mockReturnValueOnce(0.5) // intensity (unused, consumed)
-			.mockReturnValueOnce(0.5); // power -> floor(0.5*1000)+10=500+10=510
-		generateLogarithmicModeling();
-		expect(mockDiv.innerHTML).toContain("decibels");
-		expect((window as any).expectedFormat).toBe("Enter decimal");
-	});
-	it("should set window.correctAnswer", ()=>{
-		Math.random=vi.fn()
+		const rng=vi.fn()
+			.mockReturnValueOnce(0.7)
 			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.5);
-		generateLogarithmicModeling();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should set window.expectedFormat", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.5);
-		generateLogarithmicModeling();
-		expect((window as any).expectedFormat).toBeDefined();
+			.mockReturnValueOnce(0.0);
+		const dto=generateLogarithmicModeling("medium", rng);
+		expect(dto.latex).toContain("decibels");
+		expect(dto.correct).toBe("10.00");
+		expect(dto.expectedFormat).toBe("Enter decimal");
 	});
 	it("should handle easy difficulty", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.5);
-		generateLogarithmicModeling();
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateLogarithmicModeling("easy", seededRng(1));
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle medium difficulty", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.5);
-		generateLogarithmicModeling();
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateLogarithmicModeling("medium", seededRng(1));
+		expect(dto.latex).not.toBe("");
 	});
 	it("should handle hard difficulty", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.0)
-			.mockReturnValueOnce(0.5);
-		generateLogarithmicModeling();
-		expect(mockDiv.innerHTML).not.toBe("");
+		const dto=generateLogarithmicModeling("hard", seededRng(1));
+		expect(dto.latex).not.toBe("");
+	});
+	it("returns deterministic output for same seed", ()=>{
+		const dto1=generateLogarithmicModeling("medium", seededRng(42));
+		const dto2=generateLogarithmicModeling("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
 });

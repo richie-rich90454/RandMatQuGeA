@@ -1,16 +1,13 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Function properties: continuity, extrema, symmetry, asymptotes, end behavior.
  * @fileoverview Generates function property questions with MCQ distractors.
  * @date 2026-04-18
  */
-export function generateFunctionProperties(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateFunctionProperties(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	const types=["continuity","extrema","symmetry","asymptotes","endbehavior"];
-	const type=types[Math.floor(Math.random()*types.length)];
+	const type=types[Math.floor(rng()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let expectedFormat="";
 	let correct="";
@@ -20,13 +17,13 @@ export function generateFunctionProperties(difficulty?: string): void{
 	let choices:string[]=[];
 	switch(type){
 		case "continuity":{
-			const a=Math.floor(Math.random()*max)+1;
+			const a=Math.floor(rng()*max)+1;
 			const functions=[
 				`f(x)=\\frac{1}{x-${a}}`,
 				`f(x)=\\sqrt{x-${a}}`,
 				`f(x)=x^2+${a}`
 			];
-			const chosen=functions[Math.floor(Math.random()*functions.length)];
+			const chosen=functions[Math.floor(rng()*functions.length)];
 			mathExpression=`Where is \\( ${chosen} \\) discontinuous? (Enter x-value or 'none' or interval)`;
 			let answer="";
 			if(chosen.includes("frac")) answer=`x = ${a}`;
@@ -48,8 +45,8 @@ export function generateFunctionProperties(difficulty?: string): void{
 			break;
 		}
 		case "extrema":{
-			const a=Math.floor(Math.random()*max)+1;
-			const b=Math.floor(Math.random()*max)+1;
+			const a=Math.floor(rng()*max)+1;
+			const b=Math.floor(rng()*max)+1;
 			mathExpression=`Does \\( f(x)=x^2 - ${a}x + ${b} \\) have a local minimum or maximum? (Enter 'min' or 'max')`;
 			correct="min";
 			alternate="minimum";
@@ -64,7 +61,7 @@ export function generateFunctionProperties(difficulty?: string): void{
 				{expr:"f(x)=x^3",type:"odd"},
 				{expr:"f(x)=x^2+x",type:"neither"}
 			];
-			const chosen=functions[Math.floor(Math.random()*functions.length)];
+			const chosen=functions[Math.floor(rng()*functions.length)];
 			mathExpression=`Is \\( ${chosen.expr} \\) even, odd, or neither?`;
 			correct=chosen.type;
 			alternate=chosen.type;
@@ -74,8 +71,8 @@ export function generateFunctionProperties(difficulty?: string): void{
 			break;
 		}
 		case "asymptotes":{
-			const a=Math.floor(Math.random()*max)+1;
-			const b=Math.floor(Math.random()*max)+1;
+			const a=Math.floor(rng()*max)+1;
+			const b=Math.floor(rng()*max)+1;
 			const expr=`\\frac{${a}x+${b}}{x-${a}}`;
 			mathExpression=`Find the vertical asymptote of \\( ${expr} \\). (Enter x=value)`;
 			const ans=`x=${a}`;
@@ -87,8 +84,8 @@ export function generateFunctionProperties(difficulty?: string): void{
 			break;
 		}
 		case "endbehavior":{
-			const aSign=Math.floor(Math.random()*2)+1;
-			const deg=Math.floor(Math.random()*2)+3;
+			const aSign=Math.floor(rng()*2)+1;
+			const deg=Math.floor(rng()*2)+3;
 			const sign=aSign===1?"positive":"negative";
 			const evenOdd=deg%2===0?"even":"odd";
 			let desc="";
@@ -113,28 +110,19 @@ export function generateFunctionProperties(difficulty?: string): void{
 			expectedFormat="Enter description like 'both ends up'";
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }

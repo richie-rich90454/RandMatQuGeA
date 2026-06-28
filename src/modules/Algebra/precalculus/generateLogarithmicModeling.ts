@@ -1,22 +1,20 @@
-import {questionArea} from "../../../script.js";
-import {renderer} from "../../../main/core/questionRenderer";
+import type {RngFn, QuestionDto} from "../../../types/global";
 /**
  * Logarithmic modeling: Richter scale, pH, decibels.
  * @fileoverview Generates logarithmic modeling questions with MCQ distractors.
  * @date 2026-04-18
  */
-export function generateLogarithmicModeling(): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateLogarithmicModeling(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+	void difficulty;
 	const types=["richter","ph","decibel"];
-	const type=types[Math.floor(Math.random()*types.length)];
+	const type=types[Math.floor(rng()*types.length)];
 	let expectedFormat="";
 	let correct="";
 	let alternate="";
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	const intensity=Math.floor(Math.random()*1000)+100;
+	const intensity=Math.floor(rng()*1000)+100;
 	switch(type){
 		case "richter":{
 			mathExpression=`An earthquake has intensity ${intensity} times the reference intensity. Find its magnitude on the Richter scale (M = log(I/I0)).`;
@@ -35,7 +33,7 @@ export function generateLogarithmicModeling(): void{
 			break;
 		}
 		case "ph":{
-			const exponent=-Math.floor(Math.random()*7)-1;
+			const exponent=-Math.floor(rng()*7)-1;
 			const hConcVal=Math.pow(10,exponent);
 			const hConcStr=hConcVal.toExponential(1);
 			mathExpression=`A solution has [H+] = ${hConcStr} M. Find its pH (pH = -log[H+]).`;
@@ -55,7 +53,7 @@ export function generateLogarithmicModeling(): void{
 			break;
 		}
 		case "decibel":{
-			const power=Math.floor(Math.random()*1000)+10;
+			const power=Math.floor(rng()*1000)+10;
 			mathExpression=`A sound has intensity ${power} times the threshold. Find the sound level in decibels (dB = 10 log(I/I0)).`;
 			const db=10*Math.log10(power);
 			const ans=db.toFixed(2);
@@ -72,28 +70,19 @@ export function generateLogarithmicModeling(): void{
 			expectedFormat="Enter decimal";
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }

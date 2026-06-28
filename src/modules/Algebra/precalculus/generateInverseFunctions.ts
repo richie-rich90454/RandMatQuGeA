@@ -1,29 +1,26 @@
+import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Inverse functions: find, verify, one-to-one.
  * @fileoverview Generates inverse function questions with MCQ distractors.
  * @date 2026-03-29
  */
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
-
-export function generateInverseFunctions(difficulty?: string): void{
-	if (!questionArea) return;
-	questionArea.innerHTML="";
+export function generateInverseFunctions(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	const types=["find","verify","onetoone"];
-	const type=types[Math.floor(Math.random()*types.length)];
+	const type=types[Math.floor(rng()*types.length)];
 	const max=getMaxForDifficulty(difficulty,5);
 	let hint="";
 	let correct="";
 	let alternate="";
 	let display="";
+	let mathExpression="";
 	let choices:string[]=[];
-	const a=Math.floor(Math.random()*max)+1;
-	const b=Math.floor(Math.random()*max)+1;
-	switch (type){
+	const a=Math.floor(rng()*max)+1;
+	const b=Math.floor(rng()*max)+1;
+	switch(type){
 		case "find":{
 			const fExpr=`${a}x + ${b}`;
-			questionArea.innerHTML=`Find the inverse of \\( f(x)=${fExpr} \\).`;
+			mathExpression=`Find the inverse of \\( f(x)=${fExpr} \\).`;
 			const inv=`f^{-1}(x) = \\frac{x - ${b}}{${a}}`;
 			const plain=`(x-${b})/${a}`;
 			correct=inv;
@@ -40,7 +37,7 @@ export function generateInverseFunctions(difficulty?: string): void{
 		case "verify":{
 			const fExpr=`${a}x + ${b}`;
 			const invExpr=`\\frac{x - ${b}}{${a}}`;
-			questionArea.innerHTML=`Verify that \\( f(x)=${fExpr} \\) and \\( g(x)=${invExpr} \\) are inverses. (Enter true/false)`;
+			mathExpression=`Verify that \\( f(x)=${fExpr} \\) and \\( g(x)=${invExpr} \\) are inverses. (Enter true/false)`;
 			correct="true";
 			alternate="true";
 			display="true";
@@ -49,7 +46,7 @@ export function generateInverseFunctions(difficulty?: string): void{
 			break;
 		}
 		case "onetoone":{
-			questionArea.innerHTML=`Is \\( f(x)=x^2 \\) one-to-one on its natural domain? (yes/no)`;
+			mathExpression=`Is \\( f(x)=x^2 \\) one-to-one on its natural domain? (yes/no)`;
 			correct="no";
 			alternate="no";
 			display="no";
@@ -57,23 +54,19 @@ export function generateInverseFunctions(difficulty?: string): void{
 			hint="Enter 'yes' or 'no'";
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
-	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if (!uniqueChoices.includes(correct)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+	if(!uniqueChoices.includes(correct)){
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(hint);
-	if (window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise();
-	}
+		choices: uniqueChoices,
+		expectedFormat: hint
+	};
 }

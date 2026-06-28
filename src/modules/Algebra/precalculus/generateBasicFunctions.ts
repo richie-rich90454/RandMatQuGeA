@@ -1,13 +1,11 @@
-import {questionArea} from "../../../script.js";
-import {renderer} from "../../../main/core/questionRenderer";
+import type {RngFn, QuestionDto} from "../../../types/global";
 /**
  * Basic functions: identify or give property.
  * @fileoverview Generates basic function questions with MCQ distractors.
  * @date 2026-04-18
  */
-export function generateBasicFunctions(): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateBasicFunctions(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+	void difficulty;
 	const functions=[
 		{name:"identity",expr:"f(x)=x",props:"linear, odd, increasing"},
 		{name:"squaring",expr:"f(x)=x^2",props:"even, decreasing then increasing, vertex at (0,0)"},
@@ -22,9 +20,9 @@ export function generateBasicFunctions(): void{
 		{name:"absolute value",expr:"f(x)=|x|",props:"even, V-shape, decreasing then increasing"},
 		{name:"greatest integer",expr:"f(x)=⌊x⌋",props:"step function, constant on intervals [n,n+1)"}
 	];
-	const chosen=functions[Math.floor(Math.random()*functions.length)];
+	const chosen=functions[Math.floor(rng()*functions.length)];
 	const types=["identify","properties"];
-	const type=types[Math.floor(Math.random()*types.length)];
+	const type=types[Math.floor(rng()*types.length)];
 	let expectedFormat="";
 	let correct="";
 	let alternate="";
@@ -68,22 +66,15 @@ export function generateBasicFunctions(): void{
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }

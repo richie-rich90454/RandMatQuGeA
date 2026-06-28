@@ -1,25 +1,23 @@
-import {questionArea} from "../../../script.js";
-import {renderer} from "../../../main/core/questionRenderer";
+import type {RngFn, QuestionDto} from "../../../types/global";
 /**
  * Finance: compound interest, continuous, APY, annuity.
  * @fileoverview Generates finance questions with MCQ distractors.
  * @date 2026-04-18
  */
-export function generateFinance(): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateFinance(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+	void difficulty;
 	const types=["compound","continuous","apy","annuity"];
-	const type=types[Math.floor(Math.random()*types.length)];
+	const type=types[Math.floor(rng()*types.length)];
 	let expectedFormat="";
 	let correct="";
 	let alternate="";
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	const principal=Math.floor(Math.random()*5000)+1000;
-	const rate=(Math.random()*0.05+0.02).toFixed(3);
-	const years=Math.floor(Math.random()*10)+1;
-	const n=Math.floor(Math.random()*4)+1;
+	const principal=Math.floor(rng()*5000)+1000;
+	const rate=(rng()*0.05+0.02).toFixed(3);
+	const years=Math.floor(rng()*10)+1;
+	const n=Math.floor(rng()*4)+1;
 	switch(type){
 		case "compound":{
 			mathExpression=`Find the amount after ${years} years if $${principal} is invested at ${(parseFloat(rate)*100).toFixed(1)}% compounded ${n} times per year.`;
@@ -70,7 +68,7 @@ export function generateFinance(): void{
 			break;
 		}
 		case "annuity":{
-			const payment=Math.floor(Math.random()*500)+100;
+			const payment=Math.floor(rng()*500)+100;
 			mathExpression=`You deposit $${payment} at the end of each year into an account earning ${(parseFloat(rate)*100).toFixed(1)}% compounded annually. Find the future value after ${years} years.`;
 			const fv=payment*((Math.pow(1+parseFloat(rate),years)-1)/parseFloat(rate));
 			const ans=fv.toFixed(2);
@@ -86,28 +84,19 @@ export function generateFinance(): void{
 			expectedFormat="Enter decimal";
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }
