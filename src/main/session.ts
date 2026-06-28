@@ -65,7 +65,7 @@ export function restoreSessionSnapshot(): void{
         ui.disableModeButtons(true);
         ui.disableDifficulty(true);
         ui.setSessionButton(true);
-        generateNextMentalQuestion();
+        generateNextMentalQuestion().catch((err:unknown)=>console.error("generateNextMentalQuestion failed:",err));
         localStorage.removeItem(SESSION_STORAGE_KEY);
     }
     catch(e){
@@ -110,7 +110,7 @@ export function startTimer(): void{
                 dom.displays.mentalProgressBar.style.width=percent+"%";
             }
             if(appState.sessionScore.total>=appState.maxQuestions&&!appState.unlimitedMode){
-                endMentalSession();
+                endMentalSession().catch((err:unknown)=>console.error("endMentalSession failed:",err));
                 return;
             }
             appState.timeLeft=settings.settings.timer;
@@ -124,7 +124,7 @@ export function startTimer(): void{
             }
             appState.mentalNextQuestionTimeout=setTimeout(()=>{
                 if(appState.sessionActive&&!appState.sessionPaused){
-                    generateNextMentalQuestion();
+                    generateNextMentalQuestion().catch((err:unknown)=>console.error("generateNextMentalQuestion failed:",err));
                 }
                 appState.mentalNextQuestionTimeout=null;
             },settings.settings.autoCheckDelay);
@@ -301,7 +301,7 @@ export async function handleMentalAnswer(answer?: string): Promise<void>{
     ui.updateTimerDisplay();
     appState.mentalNextQuestionTimeout=setTimeout(()=>{
         if(appState.sessionActive&&!appState.sessionPaused){
-            generateNextMentalQuestion();
+            generateNextMentalQuestion().catch((err:unknown)=>console.error("generateNextMentalQuestion failed:",err));
         }
         appState.mentalNextQuestionTimeout=null;
     },settings.settings.autoCheckDelay);
@@ -354,7 +354,7 @@ export function startMentalSession(): void{
     ui.disableModeButtons(true);
     ui.disableDifficulty(true);
     ui.setSessionButton(true);
-    generateNextMentalQuestion();
+    generateNextMentalQuestion().catch((err:unknown)=>console.error("generateNextMentalQuestion failed:",err));
 }
 export function pauseMentalSession(): void{
     if(!appState.sessionActive)return;
@@ -388,7 +388,7 @@ export function skipMentalQuestion(): void{
         dom.displays.mentalProgressBar.style.width=percent+"%";
     }
     if(newTotal>=appState.maxQuestions&&!appState.unlimitedMode){
-        endMentalSession();
+        endMentalSession().catch((err:unknown)=>console.error("endMentalSession failed:",err));
         return;
     }
     appState.timeLeft=settings.settings.timer;
@@ -396,13 +396,13 @@ export function skipMentalQuestion(): void{
     saveSessionSnapshot();
     appState.mentalNextQuestionTimeout=setTimeout(()=>{
         if(appState.sessionActive&&!appState.sessionPaused){
-            generateNextMentalQuestion();
+            generateNextMentalQuestion().catch((err:unknown)=>console.error("generateNextMentalQuestion failed:",err));
         }
         appState.mentalNextQuestionTimeout=null;
     },settings.settings.autoCheckDelay);
 }
 export function stopMentalSession(): void{
-    endMentalSession();
+    endMentalSession().catch((err:unknown)=>console.error("endMentalSession failed:",err));
 }
 export async function endMentalSession(): Promise<void>{
     if(!appState.sessionActive)return;

@@ -101,7 +101,7 @@ export function loadSettings():void{
     if (dom.inputs.mentalShuffleToggle) dom.inputs.mentalShuffleToggle.checked=settings.mentalShuffle;
     if (dom.settings.settingsMcqChoices) dom.settings.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
     if (dom.settings.settingsAdaptive) dom.settings.settingsAdaptive.checked=settings.adaptive;
-    applySettingsToApp();
+    applySettingsToApp().catch((err:unknown)=>console.error("applySettingsToApp failed:",err));
 }
 export function saveSettings():void{
     if (dom.settings.settingsTheme) settings.theme=dom.settings.settingsTheme.value as "system"|"light"|"dark";
