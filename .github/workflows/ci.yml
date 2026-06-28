@@ -20,3 +20,7 @@ jobs:
         run: npm run build:typescript
       - name: Tests
         run: npm run test:run
+      - name: Build web bundle
+        run: npm run build:web
+      - name: Bundle budget check
+        run: npm run bundle:check

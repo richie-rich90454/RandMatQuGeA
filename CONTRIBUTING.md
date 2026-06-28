@@ -135,6 +135,22 @@ npm run tauri build
 
 The generated bundles will be located in `src-tauri/target/release/bundle/`.
 
+### Bundle Budget
+
+The project enforces a bundle budget to keep the initial-load size small. After building, run:
+```bash
+npm run bundle:check
+```
+
+This checks the gzipped sizes of the initial entry chunks against the budgets:
+- Initial JS entry chunk: ≤ 35 kB gzipped
+- Initial CSS chunk: ≤ 10 kB gzipped
+- Total initial load (HTML + JS + CSS): ≤ 55 kB gzipped
+
+Override budgets via env vars (useful for testing): `BUNDLE_JS_BUDGET_KB=40 npm run bundle:check`
+
+The check runs automatically in CI after the build step. If your PR adds a new dependency or significantly changes the initial bundle, verify locally with `npm run build && npm run bundle:check`.
+
 ---
 
 ## Code Style and Conventions

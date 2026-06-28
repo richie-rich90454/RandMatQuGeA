@@ -199,6 +199,7 @@ random_math_question_generator/
 - Optimized bundle sizes with Vite and TypeScript
 - Efficient math calculations using math.js
 - Responsive design with CSS custom properties
+- **Bundle budget enforcement**: `npm run bundle:check` verifies the initial-load gzipped size stays within budget (JS ≤ 35 kB, CSS ≤ 10 kB, total ≤ 55 kB) — runs automatically in CI
 
 ### Cross-Platform Desktop App
 - Native performance with Tauri
