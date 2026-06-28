@@ -12,6 +12,9 @@
         "core:event:allow-listen",
         "updater:default",
         "updater:allow-check",
-        "process:default"
+        "process:default",
+        "dialog:default",
+        "dialog:allow-save",
+        "dialog:allow-open"
     ]
 }

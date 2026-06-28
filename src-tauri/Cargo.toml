@@ -26,6 +26,8 @@ derive_more = { version = "1.0", features = ["full"] }
 strum = "0.26"
 strum_macros = "0.26"
 rand = "0.9"
+printpdf = "0.7"
+tauri-plugin-dialog = "2"
 
 [lib]
 crate-type = ["rlib", "staticlib", "cdylib"]
