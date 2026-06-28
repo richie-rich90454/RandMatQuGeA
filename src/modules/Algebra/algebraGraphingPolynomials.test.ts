@@ -1,11 +1,8 @@
 /** @vitest-environment jsdom */
-import{describe,it,expect,beforeEach,afterEach,vi}from"vitest";
+import{describe,it,expect,vi}from"vitest";
 import*as gp from"./algebraGraphingPolynomials.js";
-import{questionArea}from"../../script.js";
 import{getMaxForDifficulty}from"./algebraUtils.js";
-vi.mock("../../script.js",()=>({
-    questionArea: null as HTMLElement|null
-}));
+import{seededRng}from"../../main/core/rng";
 vi.mock("./algebraUtils.js",()=>({
     factorial:vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
     gcd:vi.fn(function g(a:number,b:number):number{return b===0?Math.abs(a):g(b,a%b);}),
@@ -33,50 +30,92 @@ describe("algebraGraphingPolynomials exports",()=>{
     });
 });
 describe("generatePolynomial",()=>{
-    let originalMathRandom:()=>number;
-    let mockDiv:HTMLDivElement;
-    beforeEach(()=>{
-        originalMathRandom=Math.random;
-        mockDiv=document.createElement("div");
-        (questionArea as any)=mockDiv;
-        delete (window as any).correctAnswer;
-        delete (window as any).expectedFormat;
-        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+    it("should return a QuestionDto with required fields",()=>{
+        const rng=vi.fn().mockReturnValue(0.5);
+        const dto=gp.generatePolynomial(undefined, rng);
+        expect(dto).toBeDefined();
+        expect(typeof dto.latex).toBe("string");
+        expect(dto.latex.length).toBeGreaterThan(0);
+        expect(typeof dto.correct).toBe("string");
+        expect(typeof dto.alternate).toBe("string");
+        expect(typeof dto.display).toBe("string");
+        expect(Array.isArray(dto.choices)).toBe(true);
     });
-    afterEach(()=>{
-        Math.random=originalMathRandom;
-        delete (window as any).MathJax;
-    });
-    it("should set window.correctAnswer",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        gp.generatePolynomial();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer.correct).toBeDefined();
-        expect((window as any).correctAnswer.alternate).toBeDefined();
-        expect((window as any).correctAnswer.display).toBeDefined();
-        expect((window as any).correctAnswer.choices).toBeDefined();
-    });
-    it("should set window.expectedFormat",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        gp.generatePolynomial();
-        expect((window as any).expectedFormat).toBeDefined();
+    it("should return a QuestionDto with expectedFormat",()=>{
+        const rng=vi.fn().mockReturnValue(0.5);
+        const dto=gp.generatePolynomial(undefined, rng);
+        expect(typeof dto.expectedFormat).toBe("string");
+        expect(dto.expectedFormat!.length).toBeGreaterThan(0);
     });
     it("should handle easy difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        gp.generatePolynomial("easy");
+        const rng=vi.fn().mockReturnValue(0.5);
+        const dto=gp.generatePolynomial("easy", rng);
         expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("easy",5);
-        expect((window as any).correctAnswer).toBeDefined();
+        expect(typeof dto.correct).toBe("string");
     });
     it("should handle medium difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        gp.generatePolynomial("medium");
+        const rng=vi.fn().mockReturnValue(0.5);
+        const dto=gp.generatePolynomial("medium", rng);
         expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("medium",5);
-        expect((window as any).correctAnswer).toBeDefined();
+        expect(typeof dto.correct).toBe("string");
     });
     it("should handle hard difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        gp.generatePolynomial("hard");
+        const rng=vi.fn().mockReturnValue(0.5);
+        const dto=gp.generatePolynomial("hard", rng);
         expect(vi.mocked(getMaxForDifficulty)).toHaveBeenCalledWith("hard",5);
-        expect((window as any).correctAnswer).toBeDefined();
+        expect(typeof dto.correct).toBe("string");
+    });
+    it("returns deterministic output for same seed",()=>{
+        const dto1=gp.generatePolynomial("medium", seededRng(42));
+        const dto2=gp.generatePolynomial("medium", seededRng(42));
+        expect(dto1).toEqual(dto2);
+    });
+});
+describe("all generators return deterministic DTOs",()=>{
+    it("generatePolynomialDivision deterministic seed",()=>{
+        const dto1=gp.generatePolynomialDivision("medium", seededRng(42));
+        const dto2=gp.generatePolynomialDivision("medium", seededRng(42));
+        expect(dto1).toEqual(dto2);
+    });
+    it("generateFactoring deterministic seed",()=>{
+        const dto1=gp.generateFactoring("medium", seededRng(42));
+        const dto2=gp.generateFactoring("medium", seededRng(42));
+        expect(dto1).toEqual(dto2);
+    });
+    it("generateFunctionConcepts deterministic seed",()=>{
+        const dto1=gp.generateFunctionConcepts("medium", seededRng(42));
+        const dto2=gp.generateFunctionConcepts("medium", seededRng(42));
+        expect(dto1).toEqual(dto2);
+    });
+    it("generateLinearGraphing deterministic seed",()=>{
+        const dto1=gp.generateLinearGraphing("medium", seededRng(42));
+        const dto2=gp.generateLinearGraphing("medium", seededRng(42));
+        expect(dto1).toEqual(dto2);
+    });
+    it("generateNonLinearGraphing deterministic seed",()=>{
+        const dto1=gp.generateNonLinearGraphing("medium", seededRng(42));
+        const dto2=gp.generateNonLinearGraphing("medium", seededRng(42));
+        expect(dto1).toEqual(dto2);
+    });
+});
+describe("all generator outputs have unique choices",()=>{
+    it("no duplicate choices across generators and seeds",()=>{
+        const generators=[
+            gp.generatePolynomial,
+            gp.generatePolynomialDivision,
+            gp.generateFactoring,
+            gp.generateFunctionConcepts,
+            gp.generateLinearGraphing,
+            gp.generateNonLinearGraphing
+        ];
+        for(const gen of generators){
+            for(let i=0;i<5;i++){
+                const dto=gen(undefined, seededRng(2000+i));
+                if(dto&&dto.choices){
+                    const uniqueChoices=new Set(dto.choices);
+                    expect(uniqueChoices.size).toBe(dto.choices.length);
+                }
+            }
+        }
     });
 });

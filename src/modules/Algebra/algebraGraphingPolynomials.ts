@@ -5,15 +5,11 @@
  * @fileoverview Generates algebra questions with MCQ distractors.
  * @date 2026-04-18
  */
-import {questionArea} from "../../script.js";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxForDifficulty} from "./algebraUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
-
-export function generatePolynomial(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generatePolynomial(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let types=["add","subtract","multiply"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxCoeff=getMaxForDifficulty(difficulty,5);
 	let expectedFormat="";
 	let correct="";
@@ -21,10 +17,10 @@ export function generatePolynomial(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	let a=Math.floor(Math.random()*maxCoeff)+1;
-	let b=Math.floor(Math.random()*maxCoeff)+1;
-	let c=Math.floor(Math.random()*maxCoeff)+1;
-	let d=Math.floor(Math.random()*maxCoeff)+1;
+	let a=Math.floor(rng()*maxCoeff)+1;
+	let b=Math.floor(rng()*maxCoeff)+1;
+	let c=Math.floor(rng()*maxCoeff)+1;
+	let d=Math.floor(rng()*maxCoeff)+1;
 	switch(type){
 		case "add":{
 			let p1=`${a}x^2 + ${b}x + ${c}`;
@@ -84,36 +80,26 @@ export function generatePolynomial(difficulty?: string): void{
 			break;
 		}
 		default:
-			return;
+			return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }
-
-export function generatePolynomialDivision(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generatePolynomialDivision(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let types=["simple","with_remainder"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,5);
 	let expectedFormat="";
 	let correct="";
@@ -121,8 +107,8 @@ export function generatePolynomialDivision(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	let a=Math.floor(Math.random()*maxVal)+1;
-	let b=Math.floor(Math.random()*maxVal)+1;
+	let a=Math.floor(rng()*maxVal)+1;
+	let b=Math.floor(rng()*maxVal)+1;
 	switch(type){
 		case "simple":{
 			let dividend=`${a}x^2 + ${b}x`;
@@ -167,36 +153,26 @@ export function generatePolynomialDivision(difficulty?: string): void{
 			break;
 		}
 		default:
-			return;
+			return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }
-
-export function generateFactoring(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateFactoring(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let types=["gcf","trinomial","difference_squares","sum_cubes","difference_cubes"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,10);
 	let expectedFormat="";
 	let correct="";
@@ -204,9 +180,9 @@ export function generateFactoring(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	let a=Math.floor(Math.random()*maxVal)+1;
-	let b=Math.floor(Math.random()*maxVal)+1;
-	let c=Math.floor(Math.random()*maxVal)+1;
+	let a=Math.floor(rng()*maxVal)+1;
+	let b=Math.floor(rng()*maxVal)+1;
+	let c=Math.floor(rng()*maxVal)+1;
 	switch(type){
 		case "gcf":{
 			let expr=`${a*b}x + ${a*c}`;
@@ -285,36 +261,26 @@ export function generateFactoring(difficulty?: string): void{
 			break;
 		}
 		default:
-			return;
+			return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }
-
-export function generateFunctionConcepts(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateFunctionConcepts(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let types=["domain","range","notation","evaluate"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,10);
 	let expectedFormat="";
 	let correct="";
@@ -322,8 +288,8 @@ export function generateFunctionConcepts(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	let a=Math.floor(Math.random()*maxVal)+1;
-	let x=Math.floor(Math.random()*maxVal)+1;
+	let a=Math.floor(rng()*maxVal)+1;
+	let x=Math.floor(rng()*maxVal)+1;
 	switch(type){
 		case "domain":{
 			mathExpression=`Find the domain of \\( f(x)=\\sqrt{x-${a}} \\). (Enter interval)`;
@@ -382,36 +348,26 @@ export function generateFunctionConcepts(difficulty?: string): void{
 			break;
 		}
 		default:
-			return;
+			return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }
-
-export function generateLinearGraphing(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateLinearGraphing(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let types=["slope","intercepts","equation_from_points","parallel_perpendicular"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,10);
 	let expectedFormat="";
 	let correct="";
@@ -419,15 +375,15 @@ export function generateLinearGraphing(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	let a=Math.floor(Math.random()*maxVal)+1;
-	let b=Math.floor(Math.random()*maxVal)+1;
-	let x1=Math.floor(Math.random()*maxVal)+1;
-	let y1=Math.floor(Math.random()*maxVal)+1;
-	let x2=Math.floor(Math.random()*maxVal)+1;
-	let y2=Math.floor(Math.random()*maxVal)+1;
+	let a=Math.floor(rng()*maxVal)+1;
+	let b=Math.floor(rng()*maxVal)+1;
+	let x1=Math.floor(rng()*maxVal)+1;
+	let y1=Math.floor(rng()*maxVal)+1;
+	let x2=Math.floor(rng()*maxVal)+1;
+	let y2=Math.floor(rng()*maxVal)+1;
 	let attempts=0;
 	while(x1===x2&&attempts<10){
-		x2=Math.floor(Math.random()*maxVal)+1;
+		x2=Math.floor(rng()*maxVal)+1;
 		attempts++;
 	}
 	if(x1===x2) x2=x1+1;
@@ -500,36 +456,26 @@ export function generateLinearGraphing(difficulty?: string): void{
 			break;
 		}
 		default:
-			return;
+			return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }
-
-export function generateNonLinearGraphing(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateNonLinearGraphing(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let types=["parabola_vertex","abs_value","sqrt","transform"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,5);
 	let expectedFormat="";
 	let correct="";
@@ -537,9 +483,9 @@ export function generateNonLinearGraphing(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	let a=Math.floor(Math.random()*maxVal)+1;
-	let h=Math.floor(Math.random()*maxVal)-2;
-	let k=Math.floor(Math.random()*maxVal)-2;
+	let a=Math.floor(rng()*maxVal)+1;
+	let h=Math.floor(rng()*maxVal)-2;
+	let k=Math.floor(rng()*maxVal)-2;
 	switch(type){
 		case "parabola_vertex":{
 			mathExpression=`Find the vertex of \\( y=${a}(x - ${h})^2 + ${k} \\).`;
@@ -602,27 +548,20 @@ export function generateNonLinearGraphing(difficulty?: string): void{
 			break;
 		}
 		default:
-			return;
+			return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: alternate,
 		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }
