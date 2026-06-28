@@ -150,6 +150,16 @@ describe("generateDistractors - text fallback",()=>{
         const qCount=result.filter((v:string)=>v==="??").length;
         expect(qCount).toBeGreaterThan(0);
     });
+    it("should terminate for text answers with count exceeding unique variations (E001 regression)",async()=>{
+        const start=Date.now();
+        const result=await generateDistractors("hello",10);
+        const elapsed=Date.now()-start;
+        expect(elapsed).toBeLessThan(2000);
+        expect(result.length).toBe(10);
+        expect(result).toContain("hello");
+        const unique=new Set(result);
+        expect(unique.size).toBe(result.length);
+    });
     it("should work with single character answers",async()=>{
         const result=await generateDistractors("x",4);
         expect(result.length).toBe(4);

@@ -135,8 +135,14 @@ function generateTextFallbackDistractors(answer: string, count: number): string[
         if (v!==answer && !distractors.has(v)) distractors.add(v);
         if (distractors.size>=count) break;
     }
+    let fillerIdx=0;
     while(distractors.size<count){
-        distractors.add("??");
+        let filler=fillerIdx===0?"??":`?${fillerIdx}`;
+        if (filler!==answer && !distractors.has(filler)){
+            distractors.add(filler);
+        }
+        fillerIdx++;
+        if (fillerIdx>count+10) break;
     }
     distractors.delete(answer);
     const all=Array.from(distractors);
@@ -168,10 +174,11 @@ export async function generateChoicesForCurrentQuestion(): Promise<void>{
         if (!choices.includes(correctObj.correct)){
             choices[Math.floor(Math.random()*choices.length)]=correctObj.correct;
         }
-        if (choices.length>count) choices=choices.slice(0,count);
-        else if (choices.length<count){
-            const fallback=await generateDistractors(correctObj.correct, count-choices.length);
-            choices.push(...fallback);
+        if (choices.length>count){
+            choices=choices.slice(0,count);
+            if (!choices.includes(correctObj.correct)){
+                choices[Math.floor(Math.random()*choices.length)]=correctObj.correct;
+            }
         }
     }
     else{
