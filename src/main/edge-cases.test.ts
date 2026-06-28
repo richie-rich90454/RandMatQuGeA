@@ -44,11 +44,10 @@ describe("Generator MCQ dedup edge cases",()=>{
             .mockReturnValueOnce(0.1) // pick "addition" type
             .mockReturnValueOnce(0.5) // operand
             .mockReturnValueOnce(0.3); // operand
-        mod.generateAddition();
-        const ca=(window as any).correctAnswer;
-        expect(ca).toBeDefined();
-        expect(ca.choices).toContain(ca.correct);
-        expect(new Set(ca.choices).size).toBe(ca.choices.length);
+        const dto=mod.generateAddition();
+        expect(dto).toBeDefined();
+        expect(dto.choices).toContain(dto.correct);
+        expect(new Set(dto.choices).size).toBe(dto.choices.length);
         Math.random=originalRandom;
     });
 
@@ -59,11 +58,10 @@ describe("Generator MCQ dedup edge cases",()=>{
             Math.random=vi.fn()
                 .mockReturnValueOnce(0.01+seed*0.02) // evaluate type
                 .mockReturnValueOnce(0.1+seed*0.05); // angle index
-            mod.generateSin();
-            const ca=(window as any).correctAnswer;
-            expect(ca).toBeDefined();
-            expect(ca.choices).toContain(ca.correct);
-            expect(new Set(ca.choices).size).toBe(ca.choices.length);
+            const dto=mod.generateSin();
+            expect(dto).toBeDefined();
+            expect(dto.choices).toContain(dto.correct);
+            expect(new Set(dto.choices).size).toBe(dto.choices.length);
         }
         Math.random=originalRandom;
     });
@@ -73,11 +71,10 @@ describe("Generator MCQ dedup edge cases",()=>{
         const originalRandom=Math.random;
         for(let seed=0;seed<10;seed++){
             Math.random=vi.fn().mockReturnValue(seed/10);
-            mod.generateLinearEquation();
-            const ca=(window as any).correctAnswer;
-            expect(ca).toBeDefined();
-            expect(ca.choices).toContain(ca.correct);
-            expect(new Set(ca.choices).size).toBe(ca.choices.length);
+            const dto=mod.generateLinearEquation();
+            expect(dto).toBeDefined();
+            expect(dto.choices).toContain(dto.correct);
+            expect(new Set(dto.choices).size).toBe(dto.choices.length);
         }
         Math.random=originalRandom;
     });
@@ -94,8 +91,9 @@ describe("Generator null-safety",()=>{
         const mod=await import("../modules/Trigonometry/trigBasic.js");
         const originalRandom=Math.random;
         Math.random=vi.fn().mockReturnValue(0.5);
-        expect(()=>{mod.generateSin();}).not.toThrow();
-        expect((window as any).correctAnswer).toBeDefined();
+        const dto=mod.generateSin();
+        expect(dto).toBeDefined();
+        expect(dto.correct).toBeDefined();
         Math.random=originalRandom;
     });
 
@@ -209,8 +207,8 @@ describe("Display stability",()=>{
         ];
         for(const gen of generators){
             Math.random=vi.fn().mockReturnValue(0.5);
-            gen();
-            expect(mockQuestionArea.innerHTML.length).toBeGreaterThan(0);
+            const dto=gen();
+            expect(dto.latex.length).toBeGreaterThan(0);
         }
         Math.random=originalRandom;
     });
@@ -219,15 +217,14 @@ describe("Display stability",()=>{
         const mod=await import("../modules/Algebra/algebraEquations.js");
         const originalRandom=Math.random;
         Math.random=vi.fn().mockReturnValue(0.5);
-        mod.generateLinearEquation();
-        const ca=(window as any).correctAnswer;
-        expect(ca).toBeDefined();
-        expect(ca).toHaveProperty("correct");
-        expect(ca).toHaveProperty("alternate");
-        expect(ca).toHaveProperty("display");
-        expect(ca).toHaveProperty("choices");
-        expect(Array.isArray(ca.choices)).toBe(true);
-        expect(ca.choices.length).toBeGreaterThan(0);
+        const dto=mod.generateLinearEquation();
+        expect(dto).toBeDefined();
+        expect(dto).toHaveProperty("correct");
+        expect(dto).toHaveProperty("alternate");
+        expect(dto).toHaveProperty("display");
+        expect(dto).toHaveProperty("choices");
+        expect(Array.isArray(dto.choices)).toBe(true);
+        expect(dto.choices.length).toBeGreaterThan(0);
         Math.random=originalRandom;
     });
 
@@ -236,10 +233,9 @@ describe("Display stability",()=>{
         const originalRandom=Math.random;
         for(let seed=0;seed<5;seed++){
             Math.random=vi.fn().mockReturnValue(seed/5);
-            mod.generateAreaCircle();
-            const ca=(window as any).correctAnswer;
-            expect(ca).toBeDefined();
-            expect(typeof ca.display).toBe("string");
+            const dto=mod.generateAreaCircle();
+            expect(dto).toBeDefined();
+            expect(typeof dto.display).toBe("string");
         }
         Math.random=originalRandom;
     });
