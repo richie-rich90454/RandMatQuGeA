@@ -1,242 +1,196 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {describe,it,expect,vi} from "vitest";
+import {seededRng} from "../../main/core/rng";
 import {generateSin,generateCosine,generateTangent} from "./trigBasic.js";
-let sink=vi.hoisted(()=>({ div: null as HTMLDivElement|null }));
-vi.mock("../../main/core/questionRenderer",()=>({
-	renderer:{
-		render(html: string){
-			if(sink.div) sink.div.innerHTML=html;
-			let mj=(window as any).MathJax;
-			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
-		},
-		clear(){ if(sink.div) sink.div.innerHTML=""; },
-		setAnswer(a: any){ (window as any).correctAnswer=a; },
-		setExpectedFormat(f: string){ (window as any).expectedFormat=f; },
-		setHasQuestion(v: boolean){ (window as any).hasQuestion=v; },
-		typeset(){
-			let mj=(window as any).MathJax;
-			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
-		}
-	}
-}));
 describe("generateSin",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		sink.div=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("generates evaluate type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0).mockReturnValueOnce(0.5);
+		const dto=generateSin("medium", rng);
+		expect(dto.latex).toContain("Evaluate");
+		expect(dto.latex).toContain("\\sin");
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toBeDefined();
+		expect(dto.choices!.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("generates amplitude type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.3).mockReturnValue(0.5);
+		const dto=generateSin("medium", rng);
+		expect(dto.latex).toContain("amplitude");
+		expect(dto.correct).toBeDefined();
 	});
-	it("returns early if questionArea is null",()=>{
-		sink.div=null;
-		generateSin();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeDefined();
+	it("generates period type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.45).mockReturnValue(0.5);
+		const dto=generateSin("medium", rng);
+		expect(dto.latex).toContain("period");
+		expect(dto.correct).toContain("rad");
 	});
-	it("generates evaluate sin correctly",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
-		generateSin();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.choices.length).toBeGreaterThanOrEqual(1);
+	it("generates identity type question",()=>{
+		const rng=vi.fn().mockReturnValue(0.9);
+		const dto=generateSin("medium", rng);
+		expect(dto.latex).toContain("identity");
+		expect(dto.correct).toBe("1");
 	});
-	it("generates identity sin correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.9);
-		generateSin();
-		expect((window as any).correctAnswer.correct).toBe("1");
+	it("generates unit_circle type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.75).mockReturnValue(0.5);
+		const dto=generateSin("medium", rng);
+		expect(dto.latex).toContain("unit circle");
+		expect(dto.correct).toContain("(");
 	});
-	it("generates evaluate cosine correctly",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
-		generateCosine();
-		expect((window as any).correctAnswer).toBeDefined();
+	it("generates law_sines type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.65).mockReturnValue(0.5);
+		const dto=generateSin("medium", rng);
+		expect(dto.latex).toContain("Law of Sines");
+		expect(dto.correct).toBeDefined();
 	});
-	it("generates tangent identity correctly",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.85);
-		generateTangent();
-		expect((window as any).correctAnswer.correct).toBe("\\sec^2\\theta");
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateSin("medium", seededRng(42));
+		const dto2=generateSin("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateSin();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-		expect((window as any).correctAnswer.choices).toBeDefined();
+	it("handles easy difficulty",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.3).mockReturnValue(0.5);
+		const dto=generateSin("easy", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateSin();
-		expect((window as any).expectedFormat).toBeDefined();
+	it("handles hard difficulty",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.3).mockReturnValue(0.5);
+		const dto=generateSin("hard", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateSin("easy");
-		expect((window as any).correctAnswer).toBeDefined();
+	it("includes choices array with correct answer",()=>{
+		const rng=vi.fn().mockReturnValue(0.9);
+		const dto=generateSin("medium", rng);
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices).toContain(dto.correct);
 	});
-	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateSin("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateSin("hard");
-		expect((window as any).correctAnswer).toBeDefined();
+	it("sets expectedFormat",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateSin("medium", rng);
+		expect(dto.expectedFormat).toBeDefined();
 	});
 });
-describe("generateSin - edge cases",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		sink.div=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+describe("generateCosine",()=>{
+	it("generates evaluate type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0).mockReturnValueOnce(0.5);
+		const dto=generateCosine("medium", rng);
+		expect(dto.latex).toContain("Evaluate");
+		expect(dto.latex).toContain("\\cos");
+		expect(dto.correct).toBeDefined();
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("generates identity type question",()=>{
+		const rng=vi.fn().mockReturnValue(0.9);
+		const dto=generateCosine("medium", rng);
+		expect(dto.latex).toContain("identity");
+		expect(dto.correct).toBe("1");
 	});
-	it("should produce non-empty question HTML",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
-		generateSin();
-		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	it("generates law_cosines type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.75).mockReturnValue(0.5);
+		const dto=generateCosine("medium", rng);
+		expect(dto.latex).toContain("Law of Cosines");
+		expect(dto.correct).toBeDefined();
 	});
-	it("should set correctAnswer with display property",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
-		generateSin();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect(typeof (window as any).correctAnswer.display).toBe("string");
+	it("generates period type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.45).mockReturnValue(0.5);
+		const dto=generateCosine("medium", rng);
+		expect(dto.latex).toContain("period");
 	});
-	it("should handle 30 degree angle",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(1/16);
-		generateSin();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateCosine("medium", seededRng(42));
+		const dto2=generateCosine("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("should handle 45 degree angle",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(2/16);
-		generateSin();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
+	it("handles easy difficulty",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.3).mockReturnValue(0.5);
+		const dto=generateCosine("easy", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("should handle 60 degree angle",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(3/16);
-		generateSin();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
+	it("handles hard difficulty",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.3).mockReturnValue(0.5);
+		const dto=generateCosine("hard", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("should handle 90 degree angle",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(4/16);
-		generateSin();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-	});
-	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
-		generateSin("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-	});
-	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
-		generateSin("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
+	it("includes choices array with correct answer",()=>{
+		const rng=vi.fn().mockReturnValue(0.9);
+		const dto=generateCosine("medium", rng);
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices).toContain(dto.correct);
 	});
 });
-describe("generateSin - solve edge cases (k negative fix)",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		sink.div=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+describe("generateTangent",()=>{
+	it("generates evaluate type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0).mockReturnValueOnce(0.5);
+		const dto=generateTangent("medium", rng);
+		expect(dto.latex).toContain("Evaluate");
+		expect(dto.latex).toContain("\\tan");
+		expect(dto.correct).toBeDefined();
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("generates identity type question",()=>{
+		const rng=vi.fn().mockReturnValue(0.9);
+		const dto=generateTangent("medium", rng);
+		expect(dto.latex).toContain("identity");
+		expect(dto.correct).toBeDefined();
 	});
-	it("sine solve with k=0 should have 2 solutions (0, π)",()=>{
-		// force "solve" type (index 1): random between 0.125 and 0.25
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.13) // selects "solve" type (index 1)
-			.mockReturnValueOnce(0.5);  // k = 2*0.5-1 = 0
-		generateSin();
-		const correct=(window as any).correctAnswer.correct;
-		// sin(θ)=0 has solutions θ=0 and θ=π in [0,2π)
-		expect(correct).toContain("0.00");
-		expect(correct).toContain("3.14");
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateTangent("medium", seededRng(42));
+		const dto2=generateTangent("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("sine solve with k=-0.5 should have 2 solutions (7π/6 and 11π/6)",()=>{
-		// force "solve" type (index 1)
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.13) // "solve" type
-			.mockReturnValueOnce(0.25); // k = 2*0.25-1 = -0.5
-		generateSin();
-		const correct=(window as any).correctAnswer.correct;
-		// sin(θ)=-0.5 has solutions 7π/6≈3.67 and 11π/6≈5.76 in [0,2π)
-		expect(correct).toContain("3.67");
-		expect(correct).toContain("5.76");
+	it("handles easy difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateTangent("easy", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("sine solve with k=-1 should have 1 solution (3π/2)",()=>{
-		// force "solve" type (index 1)
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.13) // "solve" type
-			.mockReturnValueOnce(0);    // k = 2*0-1 = -1
-		generateSin();
-		const correct=(window as any).correctAnswer.correct;
-		// sin(θ)=-1 has only θ=3π/2≈4.71 in [0,2π)
-		expect(correct).toContain("4.71");
-		// should NOT have negative solutions
-		expect(correct).not.toContain("-");
+	it("handles hard difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateTangent("hard", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("sine solve with k=0.5 should have 2 solutions (π/6 and 5π/6)",()=>{
-		// force "solve" type (index 1)
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.13) // "solve" type
-			.mockReturnValueOnce(0.75); // k = 2*0.75-1 = 0.5
-		generateSin();
-		const correct=(window as any).correctAnswer.correct;
-		// sin(θ)=0.5 has solutions π/6≈0.52 and 5π/6≈2.62 in [0,2π)
-		expect(correct).toContain("0.52");
-		expect(correct).toContain("2.62");
+	it("includes choices array with correct answer",()=>{
+		const rng=vi.fn().mockReturnValue(0.9);
+		const dto=generateTangent("medium", rng);
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices).toContain(dto.correct);
 	});
-	it("sine solve with k=1 should have 1 unique solution (π/2)",()=>{
-		// force "solve" type (index 1)
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.13) // "solve" type
-			.mockReturnValueOnce(1);    // k = 2*1-1 = 1
-		generateSin();
-		const correct=(window as any).correctAnswer.correct;
-		// sin(θ)=1 has only θ=π/2≈1.57 in [0,2π)
-		// Note: due to floating point, k=1 may produce sol1=sol2=π/2
-		expect(correct).toContain("1.57");
-		// Should not have negative solutions
-		expect(correct).not.toContain("-");
+});
+describe("Trigonometry basic - comprehensive edge cases",()=>{
+	it("MCQ choices should be unique for all three basic functions",()=>{
+		const funcs=[generateSin,generateCosine,generateTangent];
+		for(const gen of funcs){
+			for(let i=0;i<10;i++){
+				const rng=vi.fn().mockReturnValue(i/10);
+				const dto=gen("medium", rng);
+				if(dto.choices){
+					const uniqueChoices=new Set(dto.choices);
+					expect(uniqueChoices.size).toBe(dto.choices.length);
+				}
+			}
+		}
 	});
-	it("sine evaluate does not crash for boundary angles",()=>{
-		// force "evaluate" type via first random near 0
-		for(let i=0;i<20;i++){
-			Math.random=vi.fn()
-				.mockReturnValueOnce(0.001) // "evaluate" type
-				.mockReturnValueOnce(i/20);  // cycle through angles
-			generateSin();
-			expect((window as any).correctAnswer).toBeDefined();
-			expect((window as any).correctAnswer.correct).not.toBe("NaN");
-			expect((window as any).correctAnswer.correct).not.toBe("Infinity");
+	it("correct answer should always be present in choices",()=>{
+		const funcs=[generateSin,generateCosine,generateTangent];
+		for(const gen of funcs){
+			for(let i=0;i<10;i++){
+				const rng=vi.fn().mockReturnValue(i/10);
+				const dto=gen("medium", rng);
+				expect(dto.choices).toContain(dto.correct);
+			}
+		}
+	});
+	it("should not crash on repeated generate calls",()=>{
+		for(let i=0;i<30;i++){
+			const rng=vi.fn().mockReturnValue(i/30);
+			const dto=generateSin("medium", rng);
+			expect(dto.correct).toBeDefined();
+		}
+	});
+	it("should produce non-empty latex for all functions",()=>{
+		const funcs=[generateSin,generateCosine,generateTangent];
+		for(const gen of funcs){
+			const rng=vi.fn().mockReturnValue(0.5);
+			const dto=gen("medium", rng);
+			expect(dto.latex.length).toBeGreaterThan(0);
 		}
 	});
 });

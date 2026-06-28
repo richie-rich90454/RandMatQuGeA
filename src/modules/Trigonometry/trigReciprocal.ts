@@ -1,28 +1,28 @@
 /**
  * Reciprocal trigonometric functions: cosecant, secant, cotangent.
- * @fileoverview Generates questions on reciprocal trig functions with MCQ distractors. Sets renderer.setAnswer with LaTeX display, plain text alternate, and plausible wrong answers.
+ * @fileoverview Generates questions on reciprocal trig functions with MCQ distractors. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-04-18
  */
-import {renderer} from "../../main/core/questionRenderer";
-export function generateCosecant(_difficulty?: string): void{
-	renderer.clear();
+import type {RngFn, QuestionDto} from "../../types/global";
+export function generateCosecant(_difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let types=["evaluate","relationship","asymptote"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let correct="";
 	let alternate="";
 	let display="";
 	let choices:string[]=[];
+	let latex="";
 	switch(type){
 		case "evaluate":{
 			let angles=[Math.PI/6,5*Math.PI/6,7*Math.PI/6,11*Math.PI/6];
 			let labels=["\\frac{\\pi}{6}","\\frac{5\\pi}{6}","\\frac{7\\pi}{6}","\\frac{11\\pi}{6}"];
-			let idx=Math.floor(Math.random()*angles.length);
+			let idx=Math.floor(rng()*angles.length);
 			let angle=angles[idx];
 			let value=(1/Math.sin(angle)).toFixed(2);
 			correct=value;
 			alternate=value;
 			display=value;
-			renderer.render(`Evaluate \\( \\csc(${labels[idx]}) \\)`);
+			latex=`Evaluate \\( \\csc(${labels[idx]}) \\)`;
 			choices=[correct];
 			let wrong1=(1/Math.sin(angle+0.1)).toFixed(2);
 			let wrong2=(1/Math.sin(angle-0.1)).toFixed(2);
@@ -32,11 +32,11 @@ export function generateCosecant(_difficulty?: string): void{
 			break;
 		}
 		case "relationship":{
-			let angleNum=Math.floor(Math.random()*360);
+			let angleNum=Math.floor(rng()*360);
 			correct=`\\frac{1}{\\sin(${angleNum}°)}`;
 			alternate=`1/sin(${angleNum}°)`;
 			display=`\\frac{1}{\\sin(${angleNum}°)}`;
-			renderer.render(`Express \\( \\csc(${angleNum}°) \\) in terms of sine.`);
+			latex=`Express \\( \\csc(${angleNum}°) \\) in terms of sine.`;
 			choices=[correct];
 			choices.push(`\\frac{1}{\\cos(${angleNum}°)}`);
 			choices.push(`\\frac{1}{\\tan(${angleNum}°)}`);
@@ -48,7 +48,7 @@ export function generateCosecant(_difficulty?: string): void{
 			correct=`x = n\\pi`;
 			alternate="x=nπ";
 			display=`x = n\\pi`;
-			renderer.render(`Find the vertical asymptotes of \\( y=\\csc(x) \\) (in radians).`);
+			latex=`Find the vertical asymptotes of \\( y=\\csc(x) \\) (in radians).`;
 			choices=[correct];
 			choices.push(`x = \\frac{\\pi}{2} + n\\pi`);
 			choices.push(`x = n\\pi + \\frac{\\pi}{2}`);
@@ -57,41 +57,41 @@ export function generateCosecant(_difficulty?: string): void{
 			break;
 		}
 		default:
-			renderer.render("Unknown cosecant question type");
-			return;
+			return {latex: "Unknown cosecant question type", correct: ""};
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("");
-	}
-export function generateSecant(_difficulty?: string): void{
-	renderer.clear();
-	let type=Math.random()<0.5?"evaluate":"identity";
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat: ""
+	};
+}
+export function generateSecant(_difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+	let type=rng()<0.5?"evaluate":"identity";
 	let correct="";
 	let alternate="";
 	let display="";
 	let choices:string[]=[];
+	let latex="";
 	switch(type){
 		case "evaluate":{
 			let angles=[0,Math.PI/3,Math.PI,5*Math.PI/3];
 			let labels=["0","\\frac{\\pi}{3}","\\pi","\\frac{5\\pi}{3}"];
-			let idx=Math.floor(Math.random()*angles.length);
+			let idx=Math.floor(rng()*angles.length);
 			let angle=angles[idx];
 			let value=(1/Math.cos(angle)).toFixed(2);
 			correct=value;
 			alternate=value;
 			display=value;
-			renderer.render(`Evaluate \\( \\sec(${labels[idx]}) \\)`);
+			latex=`Evaluate \\( \\sec(${labels[idx]}) \\)`;
 			choices=[correct];
 			let wrong1=(1/Math.cos(angle+0.1)).toFixed(2);
 			let wrong2=(1/Math.cos(angle-0.1)).toFixed(2);
@@ -104,46 +104,46 @@ export function generateSecant(_difficulty?: string): void{
 			correct="1";
 			alternate="1";
 			display="1";
-			renderer.render(`Complete the identity: \\( \\sec^2\\theta-\\tan^2\\theta=? \\)`);
+			latex=`Complete the identity: \\( \\sec^2\\theta-\\tan^2\\theta=? \\)`;
 			choices=["1","0","-1","sec^2θ+tan^2θ"];
 			break;
 		}
 		default:
-			renderer.render("Unknown secant question type");
-			return;
+			return {latex: "Unknown secant question type", correct: ""};
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("");
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat: ""
+	};
 }
-export function generateCotangent(_difficulty?: string): void{
-	renderer.clear();
-	let type=Math.random()<0.5?"evaluate":"relationship";
+export function generateCotangent(_difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+	let type=rng()<0.5?"evaluate":"relationship";
 	let correct="";
 	let alternate="";
 	let display="";
 	let choices:string[]=[];
+	let latex="";
 	switch(type){
 		case "evaluate":{
 			let angles=[Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4];
 			let labels=["\\frac{\\pi}{4}","\\frac{3\\pi}{4}","\\frac{5\\pi}{4}","\\frac{7\\pi}{4}"];
-			let idx=Math.floor(Math.random()*angles.length);
+			let idx=Math.floor(rng()*angles.length);
 			let angle=angles[idx];
 			let value=(1/Math.tan(angle)).toFixed(2);
 			correct=value;
 			alternate=value;
 			display=value;
-			renderer.render(`Evaluate \\( \\cot(${labels[idx]}) \\)`);
+			latex=`Evaluate \\( \\cot(${labels[idx]}) \\)`;
 			choices=[correct];
 			let wrong1=(1/Math.tan(angle+0.1)).toFixed(2);
 			let wrong2=(1/Math.tan(angle-0.1)).toFixed(2);
@@ -156,7 +156,7 @@ export function generateCotangent(_difficulty?: string): void{
 			correct="\\frac{1}{\\tan\\theta}";
 			alternate="1/tanθ";
 			display="\\frac{1}{\\tan\\theta}";
-			renderer.render(`Express \\( \\cot\\theta \\) in terms of tangent.`);
+			latex=`Express \\( \\cot\\theta \\) in terms of tangent.`;
 			choices=[correct];
 			choices.push("\\frac{1}{\\sin\\theta}");
 			choices.push("\\frac{1}{\\cos\\theta}");
@@ -165,20 +165,20 @@ export function generateCotangent(_difficulty?: string): void{
 			break;
 		}
 		default:
-			renderer.render("Unknown cotangent question type");
-			return;
+			return {latex: "Unknown cotangent question type", correct: ""};
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("");
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat: ""
+	};
 }

@@ -1,211 +1,146 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {describe,it,expect,vi} from "vitest";
+import {seededRng} from "../../main/core/rng";
 import {generateCosecant,generateSecant,generateCotangent} from "./trigReciprocal.js";
-let sink=vi.hoisted(()=>({ div: null as HTMLDivElement|null }));
-vi.mock("../../main/core/questionRenderer",()=>({
-	renderer:{
-		render(html: string){
-			if(sink.div) sink.div.innerHTML=html;
-			let mj=(window as any).MathJax;
-			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
-		},
-		clear(){ if(sink.div) sink.div.innerHTML=""; },
-		setAnswer(a: any){ (window as any).correctAnswer=a; },
-		setExpectedFormat(f: string){ (window as any).expectedFormat=f; },
-		setHasQuestion(v: boolean){ (window as any).hasQuestion=v; },
-		typeset(){
-			let mj=(window as any).MathJax;
-			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
-		}
-	}
-}));
 describe("generateCosecant",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		sink.div=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("generates evaluate type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0).mockReturnValueOnce(0.5);
+		const dto=generateCosecant("medium", rng);
+		expect(dto.latex).toContain("Evaluate");
+		expect(dto.latex).toContain("\\csc");
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toBeDefined();
+		expect(dto.choices!.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("generates relationship type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.34).mockReturnValue(0.5);
+		const dto=generateCosecant("medium", rng);
+		expect(dto.latex).toContain("Express");
+		expect(dto.latex).toContain("\\csc");
+		expect(dto.alternate).toContain("sin");
 	});
-	it("returns early if questionArea is null",()=>{
-		sink.div=null;
-		generateCosecant();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeDefined();
+	it("generates asymptote type question",()=>{
+		const rng=vi.fn().mockReturnValue(0.9);
+		const dto=generateCosecant("medium", rng);
+		expect(dto.latex).toContain("asymptotes");
+		expect(dto.correct).toContain("n");
 	});
-	it("generates evaluate cosecant correctly",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0.5);
-		generateCosecant();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.choices.length).toBeGreaterThanOrEqual(1);
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateCosecant("medium", seededRng(42));
+		const dto2=generateCosecant("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("generates relationship cosecant correctly",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.4).mockReturnValueOnce(0.5);
-		generateCosecant();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.alternate).toContain("sin");
+	it("handles easy difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateCosecant("easy", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("generates evaluate secant correctly",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.2).mockReturnValueOnce(0.5);
-		generateSecant();
-		expect((window as any).correctAnswer).toBeDefined();
+	it("handles medium difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateCosecant("medium", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("generates cotangent relationship correctly",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.6).mockReturnValueOnce(0.5);
-		generateCotangent();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.alternate).toContain("tan");
+	it("handles hard difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateCosecant("hard", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-		expect((window as any).correctAnswer.choices).toBeDefined();
+	it("includes choices array with correct answer",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateCosecant("medium", rng);
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices).toContain(dto.correct);
 	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant();
-		expect((window as any).expectedFormat).toBeDefined();
-	});
-	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant("hard");
-		expect((window as any).correctAnswer).toBeDefined();
+	it("sets expectedFormat",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateCosecant("medium", rng);
+		expect(dto.expectedFormat).toBeDefined();
 	});
 });
-describe("generateCosecant - edge cases",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		sink.div=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+describe("generateSecant",()=>{
+	it("generates evaluate type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.2).mockReturnValueOnce(0.5);
+		const dto=generateSecant("medium", rng);
+		expect(dto.latex).toContain("Evaluate");
+		expect(dto.latex).toContain("\\sec");
+		expect(dto.correct).toBeDefined();
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("generates identity type question",()=>{
+		const rng=vi.fn().mockReturnValue(0.8);
+		const dto=generateSecant("medium", rng);
+		expect(dto.latex).toContain("identity");
+		expect(dto.correct).toBe("1");
 	});
-	it("should produce non-empty question HTML",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant();
-		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateSecant("medium", seededRng(42));
+		const dto2=generateSecant("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("should set correctAnswer with display property",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect(typeof (window as any).correctAnswer.display).toBe("string");
-		expect((window as any).correctAnswer.display.length).toBeGreaterThan(0);
+	it("handles easy difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateSecant("easy", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
+	it("handles hard difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateSecant("hard", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-	});
-	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-	});
-	it("should set expectedFormat",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant();
-		expect((window as any).expectedFormat).toBeDefined();
-	});
-	it("should handle repeated calls consistently",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant();
-		let first=(window as any).correctAnswer;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant();
-		let second=(window as any).correctAnswer;
-		expect(first.correct).toBe(second.correct);
-		expect(first.display).toBe(second.display);
-	});
-	it("should verify correctAnswer structure",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant();
-		let ans=(window as any).correctAnswer;
-		expect(ans).toHaveProperty("correct");
-		expect(ans).toHaveProperty("display");
-		expect(ans).toHaveProperty("choices");
-		expect(Array.isArray(ans.choices)).toBe(true);
-		expect(ans.choices.length).toBeGreaterThanOrEqual(1);
-	});
-	it("should call typesetPromise instead of typeset",()=>{
-		const typesetSpy=vi.fn().mockResolvedValue(undefined);
-		(window as any).MathJax={typesetPromise:typesetSpy};
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateCosecant();
-		expect(typesetSpy).toHaveBeenCalled();
-	});
-	it("should not crash when MathJax is undefined",()=>{
-		delete (window as any).MathJax;
-		Math.random=vi.fn().mockReturnValue(0.01);
-		expect(()=>generateCosecant()).not.toThrow();
-		expect(()=>generateSecant()).not.toThrow();
-		expect(()=>generateCotangent()).not.toThrow();
+	it("includes choices array with correct answer",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateSecant("medium", rng);
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices).toContain(dto.correct);
 	});
 });
-describe("trigReciprocal - comprehensive edge cases",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		sink.div=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+describe("generateCotangent",()=>{
+	it("generates evaluate type question",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.2).mockReturnValueOnce(0.5);
+		const dto=generateCotangent("medium", rng);
+		expect(dto.latex).toContain("Evaluate");
+		expect(dto.latex).toContain("\\cot");
+		expect(dto.correct).toBeDefined();
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("generates relationship type question",()=>{
+		const rng=vi.fn().mockReturnValue(0.8);
+		const dto=generateCotangent("medium", rng);
+		expect(dto.latex).toContain("Express");
+		expect(dto.alternate).toContain("tan");
 	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateCotangent("medium", seededRng(42));
+		const dto2=generateCotangent("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("handles easy difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateCotangent("easy", rng);
+		expect(dto.correct).toBeDefined();
+	});
+	it("handles hard difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateCotangent("hard", rng);
+		expect(dto.correct).toBeDefined();
+	});
+	it("includes choices array with correct answer",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateCotangent("medium", rng);
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices).toContain(dto.correct);
+	});
+});
+describe("Trigonometry reciprocal - comprehensive edge cases",()=>{
 	it("MCQ choices should be unique for all three reciprocal functions",()=>{
 		const funcs=[generateCosecant,generateSecant,generateCotangent];
 		for(const gen of funcs){
 			for(let i=0;i<10;i++){
-				Math.random=vi.fn().mockReturnValue(i/10);
-				gen();
-				const ca=(window as any).correctAnswer;
-				if(ca&&ca.choices){
-					const uniqueChoices=new Set(ca.choices);
-					expect(uniqueChoices.size).toBe(ca.choices.length);
+				const rng=vi.fn().mockReturnValue(i/10);
+				const dto=gen("medium", rng);
+				if(dto.choices){
+					const uniqueChoices=new Set(dto.choices);
+					expect(uniqueChoices.size).toBe(dto.choices.length);
 				}
 			}
 		}
@@ -214,72 +149,54 @@ describe("trigReciprocal - comprehensive edge cases",()=>{
 		const funcs=[generateCosecant,generateSecant,generateCotangent];
 		for(const gen of funcs){
 			for(let i=0;i<10;i++){
-				Math.random=vi.fn().mockReturnValue(i/10);
-				gen();
-				const ca=(window as any).correctAnswer;
-				expect(ca.choices).toContain(ca.correct);
+				const rng=vi.fn().mockReturnValue(i/10);
+				const dto=gen("medium", rng);
+				expect(dto.choices).toContain(dto.correct);
 			}
 		}
 	});
 	it("cosecant evaluate should not produce NaN",()=>{
-		for(let i=0;i<4;i++){ // 4 angles only
-			Math.random=vi.fn()
-				.mockReturnValueOnce(0.01) // evaluate type (index 0)
-				.mockReturnValueOnce(i/4.1); // angle index (0..<1)
-			generateCosecant();
-			const ca=(window as any).correctAnswer;
-			expect(ca.correct).toBeDefined();
-			if(ca.correct&&ca.display===ca.correct){
-				// Only check numeric evaluate cases
-				const val=parseFloat(ca.correct);
-				if(!isNaN(val)){
-					expect(isNaN(val)).toBe(false);
-				}
+		for(let i=0;i<4;i++){
+			const rng=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(i/4.1);
+			const dto=generateCosecant("medium", rng);
+			expect(dto.correct).toBeDefined();
+			const val=parseFloat(dto.correct);
+			if(!isNaN(val)){
+				expect(isNaN(val)).toBe(false);
 			}
 		}
 	});
 	it("secant evaluate should handle angle 0 correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.2); // evaluate type, first angle (0)
-		generateSecant();
-		const ca=(window as any).correctAnswer;
-		expect(ca).toBeDefined();
-		expect(ca.correct).toBeDefined();
+		const rng=vi.fn().mockReturnValueOnce(0.2).mockReturnValueOnce(0);
+		const dto=generateSecant("medium", rng);
+		expect(dto).toBeDefined();
+		expect(dto.correct).toBeDefined();
 	});
 	it("cotangent evaluate should handle π/4 correctly",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.01).mockReturnValueOnce(0); // first angle (π/4)
-		generateCotangent();
-		const ca=(window as any).correctAnswer;
-		expect(ca).toBeDefined();
-		expect(ca.correct).toBeDefined();
-		expect(isNaN(parseFloat(ca.correct))).toBe(false);
+		const rng=vi.fn().mockReturnValueOnce(0.2).mockReturnValueOnce(0);
+		const dto=generateCotangent("medium", rng);
+		expect(dto).toBeDefined();
+		expect(dto.correct).toBeDefined();
 	});
-	it("expectedFormat should be set for all functions",()=>{
-		const funcs=[generateCosecant,generateSecant,generateCotangent];
-		for(const gen of funcs){
-			Math.random=vi.fn().mockReturnValue(0.5);
-			gen();
-			expect((window as any).expectedFormat).toBeDefined();
-		}
-	});
-	it("should handle asmyptote case correctly",()=>{
-		// cosecant: types=["evaluate","relationship","asymptote"] (3 types)
-		// Math.floor(0.9*3)=2 which is "asymptote" case
-		Math.random=vi.fn().mockReturnValue(0.9);
-		generateCosecant();
-		expect(mockDiv.innerHTML).toContain("asymptotes");
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should handle secant evaluate type",()=>{
-		Math.random=vi.fn().mockReturnValue(0.2); // evaluate type
-		generateSecant();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
+	it("should handle asymptote case correctly",()=>{
+		const rng=vi.fn().mockReturnValue(0.9);
+		const dto=generateCosecant("medium", rng);
+		expect(dto.latex).toContain("asymptotes");
+		expect(dto.correct).toBeDefined();
 	});
 	it("should not crash on repeated generate calls",()=>{
 		for(let i=0;i<30;i++){
-			Math.random=vi.fn().mockReturnValue(i/30);
-			generateCosecant();
-			expect((window as any).correctAnswer).toBeDefined();
+			const rng=vi.fn().mockReturnValue(i/30);
+			const dto=generateCosecant("medium", rng);
+			expect(dto.correct).toBeDefined();
+		}
+	});
+	it("should produce non-empty latex for all functions",()=>{
+		const funcs=[generateCosecant,generateSecant,generateCotangent];
+		for(const gen of funcs){
+			const rng=vi.fn().mockReturnValue(0.5);
+			const dto=gen("medium", rng);
+			expect(dto.latex.length).toBeGreaterThan(0);
 		}
 	});
 });

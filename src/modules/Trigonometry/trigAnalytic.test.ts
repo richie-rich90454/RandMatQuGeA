@@ -1,160 +1,376 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
-import {questionArea} from "../../script.js";
-import {generateDegreesToRadians,generateArcLength,generateReferenceAngle,generateASTCSign} from "./trigAnalytic.js";
-vi.mock("../../script.js",()=>({questionArea:null as HTMLElement|null}));
+import {describe,it,expect,vi} from "vitest";
+import {seededRng} from "../../main/core/rng";
+import {generateDegreesToRadians,generateRadiansToDegrees,generateArcLength,generateAngularLinearSpeed,generateRightTriangleDefs,generateSpecialTriangle,generateElevationDepression,generateReferenceAngle,generateASTCSign,generateSumDifference,generateDoubleAngle,generateHalfAngle,generatePolarToRectangular,generateRectangularToPolar,generatePolarDistance,generatePolarGraphEquation,generateParametricToCartesian,generateParametricMotion,generateComplexPolarForm,generateComplexMultiplyDivide,generateDeMoivre,generateComplexRoots} from "./trigAnalytic.js";
 vi.mock("../Algebra/algebraUtils.js",()=>({
-    factorial:vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
-    gcd:vi.fn(function g(a:number,b:number):number{return b===0?Math.abs(a):g(b,a%b);}),
-    getOrdinal:vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
-    getMaxForDifficulty:vi.fn(()=>5),
+	getMaxForDifficulty: vi.fn(()=>5),
+	factorial: vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
+	gcd: vi.fn(function g(a:number,b:number):number{return b===0?Math.abs(a):g(b,a%b);}),
+	getOrdinal: vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];})
 }));
 describe("generateDegreesToRadians",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typeset:vi.fn()};
+	it("generates degrees to radians question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateDegreesToRadians("medium", rng);
+		expect(dto.latex).toContain("Convert");
+		expect(dto.latex).toContain("radians");
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toBeDefined();
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateDegreesToRadians("medium", seededRng(42));
+		const dto2=generateDegreesToRadians("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("returns early if questionArea is null",()=>{
-		(questionArea as any)=null;
-		generateDegreesToRadians();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
+	it("handles easy difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateDegreesToRadians("easy", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("generates degrees to radians correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect(mockDiv.innerHTML).toContain("Convert");
+	it("handles hard difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateDegreesToRadians("hard", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("generates arc length correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateArcLength();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates reference angle correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateReferenceAngle();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates ASTC sign correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.2).mockReturnValueOnce(0.5);
-		generateASTCSign();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect(["positive","negative"]).toContain((window as any).correctAnswer.correct);
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-		expect((window as any).correctAnswer.choices).toBeDefined();
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians();
-		expect((window as any).expectedFormat).toBeDefined();
-	});
-	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians("hard");
-		expect((window as any).correctAnswer).toBeDefined();
+	it("includes choices with correct answer",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateDegreesToRadians("medium", rng);
+		expect(dto.choices).toContain(dto.correct);
 	});
 });
-describe("generateDegreesToRadians - edge cases",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typeset:vi.fn()};
+describe("generateRadiansToDegrees",()=>{
+	it("generates radians to degrees question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateRadiansToDegrees("medium", rng);
+		expect(dto.latex).toContain("Convert");
+		expect(dto.latex).toContain("degrees");
+		expect(dto.correct).toContain("°");
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateRadiansToDegrees("medium", seededRng(42));
+		const dto2=generateRadiansToDegrees("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("should produce non-empty question HTML",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians();
-		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
+	it("handles easy difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateRadiansToDegrees("easy", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("should set correctAnswer with display property",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect(typeof (window as any).correctAnswer.display).toBe("string");
-		expect((window as any).correctAnswer.display.length).toBeGreaterThan(0);
+});
+describe("generateArcLength",()=>{
+	it("generates arc length question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateArcLength("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
 	});
-	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateArcLength("medium", seededRng(42));
+		const dto2=generateArcLength("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
+	it("handles easy difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateArcLength("easy", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
+	it("handles hard difficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateArcLength("hard", rng);
+		expect(dto.correct).toBeDefined();
 	});
-	it("should set expectedFormat",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
-		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
+});
+describe("generateAngularLinearSpeed",()=>{
+	it("generates angular/linear speed question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateAngularLinearSpeed("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
 	});
-	it("should handle repeated calls consistently",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians();
-		let first=(window as any).correctAnswer;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians();
-		let second=(window as any).correctAnswer;
-		expect(first.correct).toBe(second.correct);
-		expect(first.display).toBe(second.display);
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateAngularLinearSpeed("medium", seededRng(42));
+		const dto2=generateAngularLinearSpeed("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("should verify correctAnswer structure",()=>{
-		Math.random=vi.fn().mockReturnValue(0.5);
-		generateDegreesToRadians();
-		let ans=(window as any).correctAnswer;
-		expect(ans).toHaveProperty("correct");
-		expect(ans).toHaveProperty("display");
-		expect(ans).toHaveProperty("choices");
-		expect(Array.isArray(ans.choices)).toBe(true);
-		expect(ans.choices.length).toBeGreaterThanOrEqual(1);
+});
+describe("generateRightTriangleDefs",()=>{
+	it("generates right triangle definitions question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateRightTriangleDefs("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateRightTriangleDefs("medium", seededRng(42));
+		const dto2=generateRightTriangleDefs("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateSpecialTriangle",()=>{
+	it("generates special triangle question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateSpecialTriangle("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateSpecialTriangle("medium", seededRng(42));
+		const dto2=generateSpecialTriangle("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateElevationDepression",()=>{
+	it("generates elevation/depression question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateElevationDepression("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateElevationDepression("medium", seededRng(42));
+		const dto2=generateElevationDepression("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateReferenceAngle",()=>{
+	it("generates reference angle question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateReferenceAngle("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateReferenceAngle("medium", seededRng(42));
+		const dto2=generateReferenceAngle("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateASTCSign",()=>{
+	it("generates ASTC sign question",()=>{
+		const rng=vi.fn().mockReturnValue(0.2).mockReturnValue(0.5);
+		const dto=generateASTCSign("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(["positive","negative"]).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateASTCSign("medium", seededRng(42));
+		const dto2=generateASTCSign("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateSumDifference",()=>{
+	it("generates sum/difference question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateSumDifference("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateSumDifference("medium", seededRng(42));
+		const dto2=generateSumDifference("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateDoubleAngle",()=>{
+	it("generates double angle question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateDoubleAngle("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateDoubleAngle("medium", seededRng(42));
+		const dto2=generateDoubleAngle("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateHalfAngle",()=>{
+	it("generates half angle question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateHalfAngle("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateHalfAngle("medium", seededRng(42));
+		const dto2=generateHalfAngle("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generatePolarToRectangular",()=>{
+	it("generates polar to rectangular question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generatePolarToRectangular("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generatePolarToRectangular("medium", seededRng(42));
+		const dto2=generatePolarToRectangular("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateRectangularToPolar",()=>{
+	it("generates rectangular to polar question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateRectangularToPolar("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateRectangularToPolar("medium", seededRng(42));
+		const dto2=generateRectangularToPolar("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generatePolarDistance",()=>{
+	it("generates polar distance question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generatePolarDistance("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generatePolarDistance("medium", seededRng(42));
+		const dto2=generatePolarDistance("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generatePolarGraphEquation",()=>{
+	it("generates polar graph equation question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generatePolarGraphEquation("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generatePolarGraphEquation("medium", seededRng(42));
+		const dto2=generatePolarGraphEquation("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateParametricToCartesian",()=>{
+	it("generates parametric to cartesian question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateParametricToCartesian("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateParametricToCartesian("medium", seededRng(42));
+		const dto2=generateParametricToCartesian("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateParametricMotion",()=>{
+	it("generates parametric motion question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateParametricMotion("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateParametricMotion("medium", seededRng(42));
+		const dto2=generateParametricMotion("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateComplexPolarForm",()=>{
+	it("generates complex polar form question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateComplexPolarForm("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateComplexPolarForm("medium", seededRng(42));
+		const dto2=generateComplexPolarForm("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateComplexMultiplyDivide",()=>{
+	it("generates complex multiply/divide question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateComplexMultiplyDivide("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateComplexMultiplyDivide("medium", seededRng(42));
+		const dto2=generateComplexMultiplyDivide("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateDeMoivre",()=>{
+	it("generates De Moivre theorem question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateDeMoivre("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateDeMoivre("medium", seededRng(42));
+		const dto2=generateDeMoivre("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("generateComplexRoots",()=>{
+	it("generates complex roots question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateComplexRoots("medium", rng);
+		expect(dto.latex).toBeDefined();
+		expect(dto.correct).toBeDefined();
+		expect(dto.choices).toContain(dto.correct);
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateComplexRoots("medium", seededRng(42));
+		const dto2=generateComplexRoots("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+});
+describe("Trigonometry analytic - comprehensive edge cases",()=>{
+	it("all generators should produce non-empty latex",()=>{
+		const gens=[generateDegreesToRadians,generateRadiansToDegrees,generateArcLength,generateAngularLinearSpeed,generateRightTriangleDefs,generateSpecialTriangle,generateElevationDepression,generateReferenceAngle,generateASTCSign,generateSumDifference,generateDoubleAngle,generateHalfAngle,generatePolarToRectangular,generateRectangularToPolar,generatePolarDistance,generatePolarGraphEquation,generateParametricToCartesian,generateParametricMotion,generateComplexPolarForm,generateComplexMultiplyDivide,generateDeMoivre,generateComplexRoots];
+		for(const gen of gens){
+			const rng=vi.fn().mockReturnValue(0.5);
+			const dto=gen("medium", rng);
+			expect(dto.latex.length).toBeGreaterThan(0);
+		}
+	});
+	it("all generators should include correct answer in choices",()=>{
+		const gens=[generateDegreesToRadians,generateRadiansToDegrees,generateArcLength,generateAngularLinearSpeed,generateRightTriangleDefs,generateSpecialTriangle,generateElevationDepression,generateReferenceAngle,generateASTCSign,generateSumDifference,generateDoubleAngle,generateHalfAngle,generatePolarToRectangular,generateRectangularToPolar,generatePolarDistance,generatePolarGraphEquation,generateParametricToCartesian,generateParametricMotion,generateComplexPolarForm,generateComplexMultiplyDivide,generateDeMoivre,generateComplexRoots];
+		for(const gen of gens){
+			const rng=vi.fn().mockReturnValue(0.5);
+			const dto=gen("medium", rng);
+			expect(dto.choices).toContain(dto.correct);
+		}
+	});
+	it("should not crash on repeated generate calls",()=>{
+		for(let i=0;i<30;i++){
+			const rng=vi.fn().mockReturnValue(i/30);
+			const dto=generateDegreesToRadians("medium", rng);
+			expect(dto.correct).toBeDefined();
+		}
 	});
 });
