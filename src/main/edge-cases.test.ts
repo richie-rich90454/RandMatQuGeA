@@ -46,8 +46,8 @@ describe("Generator MCQ dedup edge cases",()=>{
             .mockReturnValueOnce(0.3); // operand
         const dto=mod.generateAddition();
         expect(dto).toBeDefined();
-        expect(dto.choices).toContain(dto.correct);
-        expect(new Set(dto.choices).size).toBe(dto.choices.length);
+        expect(dto.choices!).toContain(dto.correct);
+        expect(new Set(dto.choices!).size).toBe(dto.choices!.length);
         Math.random=originalRandom;
     });
 
@@ -60,8 +60,8 @@ describe("Generator MCQ dedup edge cases",()=>{
                 .mockReturnValueOnce(0.1+seed*0.05); // angle index
             const dto=mod.generateSin();
             expect(dto).toBeDefined();
-            expect(dto.choices).toContain(dto.correct);
-            expect(new Set(dto.choices).size).toBe(dto.choices.length);
+            expect(dto.choices!).toContain(dto.correct);
+            expect(new Set(dto.choices!).size).toBe(dto.choices!.length);
         }
         Math.random=originalRandom;
     });
@@ -73,8 +73,8 @@ describe("Generator MCQ dedup edge cases",()=>{
             Math.random=vi.fn().mockReturnValue(seed/10);
             const dto=mod.generateLinearEquation();
             expect(dto).toBeDefined();
-            expect(dto.choices).toContain(dto.correct);
-            expect(new Set(dto.choices).size).toBe(dto.choices.length);
+            expect(dto.choices!).toContain(dto.correct);
+            expect(new Set(dto.choices!).size).toBe(dto.choices!.length);
         }
         Math.random=originalRandom;
     });
@@ -224,7 +224,7 @@ describe("Display stability",()=>{
         expect(dto).toHaveProperty("display");
         expect(dto).toHaveProperty("choices");
         expect(Array.isArray(dto.choices)).toBe(true);
-        expect(dto.choices.length).toBeGreaterThan(0);
+        expect(dto.choices!.length).toBeGreaterThan(0);
         Math.random=originalRandom;
     });
 
