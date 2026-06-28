@@ -115,6 +115,13 @@ describe("initializeTheme",()=>{
         await initializeTheme();
         expect(mockApplyTheme).toHaveBeenCalledWith("dark");
     });
+    it("should preserve system preference on reload (C004 regression)",async()=>{
+        localStorage.setItem("theme","system");
+        mockMatchMedia.mockReturnValue({matches:false,addEventListener:mockAddEventListener});
+        await initializeTheme();
+        expect(mockSettings.theme).toBe("system");
+        expect(mockApplyTheme).toHaveBeenCalledWith("light");
+    });
     it("should handle invalid saved theme",async()=>{
         localStorage.setItem("theme","invalid");
         mockMatchMedia.mockReturnValue({matches:false,addEventListener:mockAddEventListener});

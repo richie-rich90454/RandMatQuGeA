@@ -9,11 +9,8 @@ export async function initializeTheme(): Promise<void>{
 	catch(e){
 		console.log("Failed to read theme from localStorage:",e);
 	}
-	if (savedTheme==="light"||savedTheme==="dark"){
+	if (savedTheme==="light"||savedTheme==="dark"||savedTheme==="system"){
 		settings.settings.theme=savedTheme;
-	}
-	else if (savedTheme){
-		settings.settings.theme="light";
 	}
 	let applied:boolean=false;
 	if (dom.appWindow){
