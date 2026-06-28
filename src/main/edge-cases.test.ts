@@ -383,31 +383,31 @@ describe("Progress bar division by zero fixes",()=>{
 
     it("updateProgressBar does not crash when maxQuestions is 0",async()=>{
         // Set up state with maxQuestions=0
-        const stateMod=await import("../main/state.js");
-        const originalMax=stateMod.maxQuestions;
-        stateMod.setMaxQuestions(0);
+        const stateMod=await import("../main/core/stateStore.js");
+        const originalMax=stateMod.appState.maxQuestions;
+        stateMod.appState.maxQuestions=0;
         const uiMod=await import("../main/ui.js");
         expect(()=>uiMod.updateProgressBar()).not.toThrow();
-        stateMod.setMaxQuestions(originalMax);
+        stateMod.appState.maxQuestions=originalMax;
     });
 
     it("updateProgressBar does not crash when maxQuestions is negative",async()=>{
-        const stateMod=await import("../main/state.js");
-        const originalMax=stateMod.maxQuestions;
-        stateMod.setMaxQuestions(-1);
+        const stateMod=await import("../main/core/stateStore.js");
+        const originalMax=stateMod.appState.maxQuestions;
+        stateMod.appState.maxQuestions=-1;
         const uiMod=await import("../main/ui.js");
         expect(()=>uiMod.updateProgressBar()).not.toThrow();
-        stateMod.setMaxQuestions(originalMax);
+        stateMod.appState.maxQuestions=originalMax;
     });
 
     it("updateProgressBar produces finite percentage when maxQuestions is positive",async()=>{
-        const stateMod=await import("../main/state.js");
-        const originalMax=stateMod.maxQuestions;
-        stateMod.setMaxQuestions(10);
-        stateMod.setSessionScore({correct:3,total:5});
+        const stateMod=await import("../main/core/stateStore.js");
+        const originalMax=stateMod.appState.maxQuestions;
+        stateMod.appState.maxQuestions=10;
+        stateMod.appState.sessionScore={correct:3,total:5};
         const uiMod=await import("../main/ui.js");
         expect(()=>uiMod.updateProgressBar()).not.toThrow();
-        stateMod.setMaxQuestions(originalMax);
+        stateMod.appState.maxQuestions=originalMax;
     });
 });
 
@@ -426,11 +426,11 @@ describe("endMentalSession null topic fix",()=>{
 
     it("endMentalSession does not crash when selectedTopic is null",async()=>{
         const sessionMod=await import("../main/session.js");
-        const stateMod=await import("../main/state.js");
+        const stateMod=await import("../main/core/stateStore.js");
         // Set session active with null topic
-        stateMod.setSelectedTopic(null);
-        stateMod.setSessionActive(true);
-        stateMod.setSessionScore({correct:0,total:0});
+        stateMod.appState.selectedTopic=null;
+        stateMod.appState.sessionActive=true;
+        stateMod.appState.sessionScore={correct:0,total:0};
         // endMentalSession should handle null topic gracefully
         // It should not throw even though promptSaveScore checks selectedTopic
         let threw=false;
