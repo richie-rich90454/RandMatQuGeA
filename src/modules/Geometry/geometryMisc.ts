@@ -1,22 +1,19 @@
-import {renderer} from "../../main/core/questionRenderer";
-import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
-import {createVisualization} from "./geometryVisualization.js";
+import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxForDifficulty} from "./geometryUtils.js";
 /**
  * Miscellaneous geometry: perimeter, arc length, distance formula, angle relations.
- * @fileoverview Generates questions about perimeter (rectangle/triangle), arc length, distance between points, and complementary/supplementary angles. Uses the renderer API to display questions and set answers, plus plausible wrong answers for MCQ mode.
+ * @fileoverview Generates questions about perimeter (rectangle/triangle), arc length, distance between points, and complementary/supplementary angles. Builds a QuestionDto with plausible wrong answers for MCQ mode.
  * @date 2026-04-18
  */
-export function generatePerimeter(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
-	const shape=Math.random()>0.5?"rectangle":"triangle";
+export function generatePerimeter(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
+	const shape=rng()>0.5?"rectangle":"triangle";
 	let mathExpression="";
 	let correct="";
 	let choices:string[]=[];
 	if(shape==="rectangle"){
 		const maxDim=getMaxForDifficulty(difficulty,10);
-		const l=Math.floor(Math.random()*maxDim)+3;
-		const w=Math.floor(Math.random()*maxDim)+2;
+		const l=Math.floor(rng()*maxDim)+3;
+		const w=Math.floor(rng()*maxDim)+2;
 		const perimeter=2*(l+w);
 		correct=perimeter.toString();
 		mathExpression=`Find the perimeter of a rectangle with length \\( ${l} \\) and width \\( ${w} \\).`;
@@ -25,13 +22,12 @@ export function generatePerimeter(difficulty?: string): void{
 		choices.push((2*(l+w+1)).toString());
 		choices.push((l*w).toString());
 		choices.push((2*l+2*w+1).toString());
-		createVisualization("cube",{size:Math.min(l,w,4)});
 	}
 	else{
 		const maxSide=getMaxForDifficulty(difficulty,8);
-		const a=Math.floor(Math.random()*maxSide)+3;
-		const b=Math.floor(Math.random()*maxSide)+3;
-		const c=Math.floor(Math.random()*maxSide)+3;
+		const a=Math.floor(rng()*maxSide)+3;
+		const b=Math.floor(rng()*maxSide)+3;
+		const c=Math.floor(rng()*maxSide)+3;
 		const perimeter=a+b+c;
 		correct=perimeter.toString();
 		mathExpression=`Find the perimeter of a triangle with sides \\( ${a}, ${b}, ${c} \\).`;
@@ -40,28 +36,25 @@ export function generatePerimeter(difficulty?: string): void{
 		choices.push((a+b+c-1).toString());
 		choices.push((2*(a+b)).toString());
 		choices.push((a*b*c).toString());
-		createVisualization("triangle",{base:a,height:b});
 	}
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: correct,
 		display: correct,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter a whole number");
+		choices: uniqueChoices,
+		expectedFormat: "Enter a whole number"
+	};
 }
-export function generateArcLength(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generateArcLength(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxRadius=getMaxForDifficulty(difficulty,8);
-	const r=Math.floor(Math.random()*maxRadius)+3;
-	const angle=Math.floor(Math.random()*90)+30;
+	const r=Math.floor(rng()*maxRadius)+3;
+	const angle=Math.floor(rng()*90)+30;
 	const arc=(angle/360)*2*Math.PI*r;
 	const rounded=Math.round(arc*100)/100;
 	const correct=rounded.toFixed(2);
@@ -73,27 +66,24 @@ export function generateArcLength(difficulty?: string): void{
 	choices.push((Math.PI*r*r).toFixed(2));
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: ((angle/360)*2*Math.PI*r).toFixed(2),
 		display: correct,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter a decimal");
-	createVisualization("torus",{radius:r,tube:0.2});
+		choices: uniqueChoices,
+		expectedFormat: "Enter a decimal"
+	};
 }
-export function generateDistanceFormula(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generateDistanceFormula(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxCoord=getMaxForDifficulty(difficulty,8);
-	const x1=Math.floor(Math.random()*maxCoord)-4;
-	const y1=Math.floor(Math.random()*maxCoord)-4;
-	const x2=Math.floor(Math.random()*maxCoord)-4;
-	const y2=Math.floor(Math.random()*maxCoord)-4;
+	const x1=Math.floor(rng()*maxCoord)-4;
+	const y1=Math.floor(rng()*maxCoord)-4;
+	const x2=Math.floor(rng()*maxCoord)-4;
+	const y2=Math.floor(rng()*maxCoord)-4;
 	const dist=Math.sqrt((x2-x1)**2+(y2-y1)**2);
 	const rounded=Math.round(dist*100)/100;
 	const correct=rounded.toFixed(2);
@@ -105,22 +95,20 @@ export function generateDistanceFormula(difficulty?: string): void{
 	choices.push((Math.abs(x2-x1)).toFixed(2));
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: Math.sqrt((x2-x1)**2+(y2-y1)**2).toFixed(2),
 		display: correct,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter a decimal");
+		choices: uniqueChoices,
+		expectedFormat: "Enter a decimal"
+	};
 }
-export function generateAngleRelations(_difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
-	const angle=Math.floor(Math.random()*60)+20;
+export function generateAngleRelations(_difficulty?: string, rng: RngFn=Math.random): QuestionDto{
+	const angle=Math.floor(rng()*60)+20;
 	const comp=90-angle;
 	const supp=180-angle;
 	const correct=`complement: ${comp}, supplement: ${supp}`;
@@ -132,15 +120,15 @@ export function generateAngleRelations(_difficulty?: string): void{
 	choices.push(`complement: ${180-angle}, supplement: ${90-angle}`);
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correct,
 		alternate: `${comp}, ${supp}`,
 		display: correct,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter as \"complement: X, supplement: Y\"");
+		choices: uniqueChoices,
+		expectedFormat: "Enter as \"complement: X, supplement: Y\""
+	};
 }

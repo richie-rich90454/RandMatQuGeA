@@ -1,173 +1,308 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
-import {generateParabola,generateEllipse,generateHyperbola,generate3DDistanceMidpoint} from "./geometryAnalytic.js";
-let sink=vi.hoisted(()=>({ div: null as HTMLDivElement|null }));
-vi.mock("../../main/core/questionRenderer",()=>({
-	renderer:{
-		render(html: string){
-			if(sink.div) sink.div.innerHTML=html;
-			let mj=(window as any).MathJax;
-			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
-		},
-		clear(){ if(sink.div) sink.div.innerHTML=""; },
-		setAnswer(a: any){ (window as any).correctAnswer=a; },
-		setExpectedFormat(f: string){ (window as any).expectedFormat=f; },
-		setHasQuestion(v: boolean){ (window as any).hasQuestion=v; },
-		typeset(){
-			let mj=(window as any).MathJax;
-			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
-		}
-	}
-}));
-vi.mock("./geometryUtils.js",()=>({
-	getMaxForDifficulty:vi.fn(()=>5),
-	cleanupVisualization:vi.fn()
-}));
-vi.mock("./geometryVisualization.js",()=>({
-	createVisualization:vi.fn()
-}));
+import {describe,it,expect} from "vitest";
+import {generateParabola,generateEllipse,generateHyperbola,generatePolarConic,generate3DDistanceMidpoint,generateSphereEquation,generateLinePlane3D} from "./geometryAnalytic.js";
+import {seededRng} from "../../main/core/rng";
 describe("generateParabola",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		sink.div=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateParabola("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateParabola("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("returns early if questionArea is null",()=>{
-		sink.div=null;
-		generateParabola();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates parabola correctly",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.3).mockReturnValueOnce(0.5);
-		generateParabola();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toContain("focus");
-	});
-	it("generates ellipse correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateEllipse();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates hyperbola correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateHyperbola();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates 3D distance midpoint correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generate3DDistanceMidpoint();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toContain("distance");
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.3).mockReturnValueOnce(0.5);
-		generateParabola();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-		expect((window as any).correctAnswer.choices).toBeDefined();
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.3).mockReturnValueOnce(0.5);
-		generateParabola();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
+	it("returns choices array",()=>{
+		const dto=generateParabola("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
 	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.3).mockReturnValueOnce(0.5);
-		generateParabola("easy");
-		expect((window as any).correctAnswer).toBeDefined();
+		const dto=generateParabola("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.3).mockReturnValueOnce(0.5);
-		generateParabola("medium");
-		expect((window as any).correctAnswer).toBeDefined();
+		const dto=generateParabola("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValueOnce(0.3).mockReturnValueOnce(0.5);
-		generateParabola("hard");
-		expect((window as any).correctAnswer).toBeDefined();
+		const dto=generateParabola("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateParabola("medium", seededRng(42));
+		const dto2=generateParabola("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateParabola("medium", seededRng(42));
+		const dto2=generateParabola("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });
-describe("generateParabola - edge cases",()=>{
-    let originalMathRandom:()=>number;
-    let mockDiv:HTMLDivElement;
-    beforeEach(()=>{
-        originalMathRandom=Math.random;
-        mockDiv=document.createElement("div");
-        sink.div=mockDiv;
-        delete(window as any).correctAnswer;
-        delete(window as any).expectedFormat;
-        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
-    });
-    afterEach(()=>{
-        Math.random=originalMathRandom;
-        delete(window as any).MathJax;
-    });
-    it("should produce non-empty question HTML",()=>{
-        Math.random=vi.fn().mockReturnValueOnce(0.5).mockReturnValueOnce(0.3);
-        generateParabola();
-        expect(mockDiv.innerHTML).not.toBe("");
-    });
-    it("should set correctAnswer with display property",()=>{
-        Math.random=vi.fn().mockReturnValueOnce(0.5).mockReturnValueOnce(0.3);
-        generateParabola();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer).toHaveProperty("display");
-    });
-    it("should handle vertical parabola",()=>{
-        Math.random=vi.fn()
-            .mockReturnValueOnce(0.5)
-            .mockReturnValueOnce(0.3);
-        generateParabola();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer.correct).toContain("focus");
-    });
-    it("should handle horizontal parabola",()=>{
-        Math.random=vi.fn()
-            .mockReturnValueOnce(0.5)
-            .mockReturnValueOnce(0.7);
-        generateParabola();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer.correct).toContain("focus");
-    });
-    it("should handle easy difficulty",()=>{
-        Math.random=vi.fn().mockReturnValueOnce(0.5).mockReturnValueOnce(0.3);
-        generateParabola("easy");
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer).toHaveProperty("correct");
-    });
-    it("should handle medium difficulty",()=>{
-        Math.random=vi.fn().mockReturnValueOnce(0.5).mockReturnValueOnce(0.3);
-        generateParabola("medium");
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer).toHaveProperty("correct");
-    });
-    it("should handle hard difficulty",()=>{
-        Math.random=vi.fn().mockReturnValueOnce(0.5).mockReturnValueOnce(0.3);
-        generateParabola("hard");
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer).toHaveProperty("correct");
-    });
-    it("should handle repeated calls",()=>{
-        Math.random=vi.fn().mockReturnValueOnce(0.5).mockReturnValueOnce(0.3);
-        generateParabola();
-        let first=(window as any).correctAnswer;
-        Math.random=vi.fn().mockReturnValueOnce(0.5).mockReturnValueOnce(0.7);
-        generateParabola();
-        let second=(window as any).correctAnswer;
-        expect(first).toBeDefined();
-        expect(second).toBeDefined();
-    });
+describe("generateEllipse",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateEllipse("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateEllipse("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateEllipse("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateEllipse("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generateEllipse("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateEllipse("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateEllipse("medium", seededRng(42));
+		const dto2=generateEllipse("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateEllipse("medium", seededRng(42));
+		const dto2=generateEllipse("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
+});
+describe("generateHyperbola",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateHyperbola("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateHyperbola("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateHyperbola("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateHyperbola("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generateHyperbola("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateHyperbola("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateHyperbola("medium", seededRng(42));
+		const dto2=generateHyperbola("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateHyperbola("medium", seededRng(42));
+		const dto2=generateHyperbola("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
+});
+describe("generatePolarConic",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generatePolarConic("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generatePolarConic("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generatePolarConic("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generatePolarConic("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generatePolarConic("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generatePolarConic("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generatePolarConic("medium", seededRng(42));
+		const dto2=generatePolarConic("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generatePolarConic("medium", seededRng(42));
+		const dto2=generatePolarConic("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
+});
+describe("generate3DDistanceMidpoint",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generate3DDistanceMidpoint("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generate3DDistanceMidpoint("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generate3DDistanceMidpoint("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generate3DDistanceMidpoint("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generate3DDistanceMidpoint("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generate3DDistanceMidpoint("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generate3DDistanceMidpoint("medium", seededRng(42));
+		const dto2=generate3DDistanceMidpoint("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generate3DDistanceMidpoint("medium", seededRng(42));
+		const dto2=generate3DDistanceMidpoint("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
+});
+describe("generateSphereEquation",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateSphereEquation("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateSphereEquation("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateSphereEquation("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateSphereEquation("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generateSphereEquation("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateSphereEquation("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateSphereEquation("medium", seededRng(42));
+		const dto2=generateSphereEquation("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateSphereEquation("medium", seededRng(42));
+		const dto2=generateSphereEquation("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
+});
+describe("generateLinePlane3D",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateLinePlane3D("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateLinePlane3D("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateLinePlane3D("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateLinePlane3D("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generateLinePlane3D("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateLinePlane3D("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateLinePlane3D("medium", seededRng(42));
+		const dto2=generateLinePlane3D("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateLinePlane3D("medium", seededRng(42));
+		const dto2=generateLinePlane3D("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
 });

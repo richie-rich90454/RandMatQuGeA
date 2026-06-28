@@ -1,16 +1,13 @@
-import {renderer} from "../../main/core/questionRenderer";
-import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
-import {createVisualization} from "./geometryVisualization.js";
+import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxForDifficulty} from "./geometryUtils.js";
 /**
  * Area and surface area: circle, rectangle, triangle, sector, cube.
- * @fileoverview Generates questions about area and surface area for common 2D and 3D shapes. Uses the renderer API to display questions and set answers, plus plausible wrong answers for MCQ mode.
+ * @fileoverview Generates questions about area and surface area for common 2D and 3D shapes. Builds a QuestionDto with plausible wrong answers for MCQ mode.
  * @date 2026-04-18
  */
-export function generateAreaCircle(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generateAreaCircle(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxRadius=getMaxForDifficulty(difficulty,10);
-	const radius=Math.floor(Math.random()*maxRadius)+2;
+	const radius=Math.floor(rng()*maxRadius)+2;
 	const area=Math.PI*radius*radius;
 	const rounded=Math.round(area*100)/100;
 	const correctStr=rounded.toFixed(2);
@@ -22,25 +19,22 @@ export function generateAreaCircle(difficulty?: string): void{
 	choices.push((radius*radius).toFixed(2));
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correctStr)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctStr;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctStr;
 		else uniqueChoices=[correctStr];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctStr,
 		alternate: (Math.PI*radius*radius).toFixed(2),
 		display: correctStr,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter a decimal (e.g., 78.54)");
-	createVisualization("circle",{radius});
+		choices: uniqueChoices,
+		expectedFormat: "Enter a decimal (e.g., 78.54)"
+	};
 }
-export function generateAreaRectangle(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generateAreaRectangle(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxDim=getMaxForDifficulty(difficulty,12);
-	const length=Math.floor(Math.random()*maxDim)+3;
-	const width=Math.floor(Math.random()*maxDim)+2;
+	const length=Math.floor(rng()*maxDim)+3;
+	const width=Math.floor(rng()*maxDim)+2;
 	const area=length*width;
 	const correctStr=area.toString();
 	let mathExpression=`Find the area of a rectangle with length \\( ${length} \\) and width \\( ${width} \\).`;
@@ -51,26 +45,23 @@ export function generateAreaRectangle(difficulty?: string): void{
 	choices.push(((length-1)*(width-1)).toString());
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correctStr)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctStr;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctStr;
 		else uniqueChoices=[correctStr];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctStr,
 		alternate: correctStr,
 		display: correctStr,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter a whole number");
-	createVisualization("cube",{size:Math.min(length,width,5)});
+		choices: uniqueChoices,
+		expectedFormat: "Enter a whole number"
+	};
 }
-export function generateAreaTriangle(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generateAreaTriangle(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxBase=getMaxForDifficulty(difficulty,10);
 	const maxHeight=getMaxForDifficulty(difficulty,10);
-	const base=Math.floor(Math.random()*maxBase)+3;
-	const height=Math.floor(Math.random()*maxHeight)+3;
+	const base=Math.floor(rng()*maxBase)+3;
+	const height=Math.floor(rng()*maxHeight)+3;
 	const area=0.5*base*height;
 	const rounded=Math.round(area*100)/100;
 	const correctStr=rounded.toFixed(2);
@@ -82,25 +73,22 @@ export function generateAreaTriangle(difficulty?: string): void{
 	choices.push((0.5*(base-1)*(height-1)).toFixed(2));
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correctStr)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctStr;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctStr;
 		else uniqueChoices=[correctStr];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctStr,
 		alternate: (0.5*base*height).toFixed(2),
 		display: correctStr,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter a decimal (e.g., 12.5)");
-	createVisualization("triangle",{base,height});
+		choices: uniqueChoices,
+		expectedFormat: "Enter a decimal (e.g., 12.5)"
+	};
 }
-export function generateSectorArea(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generateSectorArea(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxRadius=getMaxForDifficulty(difficulty,8);
-	const r=Math.floor(Math.random()*maxRadius)+3;
-	const angle=Math.floor(Math.random()*90)+30;
+	const r=Math.floor(rng()*maxRadius)+3;
+	const angle=Math.floor(rng()*90)+30;
 	const area=(angle/360)*Math.PI*r*r;
 	const rounded=Math.round(area*100)/100;
 	const correctStr=rounded.toFixed(2);
@@ -112,24 +100,21 @@ export function generateSectorArea(difficulty?: string): void{
 	choices.push((Math.PI*r*r).toFixed(2));
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correctStr)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctStr;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctStr;
 		else uniqueChoices=[correctStr];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctStr,
 		alternate: ((angle/360)*Math.PI*r*r).toFixed(2),
 		display: correctStr,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter a decimal");
-	createVisualization("circle",{radius:r});
+		choices: uniqueChoices,
+		expectedFormat: "Enter a decimal"
+	};
 }
-export function generateSurfaceAreaCube(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generateSurfaceAreaCube(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxSide=getMaxForDifficulty(difficulty,6);
-	const s=Math.floor(Math.random()*maxSide)+2;
+	const s=Math.floor(rng()*maxSide)+2;
 	const area=6*s*s;
 	const correctStr=area.toString();
 	let mathExpression=`Find the surface area of a cube with side \\( ${s} \\).`;
@@ -140,16 +125,15 @@ export function generateSurfaceAreaCube(difficulty?: string): void{
 	choices.push((6*s).toString());
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correctStr)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctStr;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctStr;
 		else uniqueChoices=[correctStr];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctStr,
 		alternate: correctStr,
 		display: correctStr,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter a whole number");
-	createVisualization("cube",{size:s});
+		choices: uniqueChoices,
+		expectedFormat: "Enter a whole number"
+	};
 }

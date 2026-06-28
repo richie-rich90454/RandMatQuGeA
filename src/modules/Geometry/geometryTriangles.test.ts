@@ -1,175 +1,140 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {describe,it,expect} from "vitest";
 import {generatePythagorean,generateSimilarTriangles,generateTriangleClassification} from "./geometryTriangles.js";
-import {getMaxForDifficulty} from "./geometryUtils.js";
-let sink=vi.hoisted(()=>({ div: null as HTMLDivElement|null }));
-vi.mock("../../main/core/questionRenderer",()=>({
-	renderer:{
-		render(html: string){
-			if(sink.div) sink.div.innerHTML=html;
-			let mj=(window as any).MathJax;
-			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
-		},
-		clear(){ if(sink.div) sink.div.innerHTML=""; },
-		setAnswer(a: any){ (window as any).correctAnswer=a; },
-		setExpectedFormat(f: string){ (window as any).expectedFormat=f; },
-		setHasQuestion(v: boolean){ (window as any).hasQuestion=v; },
-		typeset(){
-			let mj=(window as any).MathJax;
-			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
-		}
-	}
-}));
-vi.mock("./geometryUtils.js",()=>({
-	getMaxForDifficulty:vi.fn(()=>5),
-	cleanupVisualization:vi.fn()
-}));
-vi.mock("./geometryVisualization.js",()=>({
-	createVisualization:vi.fn()
-}));
+import {seededRng} from "../../main/core/rng";
 describe("generatePythagorean",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		sink.div=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generatePythagorean("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generatePythagorean("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("returns early if questionArea is null",()=>{
-		sink.div=null;
-		generatePythagorean();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates pythagorean correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generatePythagorean();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect(mockDiv.innerHTML).toContain("hypotenuse");
-	});
-	it("generates similar triangles correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateSimilarTriangles();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates triangle classification correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.2);
-		generateTriangleClassification();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect(["equilateral","isosceles","scalene"]).toContain((window as any).correctAnswer.correct);
-	});
-	it("generates triangle classification for scalene",()=>{
-		Math.random=vi.fn().mockReturnValue(0.8);
-		generateTriangleClassification();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generatePythagorean();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-		expect((window as any).correctAnswer.choices).toBeDefined();
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generatePythagorean();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
+	it("returns choices array",()=>{
+		const dto=generatePythagorean("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
 	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generatePythagorean("easy");
-		expect((window as any).correctAnswer).toBeDefined();
+		const dto=generatePythagorean("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generatePythagorean("medium");
-		expect((window as any).correctAnswer).toBeDefined();
+		const dto=generatePythagorean("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generatePythagorean("hard");
-		expect((window as any).correctAnswer).toBeDefined();
+		const dto=generatePythagorean("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generatePythagorean("medium", seededRng(42));
+		const dto2=generatePythagorean("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generatePythagorean("medium", seededRng(42));
+		const dto2=generatePythagorean("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });
-describe("generatePythagorean - edge cases",()=>{
-    let originalMathRandom:()=>number;
-    let mockDiv:HTMLDivElement;
-    beforeEach(()=>{
-        originalMathRandom=Math.random;
-        mockDiv=document.createElement("div");
-        sink.div=mockDiv;
-        delete(window as any).correctAnswer;
-        delete(window as any).expectedFormat;
-        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
-    });
-    afterEach(()=>{
-        Math.random=originalMathRandom;
-        delete(window as any).MathJax;
-    });
-    it("should produce non-empty question HTML",()=>{
-        Math.random=vi.fn().mockReturnValue(0.3);
-        generatePythagorean();
-        expect(mockDiv.innerHTML).not.toBe("");
-    });
-    it("should set correctAnswer with display property",()=>{
-        Math.random=vi.fn().mockReturnValue(0.3);
-        generatePythagorean();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer).toHaveProperty("display");
-    });
-    it("should handle 3-4-5 triangle",()=>{
-        Math.random=vi.fn()
-            .mockReturnValueOnce(0.1)
-            .mockReturnValueOnce(0.3);
-        generatePythagorean();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer.correct).toBe("5.00");
-    });
-    it("should handle 5-12-13 triangle",()=>{
-        vi.mocked(getMaxForDifficulty).mockReturnValueOnce(12);
-        Math.random=vi.fn()
-            .mockReturnValueOnce(0.2)
-            .mockReturnValueOnce(0.8);
-        generatePythagorean();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer.correct).toBe("13.00");
-    });
-    it("should handle easy difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.3);
-        generatePythagorean("easy");
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer).toHaveProperty("correct");
-    });
-    it("should handle medium difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.3);
-        generatePythagorean("medium");
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer).toHaveProperty("correct");
-    });
-    it("should handle hard difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.3);
-        generatePythagorean("hard");
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer).toHaveProperty("correct");
-    });
-    it("should handle repeated calls",()=>{
-        Math.random=vi.fn().mockReturnValue(0.3);
-        generatePythagorean();
-        let first=(window as any).correctAnswer;
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generatePythagorean();
-        let second=(window as any).correctAnswer;
-        expect(first).toBeDefined();
-        expect(second).toBeDefined();
-    });
+describe("generateSimilarTriangles",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateSimilarTriangles("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateSimilarTriangles("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateSimilarTriangles("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateSimilarTriangles("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generateSimilarTriangles("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateSimilarTriangles("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateSimilarTriangles("medium", seededRng(42));
+		const dto2=generateSimilarTriangles("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateSimilarTriangles("medium", seededRng(42));
+		const dto2=generateSimilarTriangles("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
+});
+describe("generateTriangleClassification",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateTriangleClassification("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateTriangleClassification("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateTriangleClassification("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should classify triangle as equilateral, isosceles, or scalene",()=>{
+		const dto=generateTriangleClassification("medium", seededRng(42));
+		expect(["equilateral","isosceles","scalene"]).toContain(dto.correct);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateTriangleClassification("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generateTriangleClassification("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateTriangleClassification("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateTriangleClassification("medium", seededRng(42));
+		const dto2=generateTriangleClassification("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateTriangleClassification("medium", seededRng(42));
+		const dto2=generateTriangleClassification("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
 });

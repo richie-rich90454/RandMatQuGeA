@@ -1,17 +1,14 @@
-import {renderer} from "../../main/core/questionRenderer";
-import {getMaxForDifficulty, cleanupVisualization} from "./geometryUtils.js";
-import {createVisualization} from "./geometryVisualization.js";
+import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxForDifficulty} from "./geometryUtils.js";
 /**
  * Analytic geometry: conic sections (parabola, ellipse, hyperbola), polar conics, 3D geometry (distance/midpoint, sphere equations, line/plane).
- * @fileoverview Generates questions about analytic geometry concepts, uses the renderer API to display questions and set answers, plus plausible wrong answers for MCQ mode. Includes 3D visualizations.
+ * @fileoverview Generates questions about analytic geometry concepts, builds a QuestionDto with plausible wrong answers for MCQ mode.
  * @date 2026-04-18
  */
-export function generateParabola(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generateParabola(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxA=getMaxForDifficulty(difficulty,5);
-	const a=Math.floor(Math.random()*maxA)+1;
-	const type=Math.random()<0.5?"upward":"rightward";
+	const a=Math.floor(rng()*maxA)+1;
+	const type=rng()<0.5?"upward":"rightward";
 	let equation="";
 	let focus="";
 	let directrix="";
@@ -39,37 +36,34 @@ export function generateParabola(difficulty?: string): void{
 	];
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correctAnswer)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctAnswer,
 		alternate: `${focus}, ${directrix}`,
 		display: correctAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter as 'focus: (x,y), directrix: line'");
-	createVisualization("parabola",{ a, type });
+		choices: uniqueChoices,
+		expectedFormat: "Enter as 'focus: (x,y), directrix: line'"
+	};
 }
-export function generateEllipse(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generateEllipse(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxAxis=getMaxForDifficulty(difficulty,8);
-	const a=Math.floor(Math.random()*maxAxis)+3;
-	const b=Math.floor(Math.random()*(a-1))+2;
-	const center=Math.random()<0.5?"origin":"translated";
+	const a=Math.floor(rng()*maxAxis)+3;
+	const b=Math.floor(rng()*(a-1))+2;
+	const center=rng()<0.5?"origin":"translated";
 	let h=0;
 	let k=0;
 	if(center==="translated"){
-		h=Math.floor(Math.random()*5)-2;
-		k=Math.floor(Math.random()*5)-2;
+		h=Math.floor(rng()*5)-2;
+		k=Math.floor(rng()*5)-2;
 	}
 	let equation="";
 	let foci="";
 	let eccentricity=0;
 	if(center==="origin"){
-		if(Math.random()<0.5){
+		if(rng()<0.5){
 			equation=`\\frac{x^2}{${a}^2} + \\frac{y^2}{${b}^2} = 1`;
 			const c=Math.sqrt(a*a-b*b);
 			foci=`(±${c.toFixed(2)}, 0)`;
@@ -83,7 +77,7 @@ export function generateEllipse(difficulty?: string): void{
 		}
 	}
 	else{
-		if(Math.random()<0.5){
+		if(rng()<0.5){
 			equation=`\\frac{(x ${h>=0?'-':'+'} ${Math.abs(h)})^2}{${a}^2} + \\frac{(y ${k>=0?'-':'+'} ${Math.abs(k)})^2}{${b}^2} = 1`;
 			const c=Math.sqrt(a*a-b*b);
 			foci=`(${h} ± ${c.toFixed(2)}, ${k})`;
@@ -111,38 +105,35 @@ export function generateEllipse(difficulty?: string): void{
 	];
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correctAnswer)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctAnswer,
 		alternate: `${foci}, ${eccentricity.toFixed(2)}`,
 		display: correctAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter as 'foci: (x,y) (±), e = number'");
-	createVisualization("ellipse",{ a, b, center, h, k });
+		choices: uniqueChoices,
+		expectedFormat: "Enter as 'foci: (x,y) (±), e = number'"
+	};
 }
-export function generateHyperbola(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generateHyperbola(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxAxis=getMaxForDifficulty(difficulty,8);
-	const a=Math.floor(Math.random()*maxAxis)+3;
-	const b=Math.floor(Math.random()*maxAxis)+2;
-	const center=Math.random()<0.5?"origin":"translated";
+	const a=Math.floor(rng()*maxAxis)+3;
+	const b=Math.floor(rng()*maxAxis)+2;
+	const center=rng()<0.5?"origin":"translated";
 	let h=0;
 	let k=0;
 	if(center==="translated"){
-		h=Math.floor(Math.random()*5)-2;
-		k=Math.floor(Math.random()*5)-2;
+		h=Math.floor(rng()*5)-2;
+		k=Math.floor(rng()*5)-2;
 	}
 	let equation="";
 	let foci="";
 	let asymptotes="";
 	let eccentricity=0;
 	if(center==="origin"){
-		if(Math.random()<0.5){
+		if(rng()<0.5){
 			equation=`\\frac{x^2}{${a}^2} - \\frac{y^2}{${b}^2} = 1`;
 			const c=Math.sqrt(a*a+b*b);
 			foci=`(±${c.toFixed(2)}, 0)`;
@@ -158,7 +149,7 @@ export function generateHyperbola(difficulty?: string): void{
 		}
 	}
 	else{
-		if(Math.random()<0.5){
+		if(rng()<0.5){
 			equation=`\\frac{(x ${h>=0?'-':'+'} ${Math.abs(h)})^2}{${a}^2} - \\frac{(y ${k>=0?'-':'+'} ${Math.abs(k)})^2}{${b}^2} = 1`;
 			const c=Math.sqrt(a*a+b*b);
 			foci=`(${h} ± ${c.toFixed(2)}, ${k})`;
@@ -188,46 +179,45 @@ export function generateHyperbola(difficulty?: string): void{
 	];
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correctAnswer)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctAnswer,
 		alternate: `${foci}, ${asymptotes}, ${eccentricity.toFixed(2)}`,
 		display: correctAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter as 'foci: ..., asymptotes: ..., e = ...'");
-	createVisualization("hyperbola",{ a, b, center, h, k });
+		choices: uniqueChoices,
+		expectedFormat: "Enter as 'foci: ..., asymptotes: ..., e = ...'"
+	};
 }
-export function generatePolarConic(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generatePolarConic(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let eMin=0.2;
 	let eMax=2.2;
 	let kMin=2;
 	let kMax=6;
 	switch(difficulty){
-		case "easy":
+		case "easy":{
 			eMax=1.8;
 			kMax=4;
 			break;
-		case "hard":
+		}
+		case "hard":{
 			eMax=2.5;
 			kMax=8;
 			break;
+		}
 	}
-	const eRaw=eMin+Math.random()*(eMax-eMin);
+	const eRaw=eMin+rng()*(eMax-eMin);
 	const e=eRaw.toFixed(2);
 	const eNum=parseFloat(e);
 	let conicType="";
 	if(eNum<0.99) conicType="ellipse";
 	else if(eNum>1.01) conicType="hyperbola";
 	else conicType="parabola";
-	const k=(Math.floor(Math.random()*(kMax-kMin+1))+kMin).toFixed(2);
-	const sinOrCos=Math.random()<0.5?"cos":"sin";
-	const sign=Math.random()<0.5?"+":"-";
+	const k=(Math.floor(rng()*(kMax-kMin+1))+kMin).toFixed(2);
+	const sinOrCos=rng()<0.5?"cos":"sin";
+	const sign=rng()<0.5?"+":"-";
 	const equation=`r = \\frac{${k} \\cdot ${e}}{1 ${sign} ${e} ${sinOrCos}\\theta}`;
 	let mathExpression=`Identify the conic and find its eccentricity from the polar equation: \\( ${equation} \\).`;
 	const correctAnswer=`${conicType}, e = ${e}`;
@@ -242,29 +232,26 @@ export function generatePolarConic(difficulty?: string): void{
 	];
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correctAnswer)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctAnswer,
 		alternate: `${conicType}, ${e}`,
 		display: correctAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter as 'type, e = number'");
-	createVisualization("polarConic",{ e: eNum, k, sinOrCos, sign });
+		choices: uniqueChoices,
+		expectedFormat: "Enter as 'type, e = number'"
+	};
 }
-export function generate3DDistanceMidpoint(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generate3DDistanceMidpoint(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxCoord=getMaxForDifficulty(difficulty,6);
-	const x1=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-	const y1=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-	const z1=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-	const x2=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-	const y2=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-	const z2=Math.floor(Math.random()*maxCoord*2)-maxCoord;
+	const x1=Math.floor(rng()*maxCoord*2)-maxCoord;
+	const y1=Math.floor(rng()*maxCoord*2)-maxCoord;
+	const z1=Math.floor(rng()*maxCoord*2)-maxCoord;
+	const x2=Math.floor(rng()*maxCoord*2)-maxCoord;
+	const y2=Math.floor(rng()*maxCoord*2)-maxCoord;
+	const z2=Math.floor(rng()*maxCoord*2)-maxCoord;
 	const dist=Math.sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2);
 	const mx=(x1+x2)/2;
 	const my=(y1+y2)/2;
@@ -285,28 +272,25 @@ export function generate3DDistanceMidpoint(difficulty?: string): void{
 	];
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correctAnswer)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctAnswer,
 		alternate: `${dist.toFixed(2)}, (${mx.toFixed(2)},${my.toFixed(2)},${mz.toFixed(2)})`,
 		display: correctAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter as 'distance: ..., midpoint: (x,y,z)'");
-	createVisualization("points3D",{ points: [{ x: x1, y: y1, z: z1 },{ x: x2, y: y2, z: z2 }] });
+		choices: uniqueChoices,
+		expectedFormat: "Enter as 'distance: ..., midpoint: (x,y,z)'"
+	};
 }
-export function generateSphereEquation(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
+export function generateSphereEquation(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxCoord=getMaxForDifficulty(difficulty,5);
-	const h=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-	const k=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-	const l=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-	const r=Math.floor(Math.random()*maxCoord)+2;
-	const type=Math.random()<0.5?"center-radius":"general";
+	const h=Math.floor(rng()*maxCoord*2)-maxCoord;
+	const k=Math.floor(rng()*maxCoord*2)-maxCoord;
+	const l=Math.floor(rng()*maxCoord*2)-maxCoord;
+	const r=Math.floor(rng()*maxCoord)+2;
+	const type=rng()<0.5?"center-radius":"general";
 	let question="";
 	let answer="";
 	if(type==="center-radius"){
@@ -339,32 +323,29 @@ export function generateSphereEquation(difficulty?: string): void{
 	];
 	let uniqueChoices=[...new Set(choices)].slice(0,4);
 	if(!uniqueChoices.includes(correctAnswer)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAnswer;
 		else uniqueChoices=[correctAnswer];
 	}
-	renderer.render(mathExpression);
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: correctAnswer,
 		alternate: correctAnswer,
 		display: correctAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter the equation or center/radius as appropriate");
-	createVisualization("sphere",{ radius: r, center: [h,k,l] });
+		choices: uniqueChoices,
+		expectedFormat: "Enter the equation or center/radius as appropriate"
+	};
 }
-export function generateLinePlane3D(difficulty?: string): void{
-	renderer.clear();
-	cleanupVisualization();
-	const type=Math.random()<0.5?"line":"plane";
+export function generateLinePlane3D(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
+	const type=rng()<0.5?"line":"plane";
 	const maxCoord=getMaxForDifficulty(difficulty,5);
 	if(type==="line"){
-		const x0=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-		const y0=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-		const z0=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-		const a=Math.floor(Math.random()*maxCoord)+1;
-		const b=Math.floor(Math.random()*maxCoord)+1;
-		const c=Math.floor(Math.random()*maxCoord)+1;
-		const tVal=Math.floor(Math.random()*3)+1;
+		const x0=Math.floor(rng()*maxCoord*2)-maxCoord;
+		const y0=Math.floor(rng()*maxCoord*2)-maxCoord;
+		const z0=Math.floor(rng()*maxCoord*2)-maxCoord;
+		const a=Math.floor(rng()*maxCoord)+1;
+		const b=Math.floor(rng()*maxCoord)+1;
+		const c=Math.floor(rng()*maxCoord)+1;
+		const tVal=Math.floor(rng()*3)+1;
 		const x=x0+a*tVal;
 		const y=y0+b*tVal;
 		const z=z0+c*tVal;
@@ -377,43 +358,41 @@ export function generateLinePlane3D(difficulty?: string): void{
 		const choices=[correctAnswer,wrongPoint1,wrongPoint2,wrongPoint3,wrongPoint4];
 		let uniqueChoices=[...new Set(choices)].slice(0,4);
 		if(!uniqueChoices.includes(correctAnswer)){
-			if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
+			if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAnswer;
 			else uniqueChoices=[correctAnswer];
 		}
-		renderer.render(mathExpression);
-		renderer.setAnswer({
+		return {
+			latex: mathExpression,
 			correct: correctAnswer,
 			alternate: `(${x},${y},${z})`,
 			display: correctAnswer,
-			choices: uniqueChoices
-		});
-		renderer.setExpectedFormat("Enter as (x, y, z)");
-		createVisualization("line3D",{ point: [x0,y0,z0], direction: [a,b,c], t: tVal });
+			choices: uniqueChoices,
+			expectedFormat: "Enter as (x, y, z)"
+		};
 	}
 	else{
-		const a=Math.floor(Math.random()*maxCoord)+1;
-		const b=Math.floor(Math.random()*maxCoord)+1;
-		const c=Math.floor(Math.random()*maxCoord)+1;
-		const d=Math.floor(Math.random()*maxCoord*2)-maxCoord;
-		const x=Math.floor(Math.random()*5)-2;
-		const y=Math.floor(Math.random()*5)-2;
+		const a=Math.floor(rng()*maxCoord)+1;
+		const b=Math.floor(rng()*maxCoord)+1;
+		const c=Math.floor(rng()*maxCoord)+1;
+		const d=Math.floor(rng()*maxCoord*2)-maxCoord;
+		const x=Math.floor(rng()*5)-2;
+		const y=Math.floor(rng()*5)-2;
 		const z=-(a*x+b*y+d)/c;
 		let mathExpression=`Does the point \\( (${x}, ${y}, ${z.toFixed(2)}) \\) lie on the plane \\( ${a}x + ${b}y + ${c}z ${d>=0?'+':'-'} ${Math.abs(d)} = 0 \\)? (yes/no)`;
 		const correctAnswer="yes";
 		const choices=["yes","no","maybe","only if x=0"];
 		let uniqueChoices=[...new Set(choices)].slice(0,4);
 		if(!uniqueChoices.includes(correctAnswer)){
-			if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctAnswer;
+			if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAnswer;
 			else uniqueChoices=[correctAnswer];
 		}
-		renderer.render(mathExpression);
-		renderer.setAnswer({
+		return {
+			latex: mathExpression,
 			correct: correctAnswer,
 			alternate: "yes",
 			display: "yes",
-			choices: uniqueChoices
-		});
-		renderer.setExpectedFormat("Enter 'yes' or 'no'");
-		createVisualization("plane3D",{ normal: [a,b,c], d, point: [x,y,z] });
+			choices: uniqueChoices,
+			expectedFormat: "Enter 'yes' or 'no'"
+		};
 	}
 }

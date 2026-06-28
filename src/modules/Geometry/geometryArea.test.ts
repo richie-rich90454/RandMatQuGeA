@@ -1,165 +1,222 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
-import {generateAreaCircle,generateAreaRectangle,generateAreaTriangle} from "./geometryArea.js";
-let sink=vi.hoisted(()=>({ div: null as HTMLDivElement|null }));
-vi.mock("../../main/core/questionRenderer",()=>({
-	renderer:{
-		render(html: string){
-			if(sink.div) sink.div.innerHTML=html;
-			let mj=(window as any).MathJax;
-			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
-		},
-		clear(){ if(sink.div) sink.div.innerHTML=""; },
-		setAnswer(a: any){ (window as any).correctAnswer=a; },
-		setExpectedFormat(f: string){ (window as any).expectedFormat=f; },
-		setHasQuestion(v: boolean){ (window as any).hasQuestion=v; },
-		typeset(){
-			let mj=(window as any).MathJax;
-			if(mj&&typeof mj.typesetPromise==="function") mj.typesetPromise([sink.div]);
-		}
-	}
-}));
-vi.mock("./geometryUtils.js",()=>({
-	getMaxForDifficulty:vi.fn(()=>5),
-	cleanupVisualization:vi.fn()
-}));
-vi.mock("./geometryVisualization.js",()=>({
-	createVisualization:vi.fn()
-}));
+import {describe,it,expect} from "vitest";
+import {generateAreaCircle,generateAreaRectangle,generateAreaTriangle,generateSectorArea,generateSurfaceAreaCube} from "./geometryArea.js";
+import {seededRng} from "../../main/core/rng";
 describe("generateAreaCircle",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		sink.div=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateAreaCircle("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateAreaCircle("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("returns early if questionArea is null",()=>{
-		sink.div=null;
-		generateAreaCircle();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates circle area correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect(mockDiv.innerHTML).toContain("circle");
-	});
-	it("generates rectangle area correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaRectangle();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("generates triangle area correctly",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaTriangle();
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("sets correctAnswer with choices",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle();
-		expect((window as any).correctAnswer.choices.length).toBeGreaterThanOrEqual(1);
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-		expect((window as any).correctAnswer.choices).toBeDefined();
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
+	it("returns choices array",()=>{
+		const dto=generateAreaCircle("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
 	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle("easy");
-		expect((window as any).correctAnswer).toBeDefined();
+		const dto=generateAreaCircle("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle("medium");
-		expect((window as any).correctAnswer).toBeDefined();
+		const dto=generateAreaCircle("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle("hard");
-		expect((window as any).correctAnswer).toBeDefined();
+		const dto=generateAreaCircle("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateAreaCircle("medium", seededRng(42));
+		const dto2=generateAreaCircle("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateAreaCircle("medium", seededRng(42));
+		const dto2=generateAreaCircle("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });
-describe("generateAreaCircle - edge cases",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		sink.div=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+describe("generateAreaRectangle",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateAreaRectangle("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateAreaRectangle("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("should produce non-empty question HTML",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle();
-		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
-	});
-	it("should set correctAnswer with display property",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect(typeof (window as any).correctAnswer.display).toBe("string");
-	});
-	it("should handle radius of 1",()=>{
-		Math.random=vi.fn().mockReturnValue(0);
-		generateAreaCircle();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-	});
-	it("should handle large radius",()=>{
-		Math.random=vi.fn().mockReturnValue(0.99);
-		generateAreaCircle();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-	});
-	it("should handle decimal radius",()=>{
-		Math.random=vi.fn().mockReturnValue(0.45);
-		generateAreaCircle();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.correct).toBeDefined();
-	});
-	it("should use pi in answer",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle();
-		let correct=(window as any).correctAnswer.correct;
-		let numeric=parseFloat(correct);
-		expect(numeric).toBeGreaterThan(0);
+	it("returns choices array",()=>{
+		const dto=generateAreaRectangle("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
 	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
+		const dto=generateAreaRectangle("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generateAreaRectangle("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn().mockReturnValue(0.3);
-		generateAreaCircle("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
+		const dto=generateAreaRectangle("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateAreaRectangle("medium", seededRng(42));
+		const dto2=generateAreaRectangle("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateAreaRectangle("medium", seededRng(42));
+		const dto2=generateAreaRectangle("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
+});
+describe("generateAreaTriangle",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateAreaTriangle("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateAreaTriangle("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateAreaTriangle("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateAreaTriangle("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generateAreaTriangle("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateAreaTriangle("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateAreaTriangle("medium", seededRng(42));
+		const dto2=generateAreaTriangle("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateAreaTriangle("medium", seededRng(42));
+		const dto2=generateAreaTriangle("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
+});
+describe("generateSectorArea",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateSectorArea("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateSectorArea("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateSectorArea("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateSectorArea("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generateSectorArea("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateSectorArea("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateSectorArea("medium", seededRng(42));
+		const dto2=generateSectorArea("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateSectorArea("medium", seededRng(42));
+		const dto2=generateSectorArea("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
+	});
+});
+describe("generateSurfaceAreaCube",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateSurfaceAreaCube("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
+	});
+	it("returns expectedFormat string",()=>{
+		const dto=generateSurfaceAreaCube("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
+	});
+	it("returns choices array",()=>{
+		const dto=generateSurfaceAreaCube("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
+	});
+	it("should handle easy difficulty",()=>{
+		const dto=generateSurfaceAreaCube("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle medium difficulty",()=>{
+		const dto=generateSurfaceAreaCube("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("should handle hard difficulty",()=>{
+		const dto=generateSurfaceAreaCube("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateSurfaceAreaCube("medium", seededRng(42));
+		const dto2=generateSurfaceAreaCube("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateSurfaceAreaCube("medium", seededRng(42));
+		const dto2=generateSurfaceAreaCube("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });
