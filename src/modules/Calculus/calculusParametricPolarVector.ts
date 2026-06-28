@@ -1,26 +1,18 @@
-import {questionArea} from "../../script.js";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./calculusUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
 /**
- * Generates and displays a random question involving parametric equations, polar coordinates, or vector-valued functions.
+ * Generates a random question involving parametric equations, polar coordinates, or vector-valued functions.
  * Includes custom multiple‑choice options for MCQ mode.
  *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
  *                     Influences the maximum coefficient value used in generated expressions
  *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
- * @returns void
+ * @param rng - Optional RNG function (defaults to Math.random).
+ * @returns QuestionDto containing the question LaTeX, correct answer, alternate answer,
+ *          display LaTeX, MCQ choices, and expectedFormat hint.
  * @date 2026-04-18
  *
  * @remarks
- * The function performs the following steps:
- * 1. Clears `questionArea.innerHTML`.
- * 2. Randomly selects a question type from a predefined list.
- * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type,
- *    along with plausible distractors for MCQ mode.
- * 4. Appends a `<div>` containing the LaTeX to `questionArea`.
- * 5. Triggers MathJax (if available) to render the math.
- * 6. Sets global variables for answer validation.
- *
  * **Question types** (each uses random coefficients scaled by `difficulty`):
  * - `parametricDeriv`         – first derivative dy/dx of a parametric curve at a given t.
  * - `parametricSecond`        – second derivative d²y/dx² of a parametric curve at a given t.
@@ -38,13 +30,11 @@ import {renderer} from "../../main/core/questionRenderer";
  *
  * @example
  * generateParametricPolarVector();
- * generateParametricPolarVector("hard");
+ * generateParametricPolarVector("hard", seededRng(42));
  */
-export function generateParametricPolarVector(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateParametricPolarVector(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let questionTypes=["parametricDeriv","parametricSecond","arcLengthParam","vectorDeriv","vectorIntegral","motionParam","polarDeriv","polarArea","polarAreaBetween","polarArcLength","parametricArcLengthGeneral","polarAreaBetweenGeneral","vectorDotDeriv"];
-	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
+	let questionType=questionTypes[Math.floor(rng()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
 	let latexAnswer="";
@@ -53,9 +43,9 @@ export function generateParametricPolarVector(difficulty?: string): void{
 	let choices: string[]=[];
 	switch(questionType){
 		case "parametricDeriv":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
-			let t=Math.floor(Math.random()*3)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
+			let t=Math.floor(rng()*3)+1;
 			mathExpression=`\\[ x=${a}t^2+1,\\ y=t^3-${b}t, \\text{ find } \\frac{dy}{dx} \\text{ at } t=${t}. \\]`;
 			let dx=2*a*t;
 			let dy=3*t*t - b;
@@ -71,8 +61,8 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "parametricSecond":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let t=Math.floor(Math.random()*3)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let t=Math.floor(rng()*3)+1;
 			mathExpression=`\\[ x=t^2,\\ y=t^3-${a}t, \\text{ find } \\frac{d^2y}{dx^2} \\text{ at } t=${t}. \\]`;
 			let dx=2*t;
 			let dy=3*t*t - a;
@@ -90,9 +80,9 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "arcLengthParam":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			let t0=0;
-			let t1=Math.floor(Math.random()*3)+2;
+			let t1=Math.floor(rng()*3)+2;
 			mathExpression=`\\[ x=${a}t,\\ y=${a}t, \\text{ length from } t=${t0} \\text{ to } t=${t1}. \\]`;
 			let len=Math.sqrt(2)*a*(t1-t0);
 			plainCorrectAnswer=len.toFixed(3);
@@ -106,7 +96,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "vectorDeriv":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\mathbf{r}(t)=\\langle t^2, e^{${a}t} \\rangle, \\text{ find } \\mathbf{r}'(t). \\]`;
 			plainCorrectAnswer=`<2t, ${a}e^(${a}t)>`;
 			latexAnswer=`\\langle 2t,\\ ${a}e^{${a}t} \\rangle`;
@@ -120,7 +110,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "vectorIntegral":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\int_0^1 \\mathbf{r}(t)\\,dt \\text{ for } \\mathbf{r}(t)=\\langle t, ${a}t^2 \\rangle. \\]`;
 			let intX=0.5;
 			let intY=a/3;
@@ -136,7 +126,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "motionParam":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\mathbf{r}(t)=\\langle \\cos(${a}t), \\sin(${a}t) \\rangle, \\text{ find speed.} \\]`;
 			let speed=a;
 			plainCorrectAnswer=speed.toString();
@@ -150,7 +140,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "polarDeriv":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			let theta=Math.PI/2;
 			mathExpression=`\\[ r=1+${a}\\cos\\theta, \\text{ find } \\frac{dy}{dx} \\text{ at } \\theta=\\frac{\\pi}{2}. \\]`;
 			let dr=-a*Math.sin(theta);
@@ -169,7 +159,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "polarArea":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Area inside } r=1+${a}\\cos\\theta. \\]`;
 			let area=Math.PI*(1 + a*a/2);
 			plainCorrectAnswer=area.toFixed(3);
@@ -183,7 +173,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "polarAreaBetween":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Area inside } r=${a}(1-\\cos\\theta) \\text{ and outside } r=${a}. \\]`;
 			let area=(Math.PI/2)*a*a;
 			plainCorrectAnswer=area.toFixed(3);
@@ -197,7 +187,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "polarArcLength":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Length of } r=${a}(1+\\cos\\theta),\\ 0\\le\\theta\\le\\pi. \\]`;
 			let len=4*a;
 			plainCorrectAnswer=len.toFixed(3);
@@ -211,7 +201,7 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "parametricArcLengthGeneral":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Arc length of } x=${a}t^3,\\ y=${a}t^2,\\ 0\\le t\\le 1. \\]`;
 			let len=a*(13*Math.sqrt(13)-8)/27;
 			plainCorrectAnswer=len.toFixed(4);
@@ -226,11 +216,11 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "polarAreaBetweenGeneral":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
 			let attempts=0;
 			while(b>=a&&attempts<10){
-				b=Math.floor(Math.random()*maxCoeff)+1;
+				b=Math.floor(rng()*maxCoeff)+1;
 				attempts++;
 			}
 			if(b>=a) b=1;
@@ -247,8 +237,8 @@ export function generateParametricPolarVector(difficulty?: string): void{
 			break;
 		}
 		case "vectorDotDeriv":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\mathbf{u}(t)=\\langle t, t^2 \\rangle,\\ \\mathbf{v}(t)=\\langle e^{${a}t}, \\sin(${b}t) \\rangle, \\text{ find } \\frac{d}{dt}(\\mathbf{u}\\cdot\\mathbf{v}). \\]`;
 			let dotDeriv=`e^(${a}t) + ${a}*t*e^(${a}t) + 2*t*sin(${b}t) + ${b}*t^2*cos(${b}t)`;
 			plainCorrectAnswer=dotDeriv;
@@ -273,25 +263,18 @@ export function generateParametricPolarVector(difficulty?: string): void{
 	}
 	if(!found){
 		if(uniqueChoices.length>0){
-			uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+			uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
 		}
 		else{
 			uniqueChoices=[plainCorrectAnswer];
 		}
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }

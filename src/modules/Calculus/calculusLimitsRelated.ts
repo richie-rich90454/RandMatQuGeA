@@ -1,31 +1,18 @@
-import {questionArea} from "../../script.js";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./calculusUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
-
 /**
- * Generates and displays a random limit question in the global `questionArea`.
+ * Generates a random limit question and returns it as a QuestionDto.
  * Includes custom multiple‑choice options for MCQ mode.
  *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
  *                     Influences the maximum coefficient value used in generated expressions
  *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
- * @returns void
+ * @param rng - Optional RNG function (defaults to Math.random).
+ * @returns QuestionDto containing the question LaTeX, correct answer, alternate answer,
+ *          display LaTeX, MCQ choices, and expectedFormat hint.
  * @date 2026-04-02
  *
  * @remarks
- * The function performs the following steps:
- * 1. Clears `questionArea.innerHTML`.
- * 2. Randomly selects a limit type from a predefined list.
- * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type,
- *    along with plausible distractors for MCQ mode.
- * 4. Appends a `<div>` containing the LaTeX to `questionArea`.
- * 5. Triggers MathJax (if available) to render the math.
- * 6. Sets global variables for answer validation:
- *    - `window.correctAnswer` – an object with `correct`, `alternate`, `display`, and `choices` properties.
- *      `correct` and `alternate` hold the plain‑text answer for validation;
- *      `display` holds a LaTeX‑formatted version for rendering with KaTeX.
- *    - `window.expectedFormat` – a string describing the expected input format.
- *
  * **Limit types**:
  * - `polynomial` – limit of a quadratic polynomial at a random point.
  * - `rational`   – limit of a simple rational function at a random point (answer may be decimal).
@@ -35,13 +22,11 @@ import {renderer} from "../../main/core/questionRenderer";
  *
  * @example
  * generateLimit();
- * generateLimit("hard");
+ * generateLimit("hard", seededRng(42));
  */
-export function generateLimit(difficulty?: string): void{
-	if (!questionArea) return;
-	questionArea.innerHTML="";
+export function generateLimit(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["polynomial","rational","infinity","trig","conceptual"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
 	let latexAnswer="";
@@ -50,9 +35,9 @@ export function generateLimit(difficulty?: string): void{
 	let choices: string[]=[];
 	switch (type){
 		case "polynomial":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let c=Math.floor(Math.random()*10)-5;
-			let x0=Math.floor(Math.random()*5);
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let c=Math.floor(rng()*10)-5;
+			let x0=Math.floor(rng()*5);
 			let limit=a*x0*x0+c;
 			mathExpression=`\\[ \\lim_{x \\to ${x0}} (${a}x^2+${c}) \\]`;
 			plainCorrectAnswer=limit.toString();
@@ -65,9 +50,9 @@ export function generateLimit(difficulty?: string): void{
 			break;
 		}
 		case "rational":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
-			let b=Math.floor(Math.random()*maxCoeff)+2;
-			let x0=Math.floor(Math.random()*5)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
+			let b=Math.floor(rng()*maxCoeff)+2;
+			let x0=Math.floor(rng()*5)+1;
 			let limit=(a*x0+1)/(b*x0-1);
 			let exactNum=a*x0+1;
 			let exactDen=b*x0-1;
@@ -84,7 +69,7 @@ export function generateLimit(difficulty?: string): void{
 			break;
 		}
 		case "infinity":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\lim_{x \\to \\infty} \\frac{${a}x^2+x}{x^2-1} \\]`;
 			plainCorrectAnswer=a.toString();
 			latexAnswer=plainCorrectAnswer;
@@ -103,8 +88,8 @@ export function generateLimit(difficulty?: string): void{
 			break;
 		}
 		case "conceptual":{
-			let t1=Math.floor(Math.random()*3)+1;
-			let t2=t1+Math.floor(Math.random()*2)+1;
+			let t1=Math.floor(rng()*3)+1;
+			let t2=t1+Math.floor(rng()*2)+1;
 			let s=(t: number)=>t*t+t;
 			let avgVel=(s(t2)-s(t1))/(t2-t1);
 			let instVel=2*t1+1;
@@ -122,52 +107,34 @@ export function generateLimit(difficulty?: string): void{
 	let uniqueChoices=[...new Set(choices)];
 	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if (!uniqueChoices.includes(plainCorrectAnswer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
 		else uniqueChoices=[plainCorrectAnswer];
 	}
-	let mathContainer=document.createElement("div");
-	if (type==="conceptual"){
-		let textContainer=document.createElement("div");
-		textContainer.textContent=problemText;
-		textContainer.classList.add("problem-text");
-		questionArea.appendChild(textContainer);
+	if (type==="conceptual"&&problemText){
+		mathExpression=`${problemText}\n${mathExpression}`;
 	}
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if (window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter a number or 'avg=... inst=...'");
+		choices: uniqueChoices,
+		expectedFormat: "Enter a number or 'avg=... inst=...'"
+	};
 }
-
 /**
- * Generates and displays a random related rates problem in the global `questionArea`.
+ * Generates a random related rates problem and returns it as a QuestionDto.
  * Includes custom multiple‑choice options for MCQ mode.
  *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
  *                     Scales the numerical values in the problem (ladder length, distances,
  *                     rates, etc.) via `getMaxCoeff`. If omitted, a moderate default is used.
- * @returns void
+ * @param rng - Optional RNG function (defaults to Math.random).
+ * @returns QuestionDto containing the question LaTeX, correct answer, alternate answer,
+ *          display LaTeX, MCQ choices, and expectedFormat hint.
  * @date 2026-04-18
  *
  * @remarks
- * The function performs the following steps:
- * 1. Clears `questionArea.innerHTML`.
- * 2. Randomly selects a related rates scenario from 8 types.
- * 3. Constructs descriptive problem text and a LaTeX expression for the unknown rate,
- *    along with plausible distractors for MCQ mode.
- * 4. Appends the problem text (with class `"problem-text"`) followed by a `<div>` containing the LaTeX.
- * 5. Triggers MathJax (if available) to render the math.
- * 6. Sets global variables for answer validation.
- *
  * **Problem types**:
  * - `sphere` – inflating balloon: dV/dt given, find dr/dt.
  * - `circleArea` – circular ripple: dr/dt given, find dA/dt.
@@ -180,13 +147,11 @@ export function generateLimit(difficulty?: string): void{
  *
  * @example
  * generateRelatedRates();
- * generateRelatedRates("easy");
+ * generateRelatedRates("easy", seededRng(42));
  */
-export function generateRelatedRates(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateRelatedRates(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["sphere","circleArea","ladder","ladderAdvanced","trough","shadow","invertedCone","twoVehicles"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
 	let latexAnswer="";
@@ -350,26 +315,18 @@ export function generateRelatedRates(difficulty?: string): void{
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(plainCorrectAnswer)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
 		else uniqueChoices=[plainCorrectAnswer];
 	}
-	let textContainer=document.createElement("div");
-	textContainer.textContent=problemText;
-	textContainer.classList.add("problem-text");
-	questionArea.appendChild(textContainer);
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
+	if(problemText){
+		mathExpression=`${problemText}\n${mathExpression}`;
 	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter a number or compound answer (e.g., 'dy/dt=-1.5 dtheta/dt=0.2')");
+		choices: uniqueChoices,
+		expectedFormat: "Enter a number or compound answer (e.g., 'dy/dt=-1.5 dtheta/dt=0.2')"
+	};
 }

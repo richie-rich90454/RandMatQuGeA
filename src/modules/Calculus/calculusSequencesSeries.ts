@@ -1,26 +1,18 @@
-import {questionArea} from "../../script.js";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./calculusUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
 /**
- * Generates and displays a random sequences and series question in the global `questionArea`.
+ * Generates a random sequences and series question and returns it as a QuestionDto.
  * Includes custom multiple‑choice options for MCQ mode.
  *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
  *                     Influences the maximum coefficient value used in generated expressions
  *                     (via `getMaxCoeff`). If omitted, a moderate default is used.
- * @returns void
+ * @param rng - Optional RNG function (defaults to Math.random).
+ * @returns QuestionDto containing the question LaTeX, correct answer, alternate answer,
+ *          display LaTeX, MCQ choices, and expectedFormat hint.
  * @date 2026-04-18
  *
  * @remarks
- * The function performs the following steps:
- * 1. Clears `questionArea.innerHTML`.
- * 2. Randomly selects a question type from a predefined list.
- * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type,
- *    along with plausible distractors for MCQ mode.
- * 4. Appends a `<div>` containing the LaTeX to `questionArea`.
- * 5. Triggers MathJax (if available) to render the math.
- * 6. Sets global variables for answer validation.
- *
  * **Question types** (each uses random coefficients scaled by `difficulty` where applicable):
  * - `integralTest`      – apply the integral test to determine convergence of ∑ 1/(n²+p).
  * - `pSeries`           – determine convergence of a p‑series with random p.
@@ -43,13 +35,11 @@ import {renderer} from "../../main/core/questionRenderer";
  *
  * @example
  * generateSequencesSeries();
- * generateSequencesSeries("hard");
+ * generateSequencesSeries("hard", seededRng(42));
  */
-export function generateSequencesSeries(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateSequencesSeries(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let questionTypes=["integralTest","pSeries","comparisonTest","alternatingTest","ratioTest","absCond","altError","taylorPoly","lagrangeError","radiusInterval","maclaurin","powerSeries","geometricSeries","nthTermTest","limitComparison","taylorCos","taylorLn","seriesOperations"];
-	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
+	let questionType=questionTypes[Math.floor(rng()*questionTypes.length)];
 	let mathExpression="";
 	let plainCorrectAnswer="";
 	let latexAnswer="";
@@ -58,7 +48,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 	let choices: string[]=[];
 	switch(questionType){
 		case "integralTest":{
-			let p=Math.floor(Math.random()*3)+2;
+			let p=Math.floor(rng()*3)+2;
 			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{1}{n^2+${p}} \\text{ use integral test.} \\]`;
 			plainCorrectAnswer="converges";
 			latexAnswer="\\text{converges}";
@@ -67,7 +57,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			break;
 		}
 		case "pSeries":{
-			let pVal=(Math.random()*2).toFixed(1);
+			let pVal=(rng()*2).toFixed(1);
 			let pNum=parseFloat(pVal);
 			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{1}{n^{${pVal}}} \\text{ converges for?} \\]`;
 			if(pNum>1){
@@ -83,7 +73,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			break;
 		}
 		case "comparisonTest":{
-			let p=Math.floor(Math.random()*3)+2;
+			let p=Math.floor(rng()*3)+2;
 			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{1}{n^2+${p}} \\text{ compare to } \\sum \\frac{1}{n^2}. \\]`;
 			plainCorrectAnswer="converges";
 			latexAnswer="\\text{converges}";
@@ -100,7 +90,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			break;
 		}
 		case "ratioTest":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{${a}^n}{n!} \\text{ use ratio test.} \\]`;
 			plainCorrectAnswer="converges";
 			latexAnswer="\\text{converges}";
@@ -117,7 +107,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			break;
 		}
 		case "altError":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{(-1)^{n+1}}{n^{${a}}} \\text{ error using first 3 terms.} \\]`;
 			let error=1/Math.pow(4, a);
 			plainCorrectAnswer=error.toFixed(4);
@@ -132,7 +122,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			break;
 		}
 		case "taylorPoly":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{3rd degree Taylor for } e^{${a}x} \\text{ at } x=0. \\]`;
 			let terms=[`1`, `${a}x`, `${(a*a/2).toFixed(2)}x^2`, `${(a*a*a/6).toFixed(2)}x^3`];
 			plainCorrectAnswer=terms.join(" + ");
@@ -147,7 +137,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			break;
 		}
 		case "lagrangeError":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			let xVal=0.5;
 			let error=Math.pow(a,4) * Math.exp(a*xVal) * Math.pow(xVal,4) / 24;
 			mathExpression=`\\[ \\text{Max error using 3rd Taylor for } e^{${a}x} \\text{ at } x=${xVal}. \\]`;
@@ -163,7 +153,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			break;
 		}
 		case "radiusInterval":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\sum_{n=0}^\\infty \\frac{x^n}{${a}^n} \\text{ interval of convergence.} \\]`;
 			plainCorrectAnswer=`(-${a}, ${a})`;
 			latexAnswer=`(-${a},${a})`;
@@ -200,7 +190,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			break;
 		}
 		case "geometricSeries":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			let r=0.5;
 			mathExpression=`\\[ \\sum_{n=0}^\\infty ${a} \\cdot (${r})^n \\text{ converges? If so, find sum.} \\]`;
 			let sum=a/(1-r);
@@ -215,7 +205,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			break;
 		}
 		case "nthTermTest":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{n}{${a}n+1} \\text{ apply nth term test.} \\]`;
 			let limit=1/a;
 			plainCorrectAnswer=`limit=${limit.toFixed(2)} ≠ 0, diverges`;
@@ -228,7 +218,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			break;
 		}
 		case "limitComparison":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\sum_{n=1}^\\infty \\frac{${a}n^2+1}{n^4+3} \\text{ use limit comparison test with } \\sum \\frac{1}{n^2}. \\]`;
 			let limitRatio=a;
 			plainCorrectAnswer=`converges (limit = ${limitRatio})`;
@@ -265,7 +255,7 @@ export function generateSequencesSeries(difficulty?: string): void{
 			break;
 		}
 		case "seriesOperations":{
-			let a=Math.floor(Math.random()*maxCoeff)+1;
+			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Given } e^x = \\sum_{n=0}^\\infty \\frac{x^n}{n!}, \\text{ find the power series for } x e^{${a}x}. \\]`;
 			plainCorrectAnswer=`∑_{n=0}^∞ ${a}^n x^{n+1}/n!`;
 			latexAnswer=`\\sum_{n=0}^{\\infty} \\frac{${a}^{n}}{n!}x^{n+1}`;
@@ -290,25 +280,18 @@ export function generateSequencesSeries(difficulty?: string): void{
 	}
 	if(!found){
 		if(uniqueChoices.length>0){
-			uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+			uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
 		}
 		else{
 			uniqueChoices=[plainCorrectAnswer];
 		}
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
+	return {
+		latex: mathExpression,
 		correct: plainCorrectAnswer,
 		alternate: plainCorrectAnswer,
 		display: latexAnswer,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+		choices: uniqueChoices,
+		expectedFormat: expectedFormat
+	};
 }
