@@ -368,6 +368,17 @@ describe("session",()=>{
             await handleMentalAnswer("42");
             expect(state.setSessionScore).toHaveBeenLastCalledWith({correct:2,total:3});
         });
+        it("should reset timeLeft immediately after scoring (A009 regression)",async()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setSessionScore({correct:0,total:0});
+            state.setUnlimitedMode(true);
+            state.setTimeLeft(1);
+            vi.mocked(ui.updateTimerDisplay).mockClear();
+            await handleMentalAnswer("42");
+            expect(state.setTimeLeft).toHaveBeenCalledWith((settings as any).settings.timer);
+            expect(ui.updateTimerDisplay).toHaveBeenCalled();
+        });
     });
     describe("session timer",()=>{
         beforeEach(()=>{

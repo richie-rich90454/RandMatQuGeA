@@ -297,10 +297,10 @@ export async function handleMentalAnswer(answer?: string): Promise<void>{
         endMentalSession();
         return;
     }
+    appState.timeLeft=settings.settings.timer;
+    ui.updateTimerDisplay();
     appState.mentalNextQuestionTimeout=setTimeout(()=>{
         if(appState.sessionActive&&!appState.sessionPaused){
-            appState.timeLeft=settings.settings.timer;
-            ui.updateTimerDisplay();
             generateNextMentalQuestion();
         }
         appState.mentalNextQuestionTimeout=null;
