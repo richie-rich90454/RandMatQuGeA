@@ -1,6 +1,5 @@
-import {questionArea} from "../../script.js";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getRangeForDifficulty} from "./arithmeticUtils.js";
-import {renderer} from "../../main/core/questionRenderer";
 /**
  * Generates and displays a random addition question.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -8,7 +7,7 @@ import {renderer} from "../../main/core/questionRenderer";
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that influences
  *                     the range of numbers used (via `getRangeForDifficulty`). If omitted,
  *                     a moderate default is used.
- * @returns void
+ * @returns QuestionDto
  * @date 2026-03-29
  *
  * @remarks
@@ -27,12 +26,11 @@ import {renderer} from "../../main/core/questionRenderer";
  * generateAddition();
  * generateAddition("hard");
  */
-export function generateAddition(difficulty?: string): void{
-	if (!questionArea) return;
+export function generateAddition(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let range=getRangeForDifficulty(difficulty||"medium");
-	let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(3));
-	let num2: number=parseFloat((Math.random()*range.max).toFixed(3));
-	questionArea.innerHTML=`\$${num1}+${num2}=\$`;
+	let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(3));
+	let num2: number=parseFloat((rng()*range.max).toFixed(3));
+	let latex=`\$${num1}+${num2}=\$`;
 	let result=(num1+num2).toFixed(3);
 	let correctNumber=parseFloat(result);
 	let choices=[result];
@@ -41,16 +39,14 @@ export function generateAddition(difficulty?: string): void{
 	choices.push((correctNumber+0.1).toFixed(3));
 	choices.push((correctNumber*2).toFixed(3));
 	let uniqueChoices=[...new Set(choices)];
-	renderer.setAnswer({
+	return {
+		latex,
 		correct: result,
 		alternate: result,
 		display: result,
-		choices: uniqueChoices.slice(0,4)
-	});
-	renderer.setExpectedFormat("Enter a number (up to 3 decimals)");
-	if (window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise().catch(()=>{});
-	}
+		choices: uniqueChoices.slice(0,4),
+		expectedFormat: "Enter a number (up to 3 decimals)"
+	};
 }
 /**
  * Generates and displays a random subtraction question.
@@ -59,7 +55,7 @@ export function generateAddition(difficulty?: string): void{
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that influences
  *                     the range of numbers used (via `getRangeForDifficulty`). If omitted,
  *                     a moderate default is used.
- * @returns void
+ * @returns QuestionDto
  * @date 2026-03-29
  *
  * @remarks
@@ -75,12 +71,11 @@ export function generateAddition(difficulty?: string): void{
  * generateSubtraction();
  * generateSubtraction("hard");
  */
-export function generateSubtraction(difficulty?: string): void{
-	if (!questionArea) return;
+export function generateSubtraction(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let range=getRangeForDifficulty(difficulty||"medium");
-	let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(3));
-	let num2: number=parseFloat((Math.random()*range.max).toFixed(3));
-	questionArea.innerHTML=`\$${num1}-${num2}=\$`;
+	let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(3));
+	let num2: number=parseFloat((rng()*range.max).toFixed(3));
+	let latex=`\$${num1}-${num2}=\$`;
 	let result=(num1-num2).toFixed(3);
 	let correctNumber=parseFloat(result);
 	let choices=[result];
@@ -89,16 +84,14 @@ export function generateSubtraction(difficulty?: string): void{
 	choices.push((correctNumber+0.1).toFixed(3));
 	choices.push((correctNumber*2).toFixed(3));
 	let uniqueChoices=[...new Set(choices)];
-	renderer.setAnswer({
+	return {
+		latex,
 		correct: result,
 		alternate: result,
 		display: result,
-		choices: uniqueChoices.slice(0,4)
-	});
-	renderer.setExpectedFormat("Enter a number (up to 3 decimals)");
-	if (window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise().catch(()=>{});
-	}
+		choices: uniqueChoices.slice(0,4),
+		expectedFormat: "Enter a number (up to 3 decimals)"
+	};
 }
 /**
  * Generates and displays a random multiplication question, rounding the answer to two decimal places.
@@ -107,7 +100,7 @@ export function generateSubtraction(difficulty?: string): void{
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that influences
  *                     the range of numbers used (via `getRangeForDifficulty`). If omitted,
  *                     a moderate default is used.
- * @returns void
+ * @returns QuestionDto
  * @date 2026-03-29
  *
  * @remarks
@@ -124,12 +117,11 @@ export function generateSubtraction(difficulty?: string): void{
  * generateMultiplication();
  * generateMultiplication("hard");
  */
-export function generateMultiplication(difficulty?: string): void{
-	if (!questionArea) return;
+export function generateMultiplication(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let range=getRangeForDifficulty(difficulty||"medium");
-	let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(2));
-	let num2: number=parseFloat((Math.random()*range.max).toFixed(2));
-	questionArea.innerHTML=`\$${num1} \\times ${num2}=\$<br>Round your answer to two decimal places`;
+	let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(2));
+	let num2: number=parseFloat((rng()*range.max).toFixed(2));
+	let latex=`\$${num1} \\times ${num2}=\$<br>Round your answer to two decimal places`;
 	let actualAnswer: number=num1*num2;
 	let rounded=(Math.round(actualAnswer*100)/100).toFixed(2);
 	let correctNumber=parseFloat(rounded);
@@ -139,16 +131,14 @@ export function generateMultiplication(difficulty?: string): void{
 	choices.push((correctNumber+0.1).toFixed(2));
 	choices.push((correctNumber*1.5).toFixed(2));
 	let uniqueChoices=[...new Set(choices)];
-	renderer.setAnswer({
+	return {
+		latex,
 		correct: rounded,
 		alternate: actualAnswer.toFixed(5),
 		display: rounded,
-		choices: uniqueChoices.slice(0,4)
-	});
-	renderer.setExpectedFormat("Enter a number rounded to 2 decimal places");
-	if (window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise().catch(()=>{});
-	}
+		choices: uniqueChoices.slice(0,4),
+		expectedFormat: "Enter a number rounded to 2 decimal places"
+	};
 }
 /**
  * Generates and displays a random division question, rounding the answer to two decimal places.
@@ -157,7 +147,7 @@ export function generateMultiplication(difficulty?: string): void{
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, `"hard"`) that influences
  *                     the range of numbers used (via `getRangeForDifficulty`). If omitted,
  *                     a moderate default is used.
- * @returns void
+ * @returns QuestionDto
  * @date 2026-03-29
  *
  * @remarks
@@ -174,13 +164,12 @@ export function generateMultiplication(difficulty?: string): void{
  * generateDivision();
  * generateDivision("hard");
  */
-export function generateDivision(difficulty?: string): void{
-	if (!questionArea) return;
+export function generateDivision(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let range=getRangeForDifficulty(difficulty||"medium");
-	let num1: number=parseFloat(((Math.random()*(range.max-range.min))+range.min).toFixed(2));
-	let num2: number=parseFloat((Math.random()*range.max).toFixed(2));
+	let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(2));
+	let num2: number=parseFloat((rng()*range.max).toFixed(2));
 	if (num2===0) num2=1;
-	questionArea.innerHTML=`\$${num1} \\div ${num2}=\$<br>Round your answer to two decimal places`;
+	let latex=`\$${num1} \\div ${num2}=\$<br>Round your answer to two decimal places`;
 	let actualAnswer: number=num1/num2;
 	let rounded=(Math.round(actualAnswer*100)/100).toFixed(2);
 	let correctNumber=parseFloat(rounded);
@@ -190,14 +179,12 @@ export function generateDivision(difficulty?: string): void{
 	choices.push((correctNumber+0.1).toFixed(2));
 	choices.push((correctNumber*1.5).toFixed(2));
 	let uniqueChoices=[...new Set(choices)];
-	renderer.setAnswer({
+	return {
+		latex,
 		correct: rounded,
 		alternate: actualAnswer.toFixed(5),
 		display: rounded,
-		choices: uniqueChoices.slice(0,4)
-	});
-	renderer.setExpectedFormat("Enter a number rounded to 2 decimal places");
-	if (window.MathJax?.typesetPromise){
-		window.MathJax.typesetPromise().catch(()=>{});
-	}
+		choices: uniqueChoices.slice(0,4),
+		expectedFormat: "Enter a number rounded to 2 decimal places"
+	};
 }

@@ -1,378 +1,217 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
-import {questionArea} from "../../script.js";
+import {describe,it,expect,beforeEach,vi} from "vitest";
+import {seededRng} from "../../main/core/rng";
 import {getRangeForDifficulty} from "./arithmeticUtils.js";
 import {generateAddition,generateSubtraction,generateMultiplication,generateDivision} from "./arithmeticBasic.js";
-vi.mock("../../script.js",()=>({
-    questionArea: null as HTMLElement|null
-}));
 vi.mock("./arithmeticUtils.js",()=>({
-    getRangeForDifficulty: vi.fn(()=>({min:1,max:10}))
+	getRangeForDifficulty: vi.fn(()=>({min:1,max:10}))
 }));
 describe("generateAddition",()=>{
-    let mockDiv: HTMLDivElement;
-    let originalMathRandom: ()=>number;
-    beforeEach(()=>{
-        originalMathRandom=Math.random;
-        mockDiv=document.createElement("div");
-        (questionArea as any)=mockDiv;
-        delete (window as any).correctAnswer;
-        delete (window as any).expectedFormat;
-        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
-    });
-    afterEach(()=>{
-        Math.random=originalMathRandom;
-        delete (window as any).MathJax;
-    });
-    it("returns early if questionArea is null",()=>{
-        (questionArea as any)=null;
-        generateAddition();
-        expect(mockDiv.innerHTML).toBe("");
-        expect((window as any).correctAnswer).toBeUndefined();
-        expect((window as any).expectedFormat).toBeUndefined();
-    });
-    it("generates correct addition question and answer",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition();
-        expect(mockDiv.innerHTML).toBe("$5.5+5=$");
-        expect((window as any).correctAnswer.correct).toBe("10.500");
-        expect((window as any).correctAnswer.alternate).toBe("10.500");
-        expect((window as any).correctAnswer.display).toBe("10.500");
-        expect((window as any).expectedFormat).toBe("Enter a number (up to 3 decimals)");
-        expect((window as any).MathJax.typesetPromise).toHaveBeenCalled();
-    });
-    it("generates addition with easy difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition("easy");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
-    });
-    it("handles negative addition result",()=>{
-        Math.random=vi.fn().mockReturnValue(0.01);
-        generateAddition();
-        let result=parseFloat((window as any).correctAnswer.correct);
-        expect(result).not.toBeNaN();
-    });
-    it("does not call MathJax when missing",()=>{
-        delete (window as any).MathJax;
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition();
-        expect((window as any).MathJax).toBeUndefined();
-    });
-    it("should set window.correctAnswer",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer.correct).toBeDefined();
-        expect((window as any).correctAnswer.alternate).toBeDefined();
-        expect((window as any).correctAnswer.display).toBeDefined();
-        expect((window as any).correctAnswer.choices).toBeDefined();
-    });
-    it("should set window.expectedFormat",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition();
-        expect((window as any).expectedFormat).toBe("Enter a number (up to 3 decimals)");
-    });
-    it("should handle easy difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition("easy");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
-    it("should handle medium difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition("medium");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("medium");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
-    it("should handle hard difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition("hard");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
-});
-describe("generateAddition - edge cases",()=>{
-    let mockDiv: HTMLDivElement;
-    let originalMathRandom: ()=>number;
-    beforeEach(()=>{
-        originalMathRandom=Math.random;
-        mockDiv=document.createElement("div");
-        (questionArea as any)=mockDiv;
-        delete (window as any).correctAnswer;
-        delete (window as any).expectedFormat;
-        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
-    });
-    afterEach(()=>{
-        Math.random=originalMathRandom;
-        delete (window as any).MathJax;
-    });
-    it("should produce non-empty question HTML",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition();
-        expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
-    });
-    it("should set correctAnswer with display property",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer.display).toBeDefined();
-        expect(typeof (window as any).correctAnswer.display).toBe("string");
-    });
-    it("should handle adding zero",()=>{
-        Math.random=vi.fn().mockReturnValue(0);
-        generateAddition();
-        expect((window as any).correctAnswer).toBeDefined();
-        let result=parseFloat((window as any).correctAnswer.correct);
-        expect(result).not.toBeNaN();
-    });
-    it("should handle adding negative numbers",()=>{
-        Math.random=vi.fn().mockReturnValue(0.01);
-        generateAddition();
-        expect((window as any).correctAnswer).toBeDefined();
-        let result=parseFloat((window as any).correctAnswer.correct);
-        expect(result).not.toBeNaN();
-    });
-    it("should handle large numbers",()=>{
-        Math.random=vi.fn().mockReturnValue(0.99);
-        generateAddition();
-        expect((window as any).correctAnswer).toBeDefined();
-        let result=parseFloat((window as any).correctAnswer.correct);
-        expect(result).not.toBeNaN();
-    });
-    it("should handle carry operations",()=>{
-        Math.random=vi.fn().mockReturnValue(0.95);
-        generateAddition();
-        expect((window as any).correctAnswer).toBeDefined();
-        let result=parseFloat((window as any).correctAnswer.correct);
-        expect(result).not.toBeNaN();
-    });
-    it("should handle easy difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition("easy");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
-    it("should handle hard difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateAddition("hard");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
+	beforeEach(()=>{
+		vi.mocked(getRangeForDifficulty).mockClear();
+	});
+	it("generates correct addition question and answer",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateAddition("medium", rng);
+		expect(dto.latex).toBe("$5.5+5=$");
+		expect(dto.correct).toBe("10.500");
+		expect(dto.alternate).toBe("10.500");
+		expect(dto.display).toBe("10.500");
+		expect(dto.expectedFormat).toBe("Enter a number (up to 3 decimals)");
+		expect(dto.choices).toContain("10.500");
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateAddition("medium", seededRng(42));
+		const dto2=generateAddition("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("passes easy difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		generateAddition("easy", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
+	});
+	it("passes medium difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateAddition("medium", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("medium");
+		expect(dto.correct).toBeDefined();
+	});
+	it("passes hard difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateAddition("hard", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
+		expect(dto.correct).toBeDefined();
+	});
+	it("handles adding zero",()=>{
+		const rng=vi.fn().mockReturnValue(0);
+		const dto=generateAddition("medium", rng);
+		expect(dto.correct).toBeDefined();
+		expect(parseFloat(dto.correct)).not.toBeNaN();
+	});
+	it("handles negative addition result",()=>{
+		const rng=vi.fn().mockReturnValue(0.01);
+		const dto=generateAddition("medium", rng);
+		expect(parseFloat(dto.correct)).not.toBeNaN();
+	});
+	it("handles large numbers",()=>{
+		const rng=vi.fn().mockReturnValue(0.99);
+		const dto=generateAddition("medium", rng);
+		expect(parseFloat(dto.correct)).not.toBeNaN();
+	});
+	it("handles carry operations",()=>{
+		const rng=vi.fn().mockReturnValue(0.95);
+		const dto=generateAddition("medium", rng);
+		expect(parseFloat(dto.correct)).not.toBeNaN();
+	});
+	it("produces non-empty latex",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateAddition("medium", rng);
+		expect(dto.latex.length).toBeGreaterThan(0);
+	});
+	it("includes choices array with display property",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateAddition("medium", rng);
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThan(0);
+		expect(typeof dto.display).toBe("string");
+	});
 });
 describe("generateSubtraction",()=>{
-    let mockDiv: HTMLDivElement;
-    let originalMathRandom: ()=>number;
-    beforeEach(()=>{
-        originalMathRandom=Math.random;
-        mockDiv=document.createElement("div");
-        (questionArea as any)=mockDiv;
-        delete (window as any).correctAnswer;
-        delete (window as any).expectedFormat;
-        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
-    });
-    afterEach(()=>{
-        Math.random=originalMathRandom;
-        delete (window as any).MathJax;
-    });
-    it("returns early if questionArea is null",()=>{
-        (questionArea as any)=null;
-        generateSubtraction();
-        expect(mockDiv.innerHTML).toBe("");
-        expect((window as any).correctAnswer).toBeUndefined();
-    });
-    it("generates correct subtraction question",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateSubtraction();
-        expect(mockDiv.innerHTML).toBe("$5.5-5=$");
-        expect((window as any).correctAnswer.correct).toBe("0.500");
-        expect((window as any).expectedFormat).toBe("Enter a number (up to 3 decimals)");
-    });
-    it("handles negative subtraction result",()=>{
-        Math.random=vi.fn().mockReturnValueOnce(0.1).mockReturnValueOnce(0.9);
-        generateSubtraction();
-        expect((window as any).correctAnswer.correct).toBe("-7.100");
-    });
-    it("generates subtraction with hard difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateSubtraction("hard");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
-    });
-    it("should set window.correctAnswer",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateSubtraction();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer.correct).toBeDefined();
-        expect((window as any).correctAnswer.alternate).toBeDefined();
-        expect((window as any).correctAnswer.display).toBeDefined();
-        expect((window as any).correctAnswer.choices).toBeDefined();
-    });
-    it("should set window.expectedFormat",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateSubtraction();
-        expect((window as any).expectedFormat).toBe("Enter a number (up to 3 decimals)");
-    });
-    it("should handle easy difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateSubtraction("easy");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
-    it("should handle medium difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateSubtraction("medium");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("medium");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
-    it("should handle hard difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateSubtraction("hard");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
+	beforeEach(()=>{
+		vi.mocked(getRangeForDifficulty).mockClear();
+	});
+	it("generates correct subtraction question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateSubtraction("medium", rng);
+		expect(dto.latex).toBe("$5.5-5=$");
+		expect(dto.correct).toBe("0.500");
+		expect(dto.alternate).toBe("0.500");
+		expect(dto.display).toBe("0.500");
+		expect(dto.expectedFormat).toBe("Enter a number (up to 3 decimals)");
+	});
+	it("handles negative subtraction result",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.1).mockReturnValueOnce(0.9);
+		const dto=generateSubtraction("medium", rng);
+		expect(dto.correct).toBe("-7.100");
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateSubtraction("medium", seededRng(42));
+		const dto2=generateSubtraction("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("passes hard difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		generateSubtraction("hard", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
+	});
+	it("passes easy difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateSubtraction("easy", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
+		expect(dto.correct).toBeDefined();
+	});
+	it("passes medium difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateSubtraction("medium", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("medium");
+		expect(dto.correct).toBeDefined();
+	});
+	it("includes choices array",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateSubtraction("medium", rng);
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThan(0);
+	});
 });
 describe("generateMultiplication",()=>{
-    let mockDiv: HTMLDivElement;
-    let originalMathRandom: ()=>number;
-    beforeEach(()=>{
-        originalMathRandom=Math.random;
-        mockDiv=document.createElement("div");
-        (questionArea as any)=mockDiv;
-        delete (window as any).correctAnswer;
-        delete (window as any).expectedFormat;
-        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
-    });
-    afterEach(()=>{
-        Math.random=originalMathRandom;
-        delete (window as any).MathJax;
-    });
-    it("returns early if questionArea is null",()=>{
-        (questionArea as any)=null;
-        generateMultiplication();
-        expect(mockDiv.innerHTML).toBe("");
-    });
-    it("generates correct multiplication question",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateMultiplication();
-        expect(mockDiv.innerHTML).toBe("$5.5 \\times 5=$<br>Round your answer to two decimal places");
-        expect((window as any).correctAnswer.correct).toBe("27.50");
-        expect((window as any).correctAnswer.alternate).toBe("27.50000");
-        expect((window as any).expectedFormat).toBe("Enter a number rounded to 2 decimal places");
-    });
-    it("generates multiplication with given difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateMultiplication("easy");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
-    });
-    it("includes choices when generating multiplication",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateMultiplication();
-        expect((window as any).correctAnswer.choices).toBeDefined();
-        expect((window as any).correctAnswer.choices.length).toBeGreaterThan(0);
-        expect((window as any).correctAnswer.choices).toContain("27.50");
-    });
-    it("should set window.correctAnswer",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateMultiplication();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer.correct).toBeDefined();
-        expect((window as any).correctAnswer.alternate).toBeDefined();
-        expect((window as any).correctAnswer.display).toBeDefined();
-        expect((window as any).correctAnswer.choices).toBeDefined();
-    });
-    it("should set window.expectedFormat",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateMultiplication();
-        expect((window as any).expectedFormat).toBe("Enter a number rounded to 2 decimal places");
-    });
-    it("should handle easy difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateMultiplication("easy");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
-    it("should handle medium difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateMultiplication("medium");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("medium");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
-    it("should handle hard difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateMultiplication("hard");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
+	beforeEach(()=>{
+		vi.mocked(getRangeForDifficulty).mockClear();
+	});
+	it("generates correct multiplication question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateMultiplication("medium", rng);
+		expect(dto.latex).toBe("$5.5 \\times 5=$<br>Round your answer to two decimal places");
+		expect(dto.correct).toBe("27.50");
+		expect(dto.alternate).toBe("27.50000");
+		expect(dto.display).toBe("27.50");
+		expect(dto.expectedFormat).toBe("Enter a number rounded to 2 decimal places");
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateMultiplication("medium", seededRng(42));
+		const dto2=generateMultiplication("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("includes choices containing the correct answer",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateMultiplication("medium", rng);
+		expect(dto.choices).toBeDefined();
+		expect(dto.choices!.length).toBeGreaterThan(0);
+		expect(dto.choices).toContain("27.50");
+	});
+	it("passes easy difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateMultiplication("easy", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
+		expect(dto.correct).toBeDefined();
+	});
+	it("passes medium difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateMultiplication("medium", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("medium");
+		expect(dto.correct).toBeDefined();
+	});
+	it("passes hard difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateMultiplication("hard", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
+		expect(dto.correct).toBeDefined();
+	});
 });
 describe("generateDivision",()=>{
-    let mockDiv: HTMLDivElement;
-    let originalMathRandom: ()=>number;
-    beforeEach(()=>{
-        originalMathRandom=Math.random;
-        mockDiv=document.createElement("div");
-        (questionArea as any)=mockDiv;
-        delete (window as any).correctAnswer;
-        delete (window as any).expectedFormat;
-        (window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
-    });
-    afterEach(()=>{
-        Math.random=originalMathRandom;
-        delete (window as any).MathJax;
-    });
-    it("returns early if questionArea is null",()=>{
-        (questionArea as any)=null;
-        generateDivision();
-        expect(mockDiv.innerHTML).toBe("");
-    });
-    it("generates correct division question",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateDivision();
-        expect(mockDiv.innerHTML).toBe("$5.5 \\div 5=$<br>Round your answer to two decimal places");
-        expect((window as any).correctAnswer.correct).toBe("1.10");
-        expect((window as any).expectedFormat).toBe("Enter a number rounded to 2 decimal places");
-    });
-    it("guards against division by zero",()=>{
-        Math.random=vi.fn().mockReturnValueOnce(0.5).mockReturnValueOnce(0);
-        generateDivision();
-        expect((window as any).correctAnswer.correct).toBe("5.50");
-        expect((window as any).correctAnswer.alternate).toBe("5.50000");
-    });
-    it("generates division with hard difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateDivision("hard");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
-    });
-    it("should set window.correctAnswer",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateDivision();
-        expect((window as any).correctAnswer).toBeDefined();
-        expect((window as any).correctAnswer.correct).toBeDefined();
-        expect((window as any).correctAnswer.alternate).toBeDefined();
-        expect((window as any).correctAnswer.display).toBeDefined();
-        expect((window as any).correctAnswer.choices).toBeDefined();
-    });
-    it("should set window.expectedFormat",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateDivision();
-        expect((window as any).expectedFormat).toBe("Enter a number rounded to 2 decimal places");
-    });
-    it("should handle easy difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateDivision("easy");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
-    it("should handle medium difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateDivision("medium");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("medium");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
-    it("should handle hard difficulty",()=>{
-        Math.random=vi.fn().mockReturnValue(0.5);
-        generateDivision("hard");
-        expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
-        expect((window as any).correctAnswer).toBeDefined();
-    });
+	beforeEach(()=>{
+		vi.mocked(getRangeForDifficulty).mockClear();
+	});
+	it("generates correct division question",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateDivision("medium", rng);
+		expect(dto.latex).toBe("$5.5 \\div 5=$<br>Round your answer to two decimal places");
+		expect(dto.correct).toBe("1.10");
+		expect(dto.expectedFormat).toBe("Enter a number rounded to 2 decimal places");
+	});
+	it("guards against division by zero",()=>{
+		const rng=vi.fn().mockReturnValueOnce(0.5).mockReturnValueOnce(0);
+		const dto=generateDivision("medium", rng);
+		expect(dto.correct).toBe("5.50");
+		expect(dto.alternate).toBe("5.50000");
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateDivision("medium", seededRng(42));
+		const dto2=generateDivision("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("passes hard difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		generateDivision("hard", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("hard");
+	});
+	it("passes easy difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateDivision("easy", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("easy");
+		expect(dto.correct).toBeDefined();
+	});
+	it("passes medium difficulty to getRangeForDifficulty",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateDivision("medium", rng);
+		expect(vi.mocked(getRangeForDifficulty)).toHaveBeenCalledWith("medium");
+		expect(dto.correct).toBeDefined();
+	});
+	it("includes choices array",()=>{
+		const rng=vi.fn().mockReturnValue(0.5);
+		const dto=generateDivision("medium", rng);
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThan(0);
+	});
 });
