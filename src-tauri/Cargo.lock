@@ -3162,7 +3162,7 @@ dependencies = [
 
 [[package]]
 name = "random_math_question_generator"
-version = "2.1.1"
+version = "3.0.0"
 dependencies = [
  "anyhow",
  "derive_more 1.0.0",
