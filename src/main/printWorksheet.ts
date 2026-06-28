@@ -2,16 +2,17 @@
  * @file printWorksheet.ts - Worksheet generation with PDF export
  * @date 2026-04-09
  * @description Generates math worksheets with KaTeX-rendered questions and exports
- * them as PDF files using jsPDF + html2canvas. Supports header fields (title,
- * name, date, period), configurable answer-key modes, page numbers, metadata,
- * and a live preview pane.
+ * them as PDF files via Rust (printpdf) in Tauri mode, or window.print() in web mode.
+ * Supports header fields (title, name, date, period), configurable answer-key modes,
+ * page numbers, metadata, seeded reproducibility, and a live preview pane.
  */
 import { topics, scopeTopics } from "./constants";
 import { generateQuestionDto } from "./questionGenerator";
 import { invoke } from "@tauri-apps/api/core";
+import { save } from "@tauri-apps/plugin-dialog";
 import { seededRng } from "./core/rng";
 import { showNotification } from "./ui";
-import type { RngFn } from "../types/global";
+import type { RngFn, QuestionDto } from "../types/global";
 let modal: HTMLElement | null = null;
 let questionCountSelect: HTMLSelectElement | null = null;
 let topicSelect: HTMLSelectElement | null = null;
@@ -29,8 +30,8 @@ let copySeedBtn: HTMLButtonElement | null = null;
 let previewPane: HTMLElement | null = null;
 let exportBtn: HTMLButtonElement | null = null;
 let closeBtn: HTMLButtonElement | null = null;
-let lastWorksheetEl: HTMLElement | null = null;
 let lastWorksheetOpts: WorksheetOptions | null = null;
+let lastWorksheetDtos: QuestionDto[] = [];
 let isGenerating = false;
 interface WorksheetOptions{
 	count: number;
@@ -146,12 +147,14 @@ async function generateQuestions(opts: WorksheetOptions, rng: RngFn): Promise<Ge
 	let topicList = buildTopicList(opts);
 	if (topicList.length === 0) return [];
 	let questions: GeneratedQuestion[] = [];
+	let dtos: QuestionDto[] = [];
 	for (let i = 0; i < opts.count; i++){
 		let selectedTopic = pickTopic(topicList, rng);
 		let diff = pickDifficulty(opts.difficulty, rng);
 		let topicName = topics.find(t=>t.id === selectedTopic)?.name || selectedTopic;
 		try{
 			let dto = await generateQuestionDto(selectedTopic, diff, rng);
+			dtos.push(dto);
 			questions.push({
 				html: dto.latex,
 				answerDisplay: wrapLatexIfNeeded(dto.display || dto.correct || ""),
@@ -162,6 +165,7 @@ async function generateQuestions(opts: WorksheetOptions, rng: RngFn): Promise<Ge
 		}
 		catch (err){
 			console.error("Question generation failed:", err);
+			dtos.push({ latex: "\\text{[Error]}", correct: "" });
 			questions.push({
 				html: "\\text{[Error generating question]}",
 				answerDisplay: "",
@@ -171,6 +175,7 @@ async function generateQuestions(opts: WorksheetOptions, rng: RngFn): Promise<Ge
 			});
 		}
 	}
+	lastWorksheetDtos = dtos;
 	return questions;
 }
 function buildHeaderHtml(opts: WorksheetOptions): string{
@@ -305,99 +310,25 @@ export function renderKatexInElement(el: HTMLElement): void{
 	};
 	processNode(el);
 }
-async function exportToPdf(worksheetEl: HTMLElement, opts: WorksheetOptions): Promise<void>{
-	let jspdfModule: any = null;
-	let html2canvasModule: any = null;
-	try{
-		[jspdfModule, html2canvasModule] = await Promise.all([
-			import("jspdf"),
-			import("html2canvas")
-		]);
-	}
-	catch (err){
-		console.error("Failed to load PDF libraries:", err);
-		alert("Failed to load PDF libraries. Please check your installation.");
-		return;
-	}
-	let jsPDF = jspdfModule?.jsPDF || jspdfModule?.default;
-	let html2canvas = html2canvasModule?.default || html2canvasModule;
-	if (!jsPDF || !html2canvas){
-		alert("PDF libraries not available.");
-		return;
-	}
-	let pdf: any;
-	try{
-		pdf = new jsPDF({ unit: "pt", format: "letter", compress: true });
-	}
-	catch (err){
-		console.error("Failed to create PDF:", err);
-		alert("Failed to create PDF document.");
-		return;
-	}
-	let canvas: HTMLCanvasElement;
-	try{
-		canvas = await html2canvas(worksheetEl, {
-			scale: 2,
-			backgroundColor: "#ffffff",
-			useCORS: true,
-			logging: false
-		});
-	}
-	catch (err){
-		console.error("html2canvas failed:", err);
-		alert("Failed to render worksheet for PDF export.");
-		return;
-	}
-	let pageWidth = pdf.internal.pageSize.getWidth();
-	let pageHeight = pdf.internal.pageSize.getHeight();
-	let margin = 36;
-	let contentWidth = pageWidth - 2 * margin;
-	let imgWidth = contentWidth;
-	let imgHeight = (canvas.height * imgWidth) / canvas.width;
-	let pageContentHeight = pageHeight - 2 * margin;
-	if (imgHeight <= pageContentHeight){
-		let imgData = canvas.toDataURL("image/png");
-		pdf.addImage(imgData, "PNG", margin, margin, imgWidth, imgHeight);
+async function exportToPdf(opts: WorksheetOptions, dtos: QuestionDto[]): Promise<void>{
+	if (isTauriAvailable()){
+		try{
+			let filename = (opts.title || "worksheet").replace(/[^a-zA-Z0-9_-]/g, "_") + ".pdf";
+			let filepath = await save({
+				defaultPath: filename,
+				filters: [{ name: "PDF", extensions: ["pdf"] }]
+			});
+			if (!filepath) return;
+			await invoke("export_worksheet_pdf", { questions: dtos, opts, filepath });
+			showNotification("PDF exported successfully.", "info");
+		}
+		catch (err){
+			console.error("PDF export failed:", err);
+			showNotification("Failed to export PDF.", "warning");
+		}
 	}
 	else{
-		let renderedHeight = 0;
-		let totalHeight = imgHeight;
-		while (renderedHeight < totalHeight){
-			let sliceHeight = Math.min(pageContentHeight, totalHeight - renderedHeight);
-			let sourceSliceHeight = (sliceHeight * canvas.width) / imgWidth;
-			let sourceY = (renderedHeight * canvas.width) / imgWidth;
-			let sliceCanvas = document.createElement("canvas");
-			sliceCanvas.width = canvas.width;
-			sliceCanvas.height = Math.ceil(sourceSliceHeight);
-			let ctx = sliceCanvas.getContext("2d");
-			if (!ctx) break;
-			ctx.fillStyle = "#ffffff";
-			ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
-			ctx.drawImage(canvas, 0, sourceY, canvas.width, sourceSliceHeight, 0, 0, canvas.width, sourceSliceHeight);
-			let imgData = sliceCanvas.toDataURL("image/png");
-			pdf.addImage(imgData, "PNG", margin, margin, imgWidth, sliceHeight);
-			renderedHeight += sliceHeight;
-			if (renderedHeight < totalHeight){
-				pdf.addPage();
-			}
-		}
-	}
-	if (opts.pageNumbers){
-		let pageCount = pdf.internal.getNumberOfPages();
-		for (let i = 1; i <= pageCount; i++){
-			pdf.setPage(i);
-			pdf.setFontSize(9);
-			pdf.setTextColor(120, 120, 120);
-			pdf.text(`Page ${i} of ${pageCount}`, pageWidth / 2, pageHeight - 12, { align: "center" });
-		}
-	}
-	let filename = (opts.title || "worksheet").replace(/[^a-zA-Z0-9_-]/g, "_") + ".pdf";
-	try{
-		pdf.save(filename);
-	}
-	catch (err){
-		console.error("Failed to save PDF:", err);
-		alert("Failed to save PDF file.");
+		window.print();
 	}
 }
 async function updatePreview(worksheetEl: HTMLElement): Promise<void>{
@@ -461,7 +392,6 @@ async function generateWorksheet(): Promise<void>{
 		let html = buildWorksheetHtml(questions, opts);
 		let worksheetEl = renderToHiddenDiv(html);
 		renderKatexInElement(worksheetEl);
-		lastWorksheetEl = worksheetEl;
 		lastWorksheetOpts = opts;
 		if (seedInput) seedInput.value = String(seed);
 		if (copySeedBtn) copySeedBtn.classList.remove("hidden");
@@ -481,7 +411,7 @@ async function generateWorksheet(): Promise<void>{
 	}
 }
 async function handleExportPdf(): Promise<void>{
-	if (!lastWorksheetEl || !lastWorksheetOpts){
+	if (!lastWorksheetOpts || lastWorksheetDtos.length === 0){
 		alert("Please generate a worksheet preview first.");
 		return;
 	}
@@ -490,7 +420,7 @@ async function handleExportPdf(): Promise<void>{
 		exportBtn.textContent = "Exporting...";
 	}
 	try{
-		await exportToPdf(lastWorksheetEl, lastWorksheetOpts);
+		await exportToPdf(lastWorksheetOpts, lastWorksheetDtos);
 	}
 	catch (err){
 		console.error("PDF export failed:", err);

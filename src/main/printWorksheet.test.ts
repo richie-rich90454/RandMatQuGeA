@@ -31,6 +31,10 @@ vi.mock("jspdf",()=>({
 		};
 	}),
 }));
+const mockSave=vi.hoisted(()=>vi.fn().mockResolvedValue(null));
+vi.mock("@tauri-apps/plugin-dialog",()=>({
+	save: mockSave,
+}));
 vi.mock("./ui.js",()=>({
 	showNotification: vi.fn(),
 }));
@@ -411,5 +415,114 @@ describe("copy seed button",()=>{
 		await vi.waitFor(()=>{
 			expect(showNotification).toHaveBeenCalledWith(expect.stringContaining("Failed to copy"),expect.any(String));
 		});
+	});
+});
+describe("export PDF",()=>{
+	let modal:HTMLElement;
+	let generateBtn:HTMLButtonElement;
+	let exportBtn:HTMLButtonElement;
+	let seedInput:HTMLInputElement;
+	beforeEach(()=>{
+		modal=createPrintModal();
+		generateBtn=modal.querySelector("#print-generate") as HTMLButtonElement;
+		exportBtn=modal.querySelector("#print-export-pdf") as HTMLButtonElement;
+		seedInput=modal.querySelector("#print-seed-input") as HTMLInputElement;
+		vi.spyOn(window,"alert").mockImplementation(()=>{});
+		vi.mocked(generateQuestionDto).mockResolvedValue({
+			latex: "\\(x^2 + 1\\)",
+			correct: "2",
+			alternate: "2",
+			display: "2",
+			choices: ["2","3"],
+			expectedFormat: "Enter a number"
+		});
+		vi.mocked(showNotification).mockReset();
+		mockInvoke.mockReset();
+		mockInvoke.mockResolvedValue(12345 as any);
+		mockSave.mockReset();
+		mockSave.mockResolvedValue("/fake/path/worksheet.pdf");
+		delete (window as any).__TAURI_INTERNALS__;
+		delete (window as any).__TAURI__;
+	});
+	afterEach(()=>{
+		modal.remove();
+		delete (window as any).__TAURI_INTERNALS__;
+		delete (window as any).__TAURI__;
+		vi.restoreAllMocks();
+	});
+	it("should call save dialog and invoke when Tauri is available",async ()=>{
+		(window as any).__TAURI_INTERNALS__={};
+		initPrintModal();
+		generateBtn.click();
+		await vi.waitFor(()=>{
+			expect(seedInput.value).toBe("12345");
+		});
+		mockInvoke.mockClear();
+		exportBtn.click();
+		await vi.waitFor(()=>{
+			expect(mockSave).toHaveBeenCalled();
+		});
+		await vi.waitFor(()=>{
+			expect(mockInvoke).toHaveBeenCalledWith("export_worksheet_pdf",expect.objectContaining({
+				filepath: "/fake/path/worksheet.pdf",
+			}));
+		});
+	});
+	it("should show success notification after export",async ()=>{
+		(window as any).__TAURI_INTERNALS__={};
+		initPrintModal();
+		generateBtn.click();
+		await vi.waitFor(()=>{
+			expect(seedInput.value).toBe("12345");
+		});
+		exportBtn.click();
+		await vi.waitFor(()=>{
+			expect(showNotification).toHaveBeenCalledWith("PDF exported successfully.","info");
+		});
+	});
+	it("should not invoke when save dialog is cancelled",async ()=>{
+		(window as any).__TAURI_INTERNALS__={};
+		mockSave.mockResolvedValue(null);
+		initPrintModal();
+		generateBtn.click();
+		await vi.waitFor(()=>{
+			expect(seedInput.value).toBe("12345");
+		});
+		mockInvoke.mockClear();
+		exportBtn.click();
+		await vi.waitFor(()=>{
+			expect(mockSave).toHaveBeenCalled();
+		});
+		await new Promise(r=>setTimeout(r,50));
+		expect(mockInvoke).not.toHaveBeenCalledWith("export_worksheet_pdf",expect.anything());
+	});
+	it("should show failure notification when invoke fails",async ()=>{
+		(window as any).__TAURI_INTERNALS__={};
+		initPrintModal();
+		generateBtn.click();
+		await vi.waitFor(()=>{
+			expect(seedInput.value).toBe("12345");
+		});
+		mockInvoke.mockRejectedValueOnce(new Error("Rust error"));
+		exportBtn.click();
+		await vi.waitFor(()=>{
+			expect(showNotification).toHaveBeenCalledWith("Failed to export PDF.","warning");
+		});
+	});
+	it("should fall back to window.print in web mode",async ()=>{
+		delete (window as any).__TAURI_INTERNALS__;
+		delete (window as any).__TAURI__;
+		let printSpy=vi.spyOn(window,"print").mockImplementation(()=>{});
+		let copySeedBtn=modal.querySelector("#print-copy-seed") as HTMLButtonElement;
+		initPrintModal();
+		generateBtn.click();
+		await vi.waitFor(()=>{
+			expect(copySeedBtn.classList.contains("hidden")).toBe(false);
+		});
+		exportBtn.click();
+		await vi.waitFor(()=>{
+			expect(printSpy).toHaveBeenCalled();
+		});
+		expect(mockSave).not.toHaveBeenCalled();
 	});
 });
