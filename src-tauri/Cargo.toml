@@ -25,6 +25,7 @@ thiserror = "1.0"
 derive_more = { version = "1.0", features = ["full"] }
 strum = "0.26"
 strum_macros = "0.26"
+rand = "0.9"
 
 [lib]
 crate-type = ["rlib", "staticlib", "cdylib"]

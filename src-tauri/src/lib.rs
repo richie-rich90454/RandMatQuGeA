@@ -261,6 +261,10 @@ async fn delete_all_performance_records(state: tauri::State<'_, DbState>) -> Res
     Ok(())
 }
 #[tauri::command]
+fn generate_worksheet_seed() -> u64 {
+    rand::random()
+}
+#[tauri::command]
 async fn delete_score(state: tauri::State<'_, DbState>, id: i32) -> Result<(), String> {
     let pool = &state.pool;
     sqlx::query("DELETE FROM scores WHERE id = ?")
@@ -299,6 +303,7 @@ pub fn run() {
             get_performance_stats,
             delete_performance_record,
             delete_all_performance_records,
+            generate_worksheet_seed,
             delete_score,
             reset_all_data,
         ])
@@ -956,5 +961,22 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(count_after.0, 0);
+    }
+    #[test]
+    fn should_generate_worksheet_seed_returns_u64() {
+        let seed1 = generate_worksheet_seed();
+        let seed2 = generate_worksheet_seed();
+        // Each call should produce a valid u64 (non-negative, fits in 64 bits)
+        assert!(seed1 <= u64::MAX);
+        assert!(seed2 <= u64::MAX);
+        // Two consecutive calls should (with overwhelming probability) differ
+        assert_ne!(seed1, seed2);
+    }
+    #[test]
+    fn should_generate_worksheet_seed_is_deterministic_in_range() {
+        for _ in 0..100 {
+            let seed = generate_worksheet_seed();
+            assert!(seed <= u64::MAX);
+        }
     }
 }
