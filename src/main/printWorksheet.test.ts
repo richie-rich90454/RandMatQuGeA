@@ -508,4 +508,23 @@ describe("export PDF",()=>{
 		});
 		expect(mockSave).not.toHaveBeenCalled();
 	});
+	it("should populate print container before calling window.print",async ()=>{
+		delete (window as any).__TAURI_INTERNALS__;
+		delete (window as any).__TAURI__;
+		vi.spyOn(window,"print").mockImplementation(()=>{});
+		let copySeedBtn=modal.querySelector("#print-copy-seed") as HTMLButtonElement;
+		initPrintModal();
+		generateBtn.click();
+		await vi.waitFor(()=>{
+			expect(copySeedBtn.classList.contains("hidden")).toBe(false);
+		});
+		exportBtn.click();
+		await vi.waitFor(()=>{
+			expect(window.print).toHaveBeenCalled();
+		});
+		let printContainer=document.getElementById("ws-print-container");
+		expect(printContainer).toBeTruthy();
+		expect(printContainer?.innerHTML).toContain("ws-document");
+		expect(printContainer?.innerHTML).toContain("ws-question");
+	});
 });

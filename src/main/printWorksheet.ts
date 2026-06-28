@@ -328,8 +328,27 @@ async function exportToPdf(opts: WorksheetOptions, dtos: QuestionDto[]): Promise
 		}
 	}
 	else{
+		populatePrintContainer(opts, dtos);
 		window.print();
 	}
+}
+function populatePrintContainer(opts: WorksheetOptions, dtos: QuestionDto[]): void{
+	let container = document.getElementById("ws-print-container");
+	if (!container){
+		container = document.createElement("div");
+		container.id = "ws-print-container";
+		document.body.appendChild(container);
+	}
+	let questions: GeneratedQuestion[] = dtos.map(dto=>({
+		html: dto.latex,
+		answerDisplay: wrapLatexIfNeeded(dto.display || dto.correct || ""),
+		topicId: "",
+		topicName: "",
+		difficulty: ""
+	}));
+	let html = buildWorksheetHtml(questions, opts);
+	container.innerHTML = html;
+	renderKatexInElement(container);
 }
 function updatePreview(worksheetEl: HTMLElement): void{
 	if (!previewPane) return;

@@ -1914,8 +1914,20 @@ hr.context-menu-divider{
     font-style: italic;
 }
 @media print{
-    .modal{
+    .modal, .sidebar, .controls{
         display: none !important;
+    }
+    body * {
+        visibility: hidden;
+    }
+    #ws-print-container, #ws-print-container *{
+        visibility: visible;
+    }
+    #ws-print-container{
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
     }
 }
 .loading-overlay{
