@@ -1,18 +1,17 @@
 /**
  * Statistics questions generator with MCQ distractors
- * @fileoverview Generates statistical questions (mean, median, mode, range, stem-and-leaf, box plot, standard deviation). Renders question via renderer.render and sets answer via renderer.setAnswer with correct value, alternate representation, display format, and plausible wrong answers for MCQ mode.
+ * @fileoverview Generates statistical questions (mean, median, mode, range, stem-and-leaf, box plot, standard deviation). Returns a QuestionDto with correct value, alternate representation, display format, and plausible wrong answers for MCQ mode.
  * @date 2026-03-29
  */
-import {renderer} from "../../main/core/questionRenderer";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getDataRange, mean, median, mode, range, stdDev} from "./discreteUtils.js";
-export function generateStatistics(difficulty?: string): void{
-	renderer.clear();
+export function generateStatistics(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["mean","median","mode","range","stem_leaf","box_plot","standard_deviation"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let dataRange=getDataRange(difficulty);
 	let data: number[]=[];
 	for (let i=0; i<dataRange.count; i++){
-		data.push(Math.floor(Math.random()*(dataRange.max-dataRange.min+1))+dataRange.min);
+		data.push(Math.floor(rng()*(dataRange.max-dataRange.min+1))+dataRange.min);
 	}
 	let hint="", questionText="", answer="", choices: string[]=[];
 	switch (type){
@@ -159,15 +158,15 @@ export function generateStatistics(difficulty?: string): void{
 	let uniqueChoices=[...new Set(choices)];
 	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if (!uniqueChoices.includes(answer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=answer;
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=answer;
 		else uniqueChoices=[answer];
 	}
-	renderer.setAnswer({
+	return {
+		latex: questionText,
 		correct: answer,
 		alternate: answer,
 		display: answer,
-		choices: uniqueChoices
-	});
-	renderer.render(questionText);
-	renderer.setExpectedFormat(hint);
+		choices: uniqueChoices,
+		expectedFormat: hint
+	};
 }

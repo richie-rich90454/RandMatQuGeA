@@ -1,13 +1,14 @@
 /**
  * Sequences, series, and induction generator
- * @fileoverview Provides functions to generate questions about arithmetic/geometric sequences, limits, infinite series, mathematical induction, and binomial theorem. Each question renders via renderer.render and sets answer via renderer.setAnswer with:
+ * @fileoverview Provides functions to generate questions about arithmetic/geometric sequences, limits, infinite series, mathematical induction, and binomial theorem. Each function returns a QuestionDto with:
+ * - latex: question text (may contain LaTeX delimiters \(...\))
  * - correct: normalized answer (string)
  * - alternate: alternative representation (e.g., fraction, expression)
  * - display: LaTeX representation suitable for showing the answer.
- * Also calls renderer.setExpectedFormat as a hint for the user.
+ * - expectedFormat: hint string for the user.
  * @date 2026-03-15
  */
-import {renderer} from "../../main/core/questionRenderer";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxN, nCr} from "./discreteUtils.js";
 /**
  * Determines the maximum term value for sequence generation based on difficulty.
@@ -22,64 +23,74 @@ function getMaxTerm(difficulty?: string): number{
 /**
  * Generates an arithmetic sequence question (nth term or sum of first n terms).
  * @param difficulty - optional difficulty level.
+ * @param rng - optional random number generator (defaults to Math.random).
+ * @returns QuestionDto
  */
-export function generateArithmeticSequence(difficulty?: string): void{
-	renderer.clear();
+export function generateArithmeticSequence(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxA1=getMaxN(difficulty);
 	const maxD=getMaxTerm(difficulty);
-	const a1=Math.floor(Math.random()*maxA1)+1;
-	const d=Math.floor(Math.random()*maxD)+1;
-	const n=Math.floor(Math.random()*10)+5;
-	const type=Math.random()<0.5?"term":"sum";
+	const a1=Math.floor(rng()*maxA1)+1;
+	const d=Math.floor(rng()*maxD)+1;
+	const n=Math.floor(rng()*10)+5;
+	const type=rng()<0.5?"term":"sum";
 	let question="";
 	let answer="";
 	let hint="";
+	let displayVal="";
 	if (type==="term"){
 		const an=a1+(n-1)*d;
 		question=`Find the ${n}th term of the arithmetic sequence: \\( a_1 = ${a1}, d = ${d} \\).`;
 		answer=an.toString();
 		hint="Enter a number";
-		renderer.setAnswer({ correct: answer, alternate: answer, display: an.toString() ,choices:[]});
+		displayVal=an.toString();
 	}
 	else{
 		const sum=(n/2)*(2*a1+(n-1)*d);
 		question=`Find the sum of the first ${n} terms of the arithmetic sequence with \\( a_1 = ${a1} \\) and common difference \\( d = ${d} \\).`;
 		answer=sum.toFixed(2);
 		hint="Enter a decimal or integer";
-		renderer.setAnswer({ correct: answer, alternate: answer, display: sum.toFixed(2) ,choices:[]});
+		displayVal=sum.toFixed(2);
 	}
-	renderer.render(question);
-	renderer.setExpectedFormat(hint);
+	return {
+		latex: question,
+		correct: answer,
+		alternate: answer,
+		display: displayVal,
+		choices: [],
+		expectedFormat: hint
+	};
 }
 /**
  * Generates a geometric sequence question (nth term or sum of first n terms).
  * @param difficulty - optional difficulty level.
+ * @param rng - optional random number generator (defaults to Math.random).
+ * @returns QuestionDto
  */
-export function generateGeometricSequence(difficulty?: string): void{
-	renderer.clear();
+export function generateGeometricSequence(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxA1=getMaxN(difficulty);
-	const a1=Math.floor(Math.random()*maxA1)+1;
+	const a1=Math.floor(rng()*maxA1)+1;
 	let r: number;
 	if (difficulty==="easy"){
-		r=Math.floor(Math.random()*2)+1;
+		r=Math.floor(rng()*2)+1;
 	}
 	else if (difficulty==="hard"){
-		r=parseFloat((Math.random()*2+0.5).toFixed(2));
+		r=parseFloat((rng()*2+0.5).toFixed(2));
 	}
 	else{
-		r=Math.floor(Math.random()*3)+1;
+		r=Math.floor(rng()*3)+1;
 	}
-	const n=Math.floor(Math.random()*6)+4;
-	const type=Math.random()<0.5?"term":"sum";
+	const n=Math.floor(rng()*6)+4;
+	const type=rng()<0.5?"term":"sum";
 	let question="";
 	let answer="";
 	let hint="";
+	let displayVal="";
 	if (type==="term"){
 		const an=a1*Math.pow(r,n-1);
 		question=`Find the ${n}th term of the geometric sequence: \\( a_1 = ${a1}, r = ${r} \\).`;
 		answer=an.toFixed(2);
 		hint="Enter a decimal";
-		renderer.setAnswer({ correct: answer, alternate: answer, display: an.toFixed(2) ,choices:[]});
+		displayVal=an.toFixed(2);
 	}
 	else{
 		if (r===1){
@@ -87,55 +98,63 @@ export function generateGeometricSequence(difficulty?: string): void{
 			question=`Find the sum of the first ${n} terms of the geometric sequence with \\( a_1 = ${a1} \\) and common ratio \\( r = 1 \\).`;
 			answer=sum.toString();
 			hint="Enter a number";
-			renderer.setAnswer({ correct: answer, alternate: answer, display: sum.toString() ,choices:[]});
+			displayVal=sum.toString();
 		}
 		else{
 			const sum=a1*(1-Math.pow(r,n))/(1-r);
 			question=`Find the sum of the first ${n} terms of the geometric sequence: \\( a_1 = ${a1}, r = ${r} \\).`;
 			answer=sum.toFixed(2);
 			hint="Enter a decimal";
-			renderer.setAnswer({ correct: answer, alternate: answer, display: sum.toFixed(2) ,choices:[]});
+			displayVal=sum.toFixed(2);
 		}
 	}
-	renderer.render(question);
-	renderer.setExpectedFormat(hint);
+	return {
+		latex: question,
+		correct: answer,
+		alternate: answer,
+		display: displayVal,
+		choices: [],
+		expectedFormat: hint
+	};
 }
 /**
  * Generates a sequence limit question (rational or exponential type).
  * @param difficulty - optional difficulty level.
+ * @param rng - optional random number generator (defaults to Math.random).
+ * @returns QuestionDto
  */
-export function generateSequenceLimit(difficulty?: string): void{
-	renderer.clear();
+export function generateSequenceLimit(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const types=["rational","exponential"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	if (difficulty==="easy"){
 		type="rational";
 	}
 	else if (difficulty==="hard"){
-		type=types[Math.floor(Math.random()*types.length)];
+		type=types[Math.floor(rng()*types.length)];
 	}
 	let question="";
 	let answer="";
 	let hint="";
+	let displayVal="";
 	if (type==="rational"){
 		let numCoeff: number, denCoeff: number, constNum: number, constDen: number;
 		if (difficulty==="easy"){
-			numCoeff=Math.floor(Math.random()*2)+1;
+			numCoeff=Math.floor(rng()*2)+1;
 			denCoeff=numCoeff;
-			constNum=Math.floor(Math.random()*3);
-			constDen=Math.floor(Math.random()*3);
+			constNum=Math.floor(rng()*3);
+			constDen=Math.floor(rng()*3);
 		}
 		else if (difficulty==="hard"){
-			numCoeff=Math.floor(Math.random()*4)+1;
-			denCoeff=Math.floor(Math.random()*4)+1;
-			constNum=Math.floor(Math.random()*6)-3;
-			constDen=Math.floor(Math.random()*6)-3;
+			numCoeff=Math.floor(rng()*4)+1;
+			denCoeff=Math.floor(rng()*4)+1;
+			constNum=Math.floor(rng()*6)-3;
+			constDen=Math.floor(rng()*6)-3;
 		}
 		else{
-			numCoeff=Math.floor(Math.random()*3)+1;
-			denCoeff=Math.floor(Math.random()*3)+1;
-			constNum=Math.floor(Math.random()*5);
-			constDen=Math.floor(Math.random()*5);
+			numCoeff=Math.floor(rng()*3)+1;
+			denCoeff=Math.floor(rng()*3)+1;
+			constNum=Math.floor(rng()*5);
+			constDen=Math.floor(rng()*5);
 		}
 		const limit=numCoeff/denCoeff;
 		const signNum=constNum>=0?'+':'-';
@@ -143,66 +162,76 @@ export function generateSequenceLimit(difficulty?: string): void{
 		question=`Determine the limit as \\( n \\to \\infty \\) of the sequence \\( a_n = \\frac{${numCoeff}n ${signNum} ${Math.abs(constNum)}}{${denCoeff}n ${signDen} ${Math.abs(constDen)}} \\).`;
 		answer=limit.toFixed(2);
 		hint="Enter a decimal (e.g., 0.5) or 'diverges'";
-		renderer.setAnswer({ correct: answer, alternate: answer, display: limit.toFixed(2) ,choices:[]});
+		displayVal=limit.toFixed(2);
 	}
 	else{
 		let r: number;
 		if (difficulty==="hard"){
-			r=parseFloat((Math.random()*0.8+0.1).toFixed(2));
+			r=parseFloat((rng()*0.8+0.1).toFixed(2));
 		}
 		else{
-			r=parseFloat((Math.random()*0.5+0.2).toFixed(2));
+			r=parseFloat((rng()*0.5+0.2).toFixed(2));
 		}
 		question=`Determine the limit as \\( n \\to \\infty \\) of the sequence \\( a_n = (${r})^n \\).`;
 		answer="0";
 		hint="Enter 0 or '0'";
-		renderer.setAnswer({ correct: answer, alternate: answer, display: "0" ,choices:[]});
+		displayVal="0";
 	}
-	renderer.render(question);
-	renderer.setExpectedFormat(hint);
+	return {
+		latex: question,
+		correct: answer,
+		alternate: answer,
+		display: displayVal,
+		choices: [],
+		expectedFormat: hint
+	};
 }
 /**
  * Generates an infinite geometric series sum question.
  * @param difficulty - optional difficulty level.
+ * @param rng - optional random number generator (defaults to Math.random).
+ * @returns QuestionDto
  */
-export function generateInfiniteGeometricSeries(difficulty?: string): void{
-	renderer.clear();
+export function generateInfiniteGeometricSeries(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxA1=getMaxN(difficulty);
-	const a1=Math.floor(Math.random()*maxA1)+1;
+	const a1=Math.floor(rng()*maxA1)+1;
 	let r: number;
 	if (difficulty==="easy"){
-		r=parseFloat((Math.random()*0.3+0.2).toFixed(2));
+		r=parseFloat((rng()*0.3+0.2).toFixed(2));
 	}
 	else if (difficulty==="hard"){
-		r=parseFloat((Math.random()*0.7+0.1).toFixed(2));
+		r=parseFloat((rng()*0.7+0.1).toFixed(2));
 	}
 	else{
-		r=parseFloat((Math.random()*0.5+0.2).toFixed(2));
+		r=parseFloat((rng()*0.5+0.2).toFixed(2));
 	}
 	const sum=a1/(1-r);
-	renderer.render(`Find the sum of the infinite geometric series: \\( ${a1} + ${(a1*r).toFixed(2)} + ${(a1*r*r).toFixed(2)} + \\cdots \\).`);
-	renderer.setAnswer({
+	const mathExpression=`Find the sum of the infinite geometric series: \\( ${a1} + ${(a1*r).toFixed(2)} + ${(a1*r*r).toFixed(2)} + \\cdots \\).`;
+	return {
+		latex: mathExpression,
 		correct: sum.toFixed(2),
 		alternate: sum.toString(),
-		display: sum.toFixed(2)
-	,choices:[]});
-	renderer.setExpectedFormat("Enter a decimal");
+		display: sum.toFixed(2),
+		choices: [],
+		expectedFormat: "Enter a decimal"
+	};
 }
 /**
  * Generates a mathematical induction question (base case or inductive hypothesis).
  * @param difficulty - optional difficulty level.
+ * @param rng - optional random number generator (defaults to Math.random).
+ * @returns QuestionDto
  */
-export function generateMathematicalInduction(difficulty?: string): void{
-	renderer.clear();
+export function generateMathematicalInduction(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let formulaIndex: number;
 	if (difficulty==="easy"){
 		formulaIndex=0;
 	}
 	else if (difficulty==="hard"){
-		formulaIndex=Math.floor(Math.random()*2)+1;
+		formulaIndex=Math.floor(rng()*2)+1;
 	}
 	else{
-		formulaIndex=Math.floor(Math.random()*3);
+		formulaIndex=Math.floor(rng()*3);
 	}
 	const formulas=[
 		{ lhs: "1 + 2 + \\cdots + n", rhs: "\\frac{n(n+1)}{2}" },
@@ -212,18 +241,19 @@ export function generateMathematicalInduction(difficulty?: string): void{
 	const chosen=formulas[formulaIndex];
 	let n: number;
 	if (difficulty==="easy"){
-		n=Math.floor(Math.random()*3)+1;
+		n=Math.floor(rng()*3)+1;
 	}
 	else if (difficulty==="hard"){
-		n=Math.floor(Math.random()*5)+3;
+		n=Math.floor(rng()*5)+3;
 	}
 	else{
-		n=Math.floor(Math.random()*4)+2;
+		n=Math.floor(rng()*4)+2;
 	}
-	const type=Math.random()<0.5?"base":"inductive";
+	const type=rng()<0.5?"base":"inductive";
 	let question="";
 	let answer="";
 	let hint="";
+	let displayVal="";
 	if (type==="base"){
 		question=`In a proof by induction that \\( ${chosen.lhs} = ${chosen.rhs} \\), verify the base case for \\( n = ${n} \\). What is the value of both sides?`;
 		let leftSum=0;
@@ -238,33 +268,41 @@ export function generateMathematicalInduction(difficulty?: string): void{
 		}
 		answer=leftSum.toString();
 		hint="Enter a number";
-		renderer.setAnswer({ correct: answer, alternate: answer, display: leftSum.toString() ,choices:[]});
+		displayVal=leftSum.toString();
 	}
 	else{
 		question=`In a proof by induction that \\( ${chosen.lhs} = ${chosen.rhs} \\), what is the inductive hypothesis? (Assume true for n = k)`;
 		answer=`Assume true for n = k: ${chosen.lhs.replace(/n/g,"k")} = ${chosen.rhs.replace(/n/g,"k")}`;
 		hint="Enter the statement for n = k";
-		renderer.setAnswer({ correct: answer, alternate: answer, display: answer ,choices:[]});
+		displayVal=answer;
 	}
-	renderer.render(question);
-	renderer.setExpectedFormat(hint);
+	return {
+		latex: question,
+		correct: answer,
+		alternate: answer,
+		display: displayVal,
+		choices: [],
+		expectedFormat: hint
+	};
 }
 /**
  * Generates a binomial theorem question (expansion or coefficient).
  * @param difficulty - optional difficulty level.
+ * @param rng - optional random number generator (defaults to Math.random).
+ * @returns QuestionDto
  */
-export function generateBinomialTheorem(difficulty?: string): void{
-	renderer.clear();
+export function generateBinomialTheorem(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	const maxN=getMaxN(difficulty);
-	const n=Math.floor(Math.random()*maxN)+2;
-	const type=Math.random()<0.5?"expand":"coefficient";
+	const n=Math.floor(rng()*maxN)+2;
+	const type=rng()<0.5?"expand":"coefficient";
 	let question="";
 	let answer="";
 	let hint="";
+	let displayVal="";
 	if (type==="expand"){
 		const a="x";
-		const b=Math.floor(Math.random()*3)+1;
-		const sign=Math.random()<0.5?"+":"-";
+		const b=Math.floor(rng()*3)+1;
+		const sign=rng()<0.5?"+":"-";
 		const expr=`(${a} ${sign} ${b})^${n}`;
 		let signedTerms: string[]=[];
 		for (let k=0; k<=n; k++){
@@ -294,21 +332,27 @@ export function generateBinomialTheorem(difficulty?: string): void{
 		answer=signedTerms.join(" + ").replace(/\+ -/g,"- ");
 		question=`Expand \\( ${expr} \\) using the binomial theorem.`;
 		hint="Enter as a polynomial (e.g., x^2 + 2x + 1)";
-		renderer.setAnswer({ correct: answer, alternate: answer, display: answer ,choices:[]});
+		displayVal=answer;
 	}
 	else{
-		const a=Math.floor(Math.random()*2)+1;
-		const b=Math.floor(Math.random()*3)+1;
-		const sign=Math.random()<0.5?"+":"-";
-		const k=Math.floor(Math.random()*n)+1;
+		const a=Math.floor(rng()*2)+1;
+		const b=Math.floor(rng()*3)+1;
+		const sign=rng()<0.5?"+":"-";
+		const k=Math.floor(rng()*n)+1;
 		const expr=`(${a}x ${sign} ${b})^${n}`;
 		let coeff=nCr(n,k)*Math.pow(a,k)*Math.pow(b,n-k);
 		if (sign==="-"&&k%2===1) coeff=-coeff;
 		question=`Find the coefficient of \\( x^{${k}} \\) in the expansion of \\( ${expr} \\).`;
 		answer=coeff.toString();
 		hint="Enter an integer (may be negative)";
-		renderer.setAnswer({ correct: answer, alternate: answer, display: coeff.toString() ,choices:[]});
+		displayVal=coeff.toString();
 	}
-	renderer.render(question);
-	renderer.setExpectedFormat(hint);
+	return {
+		latex: question,
+		correct: answer,
+		alternate: answer,
+		display: displayVal,
+		choices: [],
+		expectedFormat: hint
+	};
 }

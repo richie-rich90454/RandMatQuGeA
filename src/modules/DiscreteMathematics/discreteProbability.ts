@@ -1,15 +1,14 @@
 /**
  * Probability questions generator with MCQ distractors
- * @fileoverview Generates various probability questions (basic, conditional, independent, mutually exclusive, Bayes, binomial, expected value, complement, permutation/combination, geometric). Renders question via renderer.render and sets answer via renderer.setAnswer with correct value, alternate representation, display LaTeX, and plausible wrong answers for MCQ mode.
+ * @fileoverview Generates various probability questions (basic, conditional, independent, mutually exclusive, Bayes, binomial, expected value, complement, permutation/combination, geometric). Returns a QuestionDto with correct value, alternate representation, display LaTeX, and plausible wrong answers for MCQ mode.
  * @date 2026-03-29
  */
-import {renderer} from "../../main/core/questionRenderer";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxN, nPr, nCr, getOrdinal, factorial} from "./discreteUtils.js";
-export function generateProbability(difficulty?: string): void{
-	renderer.clear();
+export function generateProbability(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let questionTypes=["basic","conditional","independent","mutually_exclusive","bayes","binomial","expected_value","complement","permutation_combination","geometric"];
-	let questionType=questionTypes[Math.floor(Math.random()*questionTypes.length)];
-	let plainCorrectAnswer: string;
+	let questionType=questionTypes[Math.floor(rng()*questionTypes.length)];
+	let plainCorrectAnswer: string="";
 	let content: string[]=[];
 	let scale=getMaxN(difficulty);
 	let hint="";
@@ -18,8 +17,8 @@ export function generateProbability(difficulty?: string): void{
 	let answerDisplay="";
 	switch (questionType){
 		case "basic":{
-			let total=Math.floor(Math.random()*50)+10*scale/8;
-			let favorable=Math.floor(Math.random()*(total-1))+1;
+			let total=Math.floor(rng()*50)+10*scale/8;
+			let favorable=Math.floor(rng()*(total-1))+1;
 			let prob=favorable/total;
 			let probStr=prob.toFixed(2);
 			content.push(`A bag contains <span class="math">\\(${total}\\)</span> marbles, <span class="math">\\(${favorable}\\)</span> of which are red. What is the probability of drawing a red marble?`);
@@ -37,9 +36,9 @@ export function generateProbability(difficulty?: string): void{
 			break;
 		}
 		case "conditional":{
-			let total=Math.floor(Math.random()*100)+50*scale/8;
-			let eventA=Math.floor(Math.random()*(total-10))+10;
-			let eventB=Math.floor(Math.random()*(eventA-5))+5;
+			let total=Math.floor(rng()*100)+50*scale/8;
+			let eventA=Math.floor(rng()*(total-10))+10;
+			let eventB=Math.floor(rng()*(eventA-5))+5;
 			let prob=eventB/eventA;
 			let probStr=prob.toFixed(2);
 			content.push(`Given <span class="math">\\(${total}\\)</span> items, <span class="math">\\(${eventA}\\)</span> are type A, and <span class="math">\\(${eventB}\\)</span> of those are also type B. Find the probability of type B given type A.`);
@@ -57,8 +56,8 @@ export function generateProbability(difficulty?: string): void{
 			break;
 		}
 		case "independent":{
-			let probA=Math.random()*0.8+0.1;
-			let probB=Math.random()*0.8+0.1;
+			let probA=rng()*0.8+0.1;
+			let probB=rng()*0.8+0.1;
 			let probBoth=probA*probB;
 			let probAStr=probA.toFixed(2);
 			let probBStr=probB.toFixed(2);
@@ -78,8 +77,8 @@ export function generateProbability(difficulty?: string): void{
 			break;
 		}
 		case "mutually_exclusive":{
-			let probA=Math.random()*0.5+0.2;
-			let probB=Math.random()*(0.9-probA)+0.1;
+			let probA=rng()*0.5+0.2;
+			let probB=rng()*(0.9-probA)+0.1;
 			let probEither=probA+probB;
 			let probAStr=probA.toFixed(2);
 			let probBStr=probB.toFixed(2);
@@ -99,9 +98,9 @@ export function generateProbability(difficulty?: string): void{
 			break;
 		}
 		case "bayes":{
-			let probA=Math.random()*0.5+0.2;
-			let probB=Math.random()*0.5+0.2;
-			let probBgivenA=Math.random()*0.8+0.1;
+			let probA=rng()*0.5+0.2;
+			let probB=rng()*0.5+0.2;
+			let probBgivenA=rng()*0.8+0.1;
 			let probAgivenB=(probBgivenA*probA)/probB;
 			let probAStr=probA.toFixed(2);
 			let probBStr=probB.toFixed(2);
@@ -122,9 +121,9 @@ export function generateProbability(difficulty?: string): void{
 			break;
 		}
 		case "binomial":{
-			let n=Math.floor(Math.random()*5)+5;
-			let k=Math.floor(Math.random()*(n-1))+1;
-			let p=Math.random()*0.7+0.1;
+			let n=Math.floor(rng()*5)+5;
+			let k=Math.floor(rng()*(n-1))+1;
+			let p=rng()*0.7+0.1;
 			let q=1-p;
 			let prob=nCr(n, k)*Math.pow(p, k)*Math.pow(q, n-k);
 			let pStr=p.toFixed(2);
@@ -149,8 +148,8 @@ export function generateProbability(difficulty?: string): void{
 			break;
 		}
 		case "expected_value":{
-			let values=Array.from({length:3},()=>Math.floor(Math.random()*10)+1);
-			let rawProbs=Array.from({length:3},()=>Math.random()*0.3+0.1);
+			let values=Array.from({length:3}, ()=>Math.floor(rng()*10)+1);
+			let rawProbs=Array.from({length:3}, ()=>rng()*0.3+0.1);
 			let sum=rawProbs.reduce((a,b)=>a+b,0);
 			let probs=rawProbs.map(p=>p/sum);
 			let expected=values.reduce((acc,v,i)=>acc+v*probs[i],0);
@@ -175,7 +174,7 @@ export function generateProbability(difficulty?: string): void{
 			break;
 		}
 		case "complement":{
-			let probA=Math.random()*0.8+0.1;
+			let probA=rng()*0.8+0.1;
 			let probNotA=1-probA;
 			let probAStr=probA.toFixed(2);
 			let probNotAStr=probNotA.toFixed(2);
@@ -194,9 +193,9 @@ export function generateProbability(difficulty?: string): void{
 			break;
 		}
 		case "permutation_combination":{
-			let n=Math.floor(Math.random()*8)+5;
-			let r=Math.floor(Math.random()*(n-1))+1;
-			let isPerm=Math.random()<0.5;
+			let n=Math.floor(rng()*8)+5;
+			let r=Math.floor(rng()*(n-1))+1;
+			let isPerm=rng()<0.5;
 			let answer=isPerm?nPr(n, r):nCr(n, r);
 			let answerStr=answer.toString();
 			let symbol=isPerm?"P":"C";
@@ -220,8 +219,8 @@ export function generateProbability(difficulty?: string): void{
 			break;
 		}
 		case "geometric":{
-			let p=Math.random()*0.7+0.2;
-			let k=Math.floor(Math.random()*5)+1;
+			let p=rng()*0.7+0.2;
+			let k=Math.floor(rng()*5)+1;
 			let prob=Math.pow(1-p, k-1)*p;
 			let pStr=p.toFixed(2);
 			let probStr=prob.toFixed(2);
@@ -244,21 +243,19 @@ export function generateProbability(difficulty?: string): void{
 			];
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if (!uniqueChoices.includes(plainCorrectAnswer)){
-		if (uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=plainCorrectAnswer;
+		if (uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
 		else uniqueChoices=[plainCorrectAnswer];
 	}
-	renderer.setAnswer({
-		correct: plainCorrectAnswer.replace(/\s+/g, "").toLowerCase(),
+	return {
+		latex: content.join("<br>"),
+		correct: plainCorrectAnswer,
 		alternate: answerAlternate,
 		display: answerDisplay,
-		choices: uniqueChoices
-	});
-	renderer.render(content.join("<br>"));
-	renderer.setExpectedFormat(hint);
+		choices: uniqueChoices,
+		expectedFormat: hint
+	};
 }
