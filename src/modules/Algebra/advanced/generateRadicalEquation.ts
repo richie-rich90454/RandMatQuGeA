@@ -1,16 +1,14 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Radical equations: one radical or two radicals.
  * @fileoverview Generates radical equation questions with MCQ distractors. Sets window.correctAnswer with correct value and display.
  * @date 2026-04-18
+ * @returns QuestionDto
  */
-export function generateRadicalEquation(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateRadicalEquation(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["one_radical","two_radicals"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,10);
 	let expectedFormat="Enter a number";
 	let correct="";
@@ -20,8 +18,8 @@ export function generateRadicalEquation(difficulty?: string): void{
 	let choices:string[]=[];
 	switch(type){
 		case "one_radical":{
-			let a=Math.floor(Math.random()*maxVal)+1;
-			let b=Math.floor(Math.random()*maxVal)+1;
+			let a=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+1;
 			let sol=b*b-a;
 			correct=sol.toString();
 			alternate=correct;
@@ -36,8 +34,8 @@ export function generateRadicalEquation(difficulty?: string): void{
 			break;
 		}
 		case "two_radicals":{
-			let b=Math.floor(Math.random()*maxVal)+1;
-			let a=b*b+Math.floor(Math.random()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+1;
+			let a=b*b+Math.floor(rng()*maxVal)+1;
 			let sol=((a-b*b)/(2*b));
 			sol=sol*sol;
 			correct=sol.toFixed(2);
@@ -52,28 +50,20 @@ export function generateRadicalEquation(difficulty?: string): void{
 			choices.push((((a+b*b)/(2*b)).toFixed(2)));
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+	let latex=mathExpression;
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }

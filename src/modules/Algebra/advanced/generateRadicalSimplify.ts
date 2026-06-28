@@ -1,6 +1,5 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 function isSquareFree(n: number): boolean{
 	if(n<2) return true;
 	for(let i=2;i*i<=n;i++){
@@ -30,12 +29,11 @@ function simplifyRadical(radicand: number): string{
  * Radical simplification: simplify, add, subtract, multiply, divide, rationalize.
  * @fileoverview Generates radical simplification questions with MCQ distractors. Sets window.correctAnswer with LaTeX expression and display.
  * @date 2026-04-18
+ * @returns QuestionDto
  */
-export function generateRadicalSimplify(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateRadicalSimplify(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["simplify","add","subtract","multiply","divide","rationalize"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,20);
 	let expectedFormat="Enter a simplified radical expression";
 	let correct="";
@@ -45,11 +43,11 @@ export function generateRadicalSimplify(difficulty?: string): void{
 	let choices:string[]=[];
 	switch(type){
 		case "simplify":{
-			let a=Math.floor(Math.random()*maxVal)+1;
-			let b=Math.floor(Math.random()*maxVal)+1;
+			let a=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+1;
 			let attempts=0;
 			while(!isSquareFree(b)&&attempts<100){
-				b=Math.floor(Math.random()*maxVal)+1;
+				b=Math.floor(rng()*maxVal)+1;
 				attempts++;
 			}
 			if(!isSquareFree(b)) b=2;
@@ -66,12 +64,12 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			break;
 		}
 		case "add":{
-			let a=Math.floor(Math.random()*maxVal)+1;
-			let c=Math.floor(Math.random()*maxVal)+1;
-			let b=Math.floor(Math.random()*maxVal)+1;
+			let a=Math.floor(rng()*maxVal)+1;
+			let c=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+1;
 			let attempts=0;
 			while(!isSquareFree(b)&&attempts<100){
-				b=Math.floor(Math.random()*maxVal)+1;
+				b=Math.floor(rng()*maxVal)+1;
 				attempts++;
 			}
 			if(!isSquareFree(b)) b=2;
@@ -88,12 +86,12 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			break;
 		}
 		case "subtract":{
-			let a=Math.floor(Math.random()*maxVal)+1;
-			let c=Math.floor(Math.random()*maxVal)+1;
-			let b=Math.floor(Math.random()*maxVal)+1;
+			let a=Math.floor(rng()*maxVal)+1;
+			let c=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+1;
 			let attempts=0;
 			while(!isSquareFree(b)&&attempts<100){
-				b=Math.floor(Math.random()*maxVal)+1;
+				b=Math.floor(rng()*maxVal)+1;
 				attempts++;
 			}
 			if(!isSquareFree(b)) b=2;
@@ -110,8 +108,8 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			break;
 		}
 		case "multiply":{
-			let a=Math.floor(Math.random()*maxVal)+1;
-			let b=Math.floor(Math.random()*maxVal)+1;
+			let a=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+1;
 			let product=a*b;
 			let ans=simplifyRadical(product);
 			correct=ans;
@@ -128,8 +126,8 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			break;
 		}
 		case "divide":{
-			let a=Math.floor(Math.random()*maxVal)+1;
-			let b=Math.floor(Math.random()*maxVal)+1;
+			let a=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+1;
 			let num=Math.sqrt(a);
 			let den=Math.sqrt(b);
 			let ans: string;
@@ -153,7 +151,7 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			break;
 		}
 		case "rationalize":{
-			let a=Math.floor(Math.random()*maxVal)+1;
+			let a=Math.floor(rng()*maxVal)+1;
 			correct=`\\frac{\\sqrt{${a}}}{${a}}`;
 			alternate=`√${a}/${a}`;
 			display=correct;
@@ -165,28 +163,20 @@ export function generateRadicalSimplify(difficulty?: string): void{
 			choices.push(`\\frac{1}{\\sqrt{${a+1}}}`);
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+	let latex=mathExpression;
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }

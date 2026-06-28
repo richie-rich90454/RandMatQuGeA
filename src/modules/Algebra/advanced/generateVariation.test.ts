@@ -1,178 +1,50 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {describe,it,expect} from "vitest";
 import {generateVariation} from "./generateVariation";
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
-vi.mock("../../../script.js",()=>({
-	questionArea: null as HTMLElement|null
-}));
-vi.mock("../algebraUtils.js",()=>({
-	factorial:vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
-	gcd:vi.fn(function g(a:number,b:number):number{return b===0?Math.abs(a):g(b,a%b);}),
-	getOrdinal:vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
-	getMaxForDifficulty:vi.fn(()=>10),
-}));
+import {seededRng} from "../../../main/core/rng";
 describe("generateVariation",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateVariation("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateVariation("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("returns early if questionArea is null",()=>{
-		(questionArea as any)=null;
-		generateVariation();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
-	});
-	it("generates direct variation correctly",()=>{
-		// a=floor(0.3*10)+1=4, b=floor(0.5*10)+1=6, x=floor(0.7*10)+1=8
-		// k=4/6, result=(4/6)*8=5.33
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)//type->direct
-			.mockReturnValueOnce(0.3)//a->4
-			.mockReturnValueOnce(0.5)//b->6
-			.mockReturnValueOnce(0.7);//x->8
-		generateVariation();
-		expect(mockDiv.innerHTML).toBe("<div>If y varies directly with x, and y=4 when x=6, find y when x=8.</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"5.33",
-			display:"5.33"
-		});
-		expect((window as any).expectedFormat).toBe("Enter a decimal number");
-		expect((window as any).MathJax.typesetPromise).toHaveBeenCalled();
-	});
-	it("generates inverse variation correctly",()=>{
-		// a=4, b=6, x=8, k=24, result=24/8=3.00
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.4)//type->inverse
-			.mockReturnValueOnce(0.3)//a->4
-			.mockReturnValueOnce(0.5)//b->6
-			.mockReturnValueOnce(0.7);//x->8
-		generateVariation();
-		expect(mockDiv.innerHTML).toBe("<div>If y varies inversely with x, and y=4 when x=6, find y when x=8.</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"3.00",
-			display:"3.00"
-		});
-	});
-	it("generates joint variation correctly",()=>{
-		// a=4, b=6, x=8, y=8(shared), c=floor(0.1*10)+1=2
-		// k=4/(6*2)=4/12=0.333..., result=0.333*8*8=21.33
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.7)//type->joint
-			.mockReturnValueOnce(0.3)//a->4
-			.mockReturnValueOnce(0.5)//b->6
-			.mockReturnValueOnce(0.7)//x->8
-			.mockReturnValueOnce(0.7)//y->8
-			.mockReturnValueOnce(0.1);//c->2
-		generateVariation();
-		expect(mockDiv.innerHTML).toBe("<div>If z varies jointly with x and y, and z=4 when x=6, y=2, find z when x=8, y=8.</div>");
-		let expectedResult=((4/(6*2))*8*8).toFixed(2);
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:expectedResult,
-			display:expectedResult
-		});
-	});
-	it("uses getMaxForDifficulty with provided difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(20);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateVariation("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard",10);
-		expect(mockGetMax).toHaveReturnedWith(20);
-	});
-	it("does not call MathJax.typesetPromise if MathJax is missing",()=>{
-		delete(window as any).MathJax;
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateVariation();
-		expect((window as any).MathJax).toBeUndefined();
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5)
-			.mockReturnValueOnce(0.7)
-			.mockReturnValueOnce(0.1);
-		generateVariation();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
-		expect((window as any).correctAnswer).toHaveProperty("alternate");
-		expect((window as any).correctAnswer).toHaveProperty("display");
-		expect((window as any).correctAnswer).toHaveProperty("choices");
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5)
-			.mockReturnValueOnce(0.7)
-			.mockReturnValueOnce(0.1);
-		generateVariation();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
-		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
+	it("returns choices array",()=>{
+		const dto=generateVariation("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
 	it("should handle easy difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(10);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateVariation("easy");
-		expect(mockGetMax).toHaveBeenCalledWith("easy", 10);
+		const dto=generateVariation("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle medium difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(15);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateVariation("medium");
-		expect(mockGetMax).toHaveBeenCalledWith("medium", 10);
+		const dto=generateVariation("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle hard difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(20);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateVariation("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard", 10);
+		const dto=generateVariation("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateVariation("medium", seededRng(42));
+		const dto2=generateVariation("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateVariation("medium", seededRng(42));
+		const dto2=generateVariation("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });

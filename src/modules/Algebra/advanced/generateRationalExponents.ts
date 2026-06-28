@@ -1,20 +1,18 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Rational exponents: convert to radical, convert to exponent, evaluate.
  * @fileoverview Generates rational exponent questions with MCQ distractors. Sets window.correctAnswer with correct result and display.
  * @date 2026-04-18
+ * @returns QuestionDto
  */
-export function generateRationalExponents(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateRationalExponents(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["convert_to_radical","convert_to_exponent","evaluate"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,5);
-	let a=Math.floor(Math.random()*maxVal)+2;
-	let m=Math.floor(Math.random()*2)+2;
-	let n=Math.floor(Math.random()*2)+2;
+	let a=Math.floor(rng()*maxVal)+2;
+	let m=Math.floor(rng()*2)+2;
+	let n=Math.floor(rng()*2)+2;
 	let mathExpression="";
 	let correct="";
 	let alternate="";
@@ -65,28 +63,20 @@ export function generateRationalExponents(difficulty?: string): void{
 			choices.push((correctNum*0.9).toFixed(2));
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+	let latex=mathExpression;
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }

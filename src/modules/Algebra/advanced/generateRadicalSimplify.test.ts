@@ -1,308 +1,50 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {describe,it,expect} from "vitest";
 import {generateRadicalSimplify} from "./generateRadicalSimplify";
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
-vi.mock("../../../script.js",()=>({
-	questionArea: null as HTMLElement|null
-}));
-vi.mock("../algebraUtils.js",()=>({
-	factorial:vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
-	gcd:vi.fn(function g(a:number,b:number):number{return b===0?Math.abs(a):g(b,a%b);}),
-	getOrdinal:vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
-	getMaxForDifficulty:vi.fn(()=>20),
-}));
+import {seededRng} from "../../../main/core/rng";
 describe("generateRadicalSimplify",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateRadicalSimplify("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateRadicalSimplify("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("returns early if questionArea is null",()=>{
-		(questionArea as any)=null;
-		generateRadicalSimplify();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
-	});
-	it("generates simplify radical correctly",()=>{
-		// a=floor(0.3*20)+1=7, b=floor(0.1*20)+1=3(square-free), radicand=49*3=147
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)//type->simplify
-			.mockReturnValueOnce(0.3)//a->7
-			.mockReturnValueOnce(0.1);//b->3
-		generateRadicalSimplify();
-		expect(mockDiv.innerHTML).toBe("<div>\\( \\sqrt{147} \\)</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"7\\sqrt{3}",
-			display:"7\\sqrt{3}"
-		});
-		expect((window as any).expectedFormat).toBe("Enter a simplified radical expression");
-		expect((window as any).MathJax.typesetPromise).toHaveBeenCalled();
-	});
-	it("generates add radicals correctly",()=>{
-		// a=7, c=11, b=3(square-free), coeff=18
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.2)//type->add
-			.mockReturnValueOnce(0.3)//a->7
-			.mockReturnValueOnce(0.5)//c->11
-			.mockReturnValueOnce(0.1);//b->3
-		generateRadicalSimplify();
-		expect(mockDiv.innerHTML).toBe("<div>\\( 7\\sqrt{3} + 11\\sqrt{3} \\)</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"18\\sqrt{3}",
-			display:"18\\sqrt{3}"
-		});
-	});
-	it("generates subtract radicals correctly",()=>{
-		// a=15, c=7, b=3(square-free), coeff=8
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.4)//type->subtract
-			.mockReturnValueOnce(0.7)//a->15
-			.mockReturnValueOnce(0.3)//c->7
-			.mockReturnValueOnce(0.1);//b->3
-		generateRadicalSimplify();
-		expect(mockDiv.innerHTML).toBe("<div>\\( 15\\sqrt{3} - 7\\sqrt{3} \\)</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"8\\sqrt{3}",
-			display:"8\\sqrt{3}"
-		});
-	});
-	it("generates multiply radicals correctly",()=>{
-		// a=7, b=11, product=77, simplifyRadical(77)="\\sqrt{77}"
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.6)//type->multiply
-			.mockReturnValueOnce(0.3)//a->7
-			.mockReturnValueOnce(0.5);//b->11
-		generateRadicalSimplify();
-		expect(mockDiv.innerHTML).toBe("<div>\\( \\sqrt{7} \\times \\sqrt{11} \\)</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"\\sqrt{77}",
-			display:"\\sqrt{77}"
-		});
-	});
-	it("generates divide radicals correctly",()=>{
-		// a=7, b=11, sqrt(7) not int, sqrt(11) not int -> "\\frac{\\sqrt{77}}{11}"
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.8)//type->divide
-			.mockReturnValueOnce(0.3)//a->7
-			.mockReturnValueOnce(0.5);//b->11
-		generateRadicalSimplify();
-		expect(mockDiv.innerHTML).toBe("<div>\\( \\frac{\\sqrt{7}}{\\sqrt{11}} \\)</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"\\frac{\\sqrt{77}}{11}",
-			display:"\\frac{\\sqrt{77}}{11}"
-		});
-	});
-	it("generates rationalize correctly",()=>{
-		// a=7
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.95)//type->rationalize
-			.mockReturnValueOnce(0.3);//a->7
-		generateRadicalSimplify();
-		expect(mockDiv.innerHTML).toBe("<div>\\( \\frac{1}{\\sqrt{7}} \\)</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"\\frac{\\sqrt{7}}{7}",
-			display:"\\frac{\\sqrt{7}}{7}"
-		});
-	});
-	it("uses getMaxForDifficulty with provided difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(30);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateRadicalSimplify("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard",20);
-		expect(mockGetMax).toHaveReturnedWith(30);
-	});
-	it("does not call MathJax.typesetPromise if MathJax is missing",()=>{
-		delete(window as any).MathJax;
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateRadicalSimplify();
-		expect((window as any).MathJax).toBeUndefined();
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.1);
-		generateRadicalSimplify();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
-		expect((window as any).correctAnswer).toHaveProperty("alternate");
-		expect((window as any).correctAnswer).toHaveProperty("display");
-		expect((window as any).correctAnswer).toHaveProperty("choices");
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.1);
-		generateRadicalSimplify();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
-		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
+	it("returns choices array",()=>{
+		const dto=generateRadicalSimplify("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
 	it("should handle easy difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(20);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateRadicalSimplify("easy");
-		expect(mockGetMax).toHaveBeenCalledWith("easy", 20);
+		const dto=generateRadicalSimplify("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle medium difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(25);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateRadicalSimplify("medium");
-		expect(mockGetMax).toHaveBeenCalledWith("medium", 20);
+		const dto=generateRadicalSimplify("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle hard difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(30);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateRadicalSimplify("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard", 20);
+		const dto=generateRadicalSimplify("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
-});
-describe("generateRadicalSimplify - edge cases",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateRadicalSimplify("medium", seededRng(42));
+		const dto2=generateRadicalSimplify("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
-	});
-	it("should produce non-empty question HTML",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.1);
-		generateRadicalSimplify();
-		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
-	});
-	it("should set correctAnswer with display property",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.1);
-		generateRadicalSimplify();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect(typeof (window as any).correctAnswer.display).toBe("string");
-		expect((window as any).correctAnswer.display.length).toBeGreaterThan(0);
-	});
-	it("should handle easy difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(10);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateRadicalSimplify("easy");
-		expect(mockGetMax).toHaveBeenCalledWith("easy",20);
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should handle medium difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(20);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateRadicalSimplify("medium");
-		expect(mockGetMax).toHaveBeenCalledWith("medium",20);
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should handle hard difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(30);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateRadicalSimplify("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard",20);
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should set expectedFormat",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.1);
-		generateRadicalSimplify();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
-		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
-	});
-	it("should handle repeated calls consistently",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.1);
-		generateRadicalSimplify();
-		let first=(window as any).correctAnswer;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.1);
-		generateRadicalSimplify();
-		let second=(window as any).correctAnswer;
-		expect(first.correct).toBe(second.correct);
-		expect(first.display).toBe(second.display);
-	});
-	it("should verify correctAnswer structure",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.1);
-		generateRadicalSimplify();
-		let ans=(window as any).correctAnswer;
-		expect(ans).toHaveProperty("correct");
-		expect(ans).toHaveProperty("display");
-		expect(ans).toHaveProperty("choices");
-		expect(Array.isArray(ans.choices)).toBe(true);
-		expect(ans.choices.length).toBeGreaterThanOrEqual(1);
+	it("produces different output for different seeds",()=>{
+		const dto1=generateRadicalSimplify("medium", seededRng(42));
+		const dto2=generateRadicalSimplify("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });

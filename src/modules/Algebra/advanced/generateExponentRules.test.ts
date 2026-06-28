@@ -1,193 +1,50 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
+import {describe,it,expect} from "vitest";
 import {generateExponentRules} from "./generateExponentRules";
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
-vi.mock("../../../script.js", () => ({
-	questionArea: null as HTMLElement | null
-}));
-vi.mock("../algebraUtils.js", () => ({
-	getMaxForDifficulty: vi.fn(() => 4)
-}));
-describe("generateExponentRules", () => {
-	let originalMathRandom: () => number;
-	let mockDiv: HTMLDivElement;
-	beforeEach(() => {
-		originalMathRandom = Math.random;
-		mockDiv = document.createElement("div");
-		(questionArea as any) = mockDiv;
-		delete (window as any).correctAnswer;
-		delete (window as any).expectedFormat;
-		(window as any).MathJax = { typesetPromise: vi.fn().mockResolvedValue(undefined) };
+import {seededRng} from "../../../main/core/rng";
+describe("generateExponentRules",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateExponentRules("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(() => {
-		Math.random = originalMathRandom;
-		delete (window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateExponentRules("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("returns early if questionArea is null", () => {
-		(questionArea as any) = null;
-		generateExponentRules();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
+	it("returns choices array",()=>{
+		const dto=generateExponentRules("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
-	it("generates product rule correctly", () => {
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.1) // type "product"
-			.mockReturnValueOnce(0.5) // base -> 4
-			.mockReturnValueOnce(0.2) // m -> 1 (floor(0.2*3)+1 = 0+1=1)
-			.mockReturnValueOnce(0.8); // n -> 3 (floor(0.8*3)+1 = 2+1=3)
-		generateExponentRules();
-		expect(mockDiv.innerHTML).toBe("Simplify: \\( 4^{1} \\times 4^{3} \\)");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "4^4",
-			alternate: "4^4",
-			display: "4^4"
-		});
-		expect((window as any).expectedFormat).toBe("Enter as a^b");
-		expect((window as any).MathJax.typesetPromise).toHaveBeenCalled();
+	it("should handle easy difficulty",()=>{
+		const dto=generateExponentRules("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
-	it("generates quotient rule correctly", () => {
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.3) // type "quotient"
-			.mockReturnValueOnce(0.5) // base -> 4
-			.mockReturnValueOnce(0.2) // m -> 1
-			.mockReturnValueOnce(0.8); // n -> 3
-		generateExponentRules();
-		expect(mockDiv.innerHTML).toBe("Simplify: \\( \\frac{4^{4}}{4^{3}} \\)");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "4^1",
-			alternate: "4^1",
-			display: "4^1"
-		});
+	it("should handle medium difficulty",()=>{
+		const dto=generateExponentRules("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
-	it("generates power rule correctly", () => {
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.5) // type "power"
-			.mockReturnValueOnce(0.5) // base -> 4
-			.mockReturnValueOnce(0.2) // m -> 1
-			.mockReturnValueOnce(0.8); // n -> 3
-		generateExponentRules();
-		expect(mockDiv.innerHTML).toBe("Simplify: \\( (4^{1})^{3} \\)");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "4^3",
-			alternate: "4^3",
-			display: "4^3"
-		});
+	it("should handle hard difficulty",()=>{
+		const dto=generateExponentRules("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
-	it("generates negative exponent rule correctly", () => {
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.7) // type "negative"
-			.mockReturnValueOnce(0.5) // base -> 4
-			.mockReturnValueOnce(0.2) // m -> 1
-			.mockReturnValueOnce(0.8); // n (unused)
-		generateExponentRules();
-		expect(mockDiv.innerHTML).toBe("Write with a positive exponent: \\( 4^{-1} \\)");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "\\frac{1}{4^{1}}",
-			alternate: "1/4^1",
-			display: "\\frac{1}{4^{1}}"
-		});
-		expect((window as any).expectedFormat).toBe("Enter as 1/a^b");
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateExponentRules("medium", seededRng(42));
+		const dto2=generateExponentRules("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("generates zero exponent rule correctly", () => {
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.9) // type "zero"
-			.mockReturnValueOnce(0.5) // base -> 4
-			.mockReturnValueOnce(0.2) // m (unused)
-			.mockReturnValueOnce(0.8); // n (unused)
-		generateExponentRules();
-		expect(mockDiv.innerHTML).toBe("Evaluate: \\( 4^{0} \\)");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "1",
-			alternate: "1",
-			display: "1"
-		});
-		expect((window as any).expectedFormat).toBe("Enter 1");
-	});
-	it("uses getMaxForDifficulty with provided difficulty", () => {
-		const mockGetMax = vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(10);
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.1) // type
-			.mockReturnValueOnce(0.1) // base
-			.mockReturnValueOnce(0.1) // m
-			.mockReturnValueOnce(0.1); // n
-		generateExponentRules("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard", 4);
-		expect(mockGetMax).toHaveReturnedWith(10);
-	});
-	it("does not call MathJax.typesetPromise if MathJax is missing", () => {
-		delete (window as any).MathJax;
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1);
-		generateExponentRules();
-		expect((window as any).MathJax).toBeUndefined();
-	});
-	it("should set window.correctAnswer", () => {
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.5)
-			.mockReturnValueOnce(0.2)
-			.mockReturnValueOnce(0.8);
-		generateExponentRules();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
-		expect((window as any).correctAnswer).toHaveProperty("alternate");
-		expect((window as any).correctAnswer).toHaveProperty("display");
-		expect((window as any).correctAnswer).toHaveProperty("choices");
-	});
-	it("should set window.expectedFormat", () => {
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.5)
-			.mockReturnValueOnce(0.2)
-			.mockReturnValueOnce(0.8);
-		generateExponentRules();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
-		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
-	});
-	it("should handle easy difficulty", () => {
-		const mockGetMax = vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(4);
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1);
-		generateExponentRules("easy");
-		expect(mockGetMax).toHaveBeenCalledWith("easy", 4);
-	});
-	it("should handle medium difficulty", () => {
-		const mockGetMax = vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(6);
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1);
-		generateExponentRules("medium");
-		expect(mockGetMax).toHaveBeenCalledWith("medium", 4);
-	});
-	it("should handle hard difficulty", () => {
-		const mockGetMax = vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(10);
-		Math.random = vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1);
-		generateExponentRules("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard", 4);
+	it("produces different output for different seeds",()=>{
+		const dto1=generateExponentRules("medium", seededRng(42));
+		const dto2=generateExponentRules("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });

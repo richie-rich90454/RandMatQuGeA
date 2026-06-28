@@ -1,16 +1,14 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Linear word problems: consecutive integers, money, distance, age, mixture.
  * @fileoverview Generates linear word problems with MCQ distractors. Sets window.correctAnswer with correct result and display.
  * @date 2026-04-18
+ * @returns QuestionDto
  */
-export function generateLinearWordProblem(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateLinearWordProblem(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["consecutive_integers","money","distance","age","mixture"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,20);
 	let expectedFormat="Enter a number";
 	let expectedFormats: Record<string,string>={
@@ -27,7 +25,7 @@ export function generateLinearWordProblem(difficulty?: string): void{
 	let choices:string[]=[];
 	switch(type){
 		case "consecutive_integers":{
-			let n=Math.floor(Math.random()*maxVal)+1;
+			let n=Math.floor(rng()*maxVal)+1;
 			let sum=n+(n+1);
 			correct=n.toString();
 			alternate=correct;
@@ -41,8 +39,8 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			break;
 		}
 		case "money":{
-			let quarters=Math.floor(Math.random()*5)+2;
-			let dimes=Math.floor(Math.random()*5)+2;
+			let quarters=Math.floor(rng()*5)+2;
+			let dimes=Math.floor(rng()*5)+2;
 			let total=quarters*25+dimes*10;
 			correct=total.toString();
 			alternate=correct;
@@ -56,8 +54,8 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			break;
 		}
 		case "distance":{
-			let rate=Math.floor(Math.random()*30)+20;
-			let time=Math.floor(Math.random()*3)+2;
+			let rate=Math.floor(rng()*30)+20;
+			let time=Math.floor(rng()*3)+2;
 			let dist=rate*time;
 			correct=dist.toString();
 			alternate=correct;
@@ -71,8 +69,8 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			break;
 		}
 		case "age":{
-			let now=Math.floor(Math.random()*20)+10;
-			let past=Math.floor(Math.random()*5)+2;
+			let now=Math.floor(rng()*20)+10;
+			let past=Math.floor(rng()*5)+2;
 			let ago=now-past;
 			correct=ago.toString();
 			alternate=correct;
@@ -86,8 +84,8 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			break;
 		}
 		case "mixture":{
-			let total=Math.floor(Math.random()*20)+10;
-			let percent=Math.floor(Math.random()*30)+20;
+			let total=Math.floor(rng()*20)+10;
+			let percent=Math.floor(rng()*30)+20;
 			let amount=Math.round(total*percent/100);
 			correct=amount.toString();
 			alternate=correct;
@@ -100,23 +98,21 @@ export function generateLinearWordProblem(difficulty?: string): void{
 			choices.push((Math.round(total*percent/1000)).toString());
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
 	expectedFormat=expectedFormats[type]||"Enter a number";
-	questionArea.innerHTML=problemText;
-	if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+	let latex=problemText;
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }

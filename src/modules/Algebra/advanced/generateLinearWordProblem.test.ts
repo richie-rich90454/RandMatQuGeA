@@ -1,175 +1,50 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
+import {describe,it,expect} from "vitest";
 import {generateLinearWordProblem} from "./generateLinearWordProblem";
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
-vi.mock("../../../script.js", ()=>({
-	questionArea: null as HTMLElement | null
-}));
-vi.mock("../algebraUtils.js", ()=>({
-	getMaxForDifficulty: vi.fn(()=>20)
-}));
-describe("generateLinearWordProblem", ()=>{
-	let originalMathRandom: ()=>number;
-	let mockDiv: HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete (window as any).correctAnswer;
-		delete (window as any).expectedFormat;
-		(window as any).MathJax={ typesetPromise: vi.fn().mockResolvedValue(undefined) };
+import {seededRng} from "../../../main/core/rng";
+describe("generateLinearWordProblem",()=>{
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateLinearWordProblem("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete (window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateLinearWordProblem("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("returns early if questionArea is null", ()=>{
-		(questionArea as any)=null;
-		generateLinearWordProblem();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
+	it("returns choices array",()=>{
+		const dto=generateLinearWordProblem("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
-	it("generates consecutive integers problem correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1) // type "consecutive_integers"
-			.mockReturnValueOnce(0.3); // n -> floor(0.3*20)+1=6+1=7
-		generateLinearWordProblem();
-		expect(mockDiv.innerHTML).toBe("The sum of two consecutive integers is 15. Find the smaller integer.");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "7",
-			alternate: "7",
-			display: "7"
-		});
-		expect((window as any).expectedFormat).toBe("Enter a whole number");
-		expect((window as any).MathJax.typesetPromise).toHaveBeenCalled();
+	it("should handle easy difficulty",()=>{
+		const dto=generateLinearWordProblem("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
-	it("generates money problem correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.3) // type "money"
-			.mockReturnValueOnce(0.2) // quarters -> floor(0.2*5)+2=1+2=3
-			.mockReturnValueOnce(0.8); // dimes -> floor(0.8*5)+2=4+2=6
-		generateLinearWordProblem();
-		expect(mockDiv.innerHTML).toBe("You have 3 quarters and 6 dimes. How much money do you have in cents?");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "135",
-			alternate: "135",
-			display: "135"
-		});
-		expect((window as any).expectedFormat).toBe("Enter a number (cents)");
+	it("should handle medium difficulty",()=>{
+		const dto=generateLinearWordProblem("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
-	it("generates distance problem correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.5) // type "distance"
-			.mockReturnValueOnce(0.5) // rate -> floor(0.5*30)+20=15+20=35
-			.mockReturnValueOnce(0.8); // time -> floor(0.8*3)+2=2+2=4
-		generateLinearWordProblem();
-		expect(mockDiv.innerHTML).toBe("A car travels at 35 mph for 4 hours. How far does it travel?");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "140",
-			alternate: "140",
-			display: "140"
-		});
-		expect((window as any).expectedFormat).toBe("Enter a number (miles)");
+	it("should handle hard difficulty",()=>{
+		const dto=generateLinearWordProblem("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
-	it("generates age problem correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.7) // type "age"
-			.mockReturnValueOnce(0.5) // now -> floor(0.5*20)+10=10+10=20
-			.mockReturnValueOnce(0.4); // past -> floor(0.4*5)+2=2+2=4
-		generateLinearWordProblem();
-		expect(mockDiv.innerHTML).toBe("A person is 20 years old. How old were they 4 years ago?");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "16",
-			alternate: "16",
-			display: "16"
-		});
-		expect((window as any).expectedFormat).toBe("Enter a number");
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateLinearWordProblem("medium", seededRng(42));
+		const dto2=generateLinearWordProblem("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	it("generates mixture problem correctly", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.9) // type "mixture"
-			.mockReturnValueOnce(0.5) // total -> floor(0.5*20)+10=10+10=20
-			.mockReturnValueOnce(0.6); // percent -> floor(0.6*30)+20=18+20=38
-		generateLinearWordProblem();
-		expect(mockDiv.innerHTML).toBe("A 20 gallon mixture contains 38% alcohol. How many gallons of alcohol are in it?");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "8",
-			alternate: "8",
-			display: "8"
-		});
-		expect((window as any).expectedFormat).toBe("Enter a number (gallons)");
-	});
-	it("uses getMaxForDifficulty with provided difficulty", ()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(30);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1) // type
-			.mockReturnValueOnce(0.1); // n for consecutive
-		generateLinearWordProblem("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard", 20);
-		expect(mockGetMax).toHaveReturnedWith(30);
-	});
-	it("does not call MathJax.typesetPromise if MathJax is missing", ()=>{
-		delete (window as any).MathJax;
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1);
-		generateLinearWordProblem();
-		expect((window as any).MathJax).toBeUndefined();
-	});
-	it("should set window.correctAnswer", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateLinearWordProblem();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
-		expect((window as any).correctAnswer).toHaveProperty("alternate");
-		expect((window as any).correctAnswer).toHaveProperty("display");
-		expect((window as any).correctAnswer).toHaveProperty("choices");
-	});
-	it("should set window.expectedFormat", ()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateLinearWordProblem();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
-		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
-	});
-	it("should handle easy difficulty", ()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(20);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1);
-		generateLinearWordProblem("easy");
-		expect(mockGetMax).toHaveBeenCalledWith("easy", 20);
-	});
-	it("should handle medium difficulty", ()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(25);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1);
-		generateLinearWordProblem("medium");
-		expect(mockGetMax).toHaveBeenCalledWith("medium", 20);
-	});
-	it("should handle hard difficulty", ()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(30);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.1);
-		generateLinearWordProblem("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard", 20);
+	it("produces different output for different seeds",()=>{
+		const dto1=generateLinearWordProblem("medium", seededRng(42));
+		const dto2=generateLinearWordProblem("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });

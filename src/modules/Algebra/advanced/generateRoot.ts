@@ -1,16 +1,16 @@
-import {renderer} from "../../../main/core/questionRenderer";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
 /**
  * Roots: simplify nth roots.
- * @fileoverview Generates root simplification questions with MCQ distractors. 
+ * @fileoverview Generates root simplification questions with MCQ distractors.
  * @date 2026-04-18
+ * @returns QuestionDto
  */
-export function generateRoot(difficulty?: string): void{
-	renderer.clear();
+export function generateRoot(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let maxRoot=getMaxForDifficulty(difficulty,4);
 	let maxBase=getMaxForDifficulty(difficulty,10);
-	let root=Math.floor((Math.random()*maxRoot))+2;
-	let base=Math.floor((Math.random()*maxBase))+1;
+	let root=Math.floor((rng()*maxRoot))+2;
+	let base=Math.floor((rng()*maxBase))+1;
 	let radicand=Math.pow(base,root);
 	let rootExpression="";
 	if(root===2){
@@ -28,15 +28,16 @@ export function generateRoot(difficulty?: string): void{
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correctRoot)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correctRoot;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctRoot;
 		else uniqueChoices=[correctRoot];
 	}
-	renderer.render(rootExpression);
-	renderer.setAnswer({
+	let latex=rootExpression;
+	return {
+		latex,
 		correct: correctRoot,
 		alternate: correctRoot,
 		display: correctRoot,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat("Enter a whole number");
+		choices: uniqueChoices,
+		expectedFormat: "Enter a whole number"
+	};
 }

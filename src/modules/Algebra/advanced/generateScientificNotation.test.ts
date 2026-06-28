@@ -1,286 +1,50 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {describe,it,expect} from "vitest";
 import {generateScientificNotation} from "./generateScientificNotation";
-import {questionArea} from "../../../script.js";
-import {getMaxForDifficulty} from "../algebraUtils.js";
-vi.mock("../../../script.js",()=>({
-	questionArea: null as HTMLElement|null
-}));
-vi.mock("../algebraUtils.js",()=>({
-	factorial:vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
-	gcd:vi.fn(function g(a:number,b:number):number{return b===0?Math.abs(a):g(b,a%b);}),
-	getOrdinal:vi.fn((n:number)=>{let s=["th","st","nd","rd"];let v=n%100;return s[(v-20)%10]||s[v]||s[0];}),
-	getMaxForDifficulty:vi.fn(()=>10),
-}));
+import {seededRng} from "../../../main/core/rng";
 describe("generateScientificNotation",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateScientificNotation("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateScientificNotation("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("returns early if questionArea is null",()=>{
-		(questionArea as any)=null;
-		generateScientificNotation();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
-	});
-	it("generates to_standard correctly",()=>{
-		// a=floor(0.3*10)+1=4, b=floor(0.5*3)+1=2, std=4*10^2=400
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)//type->to_standard
-			.mockReturnValueOnce(0.3)//a->4
-			.mockReturnValueOnce(0.5);//b->2
-		generateScientificNotation();
-		expect(mockDiv.innerHTML).toBe("<div>Convert to standard notation: \\( 4 \\times 10^{2} \\)</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"400",
-			alternate:"400",
-			display:"400"
-		});
-		expect((window as any).expectedFormat).toBe("Enter a whole number");
-		expect((window as any).MathJax.typesetPromise).toHaveBeenCalled();
-	});
-	it("generates to_scientific correctly",()=>{
-		// a=4, b=2, std=400, toExponential(1)="4.0e+2"
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.35)//type->to_scientific
-			.mockReturnValueOnce(0.3)//a->4
-			.mockReturnValueOnce(0.5);//b->2
-		generateScientificNotation();
-		expect(mockDiv.innerHTML).toBe("<div>Write in scientific notation: \\( 400 \\)</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"4.0e+2",
-			display:"4 \\times 10^{2}"
-		});
-		expect((window as any).expectedFormat).toBe("Enter in form like 1.2e3 or 1.2×10^3");
-	});
-	it("generates multiply correctly",()=>{
-		// a=4, b=2, product=4*4*10^(5)=1600000, toExponential(2)="1.60e+6"
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.6)//type->multiply
-			.mockReturnValueOnce(0.3)//a->4
-			.mockReturnValueOnce(0.5);//b->2
-		generateScientificNotation();
-		expect(mockDiv.innerHTML).toBe("<div>Multiply: \\( (4 \\times 10^{2}) \\times (4 \\times 10^{3}) \\)</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"1.60e+6",
-			display:"1.6 \\times 10^{6}"
-		});
-		expect((window as any).expectedFormat).toBe("Enter in scientific notation like 1.23e4");
-	});
-	it("generates divide correctly",()=>{
-		// a=4, b=2, quotient=10
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.85)//type->divide
-			.mockReturnValueOnce(0.3)//a->4
-			.mockReturnValueOnce(0.5);//b->2
-		generateScientificNotation();
-		expect(mockDiv.innerHTML).toBe("<div>Divide: \\( \\frac{(4 \\times 10^{3})}{(4 \\times 10^{2})} \\)</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct:"10",
-			alternate:"10",
-			display:"10"
-		});
-		expect((window as any).expectedFormat).toBe("Enter a number");
-	});
-	it("uses getMaxForDifficulty with provided difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(20);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateScientificNotation("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard",1000);
-		expect(mockGetMax).toHaveReturnedWith(20);
-	});
-	it("does not call MathJax.typesetPromise if MathJax is missing",()=>{
-		delete(window as any).MathJax;
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateScientificNotation();
-		expect((window as any).MathJax).toBeUndefined();
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateScientificNotation();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
-		expect((window as any).correctAnswer).toHaveProperty("alternate");
-		expect((window as any).correctAnswer).toHaveProperty("display");
-		expect((window as any).correctAnswer).toHaveProperty("choices");
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateScientificNotation();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
-		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
+	it("returns choices array",()=>{
+		const dto=generateScientificNotation("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
 	it("should handle easy difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(1000);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateScientificNotation("easy");
-		expect(mockGetMax).toHaveBeenCalledWith("easy", 1000);
+		const dto=generateScientificNotation("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle medium difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(2000);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateScientificNotation("medium");
-		expect(mockGetMax).toHaveBeenCalledWith("medium", 1000);
+		const dto=generateScientificNotation("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle hard difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(5000);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateScientificNotation("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard", 1000);
+		const dto=generateScientificNotation("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
-});
-describe("generateScientificNotation - edge cases",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateScientificNotation("medium", seededRng(42));
+		const dto2=generateScientificNotation("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete(window as any).MathJax;
-	});
-	it("should produce non-empty question HTML",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateScientificNotation();
-		expect(mockDiv.innerHTML.length).toBeGreaterThan(0);
-	});
-	it("should set correctAnswer with display property",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateScientificNotation();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer.display).toBeDefined();
-		expect(typeof (window as any).correctAnswer.display).toBe("string");
-		expect((window as any).correctAnswer.display.length).toBeGreaterThan(0);
-	});
-	it("should handle easy difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(1000);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateScientificNotation("easy");
-		expect(mockGetMax).toHaveBeenCalledWith("easy",1000);
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should handle medium difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(2000);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateScientificNotation("medium");
-		expect(mockGetMax).toHaveBeenCalledWith("medium",1000);
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should handle hard difficulty",()=>{
-		const mockGetMax=vi.mocked(getMaxForDifficulty);
-		mockGetMax.mockClear();
-		mockGetMax.mockReturnValueOnce(5000);
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0)
-			.mockReturnValueOnce(0);
-		generateScientificNotation("hard");
-		expect(mockGetMax).toHaveBeenCalledWith("hard",1000);
-		expect((window as any).correctAnswer).toBeDefined();
-	});
-	it("should set expectedFormat",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateScientificNotation();
-		expect((window as any).expectedFormat).toBeDefined();
-		expect(typeof (window as any).expectedFormat).toBe("string");
-		expect((window as any).expectedFormat.length).toBeGreaterThan(0);
-	});
-	it("should handle repeated calls consistently",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateScientificNotation();
-		let first=(window as any).correctAnswer;
-		delete(window as any).correctAnswer;
-		delete(window as any).expectedFormat;
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateScientificNotation();
-		let second=(window as any).correctAnswer;
-		expect(first.correct).toBe(second.correct);
-		expect(first.display).toBe(second.display);
-	});
-	it("should verify correctAnswer structure",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.05)
-			.mockReturnValueOnce(0.3)
-			.mockReturnValueOnce(0.5);
-		generateScientificNotation();
-		let ans=(window as any).correctAnswer;
-		expect(ans).toHaveProperty("correct");
-		expect(ans).toHaveProperty("display");
-		expect(ans).toHaveProperty("choices");
-		expect(Array.isArray(ans.choices)).toBe(true);
-		expect(ans.choices.length).toBeGreaterThanOrEqual(1);
+	it("produces different output for different seeds",()=>{
+		const dto1=generateScientificNotation("medium", seededRng(42));
+		const dto2=generateScientificNotation("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });

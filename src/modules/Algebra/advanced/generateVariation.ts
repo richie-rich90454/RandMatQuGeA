@@ -1,16 +1,14 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Variation: direct, inverse, joint.
- * @fileoverview Generates variation questions with MCQ distractors. Sets window.correctAnswer with correct result and display.
+ * @fileoverview Generates variation questions with MCQ distractors.
  * @date 2026-04-18
+ * @returns QuestionDto
  */
-export function generateVariation(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateVariation(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["direct","inverse","joint"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,10);
 	let expectedFormat="";
 	let correct="";
@@ -18,10 +16,10 @@ export function generateVariation(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	let a=Math.floor(Math.random()*maxVal)+1;
-	let b=Math.floor(Math.random()*maxVal)+1;
-	let x=Math.floor(Math.random()*maxVal)+1;
-	let y=Math.floor(Math.random()*maxVal)+1;
+	let a=Math.floor(rng()*maxVal)+1;
+	let b=Math.floor(rng()*maxVal)+1;
+	let x=Math.floor(rng()*maxVal)+1;
+	let y=Math.floor(rng()*maxVal)+1;
 	switch(type){
 		case "direct":{
 			let k=a/b;
@@ -56,7 +54,7 @@ export function generateVariation(difficulty?: string): void{
 			break;
 		}
 		case "joint":{
-			let c=Math.floor(Math.random()*maxVal)+1;
+			let c=Math.floor(rng()*maxVal)+1;
 			let k=a/(b*c);
 			let result=k*x*y;
 			correct=result.toFixed(2);
@@ -72,28 +70,20 @@ export function generateVariation(difficulty?: string): void{
 			choices.push((a*b*c/(x*y)).toFixed(2));
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+	let latex=mathExpression;
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }
