@@ -14,29 +14,12 @@ vi.mock("./questionGenerator.js",()=>({
 		expectedFormat: "Enter a number"
 	}),
 }));
-vi.mock("html2canvas",()=>({
-	default: vi.fn().mockResolvedValue(document.createElement("canvas")),
-}));
-vi.mock("jspdf",()=>({
-	jsPDF: vi.fn().mockImplementation(()=>{
-		return {
-			internal:{pageSize:{getWidth:()=>612,getHeight:()=>792},getNumberOfPages:()=>1},
-			setPage: vi.fn(),
-			setFontSize: vi.fn(),
-			setTextColor: vi.fn(),
-			text: vi.fn(),
-			addImage: vi.fn(),
-			addPage: vi.fn(),
-			save: vi.fn(),
-		};
-	}),
+vi.mock("./ui.js",()=>({
+	showNotification: vi.fn(),
 }));
 const mockSave=vi.hoisted(()=>vi.fn().mockResolvedValue(null));
 vi.mock("@tauri-apps/plugin-dialog",()=>({
 	save: mockSave,
-}));
-vi.mock("./ui.js",()=>({
-	showNotification: vi.fn(),
 }));
 import{initPrintModal,openPrintModal,closePrintModal,renderKatexInElement,wrapLatexIfNeeded}from"./printWorksheet.js";
 import{generateQuestionDto}from"./questionGenerator.js";

@@ -331,42 +331,13 @@ async function exportToPdf(opts: WorksheetOptions, dtos: QuestionDto[]): Promise
 		window.print();
 	}
 }
-async function updatePreview(worksheetEl: HTMLElement): Promise<void>{
+function updatePreview(worksheetEl: HTMLElement): void{
 	if (!previewPane) return;
-	let html2canvasModule: any;
-	try{
-		html2canvasModule = await import("html2canvas");
-	}
-	catch{
-		previewPane.innerHTML = "<p class=\"ws-preview-error\">Preview unavailable (html2canvas failed to load).</p>";
-		return;
-	}
-	let html2canvas = html2canvasModule?.default || html2canvasModule;
-	if (!html2canvas){
-		previewPane.innerHTML = "<p class=\"ws-preview-error\">Preview unavailable.</p>";
-		return;
-	}
-	try{
-		let canvas = await html2canvas(worksheetEl, {
-			scale: 1,
-			backgroundColor: "#ffffff",
-			useCORS: true,
-			logging: false
-		});
-		previewPane.innerHTML = "";
-		let wrapper = document.createElement("div");
-		wrapper.className = "ws-preview-wrapper";
-		let img = document.createElement("img");
-		img.src = canvas.toDataURL("image/png");
-		img.alt = "Worksheet preview";
-		img.className = "ws-preview-img";
-		wrapper.appendChild(img);
-		previewPane.appendChild(wrapper);
-	}
-	catch (err){
-		console.error("Preview render failed:", err);
-		previewPane.innerHTML = "<p class=\"ws-preview-error\">Preview failed to render.</p>";
-	}
+	previewPane.innerHTML = "";
+	let wrapper = document.createElement("div");
+	wrapper.className = "ws-preview-wrapper";
+	wrapper.innerHTML = worksheetEl.innerHTML;
+	previewPane.appendChild(wrapper);
 }
 async function generateWorksheet(): Promise<void>{
 	if (isGenerating) return;
@@ -395,7 +366,7 @@ async function generateWorksheet(): Promise<void>{
 		lastWorksheetOpts = opts;
 		if (seedInput) seedInput.value = String(seed);
 		if (copySeedBtn) copySeedBtn.classList.remove("hidden");
-		await updatePreview(worksheetEl);
+		updatePreview(worksheetEl);
 	}
 	catch (err){
 		console.error("Worksheet generation failed:", err);
