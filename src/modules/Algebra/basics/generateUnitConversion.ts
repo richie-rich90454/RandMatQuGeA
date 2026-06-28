@@ -1,16 +1,14 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Generates a unit conversion question (US length, metric length, area, volume, or multi‑step) with MCQ distractors.
  * @fileoverview Unit conversions. Sets window.correctAnswer with numeric result and plausible wrong answers.
  * @date 2026-04-18
+ * @returns QuestionDto
  */
-export function generateUnitConversion(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateUnitConversion(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["length_us","length_metric","area","volume","multi_step"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,50);
 	let expectedFormat="Enter a number";
 	let correct="";
@@ -18,7 +16,7 @@ export function generateUnitConversion(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	let value=Math.floor(Math.random()*maxVal)+1;
+	let value=Math.floor(rng()*maxVal)+1;
 	switch(type){
 		case "length_us":{
 			let conversions=[
@@ -26,7 +24,7 @@ export function generateUnitConversion(difficulty?: string): void{
 				{from:"yd",to:"ft",factor:3},
 				{from:"mi",to:"ft",factor:5280}
 			];
-			let c=conversions[Math.floor(Math.random()*conversions.length)];
+			let c=conversions[Math.floor(rng()*conversions.length)];
 			let result=value*c.factor;
 			correct=result.toString();
 			alternate=correct;
@@ -46,7 +44,7 @@ export function generateUnitConversion(difficulty?: string): void{
 				{from:"km",to:"m",factor:1000},
 				{from:"cm",to:"mm",factor:10}
 			];
-			let c=conversions[Math.floor(Math.random()*conversions.length)];
+			let c=conversions[Math.floor(rng()*conversions.length)];
 			let result=value*c.factor;
 			correct=result.toString();
 			alternate=correct;
@@ -61,7 +59,7 @@ export function generateUnitConversion(difficulty?: string): void{
 			break;
 		}
 		case "area":{
-			let value2=Math.floor(Math.random()*10)+1;
+			let value2=Math.floor(rng()*10)+1;
 			let result=value2*9;
 			correct=result.toString();
 			alternate=correct;
@@ -76,7 +74,7 @@ export function generateUnitConversion(difficulty?: string): void{
 			break;
 		}
 		case "volume":{
-			let value2=Math.floor(Math.random()*5)+1;
+			let value2=Math.floor(rng()*5)+1;
 			let result=value2*1000;
 			correct=result.toString();
 			alternate=correct;
@@ -91,7 +89,7 @@ export function generateUnitConversion(difficulty?: string): void{
 			break;
 		}
 		case "multi_step":{
-			let value2=Math.floor(Math.random()*10)+1;
+			let value2=Math.floor(rng()*10)+1;
 			let result=value2*12*3;
 			correct=result.toString();
 			alternate=correct;
@@ -105,28 +103,20 @@ export function generateUnitConversion(difficulty?: string): void{
 			choices.push((value2*3).toString());
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+	let latex=mathExpression;
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }

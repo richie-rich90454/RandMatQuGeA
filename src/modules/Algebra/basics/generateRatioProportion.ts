@@ -1,16 +1,14 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {gcd, getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Generates a ratio/proportion question (simplify ratio, solve proportion, map scale, or unit rate) with MCQ distractors.
  * @fileoverview Ratios, proportions, scales, unit rates. Sets window.correctAnswer with numeric or plain ratio and plausible wrong answers.
  * @date 2026-04-18
+ * @returns QuestionDto
  */
-export function generateRatioProportion(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateRatioProportion(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["ratio","proportion","scale","unit_rate"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,20);
 	let expectedFormat="Enter a number or ratio like 2:3";
 	let correct="";
@@ -20,8 +18,8 @@ export function generateRatioProportion(difficulty?: string): void{
 	let choices:string[]=[];
 	switch(type){
 		case "ratio":{
-			let a=Math.floor(Math.random()*maxVal)+1;
-			let b=Math.floor(Math.random()*maxVal)+1;
+			let a=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+1;
 			let g=gcd(a,b);
 			let plain=`${a/g}:${b/g}`;
 			correct=plain;
@@ -36,9 +34,9 @@ export function generateRatioProportion(difficulty?: string): void{
 			break;
 		}
 		case "proportion":{
-			let a=Math.floor(Math.random()*5)+2;
-			let b=Math.floor(Math.random()*5)+2;
-			let c=Math.floor(Math.random()*10)+5;
+			let a=Math.floor(rng()*5)+2;
+			let b=Math.floor(rng()*5)+2;
+			let c=Math.floor(rng()*10)+5;
 			let x=Math.round(c*a/b);
 			correct=x.toString();
 			alternate=correct;
@@ -53,8 +51,8 @@ export function generateRatioProportion(difficulty?: string): void{
 			break;
 		}
 		case "scale":{
-			let map=Math.floor(Math.random()*10)+1;
-			let actual=Math.floor(Math.random()*50)+10;
+			let map=Math.floor(rng()*10)+1;
+			let actual=Math.floor(rng()*50)+10;
 			let scaled=Math.round(actual/map);
 			correct=actual.toString();
 			alternate=correct;
@@ -69,8 +67,8 @@ export function generateRatioProportion(difficulty?: string): void{
 			break;
 		}
 		case "unit_rate":{
-			let quantity=Math.floor(Math.random()*100)+20;
-			let units=Math.floor(Math.random()*10)+2;
+			let quantity=Math.floor(rng()*100)+20;
+			let units=Math.floor(rng()*10)+2;
 			let rate=quantity/units;
 			let ans=rate.toFixed(2);
 			correct=ans;
@@ -85,28 +83,20 @@ export function generateRatioProportion(difficulty?: string): void{
 			choices.push((units/quantity).toFixed(2));
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+	let latex=mathExpression;
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }

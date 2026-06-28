@@ -1,15 +1,13 @@
-import {questionArea} from "../../../script.js";
-import {renderer} from "../../../main/core/questionRenderer";
+import type {RngFn, QuestionDto} from "../../../types/global";
 /**
  * Generates a question about number sets (identify, classify, or compare numbers) with MCQ distractors.
  * @fileoverview Number sets identification. Sets window.correctAnswer with plain text description and plausible wrong answers.
  * @date 2026-04-18
+ * @returns QuestionDto
  */
-export function generateNumberSets(_difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateNumberSets(_difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["identify","classify","compare"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let expectedFormat="Enter the set names separated by commas";
 	let correct="";
 	let alternate="";
@@ -18,7 +16,7 @@ export function generateNumberSets(_difficulty?: string): void{
 	let choices:string[]=[];
 	switch(type){
 		case "identify":{
-			let num=Math.random()*10;
+			let num=rng()*10;
 			let desc="";
 			if(Number.isInteger(num)&&num>0) desc="natural, whole, integer, rational, real";
 			else if(Number.isInteger(num)&&num<0) desc="integer, rational, real";
@@ -43,7 +41,7 @@ export function generateNumberSets(_difficulty?: string): void{
 			break;
 		}
 		case "classify":{
-			let num=Math.floor(Math.random()*10)-5;
+			let num=Math.floor(rng()*10)-5;
 			let desc= num>0?"natural, whole, integer, rational, real" : "integer, rational, real";
 			correct=desc;
 			alternate=desc;
@@ -58,8 +56,8 @@ export function generateNumberSets(_difficulty?: string): void{
 			break;
 		}
 		case "compare":{
-			let a=Math.random()*10;
-			let b=Math.random()*10;
+			let a=rng()*10;
+			let b=rng()*10;
 			let comp=a<b?"<":a>b?">":"=";
 			correct=comp;
 			alternate=comp;
@@ -68,28 +66,20 @@ export function generateNumberSets(_difficulty?: string): void{
 			choices=["<",">","="];
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+	let latex=mathExpression;
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }

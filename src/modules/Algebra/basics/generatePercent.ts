@@ -1,16 +1,14 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Generates a percentage question (percent of, increase, decrease, simple interest, or markup) with MCQ distractors.
  * @fileoverview Percentage calculations. Sets window.correctAnswer with numeric result and plausible wrong answers.
  * @date 2026-04-18
+ * @returns QuestionDto
  */
-export function generatePercent(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generatePercent(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["percent_of","increase","decrease","interest","markup"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,100);
 	let expectedFormat="Enter a number";
 	let correct="";
@@ -18,8 +16,8 @@ export function generatePercent(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	let percent=Math.floor(Math.random()*50)+10;
-	let whole=Math.floor(Math.random()*maxVal)+10;
+	let percent=Math.floor(rng()*50)+10;
+	let whole=Math.floor(rng()*maxVal)+10;
 	let part=Math.round(whole*percent/100);
 	switch(type){
 		case "percent_of":{
@@ -36,7 +34,7 @@ export function generatePercent(difficulty?: string): void{
 			break;
 		}
 		case "increase":{
-			let increase=Math.floor(Math.random()*50)+5;
+			let increase=Math.floor(rng()*50)+5;
 			let newVal=whole+Math.round(whole*increase/100);
 			correct=newVal.toString();
 			alternate=correct;
@@ -51,7 +49,7 @@ export function generatePercent(difficulty?: string): void{
 			break;
 		}
 		case "decrease":{
-			let decrease=Math.floor(Math.random()*30)+5;
+			let decrease=Math.floor(rng()*30)+5;
 			let newVal=whole-Math.round(whole*decrease/100);
 			correct=newVal.toString();
 			alternate=correct;
@@ -66,9 +64,9 @@ export function generatePercent(difficulty?: string): void{
 			break;
 		}
 		case "interest":{
-			let principal=Math.floor(Math.random()*1000)+500;
-			let rate=(Math.random()*5+2).toFixed(1);
-			let time=Math.floor(Math.random()*3)+1;
+			let principal=Math.floor(rng()*1000)+500;
+			let rate=(rng()*5+2).toFixed(1);
+			let time=Math.floor(rng()*3)+1;
 			let interest=Math.round(principal*parseFloat(rate)/100*time);
 			correct=interest.toString();
 			alternate=correct;
@@ -83,8 +81,8 @@ export function generatePercent(difficulty?: string): void{
 			break;
 		}
 		case "markup":{
-			let cost=Math.floor(Math.random()*50)+10;
-			let markup=Math.floor(Math.random()*40)+20;
+			let cost=Math.floor(rng()*50)+10;
+			let markup=Math.floor(rng()*40)+20;
 			let price=cost+Math.round(cost*markup/100);
 			correct=price.toString();
 			alternate=correct;
@@ -98,28 +96,20 @@ export function generatePercent(difficulty?: string): void{
 			choices.push((cost).toString());
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+	let latex=mathExpression;
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }

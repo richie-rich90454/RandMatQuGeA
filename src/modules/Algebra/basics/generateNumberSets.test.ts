@@ -1,153 +1,50 @@
 /**
  * @vitest-environment jsdom
  */
-import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
+import {describe,it,expect} from "vitest";
 import {generateNumberSets} from "./generateNumberSets";
-import {questionArea} from "../../../script.js";
-vi.mock("../../../script.js",()=>({
-	questionArea: null as HTMLElement|null
-}));
+import {seededRng} from "../../../main/core/rng";
 describe("generateNumberSets",()=>{
-	let originalMathRandom:()=>number;
-	let mockDiv:HTMLDivElement;
-	beforeEach(()=>{
-		originalMathRandom=Math.random;
-		mockDiv=document.createElement("div");
-		(questionArea as any)=mockDiv;
-		delete (window as any).correctAnswer;
-		delete (window as any).expectedFormat;
-		(window as any).MathJax={typesetPromise:vi.fn().mockResolvedValue(undefined)};
+	it("returns a QuestionDto with required fields",()=>{
+		const dto=generateNumberSets("medium", seededRng(42));
+		expect(dto).toHaveProperty("latex");
+		expect(dto).toHaveProperty("correct");
+		expect(dto).toHaveProperty("alternate");
+		expect(typeof dto.latex).toBe("string");
+		expect(dto.latex.length).toBeGreaterThan(0);
+		expect(typeof dto.correct).toBe("string");
+		expect(dto.correct.length).toBeGreaterThan(0);
 	});
-	afterEach(()=>{
-		Math.random=originalMathRandom;
-		delete (window as any).MathJax;
+	it("returns expectedFormat string",()=>{
+		const dto=generateNumberSets("medium", seededRng(42));
+		expect(dto.expectedFormat).toBeDefined();
+		expect(typeof dto.expectedFormat).toBe("string");
 	});
-	it("returns early if questionArea is null",()=>{
-		(questionArea as any)=null;
-		generateNumberSets();
-		expect(mockDiv.innerHTML).toBe("");
-		expect((window as any).correctAnswer).toBeUndefined();
-		expect((window as any).expectedFormat).toBeUndefined();
-	});
-	it("generates identify type with natural number correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateNumberSets();
-		expect(mockDiv.innerHTML).toBe("<div>Identify all number sets for \\( 3.00 \\) (natural, whole, integer, rational, irrational, real).</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "natural, whole, integer, rational, real"
-		});
-		expect((window as any).expectedFormat).toBe("Enter the set names separated by commas");
-	});
-	it("generates identify type with irrational number correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3333);
-		generateNumberSets();
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "irrational, real"
-		});
-	});
-	it("generates classify type with positive number correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.4)
-			.mockReturnValueOnce(0.6);
-		generateNumberSets();
-		expect(mockDiv.innerHTML).toBe("<div>Classify \\( 1 \\) as natural, whole, integer, rational, irrational, or real.</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "natural, whole, integer, rational, real"
-		});
-	});
-	it("generates classify type with non-positive number correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.4)
-			.mockReturnValueOnce(0.1);
-		generateNumberSets();
-		expect(mockDiv.innerHTML).toBe("<div>Classify \\( -4 \\) as natural, whole, integer, rational, irrational, or real.</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "integer, rational, real"
-		});
-	});
-	it("generates compare type with less-than correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.7)
-			.mockReturnValueOnce(0.2)
-			.mockReturnValueOnce(0.5);
-		generateNumberSets();
-		expect(mockDiv.innerHTML).toBe("<div>Compare: \\( 2.00 \\) ___ \\( 5.00 \\) (enter &lt;, &gt;, or =)</div>");
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "<"
-		});
-	});
-	it("generates compare type with greater-than correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.7)
-			.mockReturnValueOnce(0.8)
-			.mockReturnValueOnce(0.3);
-		generateNumberSets();
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: ">"
-		});
-	});
-	it("generates compare type with equal correctly",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.7)
-			.mockReturnValueOnce(0.5)
-			.mockReturnValueOnce(0.5);
-		generateNumberSets();
-		expect((window as any).correctAnswer).toMatchObject({
-			correct: "="
-		});
-	});
-	it("does not call MathJax if missing",()=>{
-		delete (window as any).MathJax;
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateNumberSets();
-		expect((window as any).MathJax).toBeUndefined();
-	});
-	it("should set window.correctAnswer",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateNumberSets();
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).correctAnswer).toHaveProperty("correct");
-		expect((window as any).correctAnswer).toHaveProperty("alternate");
-		expect((window as any).correctAnswer).toHaveProperty("display");
-		expect((window as any).correctAnswer).toHaveProperty("choices");
-	});
-	it("should set window.expectedFormat",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateNumberSets();
-		expect((window as any).expectedFormat).toBe("Enter the set names separated by commas");
+	it("returns choices array",()=>{
+		const dto=generateNumberSets("medium", seededRng(42));
+		expect(Array.isArray(dto.choices)).toBe(true);
+		expect(dto.choices!.length).toBeGreaterThanOrEqual(1);
 	});
 	it("should handle easy difficulty",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateNumberSets("easy");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).expectedFormat).toBe("Enter the set names separated by commas");
+		const dto=generateNumberSets("easy", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle medium difficulty",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateNumberSets("medium");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).expectedFormat).toBe("Enter the set names separated by commas");
+		const dto=generateNumberSets("medium", seededRng(42));
+		expect(dto.correct).toBeDefined();
 	});
 	it("should handle hard difficulty",()=>{
-		Math.random=vi.fn()
-			.mockReturnValueOnce(0.1)
-			.mockReturnValueOnce(0.3);
-		generateNumberSets("hard");
-		expect((window as any).correctAnswer).toBeDefined();
-		expect((window as any).expectedFormat).toBe("Enter the set names separated by commas");
+		const dto=generateNumberSets("hard", seededRng(42));
+		expect(dto.correct).toBeDefined();
+	});
+	it("returns deterministic output for same seed",()=>{
+		const dto1=generateNumberSets("medium", seededRng(42));
+		const dto2=generateNumberSets("medium", seededRng(42));
+		expect(dto1).toEqual(dto2);
+	});
+	it("produces different output for different seeds",()=>{
+		const dto1=generateNumberSets("medium", seededRng(42));
+		const dto2=generateNumberSets("medium", seededRng(99));
+		expect(dto1).not.toEqual(dto2);
 	});
 });

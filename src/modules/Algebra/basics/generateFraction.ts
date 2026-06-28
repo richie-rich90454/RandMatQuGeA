@@ -1,16 +1,14 @@
-import {questionArea} from "../../../script.js";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {gcd, getMaxForDifficulty} from "../algebraUtils.js";
-import {renderer} from "../../../main/core/questionRenderer";
 /**
  * Generates a fraction arithmetic question (add, subtract, multiply, divide, simplify, or convert decimal to fraction) with MCQ distractors.
  * @fileoverview Fraction operations. Sets window.correctAnswer with plain fraction string and LaTeX display, plus plausible wrong answers.
  * @date 2026-04-18
+ * @returns QuestionDto
  */
-export function generateFraction(difficulty?: string): void{
-	if(!questionArea) return;
-	questionArea.innerHTML="";
+export function generateFraction(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["add","subtract","multiply","divide","simplify","convert"];
-	let type=types[Math.floor(Math.random()*types.length)];
+	let type=types[Math.floor(rng()*types.length)];
 	let maxVal=getMaxForDifficulty(difficulty,12);
 	let expectedFormat="Enter a fraction in simplest form like 3/4";
 	let correct="";
@@ -18,10 +16,10 @@ export function generateFraction(difficulty?: string): void{
 	let display="";
 	let mathExpression="";
 	let choices:string[]=[];
-	let num1=Math.floor(Math.random()*maxVal)+1;
-	let den1=Math.floor(Math.random()*(maxVal-1))+2;
-	let num2=Math.floor(Math.random()*maxVal)+1;
-	let den2=Math.floor(Math.random()*(maxVal-1))+2;
+	let num1=Math.floor(rng()*maxVal)+1;
+	let den1=Math.floor(rng()*(maxVal-1))+2;
+	let num2=Math.floor(rng()*maxVal)+1;
+	let den2=Math.floor(rng()*(maxVal-1))+2;
 	switch(type){
 		case "add":{
 			let commonDen=den1*den2;
@@ -104,8 +102,8 @@ export function generateFraction(difficulty?: string): void{
 			break;
 		}
 		case "simplify":{
-			let num=Math.floor(Math.random()*30)+2;
-			let den=Math.floor(Math.random()*30)+2;
+			let num=Math.floor(rng()*30)+2;
+			let den=Math.floor(rng()*30)+2;
 			let g=gcd(num,den);
 			let simplifiedNum=num/g;
 			let simplifiedDen=den/g;
@@ -123,7 +121,7 @@ export function generateFraction(difficulty?: string): void{
 			break;
 		}
 		case "convert":{
-			let decimal=(Math.random()*10).toFixed(2);
+			let decimal=(rng()*10).toFixed(2);
 			let num=Math.round(parseFloat(decimal)*100);
 			let den=100;
 			let g=gcd(num,den);
@@ -142,28 +140,20 @@ export function generateFraction(difficulty?: string): void{
 			choices.push(`${(num+1)}/${den}`);
 			break;
 		}
-		default:
-			return;
 	}
 	let uniqueChoices=[...new Set(choices)];
 	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
 	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(Math.random()*uniqueChoices.length)]=correct;
+		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
 		else uniqueChoices=[correct];
 	}
-	let mathContainer=document.createElement("div");
-	mathContainer.innerHTML=mathExpression;
-	questionArea.appendChild(mathContainer);
-	if(window.MathJax&&window.MathJax.typesetPromise){
-		window.MathJax.typesetPromise([mathContainer]).catch((err: any)=>
-			console.log("MathJax typeset error:", err)
-		);
-	}
-	renderer.setAnswer({
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices
-	});
-	renderer.setExpectedFormat(expectedFormat);
+	let latex=mathExpression;
+	return {
+		latex,
+		correct,
+		alternate,
+		display,
+		choices: uniqueChoices,
+		expectedFormat
+	};
 }
