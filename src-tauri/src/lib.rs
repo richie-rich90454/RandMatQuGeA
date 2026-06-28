@@ -17,6 +17,7 @@ use tauri::{
 use tauri_utils::config::WindowEffectsConfig;
 mod adaptive;
 mod models;
+mod pdf;
 use models::{Difficulty, TopicId};
 #[derive(Serialize, Deserialize, Clone, sqlx::FromRow)]
 struct ScoreEntry {
@@ -263,6 +264,14 @@ async fn delete_all_performance_records(state: tauri::State<'_, DbState>) -> Res
 #[tauri::command]
 fn generate_worksheet_seed() -> u64 {
     rand::random()
+}
+#[tauri::command]
+fn export_worksheet_pdf(
+    questions: Vec<pdf::QuestionDtoRust>,
+    opts: pdf::WorksheetOptsRust,
+    filepath: String,
+) -> Result<(), String> {
+    pdf::export_worksheet_pdf_impl(questions, opts, &filepath)
 }
 #[tauri::command]
 async fn delete_score(state: tauri::State<'_, DbState>, id: i32) -> Result<(), String> {
