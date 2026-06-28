@@ -302,6 +302,7 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             check_math,
             save_score,
@@ -313,6 +314,7 @@ pub fn run() {
             delete_performance_record,
             delete_all_performance_records,
             generate_worksheet_seed,
+            export_worksheet_pdf,
             delete_score,
             reset_all_data,
         ])
