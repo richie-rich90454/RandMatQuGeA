@@ -489,7 +489,7 @@ describe("export PDF",()=>{
 		mockInvoke.mockRejectedValueOnce(new Error("Rust error"));
 		exportBtn.click();
 		await vi.waitFor(()=>{
-			expect(showNotification).toHaveBeenCalledWith("Failed to export PDF.","warning");
+			expect(showNotification).toHaveBeenCalledWith("Rust PDF export failed; using browser print fallback.","warning");
 		});
 	});
 	it("should fall back to window.print in web mode",async ()=>{
