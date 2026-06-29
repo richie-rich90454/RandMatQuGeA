@@ -9,6 +9,7 @@
 import { topics, scopeTopics } from "./constants";
 import { generateQuestionDto } from "./questionGenerator";
 import { invoke } from "@tauri-apps/api/core";
+import { save } from "@tauri-apps/plugin-dialog";
 import { seededRng } from "./core/rng";
 import { showNotification } from "./ui";
 import type { RngFn, QuestionDto } from "../types/global";
@@ -313,13 +314,29 @@ export function renderKatexInElement(el: HTMLElement): void{
 	processNode(el);
 }
 async function exportToPdf(opts: WorksheetOptions, dtos: QuestionDto[]): Promise<void>{
-	// Always use the browser/WebView2 print engine. KaTeX-rendered HTML is
-	// placed into #ws-print-container and the native print dialog (which
-	// supports "Save as PDF") is invoked. This guarantees correct LaTeX
-	// rendering — matrices, fractions, integrals, Greek letters, etc. —
-	// because the same KaTeX renderer used in the live preview is reused.
-	// The previous Rust printpdf path could not reliably map Unicode math
-	// glyphs and silently dropped characters.
+	// Primary path: Rust PDF export. Each LaTeX math expression is rendered to
+	// a PNG by the pure-Rust RaTeX engine (KaTeX-compatible) and embedded as an
+	// image in the PDF, giving perfect rendering of fractions, matrices,
+	// integrals, Greek letters, etc. If the Rust command fails for any reason,
+	// fall back to window.print(), which reuses the KaTeX-rendered HTML from
+	// the live preview via #ws-print-container.
+	if (isTauriAvailable()){
+		try{
+			let filename=(opts.title || "worksheet").replace(/[^a-zA-Z0-9_-]/g, "_")+".pdf";
+			let filepath=await save({
+				defaultPath: filename,
+				filters: [{ name: "PDF", extensions: ["pdf"] }]
+			});
+			if (!filepath) return;
+			await invoke("export_worksheet_pdf", { questions: dtos, opts, filepath });
+			showNotification("PDF exported successfully.", "info");
+			return;
+		}
+		catch (err){
+			console.error("Rust PDF export failed, falling back to window.print():", err);
+			showNotification("Rust PDF export failed; using browser print fallback.", "warning");
+		}
+	}
 	populatePrintContainer(opts, dtos);
 	window.print();
 }

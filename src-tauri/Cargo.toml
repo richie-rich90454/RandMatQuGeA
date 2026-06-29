@@ -26,8 +26,17 @@ derive_more = { version = "1.0", features = ["full"] }
 strum = "0.26"
 strum_macros = "0.26"
 rand = "0.9"
-printpdf = "0.7"
+printpdf = { version = "0.7", features = ["embedded_images"] }
 tauri-plugin-dialog = "2"
+# Pure-Rust KaTeX-compatible LaTeX math rendering. Used to rasterize each
+# math expression to a PNG which is then embedded in the worksheet PDF,
+# giving perfect LaTeX rendering (fractions, matrices, integrals, etc.)
+# without any JavaScript runtime or WebView.
+ratex-parser = "0.1"
+ratex-layout = "0.1"
+ratex-types = "0.1"
+ratex-render = { version = "0.1", features = ["embed-fonts"] }
+image = { version = "0.24", default-features = false, features = ["png"] }
 
 [lib]
 crate-type = ["rlib", "staticlib", "cdylib"]

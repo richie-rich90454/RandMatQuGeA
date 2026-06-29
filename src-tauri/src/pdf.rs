@@ -8,8 +8,19 @@ use printpdf::*;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufWriter, Cursor};
+use ::image::codecs::png::PngDecoder;
+use ::image::ImageDecoder;
+use ratex_layout::layout as ratex_do_layout;
+use ratex_layout::to_display_list as ratex_to_display_list;
+use ratex_layout::LayoutOptions as RatexLayoutOptions;
+use ratex_parser::parse as ratex_parse;
+use ratex_render::RenderOptions as RatexRenderOptions;
+use ratex_render::render_to_png as ratex_render_to_png;
+use ratex_types::color::Color as RatexColor;
+use ratex_types::math_style::MathStyle as RatexMathStyle;
 // Embed LibertinusMath-Regular.ttf at compile time so the PDF can render Unicode
-// math symbols (Greek letters, √, ≤, ≥, →, ∑, ∫, superscripts, subscripts, etc.).
+// math symbols (Greek letters, √, ≤, ≥, →, ∑, ∫, superscripts, subscripts, etc.)
+// in the body/answer text that is NOT rendered as a LaTeX image.
 // Built-in PDF fonts (Helvetica) only support WinAnsiEncoding (ASCII + Latin-1),
 // which drops most math characters. Libertinus Math has full coverage of Latin,
 // Greek, and common math symbol blocks.
@@ -469,6 +480,209 @@ pub fn latex_to_readable(input: &str)->String{
 	let after_super=convert_superscripts(&after_commands);
 	convert_subscripts(&after_super)
 }
+/// A piece of a question/answer string: plain text or a LaTeX math expression.
+/// Display math (`$$...$$`, `\[...\]`) is rendered on its own centered line;
+/// inline math (`$...$`, `\(...\)`) is rendered inline with the surrounding text.
+#[derive(Debug, Clone)]
+enum Segment{
+	Text(String),
+	InlineMath(String),
+	DisplayMath(String),
+}
+/// Parse a raw question/answer string into an ordered list of text and math
+/// segments by scanning for `$$...$$`, `\[...\]`, `$...$`, and `\(...\)`.
+/// Everything outside math delimiters becomes a `Text` segment; the inner LaTeX
+/// becomes `InlineMath` or `DisplayMath`. Backslash-escaped dollars (`\$`) are
+/// treated as literal text.
+fn parse_segments(input: &str)->Vec<Segment>{
+	let chars: Vec<char>=input.chars().collect();
+	let mut segs: Vec<Segment>=Vec::new();
+	let mut buf=String::new();
+	let mut i=0;
+	let n=chars.len();
+	// Flush the text buffer into a Text segment (only if non-empty).
+	macro_rules! flush_text{
+		()=>{
+			if !buf.is_empty(){
+				segs.push(Segment::Text(std::mem::take(&mut buf)));
+			}
+		};
+	}
+	while i<n{
+		let c=chars[i];
+		// Display math: $$...$$
+		if c=='$' && i+1<n && chars[i+1]=='$'{
+			if let Some(end)=find_delim_close(&chars, i+2, "$$"){
+				flush_text!();
+				let inner: String=chars[i+2..end].iter().collect();
+				segs.push(Segment::DisplayMath(inner));
+				i=end+2;
+				continue;
+			}
+		}
+		// Display math: \[...\]
+		if c=='\\' && i+1<n && chars[i+1]=='['{
+			if let Some(end)=find_delim_close(&chars, i+2, "\\]"){
+				flush_text!();
+				let inner: String=chars[i+2..end].iter().collect();
+				segs.push(Segment::DisplayMath(inner));
+				i=end+2;
+				continue;
+			}
+		}
+		// Inline math: \(...\)
+		if c=='\\' && i+1<n && chars[i+1]=='('{
+			if let Some(end)=find_delim_close(&chars, i+2, "\\)"){
+				flush_text!();
+				let inner: String=chars[i+2..end].iter().collect();
+				segs.push(Segment::InlineMath(inner));
+				i=end+2;
+				continue;
+			}
+		}
+		// Inline math: $...$
+		if c=='$'{
+			if let Some(end)=find_delim_close(&chars, i+1, "$"){
+				flush_text!();
+				let inner: String=chars[i+1..end].iter().collect();
+				segs.push(Segment::InlineMath(inner));
+				i=end+1;
+				continue;
+			}
+		}
+		// Escaped dollar \$ -> literal $
+		if c=='\\' && i+1<n && chars[i+1]=='$'{
+			buf.push('$');
+			i+=2;
+			continue;
+		}
+		buf.push(c);
+		i+=1;
+	}
+	flush_text!();
+	segs
+}
+/// Find the position of the closing `closer` marker starting from `start`,
+/// scanning the char slice. `closer` may be one or more chars. Returns the
+/// index of the first char of the closer, or None if not found.
+fn find_delim_close(chars: &[char], start: usize, closer: &str)->Option<usize>{
+	let closer_chars: Vec<char>=closer.chars().collect();
+	let clen=closer_chars.len();
+	if clen==0 || start>chars.len(){
+		return None;
+	}
+	let mut i=start;
+	while i+clen<=chars.len(){
+		let matches=chars[i..i+clen].iter().zip(closer_chars.iter()).all(|(a, b)| a==b);
+		if matches{
+			return Some(i);
+		}
+		i+=1;
+	}
+	None
+}
+/// Strip HTML tags from a text segment, converting `<br>`/`<br/>` to newlines
+/// and decoding common entities. Math segments are never passed through this
+/// function (their LaTeX is passed verbatim to the renderer), so `<`/`>` inside
+/// math is preserved.
+fn strip_html(input: &str)->String{
+	let chars: Vec<char>=input.chars().collect();
+	let mut out=String::new();
+	let mut i=0;
+	let n=chars.len();
+	while i<n{
+		let c=chars[i];
+		if c=='&'{
+			// Entity decode
+			if let Some(semi)=chars[i..].iter().position(|&ch| ch==';'){
+				let ent: String=chars[i+1..i+semi].iter().collect();
+				let decoded=match ent.as_str(){
+					"amp"=>Some('&'),
+					"lt"=>Some('<'),
+					"gt"=>Some('>'),
+					"quot"=>Some('"'),
+					"apos"|"#39"=>Some('\''),
+					"nbsp"=>Some(' '),
+					_=>None,
+				};
+				if let Some(ch)=decoded{
+					out.push(ch);
+					i+=semi+1;
+					continue;
+				}
+			}
+			out.push(c);
+			i+=1;
+			continue;
+		}
+		if c=='<'{
+			// Collect the tag name to detect <br>
+			let mut j=i+1;
+			while j<n && chars[j]!='>' && !chars[j].is_whitespace(){
+				j+=1;
+			}
+			let tag: String=chars[i+1..j].iter().collect();
+			let tag_lower=tag.to_lowercase();
+			if tag_lower=="br" || tag_lower=="br/"{
+				out.push('\n');
+				// advance past '>'
+				let mut k=j;
+				while k<n && chars[k]!='>'{
+					k+=1;
+				}
+				i=if k<n { k+1 } else { n };
+				continue;
+			}
+			// Any other tag: skip to '>'
+			let mut k=i+1;
+			while k<n && chars[k]!='>'{
+				k+=1;
+			}
+			i=if k<n { k+1 } else { n };
+			// Block-closing tags add a newline for readability
+			if tag_lower=="/p" || tag_lower=="/div" || tag_lower=="/li"{
+				out.push('\n');
+			}
+			continue;
+		}
+		out.push(c);
+		i+=1;
+	}
+	out
+}
+/// Render a LaTeX math expression to a printpdf `Image` using the pure-Rust
+/// RaTeX engine (KaTeX-compatible). Returns `(image, width_px, height_px)`.
+/// `display` selects display vs inline math style (affects sizing of large
+/// operators like \sum and \int). Fonts are embedded at compile time via the
+/// `embed-fonts` feature, so no external font files are needed.
+fn render_latex_to_image(latex: &str, display: bool)->Result<(Image, u32, u32), String>{
+	let trimmed=latex.trim();
+	if trimmed.is_empty(){
+		return Err("empty latex".to_string());
+	}
+	let nodes=ratex_parse(trimmed)
+		.map_err(|e| format!("ratex parse error: {:?}", e))?;
+	let style=if display { RatexMathStyle::Display } else { RatexMathStyle::Text };
+	let layout_opts=RatexLayoutOptions{
+		style,
+		..Default::default()
+	};
+	let layout_box=ratex_do_layout(&nodes, &layout_opts);
+	let display_list=ratex_to_display_list(&layout_box);
+	let render_opts=RatexRenderOptions{
+		font_size: 40.0,
+		padding: 3.0,
+		background_color: RatexColor::WHITE,
+		font_dir: String::new(),
+		device_pixel_ratio: 3.0,
+	};
+	let png=ratex_render_to_png(&display_list, &render_opts)?;
+	let mut reader=Cursor::new(png.as_slice());
+	let decoder=PngDecoder::new(&mut reader).map_err(|e| format!("png decode: {}", e))?;
+	let (w, h)=decoder.dimensions();
+	let image=Image::try_from(decoder).map_err(|e| format!("image build: {}", e))?;
+	Ok((image, w, h))
+}
 /// Word-wrap text to fit within `max_chars` characters per line.
 /// Long words are hard-broken across lines.
 fn wrap_text(text: &str, max_chars: usize)->Vec<String>{
@@ -555,6 +769,11 @@ fn pt_to_mm(pt: f32)->f32{
 fn line_height(font_size: f32)->f32{
 	pt_to_mm(font_size)*LINE_SPACING
 }
+/// One placed item on a rendered line: either a text run or an inline math image.
+enum LineItem{
+	Text(String),
+	Image{ image: Image, px_w: u32, px_h: u32, display_h_mm: f32 },
+}
 struct PdfWriter<'a>{
 	doc: &'a PdfDocumentReference,
 	current_page: PdfPageIndex,
@@ -608,6 +827,175 @@ impl<'a> PdfWriter<'a>{
 	fn add_spacing(&mut self, mm: f32){
 		self.y_cursor += mm;
 	}
+	/// Place an image on the current layer. The image is scaled (preserving
+	/// aspect ratio) so its displayed height equals `display_h_mm`. The
+	/// bottom-left corner is at (`left_x_mm`, `bottom_y_mm`) in page mm
+	/// (origin bottom-left). `px_w`/`px_h` are the source pixel dimensions.
+	fn place_image(&self, image: Image, left_x_mm: f32, bottom_y_mm: f32, display_h_mm: f32, _px_w: u32, px_h: u32){
+		if px_h==0 || display_h_mm<=0.0{
+			return;
+		}
+		let px_to_mm=25.4_f32/300.0;
+		let scale=display_h_mm/(px_h as f32*px_to_mm);
+		let layer=self.doc.get_page(self.current_page).get_layer(self.current_layer);
+		image.add_to_layer(layer, ImageTransform{
+			translate_x: Some(Mm(left_x_mm)),
+			translate_y: Some(Mm(bottom_y_mm)),
+			rotate: None,
+			scale_x: Some(scale),
+			scale_y: Some(scale),
+			dpi: Some(300.0),
+		});
+	}
+	/// Render one line of mixed text/image items. Items are placed left to
+	/// right starting at `MARGIN + indent_mm`. The y advance is the maximum of
+	/// the text line height and any image heights on the line (so tall inline
+	/// math does not overlap the next line).
+	fn render_line(&mut self, items: Vec<LineItem>, font_size: f32, font: &IndirectFontRef, indent_mm: f32){
+		let char_width_mm=pt_to_mm(font_size)*0.55;
+		let text_line_h=line_height(font_size);
+		let mut max_h=text_line_h;
+		let baseline_y=PAGE_HEIGHT-self.y_cursor-pt_to_mm(font_size);
+		let mut x=MARGIN+indent_mm;
+		let layer=self.doc.get_page(self.current_page).get_layer(self.current_layer);
+		for item in items{
+			match item{
+				LineItem::Text(s)=>{
+					if !s.is_empty(){
+						layer.use_text(&s, font_size, Mm(x), Mm(baseline_y), font);
+					}
+					x += s.chars().count() as f32 * char_width_mm;
+				}
+				LineItem::Image{ image, px_w, px_h, display_h_mm }=>{
+					let display_w_mm=if px_h==0 { 0.0 } else { (px_w as f32/px_h as f32)*display_h_mm };
+					// Vertically center the image on the text baseline region:
+					// top of image aligns with the line top (y_cursor), bottom
+					// is at y_cursor + display_h_mm.
+					let bottom_y=PAGE_HEIGHT-self.y_cursor-display_h_mm;
+					self.place_image(image, x, bottom_y, display_h_mm, px_w, px_h);
+					x += display_w_mm;
+					if display_h_mm>max_h{
+						max_h=display_h_mm;
+					}
+				}
+			}
+		}
+		self.y_cursor += max_h;
+	}
+	/// Render a centered display-math image on its own line. If the image is
+	/// wider than the available content width it is scaled down to fit.
+	fn render_display_math(&mut self, image: Image, px_w: u32, px_h: u32, font_size: f32, indent_mm: f32){
+		let available=PAGE_WIDTH-2.0*MARGIN-indent_mm;
+		// Desired height: display math is larger than body text.
+		let mut desired_h=pt_to_mm(font_size)*2.6;
+		let natural_w_mm=if px_h==0 { 0.0 } else { (px_w as f32/px_h as f32)*desired_h };
+		if natural_w_mm>available && natural_w_mm>0.0{
+			desired_h = desired_h * (available/natural_w_mm);
+		}
+		let display_w_mm=if px_h==0 { 0.0 } else { (px_w as f32/px_h as f32)*desired_h };
+		let line_h=line_height(font_size);
+		self.ensure_space(desired_h.max(line_h)+2.0);
+		let left_x=MARGIN+indent_mm+(available-display_w_mm)/2.0;
+		let bottom_y=PAGE_HEIGHT-self.y_cursor-desired_h;
+		self.place_image(image, left_x, bottom_y, desired_h, px_w, px_h);
+		self.y_cursor += desired_h.max(line_h)+2.0;
+	}
+	/// Render a sequence of text/math segments as rich text with word wrapping.
+	/// Text segments are HTML-stripped then split into words; inline math is
+	/// rendered to PNG images and placed inline; display math is rendered on
+	/// its own centered line. If a math expression fails to render, it falls
+	/// back to `latex_to_readable` text so the PDF always shows something.
+	fn write_rich_text(&mut self, segments: &[Segment], font_size: f32, font: &IndirectFontRef, indent_mm: f32){
+		let available=PAGE_WIDTH-2.0*MARGIN-indent_mm;
+		let char_width_mm=pt_to_mm(font_size)*0.55;
+		let text_line_h=line_height(font_size);
+		let inline_img_h=pt_to_mm(font_size)*1.7;
+		let mut line_items: Vec<LineItem>=Vec::new();
+		let mut x_offset: f32=0.0; // current x within content area (mm)
+		// Render whatever is currently accumulated on the line, then reset.
+		let flush=|items: &mut Vec<LineItem>, x_off: &mut f32, this: &mut Self|{
+			if items.is_empty(){
+				return;
+			}
+			this.ensure_space(text_line_h);
+			let taken=std::mem::take(items);
+			this.render_line(taken, font_size, font, indent_mm);
+			*x_off=0.0;
+		};
+		for seg in segments{
+			match seg{
+				Segment::Text(raw)=>{
+					let clean=strip_html(raw);
+					for (li, line) in clean.split('\n').enumerate(){
+						if li>0{
+							flush(&mut line_items, &mut x_offset, self);
+						}
+						let words: Vec<&str>=line.split_whitespace().collect();
+						for (wi, word) in words.iter().enumerate(){
+							let sep=if wi>0 { " " } else { "" };
+							let run=format!("{}{}", sep, word);
+							let run_w=run.chars().count() as f32*char_width_mm;
+							if x_offset+run_w>available && (!line_items.is_empty() || x_offset>0.0){
+								flush(&mut line_items, &mut x_offset, self);
+							}
+							line_items.push(LineItem::Text(run));
+							x_offset += run_w;
+						}
+					}
+				}
+				Segment::InlineMath(latex)=>{
+					match render_latex_to_image(latex, false){
+						Ok((image, pw, ph))=>{
+							let display_h=inline_img_h;
+							let display_w=if ph==0 { 0.0 } else { (pw as f32/ph as f32)*display_h };
+							if x_offset+display_w>available && (!line_items.is_empty() || x_offset>0.0){
+								flush(&mut line_items, &mut x_offset, self);
+							}
+							line_items.push(LineItem::Image{ image, px_w: pw, px_h: ph, display_h_mm: display_h });
+							x_offset += display_w;
+						}
+						Err(_)=>{
+							// Fallback: render as readable text so content is never lost.
+							let readable=latex_to_readable(latex);
+							let words: Vec<&str>=readable.split_whitespace().collect();
+							for (wi, word) in words.iter().enumerate(){
+								let sep=if wi>0 { " " } else { "" };
+								let run=format!("{}{}", sep, word);
+								let run_w=run.chars().count() as f32*char_width_mm;
+								if x_offset+run_w>available && (!line_items.is_empty() || x_offset>0.0){
+									flush(&mut line_items, &mut x_offset, self);
+								}
+								line_items.push(LineItem::Text(run));
+								x_offset += run_w;
+							}
+						}
+					}
+				}
+				Segment::DisplayMath(latex)=>{
+					// Flush any pending inline content first.
+					flush(&mut line_items, &mut x_offset, self);
+					match render_latex_to_image(latex, true){
+						Ok((image, pw, ph))=>{
+							self.render_display_math(image, pw, ph, font_size, indent_mm);
+						}
+						Err(_)=>{
+							let readable=latex_to_readable(latex);
+							// Render fallback text wrapped, centered-ish (left aligned).
+							let max_chars=((available/char_width_mm) as usize).max(1);
+							for wl in wrap_text(&readable, max_chars){
+								self.ensure_space(text_line_h);
+								let layer=self.doc.get_page(self.current_page).get_layer(self.current_layer);
+								let y=PAGE_HEIGHT-self.y_cursor-pt_to_mm(font_size);
+								layer.use_text(&wl, font_size, Mm(MARGIN+indent_mm), Mm(y), font);
+								self.y_cursor += text_line_h;
+							}
+						}
+					}
+				}
+			}
+		}
+		flush(&mut line_items, &mut x_offset, self);
+	}
 }
 pub fn export_worksheet_pdf_impl(
 	questions: Vec<QuestionDtoRust>,
@@ -658,8 +1046,10 @@ pub fn export_worksheet_pdf_impl(
 	let show_questions=opts.answer_key_mode != "only";
 	if show_questions{
 		for (i, q) in questions.iter().enumerate(){
-			let question_text=format!("{}. {}", i+1, latex_to_readable(&q.latex));
-			writer.write_line(&question_text, BODY_SIZE, &regular_font);
+			// Build segments: leading "N. " number + parsed question text/math.
+			let mut segs: Vec<Segment>=vec![Segment::Text(format!("{}. ", i+1))];
+			segs.extend(parse_segments(&q.latex));
+			writer.write_rich_text(&segs, BODY_SIZE, &regular_font, 0.0);
 			// Answer space (blank lines for student to write)
 			writer.add_spacing(line_height(BODY_SIZE)*2.0);
 		}
@@ -677,9 +1067,9 @@ pub fn export_worksheet_pdf_impl(
 		writer.add_spacing(line_height(HEADER_SIZE));
 		for (i, q) in questions.iter().enumerate(){
 			let raw_answer=q.display.as_ref().unwrap_or(&q.correct);
-			let answer=latex_to_readable(raw_answer);
-			let answer_line=format!("{}. {}", i+1, answer);
-			writer.write_line(&answer_line, ANSWER_SIZE, &regular_font);
+			let mut segs: Vec<Segment>=vec![Segment::Text(format!("{}. ", i+1))];
+			segs.extend(parse_segments(raw_answer));
+			writer.write_rich_text(&segs, ANSWER_SIZE, &regular_font, 0.0);
 		}
 	}
 	// Page numbers
@@ -852,8 +1242,10 @@ mod tests{
 	}
 	#[test]
 	fn should_fallback_superscript_for_complex(){
-		let readable=latex_to_readable("x^{n+1}");
-		assert_eq!(readable, "x^(n+1)");
+		// "ab" cannot be converted to Unicode superscripts (no superscript
+		// equivalents for 'a' or 'b'), so the fallback ^(content) is used.
+		let readable=latex_to_readable("x^{ab}");
+		assert_eq!(readable, "x^(ab)");
 	}
 	#[test]
 	fn should_convert_subscript_brace(){
