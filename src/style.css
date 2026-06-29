@@ -1825,8 +1825,6 @@ hr.context-menu-divider{
     border-radius: var(--radius-sm);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     padding: var(--spacing-lg);
-    overflow: auto;
-    max-height: 60vh;
 }
 .ws-preview-error, .ws-preview-loading{
     padding: var(--spacing-lg);
@@ -1914,20 +1912,21 @@ hr.context-menu-divider{
     font-style: italic;
 }
 @media print{
-    .modal, .sidebar, .controls{
+    /* Hide all top-level app chrome; only the print container should remain.
+       Using display:none (not visibility:hidden) removes hidden nodes from the
+       layout flow so page-break-after/break-after work correctly across pages. */
+    body > *:not(#ws-print-container){
         display: none !important;
     }
-    body * {
-        visibility: hidden;
-    }
-    #ws-print-container, #ws-print-container *{
-        visibility: visible;
-    }
     #ws-print-container{
-        position: absolute;
-        left: 0;
-        top: 0;
+        display: block !important;
         width: 100%;
+    }
+    /* Ensure worksheet paper is always white-on-black for printing, regardless
+       of the active app theme (dark/light). */
+    .ws-document{
+        background: #ffffff !important;
+        color: #000000 !important;
     }
 }
 .loading-overlay{

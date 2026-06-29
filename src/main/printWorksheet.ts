@@ -223,7 +223,10 @@ function buildWorksheetHtml(questions: GeneratedQuestion[], opts: WorksheetOptio
 	}
 	if (showAnswers){
 		answerKey = buildAnswerKeyHtml(questions);
-		if (opts.answerKeyMode === "separate" || opts.answerKeyMode === "only"){
+		// Always start the answer key on a new page when questions are shown,
+		// so the worksheet is safe to print without answers bleeding onto the
+		// question page. In "only" mode there are no questions, so no break needed.
+		if (showQuestions){
 			answerKey = `<div class="ws-page-break"></div>${answerKey}`;
 		}
 	}
