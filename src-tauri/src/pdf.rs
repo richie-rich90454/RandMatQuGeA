@@ -1,8 +1,9 @@
 //! Worksheet PDF generation using printpdf.
 //!
 //! Generates vector-text PDFs with title, header fields, numbered questions,
-//! optional answer key, and page numbers. LaTeX delimiters are stripped to
-//! leave readable plain-text notation (e.g. `x^2 + 5 = 10`).
+//! optional answer key, and page numbers. LaTeX math notation is converted to
+//! readable Unicode equivalents (e.g. `\pi` -> `\u{03C0}`, `x^2` -> `x\u{00B2}`),
+//! and long lines are word-wrapped to fit within page margins.
 use printpdf::*;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
@@ -38,6 +39,438 @@ pub fn strip_latex_delimiters(input: &str)->String{
 	result=result.replace("\\)","");
 	result=result.replace("$","");
 	result
+}
+/// Find the position of the matching closing `}` for the `{` at `open_pos`.
+fn find_matching_brace(chars: &[char], open_pos: usize)->Option<usize>{
+	if open_pos>=chars.len() || chars[open_pos]!='{' {
+		return None;
+	}
+	let mut depth=1;
+	let mut i=open_pos+1;
+	while i<chars.len(){
+		match chars[i]{
+			'{' => depth+=1,
+			'}' => {
+				depth-=1;
+				if depth==0 {
+					return Some(i);
+				}
+			}
+			'\\' => { i+=1; }
+			_ => {}
+		}
+		i+=1;
+	}
+	None
+}
+/// Read a `{...}` group starting at `start`, returning (content, position_after_group).
+fn read_brace_group(chars: &[char], start: usize)->Option<(String, usize)>{
+	if start>=chars.len() || chars[start]!='{' {
+		return None;
+	}
+	let end=find_matching_brace(chars, start)?;
+	let content: String=chars[start+1..end].iter().collect();
+	Some((content, end+1))
+}
+/// Look up a simple LaTeX command (no arguments) and return its Unicode replacement.
+fn lookup_command(cmd: &str)->Option<&'static str>{
+	const COMMANDS: &[(&str, &str)]=&[
+		("varepsilon","\u{03B5}"),("vartheta","\u{03D1}"),("varpi","\u{03D6}"),
+		("varrho","\u{03F1}"),("varsigma","\u{03C2}"),("varphi","\u{03C6}"),
+		("varnothing","\u{2205}"),("Leftrightarrow","\u{21D4}"),("leftrightarrow","\u{2194}"),
+		("Rightarrow","\u{21D2}"),("Leftarrow","\u{21D0}"),("rightarrow","\u{2192}"),
+		("leftarrow","\u{2190}"),("mapsto","\u{21A6}"),("uparrow","\u{2191}"),
+		("downarrow","\u{2193}"),("subseteq","\u{2286}"),("supseteq","\u{2287}"),
+		("nexists","\u{2204}"),("doubleprime","\u{2033}"),("setminus","\u{2216}"),
+		("emptyset","\u{2205}"),("triangle","\u{25B3}"),("partial","\u{2202}"),
+		("nabla","\u{2207}"),("approx","\u{2248}"),("equiv","\u{2261}"),
+		("simeq","\u{2243}"),("cong","\u{2245}"),("propto","\u{221D}"),
+		("forall","\u{2200}"),("exists","\u{2203}"),("implies","\u{27F9}"),
+		("iint","\u{222C}"),("iiint","\u{222D}"),("infty","\u{221E}"),
+		("angle","\u{2220}"),("perp","\u{22A5}"),("parallel","\u{2225}"),
+		("square","\u{25A1}"),("dagger","\u{2020}"),("ddagger","\u{2021}"),
+		("bullet","\u{2022}"),("prime","\u{2032}"),("aleph","\u{2135}"),
+		("alpha","\u{03B1}"),("beta","\u{03B2}"),("gamma","\u{03B3}"),
+		("delta","\u{03B4}"),("epsilon","\u{03B5}"),("zeta","\u{03B6}"),
+		("eta","\u{03B7}"),("theta","\u{03B8}"),("iota","\u{03B9}"),
+		("kappa","\u{03BA}"),("lambda","\u{03BB}"),("mu","\u{03BC}"),
+		("nu","\u{03BD}"),("xi","\u{03BE}"),("pi","\u{03C0}"),("rho","\u{03C1}"),
+		("sigma","\u{03C3}"),("tau","\u{03C4}"),("upsilon","\u{03C5}"),
+		("phi","\u{03C6}"),("chi","\u{03C7}"),("psi","\u{03C8}"),("omega","\u{03C9}"),
+		("Gamma","\u{0393}"),("Delta","\u{0394}"),("Theta","\u{0398}"),
+		("Lambda","\u{039B}"),("Xi","\u{039E}"),("Pi","\u{03A0}"),
+		("Sigma","\u{03A3}"),("Upsilon","\u{03A5}"),("Phi","\u{03A6}"),
+		("Psi","\u{03A8}"),("Omega","\u{03A9}"),("times","\u{00D7}"),
+		("div","\u{00F7}"),("cdot","\u{00B7}"),("cdots","\u{22EF}"),
+		("ldots","\u{2026}"),("vdots","\u{22EE}"),("ddots","\u{22F1}"),
+		("leq","\u{2264}"),("geq","\u{2265}"),("neq","\u{2260}"),
+		("sim","\u{223C}"),("cup","\u{222A}"),("cap","\u{2229}"),
+		("sum","\u{03A3}"),("prod","\u{03A0}"),("int","\u{222B}"),
+		("oint","\u{222E}"),("circ","\u{2218}"),("deg","\u{00B0}"),
+		("star","\u{22C6}"),("hbar","\u{210F}"),("ell","\u{2113}"),
+		("land","\u{2227}"),("lor","\u{2228}"),("neg","\u{00AC}"),
+		("iff","\u{27FA}"),("in","\u{2208}"),("ni","\u{220B}"),
+		("notin","\u{2209}"),("subset","\u{2282}"),("supset","\u{2283}"),
+		("mp","\u{2213}"),("pm","\u{00B1}"),("le","\u{2264}"),("ge","\u{2265}"),
+		("ne","\u{2260}"),("to","\u{2192}"),("gets","\u{2190}"),
+		("Re","\u{211C}"),("Im","\u{2111}"),("quad"," "),("qquad","  "),
+		("left",""),("right",""),("displaystyle",""),("textstyle",""),
+		("scriptstyle",""),("scriptscriptstyle",""),("limits",""),("nolimits",""),
+		("text",""),("mathrm",""),("mathbf",""),("mathit",""),
+		("mathsf",""),("operatorname",""),("textbf",""),
+		("textit",""),("textrm",""),("frac",""),("sqrt",""),
+		("binom",""),
+	];
+	for &(name, replacement) in COMMANDS{
+		if name==cmd {
+			return Some(replacement);
+		}
+	}
+	None
+}
+/// Convert a single character to its Unicode superscript equivalent, if one exists.
+fn to_superscript_char(c: char)->Option<char>{
+	match c{
+		'0'=>Some('\u{2070}'),'1'=>Some('\u{00B9}'),'2'=>Some('\u{00B2}'),
+		'3'=>Some('\u{00B3}'),'4'=>Some('\u{2074}'),'5'=>Some('\u{2075}'),
+		'6'=>Some('\u{2076}'),'7'=>Some('\u{2077}'),'8'=>Some('\u{2078}'),
+		'9'=>Some('\u{2079}'),'+'=>Some('\u{207A}'),'-'=>Some('\u{207B}'),
+		'='=>Some('\u{207C}'),'('=>Some('\u{207D}'),')'=>Some('\u{207E}'),
+		'n'=>Some('\u{207F}'),'i'=>Some('\u{2071}'),
+		_=>None,
+	}
+}
+/// Convert a single character to its Unicode subscript equivalent, if one exists.
+fn to_subscript_char(c: char)->Option<char>{
+	match c{
+		'0'=>Some('\u{2080}'),'1'=>Some('\u{2081}'),'2'=>Some('\u{2082}'),
+		'3'=>Some('\u{2083}'),'4'=>Some('\u{2084}'),'5'=>Some('\u{2085}'),
+		'6'=>Some('\u{2086}'),'7'=>Some('\u{2087}'),'8'=>Some('\u{2088}'),
+		'9'=>Some('\u{2089}'),'+'=>Some('\u{208A}'),'-'=>Some('\u{208B}'),
+		'='=>Some('\u{208C}'),'('=>Some('\u{208D}'),')'=>Some('\u{208E}'),
+		'a'=>Some('\u{2090}'),'e'=>Some('\u{2091}'),'o'=>Some('\u{2092}'),
+		'x'=>Some('\u{2093}'),'h'=>Some('\u{2095}'),'k'=>Some('\u{2096}'),
+		'l'=>Some('\u{2097}'),'m'=>Some('\u{2098}'),'n'=>Some('\u{2099}'),
+		'p'=>Some('\u{209A}'),'s'=>Some('\u{209B}'),'t'=>Some('\u{209C}'),
+		_=>None,
+	}
+}
+/// Try to convert an entire string to Unicode superscript. Returns None if any
+/// character cannot be converted.
+fn try_convert_superscript(content: &str)->Option<String>{
+	let mut result=String::new();
+	for c in content.chars(){
+		match to_superscript_char(c){
+			Some(sc)=>result.push(sc),
+			None=>return None,
+		}
+	}
+	Some(result)
+}
+/// Try to convert an entire string to Unicode subscript. Returns None if any
+/// character cannot be converted.
+fn try_convert_subscript(content: &str)->Option<String>{
+	let mut result=String::new();
+	for c in content.chars(){
+		match to_subscript_char(c){
+			Some(sc)=>result.push(sc),
+			None=>return None,
+		}
+	}
+	Some(result)
+}
+/// Convert `^{...}` and `^c` superscript notation to Unicode where possible.
+/// Falls back to `^(content)` for complex expressions.
+fn convert_superscripts(s: &str)->String{
+	let chars: Vec<char>=s.chars().collect();
+	let mut result=String::new();
+	let mut i=0;
+	while i<chars.len(){
+		if chars[i]=='^' && i+1<chars.len(){
+			if chars[i+1]=='{' {
+				if let Some(end)=find_matching_brace(&chars, i+1){
+					let content: String=chars[i+2..end].iter().collect();
+					if let Some(converted)=try_convert_superscript(&content){
+						result.push_str(&converted);
+					}
+					else{
+						result.push_str("^(");
+						result.push_str(&content);
+						result.push(')');
+					}
+					i=end+1;
+					continue;
+				}
+			}
+			else{
+				if let Some(sc)=to_superscript_char(chars[i+1]){
+					result.push(sc);
+					i+=2;
+					continue;
+				}
+			}
+		}
+		result.push(chars[i]);
+		i+=1;
+	}
+	result
+}
+/// Convert `_{...}` and `_c` subscript notation to Unicode where possible.
+/// Falls back to `_(content)` for complex expressions.
+fn convert_subscripts(s: &str)->String{
+	let chars: Vec<char>=s.chars().collect();
+	let mut result=String::new();
+	let mut i=0;
+	while i<chars.len(){
+		if chars[i]=='_' && i+1<chars.len(){
+			if chars[i+1]=='{' {
+				if let Some(end)=find_matching_brace(&chars, i+1){
+					let content: String=chars[i+2..end].iter().collect();
+					if let Some(converted)=try_convert_subscript(&content){
+						result.push_str(&converted);
+					}
+					else{
+						result.push_str("_(");
+						result.push_str(&content);
+						result.push(')');
+					}
+					i=end+1;
+					continue;
+				}
+			}
+			else{
+				if let Some(sc)=to_subscript_char(chars[i+1]){
+					result.push(sc);
+					i+=2;
+					continue;
+				}
+			}
+		}
+		result.push(chars[i]);
+		i+=1;
+	}
+	result
+}
+/// Process LaTeX commands in a string, converting them to Unicode equivalents.
+/// Handles \frac, \sqrt, \text, \binom, and all simple commands (Greek letters,
+/// math symbols, etc.).
+fn process_latex_commands(chars: &[char])->String{
+	let mut result=String::new();
+	let mut i=0;
+	while i<chars.len(){
+		if chars[i]=='\\' && i+1<chars.len(){
+			let next=chars[i+1];
+			// Handle spacing commands: \, \: \; \! and "\ " (backslash-space)
+			if next==',' || next==':' || next==';' || next=='!' || next==' '{
+				i+=2;
+				continue;
+			}
+			// Read command name (letters only)
+			if next.is_ascii_alphabetic(){
+				let mut j=i+1;
+				while j<chars.len() && chars[j].is_ascii_alphabetic(){
+					j+=1;
+				}
+				let cmd: String=chars[i+1..j].iter().collect();
+				let cmd_str=cmd.as_str();
+				match cmd_str{
+					"frac"=>{
+						if j<chars.len() && chars[j]=='{'{
+							if let Some((num, after_num))=read_brace_group(chars, j){
+								if after_num<chars.len() && chars[after_num]=='{'{
+									if let Some((den, after_den))=read_brace_group(chars, after_num){
+										result.push_str(&num);
+										result.push('/');
+										result.push_str(&den);
+										i=after_den;
+										continue;
+									}
+								}
+								result.push_str(&num);
+								i=after_num;
+								continue;
+							}
+						}
+						i=j;
+						continue;
+					}
+					"sqrt"=>{
+						let mut k=j;
+						let mut root_idx=String::new();
+						if k<chars.len() && chars[k]=='['{
+							let mut m=k+1;
+							while m<chars.len() && chars[m]!=']'{
+								root_idx.push(chars[m]);
+								m+=1;
+							}
+							if m<chars.len(){
+								k=m+1;
+							}
+						}
+						if k<chars.len() && chars[k]=='{'{
+							if let Some((content, after))=read_brace_group(chars, k){
+								if !root_idx.is_empty(){
+									if let Some(sup)=try_convert_superscript(&root_idx){
+										result.push_str(&sup);
+									}
+									else{
+										result.push_str(&root_idx);
+									}
+								}
+								result.push('\u{221A}'); // √
+								if content.chars().any(|c| c=='+'||c=='-'||c=='='||c=='/'){
+									result.push('(');
+									result.push_str(&content);
+									result.push(')');
+								}
+								else{
+									result.push_str(&content);
+								}
+								i=after;
+								continue;
+							}
+						}
+						i=j;
+						continue;
+					}
+					"text"|"mathrm"|"mathbf"|"mathit"|"mathsf"|"operatorname"|"textbf"|"textit"|"textrm"=>{
+						if j<chars.len() && chars[j]=='{'{
+							if let Some((content, after))=read_brace_group(chars, j){
+								result.push_str(&content);
+								i=after;
+								continue;
+							}
+						}
+						i=j;
+						continue;
+					}
+					"binom"=>{
+						if j<chars.len() && chars[j]=='{'{
+							if let Some((n, after_n))=read_brace_group(chars, j){
+								if after_n<chars.len() && chars[after_n]=='{'{
+									if let Some((k_val, after_k))=read_brace_group(chars, after_n){
+										result.push_str("C(");
+										result.push_str(&n);
+										result.push(',');
+										result.push_str(&k_val);
+										result.push(')');
+										i=after_k;
+										continue;
+									}
+								}
+							}
+						}
+						i=j;
+						continue;
+					}
+					_=>{
+						if let Some(replacement)=lookup_command(cmd_str){
+							if !replacement.is_empty(){
+								result.push_str(replacement);
+							}
+							i=j;
+							continue;
+						}
+						// Unknown command: drop the backslash, keep the name
+						result.push_str(&cmd);
+						i=j;
+						continue;
+					}
+				}
+			}
+			else{
+				// Backslash followed by non-letter: output the next char as-is
+				result.push(next);
+				i+=2;
+				continue;
+			}
+		}
+		result.push(chars[i]);
+		i+=1;
+	}
+	result
+}
+/// Convert LaTeX math notation to readable Unicode text.
+/// Strips delimiters, converts \frac, \sqrt, \text, Greek letters, math symbols,
+/// and superscript/subscript notation to Unicode equivalents.
+pub fn latex_to_readable(input: &str)->String{
+	let stripped=strip_latex_delimiters(input);
+	let chars: Vec<char>=stripped.chars().collect();
+	let after_commands=process_latex_commands(&chars);
+	let after_super=convert_superscripts(&after_commands);
+	convert_subscripts(&after_super)
+}
+/// Word-wrap text to fit within `max_chars` characters per line.
+/// Long words are hard-broken across lines.
+fn wrap_text(text: &str, max_chars: usize)->Vec<String>{
+	if text.is_empty(){
+		return vec![String::new()];
+	}
+	let max_chars=max_chars.max(1);
+	let char_count=text.chars().count();
+	if char_count<=max_chars{
+		return vec![text.to_string()];
+	}
+	let words: Vec<&str>=text.split_whitespace().collect();
+	if words.is_empty(){
+		return vec![text.to_string()];
+	}
+	let mut lines: Vec<String>=Vec::new();
+	let mut current=String::new();
+	for word in words{
+		let word_chars: Vec<char>=word.chars().collect();
+		if current.is_empty(){
+			if word_chars.len()<=max_chars{
+				current=word.to_string();
+			}
+			else{
+				// Hard-break very long words
+				let mut idx=0;
+				while idx<word_chars.len(){
+					let end=(idx+max_chars).min(word_chars.len());
+					let chunk: String=word_chars[idx..end].iter().collect();
+					if end>=word_chars.len(){
+						current=chunk;
+					}
+					else{
+						lines.push(chunk);
+					}
+					idx=end;
+				}
+			}
+		}
+		else if current.chars().count()+1+word_chars.len()<=max_chars{
+			current.push(' ');
+			current.push_str(word);
+		}
+		else{
+			lines.push(std::mem::take(&mut current));
+			if word_chars.len()<=max_chars{
+				current=word.to_string();
+			}
+			else{
+				let mut idx=0;
+				while idx<word_chars.len(){
+					let end=(idx+max_chars).min(word_chars.len());
+					let chunk: String=word_chars[idx..end].iter().collect();
+					if end>=word_chars.len(){
+						current=chunk;
+					}
+					else{
+						lines.push(chunk);
+					}
+					idx=end;
+				}
+			}
+		}
+	}
+	if !current.is_empty(){
+		lines.push(current);
+	}
+	if lines.is_empty(){
+		lines.push(text.to_string());
+	}
+	lines
 }
 const PAGE_WIDTH: f32=215.9;
 const PAGE_HEIGHT: f32=279.4;
@@ -85,12 +518,20 @@ impl<'a> PdfWriter<'a>{
 		}
 	}
 	fn write_text(&mut self, text: &str, font_size: f32, font: &IndirectFontRef, indent_mm: f32){
-		self.ensure_space(line_height(font_size));
-		let layer=self.doc.get_page(self.current_page).get_layer(self.current_layer);
-		let x=MARGIN+indent_mm;
-		let y=PAGE_HEIGHT-self.y_cursor-pt_to_mm(font_size);
-		layer.use_text(text, font_size, Mm(x), Mm(y), font);
-		self.y_cursor += line_height(font_size);
+		// Estimate average character width for Helvetica (~0.55 * font_size in pt)
+		// and word-wrap to prevent text from overflowing the page width.
+		let available_width_mm=PAGE_WIDTH-2.0*MARGIN-indent_mm;
+		let char_width_mm=pt_to_mm(font_size)*0.55;
+		let max_chars=((available_width_mm/char_width_mm) as usize).max(1);
+		let lines=wrap_text(text, max_chars);
+		for line in &lines{
+			self.ensure_space(line_height(font_size));
+			let layer=self.doc.get_page(self.current_page).get_layer(self.current_layer);
+			let x=MARGIN+indent_mm;
+			let y=PAGE_HEIGHT-self.y_cursor-pt_to_mm(font_size);
+			layer.use_text(line, font_size, Mm(x), Mm(y), font);
+			self.y_cursor += line_height(font_size);
+		}
 	}
 	fn write_line(&mut self, text: &str, font_size: f32, font: &IndirectFontRef){
 		self.write_text(text, font_size, font, 0.0);
@@ -148,7 +589,7 @@ pub fn export_worksheet_pdf_impl(
 	let show_questions=opts.answer_key_mode != "only";
 	if show_questions{
 		for (i, q) in questions.iter().enumerate(){
-			let question_text=format!("{}. {}", i+1, strip_latex_delimiters(&q.latex));
+			let question_text=format!("{}. {}", i+1, latex_to_readable(&q.latex));
 			writer.write_line(&question_text, BODY_SIZE, &regular_font);
 			// Answer space (blank lines for student to write)
 			writer.add_spacing(line_height(BODY_SIZE)*2.0);
@@ -167,7 +608,7 @@ pub fn export_worksheet_pdf_impl(
 		writer.add_spacing(line_height(HEADER_SIZE));
 		for (i, q) in questions.iter().enumerate(){
 			let raw_answer=q.display.as_ref().unwrap_or(&q.correct);
-			let answer=strip_latex_delimiters(raw_answer);
+			let answer=latex_to_readable(raw_answer);
 			let answer_line=format!("{}. {}", i+1, answer);
 			writer.write_line(&answer_line, ANSWER_SIZE, &regular_font);
 		}
@@ -319,5 +760,145 @@ mod tests{
 		let q=sample_question("\\(x + 5 = 10\\)", "5", None);
 		let answer=q.display.as_ref().unwrap_or(&q.correct);
 		assert_eq!(answer, "5");
+	}
+	#[test]
+	fn should_convert_greek_letters(){
+		let readable=latex_to_readable("\\(\\alpha + \\beta = \\gamma\\)");
+		assert_eq!(readable, "\u{03B1} + \u{03B2} = \u{03B3}");
+	}
+	#[test]
+	fn should_convert_pi_and_sqrt(){
+		let readable=latex_to_readable("\\(\\pi r^2\\)");
+		assert_eq!(readable, "\u{03C0} r\u{00B2}");
+	}
+	#[test]
+	fn should_convert_superscript_brace(){
+		let readable=latex_to_readable("\\(x^{2} + y^{3}\\)");
+		assert_eq!(readable, "x\u{00B2} + y\u{00B3}");
+	}
+	#[test]
+	fn should_convert_superscript_single_char(){
+		let readable=latex_to_readable("x^2 + y^3");
+		assert_eq!(readable, "x\u{00B2} + y\u{00B3}");
+	}
+	#[test]
+	fn should_fallback_superscript_for_complex(){
+		let readable=latex_to_readable("x^{n+1}");
+		assert_eq!(readable, "x^(n+1)");
+	}
+	#[test]
+	fn should_convert_subscript_brace(){
+		let readable=latex_to_readable("\\(x_{1} + y_{2}\\)");
+		assert_eq!(readable, "x\u{2081} + y\u{2082}");
+	}
+	#[test]
+	fn should_convert_subscript_single_char(){
+		let readable=latex_to_readable("x_1 + y_2");
+		assert_eq!(readable, "x\u{2081} + y\u{2082}");
+	}
+	#[test]
+	fn should_convert_frac(){
+		let readable=latex_to_readable("\\(\\frac{a}{b}\\)");
+		assert_eq!(readable, "a/b");
+	}
+	#[test]
+	fn should_convert_sqrt(){
+		let readable=latex_to_readable("\\(\\sqrt{x}\\)");
+		assert_eq!(readable, "\u{221A}x");
+	}
+	#[test]
+	fn should_convert_sqrt_of_complex(){
+		let readable=latex_to_readable("\\(\\sqrt{x+1}\\)");
+		assert_eq!(readable, "\u{221A}(x+1)");
+	}
+	#[test]
+	fn should_convert_text_command(){
+		let readable=latex_to_readable("\\(\\text{Solve for } x\\)");
+		assert_eq!(readable, "Solve for  x");
+	}
+	#[test]
+	fn should_convert_math_symbols(){
+		let readable=latex_to_readable("\\(a \\times b \\div c \\pm d\\)");
+		assert_eq!(readable, "a \u{00D7} b \u{00F7} c \u{00B1} d");
+	}
+	#[test]
+	fn should_convert_inequalities(){
+		let readable=latex_to_readable("\\(x \\leq 5, y \\geq 3, z \\neq 0\\)");
+		assert_eq!(readable, "x \u{2264} 5, y \u{2265} 3, z \u{2260} 0");
+	}
+	#[test]
+	fn should_convert_combined_expression(){
+		let readable=latex_to_readable("\\(\\frac{1}{2} + \\sqrt{x^2} = \\pi\\)");
+		assert_eq!(readable, "1/2 + \u{221A}x\u{00B2} = \u{03C0}");
+	}
+	#[test]
+	fn should_convert_arrows(){
+		let readable=latex_to_readable("\\(x \\to y \\Rightarrow z\\)");
+		assert_eq!(readable, "x \u{2192} y \u{21D2} z");
+	}
+	#[test]
+	fn should_handle_left_right(){
+		let readable=latex_to_readable("\\(\\left( a + b \\right)^2\\)");
+		assert_eq!(readable, "( a + b )\u{00B2}");
+	}
+	#[test]
+	fn should_handle_unknown_command(){
+		let readable=latex_to_readable("\\(\\unknowncmd{x}\\)");
+		assert_eq!(readable, "unknowncmd{x}");
+	}
+	#[test]
+	fn should_wrap_short_text_as_single_line(){
+		let lines=wrap_text("short text", 80);
+		assert_eq!(lines.len(), 1);
+		assert_eq!(lines[0], "short text");
+	}
+	#[test]
+	fn should_wrap_long_text_into_multiple_lines(){
+		let text="word ".repeat(30).trim().to_string();
+		let lines=wrap_text(&text, 20);
+		assert!(lines.len() > 1, "expected multiple lines, got {}", lines.len());
+		for line in &lines{
+			assert!(line.chars().count() <= 20, "line too long: {}", line);
+		}
+	}
+	#[test]
+	fn should_hard_break_very_long_words(){
+		let lines=wrap_text("abcdefghijklmnopqrstuvwxyz", 5);
+		assert!(lines.len() >= 5, "expected at least 5 lines, got {}", lines.len());
+	}
+	#[test]
+	fn should_handle_empty_text_in_wrap(){
+		let lines=wrap_text("", 80);
+		assert_eq!(lines.len(), 1);
+		assert_eq!(lines[0], "");
+	}
+	#[test]
+	fn should_export_pdf_with_long_question_text(){
+		let long_latex="\\(\\text{This is a very long question that should wrap across multiple lines to test the word wrapping functionality of the PDF writer} \\frac{a^2+b^2}{c^2} = \\pi r^2\\)";
+		let questions=vec![
+			sample_question(long_latex, "x=5", Some("x=5")),
+		];
+		let opts=sample_opts("Long Text Test", "append", false);
+		let path=temp_path("test_long_text.pdf");
+		let result=export_worksheet_pdf_impl(questions, opts, &path);
+		assert!(result.is_ok(), "export failed: {:?}", result.err());
+		let metadata=std::fs::metadata(&path);
+		assert!(metadata.is_ok(), "PDF file was not created");
+		let size=metadata.unwrap().len();
+		assert!(size > 0, "PDF file is empty");
+		let _=std::fs::remove_file(&path);
+	}
+	#[test]
+	fn should_export_pdf_with_unicode_math(){
+		let questions=vec![
+			sample_question("\\(\\alpha + \\beta = \\gamma, \\sqrt{x^2 + y^2}, \\frac{\\pi}{4}\\)", "x=5", Some("\\alpha=1")),
+		];
+		let opts=sample_opts("Unicode Math Test", "append", true);
+		let path=temp_path("test_unicode_math.pdf");
+		let result=export_worksheet_pdf_impl(questions, opts, &path);
+		assert!(result.is_ok(), "export failed: {:?}", result.err());
+		let metadata=std::fs::metadata(&path);
+		assert!(metadata.is_ok(), "PDF file was not created");
+		let _=std::fs::remove_file(&path);
 	}
 }
