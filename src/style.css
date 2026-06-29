@@ -1817,6 +1817,21 @@ hr.context-menu-divider{
     grid-template-columns: 1fr 1fr 1fr;
     gap: var(--spacing-md);
 }
+.print-header-fields .setting-item{
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-xs);
+    margin-bottom: 0;
+}
+.print-header-fields .setting-item label{
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+.print-header-fields .setting-item input[type="text"],
+.print-header-fields .setting-item input[type="date"]{
+    width: 100%;
+    flex: none;
+}
 .print-toggles{
     display: flex;
     gap: var(--spacing-lg);

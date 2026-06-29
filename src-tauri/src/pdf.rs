@@ -7,7 +7,13 @@
 use printpdf::*;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-use std::io::BufWriter;
+use std::io::{BufWriter, Cursor};
+// Embed LibertinusMath-Regular.ttf at compile time so the PDF can render Unicode
+// math symbols (Greek letters, √, ≤, ≥, →, ∑, ∫, superscripts, subscripts, etc.).
+// Built-in PDF fonts (Helvetica) only support WinAnsiEncoding (ASCII + Latin-1),
+// which drops most math characters. Libertinus Math has full coverage of Latin,
+// Greek, and common math symbol blocks.
+const MATH_FONT_BYTES: &[u8]=include_bytes!("../../public/LibertinusMath-Regular.ttf");
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct QuestionDtoRust{
@@ -31,10 +37,12 @@ pub struct WorksheetOptsRust{
 	pub difficulty: String,
 }
 /// Strip LaTeX delimiters from text, leaving readable notation.
-/// Removes `\(`, `\)`, `$$`, and `$` while preserving the inner content.
+/// Removes `\(`, `\)`, `\[`, `\]`, `$$`, and `$` while preserving the inner content.
 pub fn strip_latex_delimiters(input: &str)->String{
 	let mut result=input.to_string();
 	result=result.replace("$$","");
+	result=result.replace("\\[","");
+	result=result.replace("\\]","");
 	result=result.replace("\\(","");
 	result=result.replace("\\)","");
 	result=result.replace("$","");
@@ -114,7 +122,14 @@ fn lookup_command(cmd: &str)->Option<&'static str>{
 		("mp","\u{2213}"),("pm","\u{00B1}"),("le","\u{2264}"),("ge","\u{2265}"),
 		("ne","\u{2260}"),("to","\u{2192}"),("gets","\u{2190}"),
 		("Re","\u{211C}"),("Im","\u{2111}"),("quad"," "),("qquad","  "),
-		("left",""),("right",""),("displaystyle",""),("textstyle",""),
+		("lim","lim"),("log","log"),("ln","ln"),("lg","lg"),
+		("sin","sin"),("cos","cos"),("tan","tan"),("cot","cot"),
+		("sec","sec"),("csc","csc"),("sinh","sinh"),("cosh","cosh"),
+		("tanh","tanh"),("arcsin","arcsin"),("arccos","arccos"),
+		("arctan","arctan"),("max","max"),("min","min"),("exp","exp"),
+		("sup","sup"),("inf","inf"),("det","det"),("dim","dim"),
+		("gcd","gcd"),("hom","hom"),("ker","ker"),("arg","arg"),
+		("deg","°"),("left",""),("right",""),("displaystyle",""),("textstyle",""),
 		("scriptstyle",""),("scriptscriptstyle",""),("limits",""),("nolimits",""),
 		("text",""),("mathrm",""),("mathbf",""),("mathit",""),
 		("mathsf",""),("operatorname",""),("textbf",""),
@@ -248,6 +263,59 @@ fn convert_subscripts(s: &str)->String{
 		}
 		result.push(chars[i]);
 		i+=1;
+	}
+	result
+}
+/// Process `\begin{env}...\end{env}` matrix environments, converting them to
+/// readable bracketed text. Supports bmatrix, pmatrix, vmatrix, Bmatrix, Vmatrix,
+/// and matrix (no brackets). Rows separated by `\\` and columns by `&` become
+/// `a, b; c, d` wrapped in the appropriate brackets.
+fn process_matrix_environments(input: &str)->String{
+	let mut result=input.to_string();
+	// Each tuple: (environment_name, open_bracket, close_bracket)
+	let envs: &[(&str, &str, &str)]=&[
+		("bmatrix", "[", "]"),
+		("pmatrix", "(", ")"),
+		("vmatrix", "|", "|"),
+		("Bmatrix", "{", "}"),
+		("Vmatrix", "\u{2016}", "\u{2016}"), // ‖ ‖
+		("matrix", "", ""),
+	];
+	for &(env, open, close) in envs{
+		let begin_marker=format!("\\begin{{{}}}", env);
+		let end_marker=format!("\\end{{{}}}", env);
+		// Repeatedly find and replace each matrix environment occurrence.
+		// A loop is needed because multiple matrices may appear in the same string.
+		loop{
+			let begin_pos=match result.find(&begin_marker){
+				Some(p)=>p,
+				None=>break,
+			};
+			let content_start=begin_pos+begin_marker.len();
+			let end_pos=match result[content_start..].find(&end_marker){
+				Some(p)=>content_start+p,
+				None=>{
+					// No matching \end; drop the \begin{env} marker and continue.
+					result.replace_range(begin_pos..content_start, "");
+					break;
+				}
+			};
+			let content=&result[content_start..end_pos];
+			// Split into rows on `\\` (literal double backslash).
+			let rows: Vec<&str>=content.split("\\\\").collect();
+			let mut rows_converted: Vec<String>=Vec::new();
+			for row in rows{
+				let cols: Vec<&str>=row.split('&').collect();
+				let cols_clean: Vec<String>=cols.iter()
+					.map(|c| latex_to_readable(c.trim()))
+					.collect();
+				rows_converted.push(cols_clean.join(", "));
+			}
+			let body=rows_converted.join("; ");
+			let replacement=format!("{}{}{}", open, body, close);
+			let replace_end=end_pos+end_marker.len();
+			result.replace_range(begin_pos..replace_end, &replacement);
+		}
 	}
 	result
 }
@@ -391,11 +459,12 @@ fn process_latex_commands(chars: &[char])->String{
 	result
 }
 /// Convert LaTeX math notation to readable Unicode text.
-/// Strips delimiters, converts \frac, \sqrt, \text, Greek letters, math symbols,
-/// and superscript/subscript notation to Unicode equivalents.
+/// Strips delimiters, converts matrix environments, \frac, \sqrt, \text, Greek
+/// letters, math symbols, and superscript/subscript notation to Unicode equivalents.
 pub fn latex_to_readable(input: &str)->String{
 	let stripped=strip_latex_delimiters(input);
-	let chars: Vec<char>=stripped.chars().collect();
+	let after_matrix=process_matrix_environments(&stripped);
+	let chars: Vec<char>=after_matrix.chars().collect();
 	let after_commands=process_latex_commands(&chars);
 	let after_super=convert_superscripts(&after_commands);
 	convert_subscripts(&after_super)
@@ -551,10 +620,10 @@ pub fn export_worksheet_pdf_impl(
 		Mm(PAGE_HEIGHT),
 		"Layer 1",
 	);
-	let regular_font=doc.add_builtin_font(BuiltinFont::Helvetica)
-		.map_err(|e| format!("Failed to load Helvetica: {}", e))?;
-	let bold_font=doc.add_builtin_font(BuiltinFont::HelveticaBold)
-		.map_err(|e| format!("Failed to load Helvetica-Bold: {}", e))?;
+	let regular_font=doc.add_external_font(Cursor::new(MATH_FONT_BYTES))
+		.map_err(|e| format!("Failed to load embedded math font: {}", e))?;
+	let bold_font=doc.add_external_font(Cursor::new(MATH_FONT_BYTES))
+		.map_err(|e| format!("Failed to load embedded math font (bold): {}", e))?;
 	let mut writer=PdfWriter::new(&doc, page1, layer1);
 	// Title (centered, bold)
 	writer.write_line(&opts.title, TITLE_SIZE, &bold_font);
@@ -895,6 +964,96 @@ mod tests{
 		];
 		let opts=sample_opts("Unicode Math Test", "append", true);
 		let path=temp_path("test_unicode_math.pdf");
+		let result=export_worksheet_pdf_impl(questions, opts, &path);
+		assert!(result.is_ok(), "export failed: {:?}", result.err());
+		let metadata=std::fs::metadata(&path);
+		assert!(metadata.is_ok(), "PDF file was not created");
+		let _=std::fs::remove_file(&path);
+	}
+	#[test]
+	fn should_strip_display_bracket_delimiters(){
+		let stripped=strip_latex_delimiters("\\[x^2 + 1\\]");
+		assert_eq!(stripped, "x^2 + 1");
+	}
+	#[test]
+	fn should_strip_mixed_bracket_and_paren_delimiters(){
+		let stripped=strip_latex_delimiters("\\[x\\] and \\(y\\)");
+		assert_eq!(stripped, "x and y");
+	}
+	#[test]
+	fn should_convert_bmatrix_environment(){
+		let readable=latex_to_readable("\\(\\begin{bmatrix} 1 & 2 \\\\ 3 & 4 \\end{bmatrix}\\)");
+		assert_eq!(readable, "[1, 2; 3, 4]");
+	}
+	#[test]
+	fn should_convert_pmatrix_environment(){
+		let readable=latex_to_readable("\\(\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}\\)");
+		assert_eq!(readable, "(a, b; c, d)");
+	}
+	#[test]
+	fn should_convert_vmatrix_environment(){
+		let readable=latex_to_readable("\\(\\begin{vmatrix} 1 & 0 \\\\ 0 & 1 \\end{vmatrix}\\)");
+		assert_eq!(readable, "|1, 0; 0, 1|");
+	}
+	#[test]
+	fn should_convert_3x3_bmatrix(){
+		let readable=latex_to_readable("\\(\\begin{bmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\\\ 7 & 8 & 9 \\end{bmatrix}\\)");
+		assert_eq!(readable, "[1, 2, 3; 4, 5, 6; 7, 8, 9]");
+	}
+	#[test]
+	fn should_convert_matrix_with_decimal_values(){
+		let readable=latex_to_readable("\\(\\begin{bmatrix} 3.14 & -5.76 \\\\ -6.83 & 4.28 \\end{bmatrix} \\times \\begin{bmatrix} -4.05 & 9.04 \\\\ -4.97 & -2.19 \\end{bmatrix}\\)");
+		assert_eq!(readable, "[3.14, -5.76; -6.83, 4.28] \u{00D7} [-4.05, 9.04; -4.97, -2.19]");
+	}
+	#[test]
+	fn should_convert_multiple_matrices_in_one_string(){
+		let readable=latex_to_readable("\\(A=\\begin{bmatrix} 1 & 2 \\\\ 3 & 4 \\end{bmatrix}, B=\\begin{bmatrix} 5 & 6 \\\\ 7 & 8 \\end{bmatrix}\\)");
+		assert_eq!(readable, "A=[1, 2; 3, 4], B=[5, 6; 7, 8]");
+	}
+	#[test]
+	fn should_convert_lim_command(){
+		let readable=latex_to_readable("\\(\\lim_{x \\to 0} \\frac{e^x-1}{x}\\)");
+		assert_eq!(readable, "lim_(x \u{2192} 0) e^x-1/x");
+	}
+	#[test]
+	fn should_convert_trig_commands(){
+		let readable=latex_to_readable("\\(\\sin x + \\cos y = \\tan z\\)");
+		assert_eq!(readable, "sin x + cos y = tan z");
+	}
+	#[test]
+	fn should_convert_log_ln_commands(){
+		let readable=latex_to_readable("\\(\\log_{10} 100 = 2, \\ln e = 1\\)");
+		assert_eq!(readable, "log\u{2081}\u{2080} 100 = 2, ln e = 1");
+	}
+	#[test]
+	fn should_convert_display_math_with_text(){
+		let readable=latex_to_readable("\\[ \\text{Volume increasing at } 6 \\text{ cm}^3/s \\]");
+		assert_eq!(readable, " Volume increasing at  6  cm\u{00B3}/s ");
+	}
+	#[test]
+	fn should_export_pdf_with_matrix_question(){
+		let questions=vec![
+			sample_question(
+				"\\(\\begin{bmatrix} 1 & 2 \\\\ 3 & 4 \\end{bmatrix} \\times \\begin{bmatrix} 5 & 6 \\\\ 7 & 8 \\end{bmatrix}\\)",
+				"19 22; 43 50",
+				Some("\\begin{bmatrix} 19 & 22 \\\\ 43 & 50 \\end{bmatrix}")
+			),
+		];
+		let opts=sample_opts("Matrix Test", "append", false);
+		let path=temp_path("test_matrix.pdf");
+		let result=export_worksheet_pdf_impl(questions, opts, &path);
+		assert!(result.is_ok(), "export failed: {:?}", result.err());
+		let metadata=std::fs::metadata(&path);
+		assert!(metadata.is_ok(), "PDF file was not created");
+		let _=std::fs::remove_file(&path);
+	}
+	#[test]
+	fn should_export_pdf_with_display_math(){
+		let questions=vec![
+			sample_question("\\[ \\text{Find } \\lim_{x \\to 2} (3x^2 - 4) \\]", "8", Some("8")),
+		];
+		let opts=sample_opts("Display Math Test", "append", false);
+		let path=temp_path("test_display_math.pdf");
 		let result=export_worksheet_pdf_impl(questions, opts, &path);
 		assert!(result.is_ok(), "export failed: {:?}", result.err());
 		let metadata=std::fs::metadata(&path);
