@@ -93,6 +93,9 @@ export function terminateWorker(): void{
         useWorker=true;
     }
 }
+export function isWorkerAvailable(): boolean{
+    return useWorker&&typeof Worker!=="undefined";
+}
 export async function parseInWorker(expression: string): Promise<any>{
     if(!useWorker){
         return evaluateOnMainThread(expression,"parse");
