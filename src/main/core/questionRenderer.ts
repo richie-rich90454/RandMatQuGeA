@@ -117,5 +117,11 @@ export class QuestionRenderer{
     getHasQuestion(): boolean{
         return questionState.hasQuestion;
     }
+    setQuestionText(text: string): void{
+        let area=this.registry.displays.questionArea;
+        if(area){
+            area.textContent=text;
+        }
+    }
 }
 export let renderer=new QuestionRenderer(dom);
