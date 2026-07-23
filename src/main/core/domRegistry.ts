@@ -27,6 +27,11 @@ export class DomRegistry{
         let elements=document.querySelectorAll(selector);
         return Array.from(elements) as T[];
     }
+    isElementVisible(id: string): boolean{
+        let el=this.getElement(id);
+        if(!el) return false;
+        return el.offsetParent!==null;
+    }
     get appWindow(): Window|null{
         if(this.appWindowChecked) return this._appWindow;
         if(!this._appWindow){
