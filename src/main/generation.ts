@@ -74,7 +74,7 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
         adaptiveActive=await applyAdaptiveRecommendation();
     }
     if (!adaptiveActive&&!hasExplicitTopic&&appState.shuffle&&appState.currentMode==="single"){
-        const randomTopic=topics.pickRandomTopic();
+        let randomTopic=topics.pickRandomTopic();
         if (randomTopic){
             topics.selectTopic(randomTopic);
         }
