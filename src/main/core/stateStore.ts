@@ -87,6 +87,9 @@ export class AppState{
 	set isGenerating(value: boolean){this._isGenerating=value;}
 	get weakTopicQueue(): string[]{return this._weakTopicQueue;}
 	set weakTopicQueue(value: string[]){this._weakTopicQueue=value;}
+	get hasSelectedTopic(): boolean{
+		return this._selectedTopic!==null&&this._selectedTopic.length>0;
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
