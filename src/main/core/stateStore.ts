@@ -96,6 +96,9 @@ export class AppState{
 	get isSingleMode(): boolean{
 		return this._currentMode==="single";
 	}
+	get isSessionActive(): boolean{
+		return this._sessionActive;
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
