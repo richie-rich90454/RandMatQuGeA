@@ -3,6 +3,9 @@ let worker: Worker|null=null;
 let requestId: number=0;
 let pending: Map<number,{resolve: (v: any)=>void;reject: (e: Error)=>void;timeout: ReturnType<typeof setTimeout>}>|null=null;
 let useWorker: boolean=true;
+function isWorkerSupported(): boolean{
+    return typeof Worker!=="undefined";
+}
 function getWorker(): Worker|null{
     if(worker)return worker;
     try{
