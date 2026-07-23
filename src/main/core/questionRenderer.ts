@@ -123,5 +123,9 @@ export class QuestionRenderer{
             area.textContent=text;
         }
     }
+    clearAndRender(html: string): void{
+        this.clear();
+        this.render(html);
+    }
 }
 export let renderer=new QuestionRenderer(dom);
