@@ -1,0 +1,11 @@
+import{registerTopic}from"../../main/services/topicRegistry";
+registerTopic("deri","calculus","generateDerivative");
+registerTopic("inte","calculus","generateIntegral");
+registerTopic("lim","calculus","generateLimit");
+registerTopic("relRates","calculus","generateRelatedRates");
+registerTopic("limits_continuity","calculus","generateLimitsContinuity");
+registerTopic("applications_diff","calculus","generateApplicationsDiff");
+registerTopic("integration_advanced","calculus","generateIntegrationAdvanced");
+registerTopic("graphical_calculus","calculus","generateGraphicalCalculus");
+registerTopic("parametric_polar","calculus","generateParametricPolarVector");
+registerTopic("sequences_series","calculus","generateSequencesSeries");
