@@ -4,18 +4,18 @@
  * @description Handles start, pause, skip, end of mental sessions, tracks scores, saves to SQLite,
  * and provides delete buttons for individual score entries in the leaderboard.
  */
-import * as settings from "./settings";
-import * as ui from "./ui";
-import * as topicsModule from "./topics";
-import {topics as topicList, scopeTopics, SESSION_STORAGE_KEY} from "./constants";
-import {generateQuestion as callGenerator} from "./questionGenerator";
-import {invoke} from "@tauri-apps/api/core";
-import {generateChoicesForCurrentQuestion} from "./mcq";
-import {getAudioContext} from "./answer";
-import { appState } from "./core/stateStore";
-import { dom } from "./core/domRegistry";
-import { questionState } from "./core/questionState";
-import { renderer } from "./core/questionRenderer";
+import * as settings from"./settings";
+import * as ui from"./ui";
+import * as topicsModule from"./topics";
+import{topics as topicList,scopeTopics,SESSION_STORAGE_KEY}from"./constants";
+import{generateQuestion as callGenerator}from"./questionGenerator";
+import{invoke}from"@tauri-apps/api/core";
+import{generateChoicesForCurrentQuestion}from"./mcq";
+import{getAudioContext}from"./answer";
+import{appState}from"./core/stateStore";
+import{dom}from"./core/domRegistry";
+import{questionState}from"./core/questionState";
+import{renderer}from"./core/questionRenderer";
 let _previousDeleteHandler: ((e: Event)=>void)|null=null;
 export function saveSessionSnapshot(): void{
     if(!appState.sessionActive)return;
