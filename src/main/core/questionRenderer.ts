@@ -12,6 +12,10 @@ export class QuestionRenderer{
         area.innerHTML=html;
         this.typeset();
     }
+    renderWithCleanup(html: string): void{
+        this.clear();
+        this.render(html);
+    }
     applyQuestionDto(dto: QuestionDto): void{
         let area=this.registry.displays.questionArea;
         if(area){
