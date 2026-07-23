@@ -52,3 +52,6 @@ export class ErrorHandler{
 	}
 }
 export let errorHandler: ErrorHandler=new ErrorHandler();
+export function getErrorHandler(): ErrorHandler{
+    return errorHandler;
+}
