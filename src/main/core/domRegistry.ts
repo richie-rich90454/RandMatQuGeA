@@ -17,6 +17,12 @@ export class DomRegistry{
         this.cache.set(selector,el);
         return el as T|null;
     }
+    invalidate(id: string): void{
+        this.cache.delete(id);
+    }
+    invalidateAll(): void{
+        this.cache.clear();
+    }
     get appWindow(): Window|null{
         if(this.appWindowChecked) return this._appWindow;
         if(!this._appWindow){
