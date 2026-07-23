@@ -1,11 +1,3 @@
-/**
- * @file settings.ts - Manages user settings and preferences, including adaptive learning toggle.
- * @date 2026-04-12
- * @description This module handles loading, saving, and applying user settings such as theme, difficulty,
- * timer, font, performance flags, and now the adaptive learning toggle. It also provides functions to
- * preview settings changes and reset to defaults. Updated to include the `adaptive` setting for enabling
- * adaptive difficulty and weak topic recommendations, and `showWeakTopicsPopup` for controlling the weak topics modal.
- */
 import{dom}from"./core/domRegistry";
 import{appState}from"./core/stateStore";
 import{questionState}from"./core/questionState";
