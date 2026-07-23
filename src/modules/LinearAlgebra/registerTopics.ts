@@ -1,0 +1,10 @@
+import{registerTopic}from"../../main/services/topicRegistry";
+registerTopic("mtrx","linearAlgebra","generateMatrix");
+registerTopic("vctr","linearAlgebra","generateVector");
+registerTopic("system3x3","linearAlgebra","generateSystem3x3");
+registerTopic("row_echelon3x3","linearAlgebra","generateRowEchelon3x3");
+registerTopic("partial_fractions","linearAlgebra","generatePartialFractions");
+registerTopic("linear_programming","linearAlgebra","generateLinearProgramming");
+registerTopic("vector3d","linearAlgebra","generateVector3D");
+registerTopic("line3d","linearAlgebra","generateLine3D");
+registerTopic("plane3d","linearAlgebra","generatePlane3D");
