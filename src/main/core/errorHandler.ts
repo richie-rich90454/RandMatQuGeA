@@ -50,6 +50,9 @@ export class ErrorHandler{
     getError(): string|null{
         return this.lastError;
     }
+    hasError(): boolean{
+        return this.lastError!==null;
+    }
     retry(): void{
         if(this.retryFn){
             let fn=this.retryFn;
