@@ -1,9 +1,3 @@
-/**
- * @file session.ts - Manages mental math sessions, timer, scoring, and leaderboard with delete functionality.
- * @date 2026-04-12
- * @description Handles start, pause, skip, end of mental sessions, tracks scores, saves to SQLite,
- * and provides delete buttons for individual score entries in the leaderboard.
- */
 import * as settings from"./settings";
 import * as ui from"./ui";
 import * as topicsModule from"./topics";
