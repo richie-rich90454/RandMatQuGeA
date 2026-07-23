@@ -38,6 +38,14 @@ export class DomRegistry{
     getHead(): HTMLElement{
         return document.head;
     }
+    createElement<K extends keyof HTMLElementTagNameMap>(tag: K): HTMLElementTagNameMap[K]{
+        return document.createElement(tag);
+    }
+    createTemporaryElement(tag: string): HTMLElement{
+        let el=document.createElement(tag);
+        el.classList.add("temp-element");
+        return el;
+    }
     get appWindow(): Window|null{
         if(this.appWindowChecked) return this._appWindow;
         if(!this._appWindow){
