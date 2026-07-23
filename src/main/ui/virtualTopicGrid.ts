@@ -6,6 +6,7 @@ let itemHeight: number=40;
 let overscan: number=5;
 let allElements: HTMLElement[]=[];
 export function initVirtualGrid(itemElements: HTMLElement[]): void{
+    if(!itemElements||itemElements.length===0)return;
     allElements=itemElements;
     container=dom.displays.topicGrid;
     if(!container)return;
