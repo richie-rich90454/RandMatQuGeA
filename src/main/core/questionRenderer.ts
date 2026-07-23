@@ -99,5 +99,11 @@ export class QuestionRenderer{
         let area=this.registry.displays.questionArea;
         return area?area.innerHTML:"";
     }
+    setQuestionHtml(html: string): void{
+        let area=this.registry.displays.questionArea;
+        if(area){
+            area.innerHTML=html;
+        }
+    }
 }
 export let renderer=new QuestionRenderer(dom);
