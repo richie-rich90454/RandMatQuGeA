@@ -18,7 +18,7 @@ export class DomRegistry{
         return el as T|null;
     }
     get appWindow(): Window|null{
-        if(this.appWindowChecked) return null;
+        if(this.appWindowChecked) return this._appWindow;
         if(!this._appWindow){
             try{
                 this._appWindow=getCurrentWindow();
@@ -28,6 +28,7 @@ export class DomRegistry{
                 console.log("Not running in Tauri environment, theme sync disabled.");
             }
         }
+        this.appWindowChecked=true;
         return this._appWindow;
     }
     get buttons(){
