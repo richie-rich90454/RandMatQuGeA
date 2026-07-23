@@ -1,11 +1,3 @@
-/**
- * @file printWorksheet.ts - Worksheet generation with PDF export
- * @date 2026-04-09
- * @description Generates math worksheets with KaTeX-rendered questions and exports
- * them as PDF files via Rust (printpdf) in Tauri mode, or window.print() in web mode.
- * Supports header fields (title, name, date, period), configurable answer-key modes,
- * page numbers, metadata, seeded reproducibility, and a live preview pane.
- */
 import{topics,scopeTopics}from"./constants";
 import{generateQuestionDto}from"./questionGenerator";
 import{invoke}from"@tauri-apps/api/core";
