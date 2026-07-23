@@ -11,6 +11,7 @@ import * as session from "./main/session";
 import * as events from "./main/events";
 import * as theme from "./main/theme";
 import {questionState} from "./main/core/questionState";
+import {offlineIndicator} from "./main/ui/offlineIndicator";
 questionState.correctAnswer={correct:"",alternate:"",display:""};
 questionState.expectedFormat="";
 questionState.hasQuestion=false;
@@ -49,6 +50,7 @@ async function initApp(): Promise<void>{
         console.error("updateLeaderboard failed:",err);
     }
     ui.showOnboarding();
+    offlineIndicator.init();
     if (import.meta.env.PROD && "serviceWorker" in navigator){
         navigator.serviceWorker.register(import.meta.env.BASE_URL+"sw.js").catch(()=>{
             // SW registration failed - app still works

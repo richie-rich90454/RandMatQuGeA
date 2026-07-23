@@ -1,4 +1,3 @@
-import{dom}from"../core/domRegistry";
 export class OfflineIndicator{
 	private badge: HTMLElement|null=null;
 	private isOffline: boolean=!navigator.onLine;
