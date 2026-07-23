@@ -19,7 +19,7 @@ import { renderer } from "./core/questionRenderer";
 let _previousDeleteHandler: ((e: Event)=>void)|null=null;
 export function saveSessionSnapshot(): void{
     if(!appState.sessionActive)return;
-    const snapshot={
+    let snapshot={
         sessionScore:appState.sessionScore,
         timeLeft:appState.timeLeft,
         maxQuestions:appState.maxQuestions,
@@ -32,10 +32,10 @@ export function saveSessionSnapshot(): void{
     localStorage.setItem(SESSION_STORAGE_KEY,JSON.stringify(snapshot));
 }
 export function restoreSessionSnapshot(): void{
-    const saved=localStorage.getItem(SESSION_STORAGE_KEY);
+    let saved=localStorage.getItem(SESSION_STORAGE_KEY);
     if(!saved)return;
     try{
-        const snap=JSON.parse(saved);
+        let snap=JSON.parse(saved);
         if(Date.now()-snap.timestamp>60*60*1000){
             localStorage.removeItem(SESSION_STORAGE_KEY);
             return;
@@ -137,7 +137,7 @@ export async function generateNextMentalQuestion(): Promise<void>{
     appState.isGenerating=true;
     try{
     if(appState.mentalShuffle){
-        const randomTopic=topicsModule.pickRandomTopic();
+        let randomTopic=topicsModule.pickRandomTopic();
         if(randomTopic){
             appState.selectedTopic=randomTopic;
             document.querySelectorAll(".topic-pill").forEach(item=>{
@@ -239,9 +239,9 @@ export async function handleMentalAnswer(answer?: string): Promise<void>{
     let isCorrect=await settings.checkAnswerFast(userInput,correct,alternate);
     if(!appState.sessionActive)return;
     if(settings.settings.sound){
-        const audioCtx=getAudioContext();
-        const oscillator=audioCtx.createOscillator();
-        const gainNode=audioCtx.createGain();
+        let audioCtx=getAudioContext();
+        let oscillator=audioCtx.createOscillator();
+        let gainNode=audioCtx.createGain();
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
         oscillator.frequency.value=isCorrect?880:440;
@@ -253,7 +253,7 @@ export async function handleMentalAnswer(answer?: string): Promise<void>{
         navigator.vibrate(isCorrect?50:100);
     }
     if(appState.currentQuestionStartTime){
-        const elapsed=Date.now()-appState.currentQuestionStartTime;
+        let elapsed=Date.now()-appState.currentQuestionStartTime;
         appState.totalTimeSpent=appState.totalTimeSpent+elapsed;
         appState.answeredQuestionsCount=appState.answeredQuestionsCount+1;
         ui.updateStatistics();
@@ -465,7 +465,7 @@ export async function promptSaveScore(): Promise<void>{
 export async function updateLeaderboard(): Promise<void>{
     if(!dom.displays.leaderboardContent)return;
     try{
-        const scores: any[] = await invoke("load_scores");
+        let scores: any[] = await invoke("load_scores");
         if(!scores||scores.length===0){
             dom.displays.leaderboardContent.innerHTML='<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/></svg><p>No scores yet. Complete a mental session to see your results.</p></div>';
             if(dom.session.leaderboardCard)dom.session.leaderboardCard.classList.add("hidden");
@@ -474,16 +474,16 @@ export async function updateLeaderboard(): Promise<void>{
         let recent=scores.slice(0,10);
         let html='<div style="display:flex; flex-direction:column; gap:var(--spacing-xs);">';
         for(const s of recent){
-            const topicName=topicList.find(t=>t.id===s.topic)?.name||s.topic;
+            let topicName=topicList.find(t=>t.id===s.topic)?.name||s.topic;
             html+='<div class="leaderboard-item" data-id="' + s.id + '"><span>' + topicName + ' (' + s.difficulty + ')</span><div style="display:flex; gap:8px; align-items:center;"><span class="leaderboard-score">' + s.score + '/' + s.total + '</span><button class="icon-button delete-score-btn" data-id="' + s.id + '" style="width:20px; height:20px;">✕</button></div></div>';
         }
         html+='</div>';
         dom.displays.leaderboardContent.innerHTML=html;
-        const deleteHandler=async (e: Event)=>{
-            const target=e.target as HTMLElement;
+        let deleteHandler=async (e: Event)=>{
+            let target=e.target as HTMLElement;
             if(!target.classList.contains("delete-score-btn")) return;
             e.stopPropagation();
-            const id=parseInt(target.getAttribute("data-id")||"0");
+            let id=parseInt(target.getAttribute("data-id")||"0");
             if(id && confirm("Delete this score entry?")){
                 try{
                     await invoke("delete_score",{id});
