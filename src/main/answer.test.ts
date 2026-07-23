@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-vi.mock('./core/domRegistry', () => {
+import{describe,it,expect,vi,beforeEach}from'vitest';
+vi.mock('./core/domRegistry',()=>{
 	const userAnswer={value: '', focus: vi.fn()};
 	const answerResults={
 		innerHTML: '',
