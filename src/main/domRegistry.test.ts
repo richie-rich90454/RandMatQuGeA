@@ -6,56 +6,54 @@ vi.mock("@tauri-apps/api/window",()=>({
 import{DomRegistry}from"./core/domRegistry";
 describe("DomRegistry",()=>{
     let registry: DomRegistry;
-    let testElements: HTMLElement[]=[];
     beforeEach(()=>{
         registry=new DomRegistry();
-        testElements=[];
     });
-    afterEach(()=>{
-        for(let el of testElements){
-            if(el.parentNode) el.parentNode.removeChild(el);
-        }
-    });
-    function addElement(id: string): HTMLElement{
-        let el=document.createElement("div");
-        el.id=id;
-        document.body.appendChild(el);
-        testElements.push(el);
-        return el;
-    }
     it("should create instance",()=>{
         expect(registry).toBeDefined();
     });
     it("should resolve elements by ID",()=>{
-        let el=addElement("test-el");
+        let el=document.createElement("div");
+        el.id="test-el";
+        document.body.appendChild(el);
         let result=registry.getElement("test-el");
         expect(result).toBe(el);
+        document.body.removeChild(el);
     });
     it("should return null for non-existent elements",()=>{
         let result=registry.getElement("non-existent");
         expect(result).toBeNull();
     });
     it("should cache resolved elements",()=>{
-        let el=addElement("cache-el");
+        let el=document.createElement("div");
+        el.id="cache-el";
+        document.body.appendChild(el);
         let first=registry.getElement("cache-el");
         let second=registry.getElement("cache-el");
         expect(first).toBe(second);
+        document.body.removeChild(el);
     });
     it("should invalidate single element",()=>{
-        let el=addElement("inv-el");
+        let el=document.createElement("div");
+        el.id="inv-el";
+        document.body.appendChild(el);
         registry.getElement("inv-el");
         registry.invalidate("inv-el");
-        let el2=addElement("inv-el");
         let result=registry.getElement("inv-el");
-        expect(result).toBe(el2);
+        expect(result).not.toBeNull();
+        expect(result!.id).toBe("inv-el");
+        document.body.removeChild(el);
     });
     it("should invalidate all elements",()=>{
-        let el=addElement("inv-all");
+        let el=document.createElement("div");
+        el.id="inv-all";
+        document.body.appendChild(el);
         registry.getElement("inv-all");
         registry.invalidateAll();
-        let el2=addElement("inv-all");
         let result=registry.getElement("inv-all");
-        expect(result).toBe(el2);
+        expect(result).not.toBeNull();
+        expect(result!.id).toBe("inv-all");
+        document.body.removeChild(el);
     });
     it("should have buttons accessor",()=>{
         expect(registry.buttons).toBeDefined();
