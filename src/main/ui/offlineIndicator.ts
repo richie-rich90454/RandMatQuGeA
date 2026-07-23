@@ -50,5 +50,8 @@ export class OfflineIndicator{
 	getStatus(): boolean{
 		return this.isOffline;
 	}
+	getBadgeElement(): HTMLElement|null{
+		return this.badge;
+	}
 }
 export let offlineIndicator: OfflineIndicator=new OfflineIndicator();
