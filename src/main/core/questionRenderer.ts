@@ -105,5 +105,11 @@ export class QuestionRenderer{
             area.innerHTML=html;
         }
     }
+    showErrorInQuestionArea(title: string,message: string): void{
+        let area=this.registry.displays.questionArea;
+        if(area){
+            area.innerHTML="<div class=\"error-card\"><h3 class=\"error-title\">"+title+"</h3><p class=\"error-message\">"+message+"</p></div>";
+        }
+    }
 }
 export let renderer=new QuestionRenderer(dom);
