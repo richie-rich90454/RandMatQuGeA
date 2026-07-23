@@ -5,18 +5,18 @@ import {topics,scopeTopics} from "./constants";
 let gridInitialized=false;
 let topicElements: Map<string, HTMLButtonElement>=new Map();
 export function resetTopicGrid(): void{
-	const grid=dom.displays.topicGrid;
+	let grid=dom.displays.topicGrid;
 	if(grid)grid.innerHTML="";
 	gridInitialized=false;
 	topicElements.clear();
 }
 export function renderTopicGrid(): void{
 	if (!dom.displays.topicGrid) return;
-	const currentScope=appState.currentMode==="single"?appState.scope:appState.mentalScope;
-	const allowedIds=scopeTopics[currentScope as keyof typeof scopeTopics]||scopeTopics.simple;
-	const filteredTopics=topics.filter(t=>allowedIds.includes(t.id));
-	const searchTerm=dom.inputs.topicSearch?.value.toLowerCase().trim()||"";
-	const displayedTopics=searchTerm?filteredTopics.filter(t=>t.name.toLowerCase().includes(searchTerm)||t.id.toLowerCase().includes(searchTerm)):filteredTopics;
+	let currentScope=appState.currentMode==="single"?appState.scope:appState.mentalScope;
+	let allowedIds=scopeTopics[currentScope as keyof typeof scopeTopics]||scopeTopics.simple;
+	let filteredTopics=topics.filter(t=>allowedIds.includes(t.id));
+	let searchTerm=dom.inputs.topicSearch?.value.toLowerCase().trim()||"";
+	let displayedTopics=searchTerm?filteredTopics.filter(t=>t.name.toLowerCase().includes(searchTerm)||t.id.toLowerCase().includes(searchTerm)):filteredTopics;
 	if (!gridInitialized){
 		topics.forEach(topic=>{
 			let topicElement=document.createElement("button");
@@ -32,7 +32,7 @@ export function renderTopicGrid(): void{
 		});
 		gridInitialized=true;
 	}
-	const displayedIds=new Set(displayedTopics.map(t=>t.id));
+	let displayedIds=new Set(displayedTopics.map(t=>t.id));
 	topicElements.forEach((element, id)=>{
 		element.classList.toggle("hidden", !displayedIds.has(id));
 	});
@@ -100,8 +100,8 @@ export function selectTopic(topicId: string): void{
 	ui.updateUIState();
 }
 export function pickRandomTopic(): string|null{
-	const currentScope=appState.currentMode==="single"?appState.scope:appState.mentalScope;
-	const allowedIds=scopeTopics[currentScope as keyof typeof scopeTopics]||scopeTopics.simple;
+	let currentScope=appState.currentMode==="single"?appState.scope:appState.mentalScope;
+	let allowedIds=scopeTopics[currentScope as keyof typeof scopeTopics]||scopeTopics.simple;
 	if (allowedIds.length===0) return null;
 	return allowedIds[Math.floor(Math.random()*allowedIds.length)];
 }
