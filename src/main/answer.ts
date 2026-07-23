@@ -6,13 +6,13 @@
  * (response time, error types) for the adaptive learning system. Updated to support Tauri commands for saving
  * performance data to SQLite and starting question timers, with detailed console logging.
  */
-import {dom} from "./core/domRegistry";
-import {appState} from "./core/stateStore";
-import {questionState} from "./core/questionState";
-import * as settings from "./settings";
-import * as ui from "./ui";
-import * as generation from "./generation";
-import {invoke} from "@tauri-apps/api/core";
+import{dom}from"./core/domRegistry";
+import{appState}from"./core/stateStore";
+import{questionState}from"./core/questionState";
+import * as settings from"./settings";
+import * as ui from"./ui";
+import * as generation from"./generation";
+import{invoke}from"@tauri-apps/api/core";
 let _audioCtx: AudioContext|null=null;
 export function getAudioContext(): AudioContext{
     if(!_audioCtx){
