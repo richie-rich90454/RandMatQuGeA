@@ -95,5 +95,9 @@ export class QuestionRenderer{
         let area=this.registry.displays.questionArea;
         return area!==null&&area.innerHTML.length>0;
     }
+    getInnerHtml(): string{
+        let area=this.registry.displays.questionArea;
+        return area?area.innerHTML:"";
+    }
 }
 export let renderer=new QuestionRenderer(dom);
