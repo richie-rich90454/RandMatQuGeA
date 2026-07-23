@@ -2070,3 +2070,28 @@ hr.context-menu-divider{
     z-index: 1000;
     box-shadow: var(--shadow-md);
 }
+.error-card{
+    padding: var(--spacing-xl);
+    text-align: center;
+    border: 1px solid var(--error);
+    border-radius: var(--radius-lg);
+    background: var(--surface-modal);
+}
+.error-message{
+    color: var(--error);
+    margin-bottom: var(--spacing-md);
+    font-weight: 500;
+}
+.error-retry-btn{
+    background: var(--primary);
+    color: var(--text-on-primary);
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background var(--transition-fast);
+}
+.error-retry-btn:hover{
+    background: var(--primary-dark);
+}
