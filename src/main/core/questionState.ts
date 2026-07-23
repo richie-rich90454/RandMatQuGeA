@@ -38,6 +38,12 @@ export class QuestionState{
 	get correctAnswerText(): string{
 		return this._correctAnswer.correct;
 	}
+	get displayText(): string{
+		return this._correctAnswer.display||this._correctAnswer.correct;
+	}
+	get alternateText(): string{
+		return this._correctAnswer.alternate||"";
+	}
 	reset(): void{
 		this._correctAnswer={ correct: "", alternate: "", display: "" };
 		this._expectedFormat="";
