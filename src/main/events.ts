@@ -169,7 +169,7 @@ export async function setupEventListeners(): Promise<void>{
         }
     });
     if (dom.buttons.helpButton){
-        dom.buttons.helpButton.addEventListener("click",function (){
+        dom.buttons.helpButton.addEventListener("click",()=>{
             ui.showNotification("Select a topic, generate a question, enter your answer, and check it!","info");
         });
     }
