@@ -66,6 +66,15 @@ export class ErrorHandler{
             fn();
         }
     }
+    wrapSync<T>(fn: ()=>T): T|undefined{
+        try{
+            return fn();
+        }
+        catch(err){
+            this.handleError(err);
+            return undefined;
+        }
+    }
     showErrorWithTitle(title: string,message: string,retryFn: (()=>void)|null): void{
         this.retryFn=retryFn;
         let area=dom.displays.questionArea;
