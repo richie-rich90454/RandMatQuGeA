@@ -33,6 +33,13 @@ export class TopicRegistry{
         }
         return count;
     }
+    getScopes(): string[]{
+        let scopes=new Set<string>();
+        for(let entry of this._topics.values()){
+            scopes.add(entry.scope);
+        }
+        return Array.from(scopes);
+    }
     getTopicsByScope(scope: string): TopicEntry[]{
         let result: TopicEntry[]=[];
         for (let entry of this._topics.values()){
