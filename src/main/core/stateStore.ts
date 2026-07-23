@@ -102,6 +102,9 @@ export class AppState{
 	get sessionScoreRatio(): number{
 		return this._sessionScore.total>0?this._sessionScore.correct/this._sessionScore.total:0;
 	}
+	get scoreDisplayText(): string{
+		return this._sessionScore.correct+"/"+this._sessionScore.total;
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
