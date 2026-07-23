@@ -99,6 +99,9 @@ export class AppState{
 	get isSessionActive(): boolean{
 		return this._sessionActive;
 	}
+	get sessionScoreRatio(): number{
+		return this._sessionScore.total>0?this._sessionScore.correct/this._sessionScore.total:0;
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
