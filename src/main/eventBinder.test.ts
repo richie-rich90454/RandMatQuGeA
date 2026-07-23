@@ -1,21 +1,31 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
-vi.mock("./core/domRegistry",()=>({
-    dom:{
-        queryElement:vi.fn((selector: string)=>{
-            if(selector==="#test-btn"){
-                let el=document.createElement("button");
-                el.id="test-btn";
-                return el;
-            }
-            return null;
-        })
-    }
-}));
+let mockElement: HTMLButtonElement|null=null;
+vi.mock("./core/domRegistry",()=>{
+    return{
+        dom:{
+            queryElement:vi.fn((selector: string)=>{
+                if(selector==="#test-btn"){
+                    if(!mockElement){
+                        mockElement=document.createElement("button");
+                        mockElement.id="test-btn";
+                        document.body.appendChild(mockElement);
+                    }
+                    return mockElement;
+                }
+                return null;
+            })
+        }
+    };
+});
 import{bindEvents,type EventBinding}from"./services/eventBinder";
 describe("EventBinding",()=>{
     beforeEach(()=>{
         vi.clearAllMocks();
+        if(mockElement&&mockElement.parentNode){
+            mockElement.parentNode.removeChild(mockElement);
+        }
+        mockElement=null;
     });
     it("should bind events to existing elements",()=>{
         let handler=vi.fn();
@@ -23,10 +33,7 @@ describe("EventBinding",()=>{
             {selector:"#test-btn",event:"click",handler}
         ];
         bindEvents(bindings);
-        let btn=document.getElementById("test-btn")||document.createElement("button");
-        btn.id="test-btn";
-        document.body.appendChild(btn);
-        btn.click();
+        if(mockElement) mockElement.click();
         expect(handler).toHaveBeenCalled();
     });
     it("should skip null elements with debug warning",()=>{
