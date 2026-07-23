@@ -85,8 +85,8 @@ async function loadData(){
 function attachDeleteEvents(){
     document.querySelectorAll(".delete-record").forEach(btn=>{
         btn.addEventListener("click",async(e)=>{
-            const topic=(e.currentTarget as HTMLElement).getAttribute("data-topic");
-            const diff=(e.currentTarget as HTMLElement).getAttribute("data-diff");
+            let topic=(e.currentTarget as HTMLElement).getAttribute("data-topic");
+            let diff=(e.currentTarget as HTMLElement).getAttribute("data-diff");
             if(topic&&diff&&confirm(`Delete all records for ${topic} (${diff})?`)){
                 try{
                     await invoke("delete_performance_record",{topicId:topic,difficulty:diff});
