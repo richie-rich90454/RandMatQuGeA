@@ -1,11 +1,3 @@
-/**
- * @file answer.ts - Handles answer validation, performance tracking, and adaptive learning integration.
- * @date 2026-04-04
- * @description This module provides comprehensive answer checking for math questions, including LaTeX conversion,
- * numeric equivalence, algebraic simplification, and vector/matrix handling. It also records user performance
- * (response time, error types) for the adaptive learning system. Updated to support Tauri commands for saving
- * performance data to SQLite and starting question timers, with detailed console logging.
- */
 import{dom}from"./core/domRegistry";
 import{appState}from"./core/stateStore";
 import{questionState}from"./core/questionState";
