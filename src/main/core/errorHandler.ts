@@ -1,5 +1,4 @@
 import{dom}from"./domRegistry";
-import{renderer}from"./questionRenderer";
 export class ErrorHandler{
 	private lastError: string|null=null;
 	private retryFn: (()=>void)|null=null;
