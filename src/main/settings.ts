@@ -66,7 +66,7 @@ export function loadSettings():void{
     }
     if (saved){
         try{
-            const parsed=JSON.parse(saved);
+            let parsed=JSON.parse(saved);
             settings={...settings, ...parsed};
             if (parsed.adaptive === undefined) settings.adaptive = true;
             if (parsed.showWeakTopicsPopup === undefined) settings.showWeakTopicsPopup = true;
@@ -129,7 +129,7 @@ export function saveSettings():void{
     if (dom.inputs.mentalScopeSelect) settings.mentalScope=dom.inputs.mentalScopeSelect.value;
     if (dom.inputs.mentalShuffleToggle) settings.mentalShuffle=dom.inputs.mentalShuffleToggle.checked;
     if (dom.settings.settingsMcqChoices){
-        const newCount=parseInt(dom.settings.settingsMcqChoices.value)||4;
+        let newCount=parseInt(dom.settings.settingsMcqChoices.value)||4;
         if (settings.mcqChoicesCount!==newCount){
             settings.mcqChoicesCount=newCount;
             if (appState.mcqMode&&questionState.hasQuestion&&questionState.correctAnswer.correct){
@@ -352,11 +352,11 @@ export function applyFont(font:string):void{
     }
 }
 export function applyWaveBackground(enabled:boolean):void{
-    const wave=document.getElementById("wave-container");
+    let wave=document.getElementById("wave-container");
     if (wave) wave.classList.toggle("hidden", !enabled);
 }
 export function applyBlurEffects(enabled:boolean):void{
-    const root=document.documentElement;
+    let root=document.documentElement;
     if (enabled) root.classList.remove("no-blur");
     else root.classList.add("no-blur");
 }
@@ -364,17 +364,17 @@ export function applyLivePreview(enabled:boolean):void{
     if (dom.displays.previewDiv) dom.displays.previewDiv.classList.toggle("hidden", !enabled);
 }
 export function applyAnimations(enabled:boolean):void{
-    const root=document.documentElement;
+    let root=document.documentElement;
     if (enabled) root.classList.remove("reduce-motion");
     else root.classList.add("reduce-motion");
 }
 export function applyFPSCap(value:number):void{
-    const wave=document.querySelector(".liquid-bg") as HTMLElement;
+    let wave=document.querySelector(".liquid-bg") as HTMLElement;
     if (wave){
         if (value>0){
-            const baseFlow=18;
-            const baseDrift=[22,19,26];
-            const scale=60/value;
+            let baseFlow=18;
+            let baseDrift=[22,19,26];
+            let scale=60/value;
             wave.style.animationDuration=
                 (baseFlow*scale)+"s, "+
                 (baseDrift[0]*scale)+"s, "+
@@ -417,8 +417,8 @@ export async function isAnswerCorrect(userInput:string,correct:string,alternate?
     }
     async function evaluateExpression(expr:string):Promise<number|null>{
         try{
-            const cleaned=prepareForEval(expr);
-            const result=(await ensureMathjs()).evaluate(cleaned);
+            let cleaned=prepareForEval(expr);
+            let result=(await ensureMathjs()).evaluate(cleaned);
             if (typeof result==="number"&&!isNaN(result)){
                 return result;
             }
@@ -431,19 +431,19 @@ export async function isAnswerCorrect(userInput:string,correct:string,alternate?
     function getTolerance():number{
         return 0.5*Math.pow(10,-settings.decimalPlaces);
     }
-    const trimmedInput=userInput.trim();
+    let trimmedInput=userInput.trim();
     if (!trimmedInput) return false;
-    const userNum=await evaluateExpression(trimmedInput);
+    let userNum=await evaluateExpression(trimmedInput);
     if (userNum!==null){
-        const correctNum=await evaluateExpression(correct);
+        let correctNum=await evaluateExpression(correct);
         if (correctNum!==null){
-            const tol=getTolerance();
+                let tol=getTolerance();
             if (Math.abs(userNum-correctNum)<tol) return true;
         }
         if (alternate){
-            const altNum=await evaluateExpression(alternate);
+            let altNum=await evaluateExpression(alternate);
             if (altNum!==null){
-                const tol=getTolerance();
+            let tol=getTolerance();
                 if (Math.abs(userNum-altNum)<tol) return true;
             }
         }
@@ -454,18 +454,18 @@ export async function isAnswerCorrect(userInput:string,correct:string,alternate?
             .replace(/[°˚]|deg(rees?)?/g,"")
             .replace(/rad(ians?)?/g,"");
     }
-    const userSym=normalizeSymbolic(trimmedInput);
-    const correctSym=normalizeSymbolic(correct);
+    let userSym=normalizeSymbolic(trimmedInput);
+    let correctSym=normalizeSymbolic(correct);
     if (userSym===correctSym) return true;
     if (alternate){
-        const altSym=normalizeSymbolic(alternate);
+        let altSym=normalizeSymbolic(alternate);
         if (userSym===altSym) return true;
     }
-    const userSimple=trimmedInput.replace(/\s+/g,"").toLowerCase();
-    const correctSimple=correct.replace(/\s+/g,"").toLowerCase();
+    let userSimple=trimmedInput.replace(/\s+/g,"").toLowerCase();
+    let correctSimple=correct.replace(/\s+/g,"").toLowerCase();
     if (userSimple===correctSimple) return true;
     if (alternate){
-        const altSimple=alternate.replace(/\s+/g,"").toLowerCase();
+        let altSimple=alternate.replace(/\s+/g,"").toLowerCase();
         if (userSimple===altSimple) return true;
     }
     return false;
