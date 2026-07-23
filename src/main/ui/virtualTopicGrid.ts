@@ -1,6 +1,5 @@
 import{dom}from"../core/domRegistry";
 let container: HTMLElement|null=null;
-let items: HTMLElement[]=[];
 let visibleStart: number=0;
 let visibleEnd: number=0;
 let itemHeight: number=40;
@@ -11,7 +10,6 @@ export function initVirtualGrid(itemElements: HTMLElement[]): void{
     container=dom.displays.topicGrid;
     if(!container)return;
     container.innerHTML="";
-    items=[];
     updateVisibleRange();
     renderVisibleItems();
     if(container){

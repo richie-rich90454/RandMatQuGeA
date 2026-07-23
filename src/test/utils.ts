@@ -1,4 +1,5 @@
 import{vi}from"vitest";
+import{topicRegistry}from"../main/services/topicRegistry";
 export function setupDomMock(): void{
     let elements: Map<string,HTMLElement>=new Map();
     let elementIds=[
@@ -58,6 +59,5 @@ export function createMockRenderer(): any{
     };
 }
 export function registerMockTopics(): void{
-    let{topicRegistry}=require("../../main/services/topicRegistry");
     topicRegistry.registerTopic("test_topic","algebra","testGenerator");
 }
