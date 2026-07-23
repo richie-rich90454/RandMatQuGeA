@@ -49,6 +49,12 @@ export class TopicRegistry{
         }
         return result;
     }
+    findTopic(predicate: (entry: TopicEntry)=>boolean): TopicEntry|undefined{
+        for(let entry of this._topics.values()){
+            if(predicate(entry)) return entry;
+        }
+        return undefined;
+    }
 }
 export let topicRegistry: TopicRegistry=new TopicRegistry();
 export function registerTopic(id: string, scope: string, fn: string): void{
