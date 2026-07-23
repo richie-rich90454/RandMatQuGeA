@@ -1,4 +1,4 @@
-import type {Topic} from "../types/global";
+import type{Topic}from"../types/global";
 export let topics: Topic[]=[
     {id: "add", name: "Addition", icon: "+", category: "Arithmetic"},
     {id: "subtrt", name: "Subtraction", icon: "-", category: "Arithmetic"},
