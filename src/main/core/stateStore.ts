@@ -105,6 +105,12 @@ export class AppState{
 	get scoreDisplayText(): string{
 		return this._sessionScore.correct+"/"+this._sessionScore.total;
 	}
+	get isUnlimitedMode(): boolean{
+		return this._unlimitedMode;
+	}
+	get hasWeakTopics(): boolean{
+		return this._weakTopicQueue.length>0;
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
