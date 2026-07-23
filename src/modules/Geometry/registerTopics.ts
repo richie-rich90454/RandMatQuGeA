@@ -1,0 +1,11 @@
+import{registerTopic}from"../../main/services/topicRegistry";
+registerTopic("area_circle","geometry","generateAreaCircle");
+registerTopic("pythag","geometry","generatePythagorean");
+registerTopic("volume_sphere","geometry","generateVolumeSphere");
+registerTopic("parabola","geometry","generateParabola");
+registerTopic("ellipse","geometry","generateEllipse");
+registerTopic("hyperbola","geometry","generateHyperbola");
+registerTopic("polar_conics","geometry","generatePolarConic");
+registerTopic("coord3d","geometry","generate3DDistanceMidpoint");
+registerTopic("sphere_eq","geometry","generateSphereEquation");
+registerTopic("line_plane_3d","geometry","generateLinePlane3D");
