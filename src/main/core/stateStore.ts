@@ -90,6 +90,12 @@ export class AppState{
 	get hasSelectedTopic(): boolean{
 		return this._selectedTopic!==null&&this._selectedTopic.length>0;
 	}
+	get isMentalMode(): boolean{
+		return this._currentMode==="mental";
+	}
+	get isSingleMode(): boolean{
+		return this._currentMode==="single";
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
