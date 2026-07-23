@@ -66,6 +66,24 @@ export class ErrorHandler{
             fn();
         }
     }
+    showErrorWithTitle(title: string,message: string,retryFn: (()=>void)|null): void{
+        this.retryFn=retryFn;
+        let area=dom.displays.questionArea;
+        if(!area)return;
+        area.innerHTML="<div class=\"error-card\">" +
+            "<h3 class=\"error-title\">"+title+"</h3>" +
+            "<p class=\"error-message\">"+message+"</p>" +
+            "<button class=\"error-retry-btn\">Try Again</button>" +
+            "</div>";
+        let retryBtn=area.querySelector(".error-retry-btn");
+        if(retryBtn){
+            retryBtn.addEventListener("click",()=>{
+                if(this.retryFn){
+                    this.retryFn();
+                }
+            });
+        }
+    }
 }
 export let errorHandler: ErrorHandler=new ErrorHandler();
 export function getErrorHandler(): ErrorHandler{
