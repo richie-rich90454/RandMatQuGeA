@@ -87,5 +87,30 @@ export class AppState{
 	set isGenerating(value: boolean){this._isGenerating=value;}
 	get weakTopicQueue(): string[]{return this._weakTopicQueue;}
 	set weakTopicQueue(value: string[]){this._weakTopicQueue=value;}
+	reset(): void{
+		this._selectedTopic=null;
+		this._currentMode="single";
+		this._sessionActive=false;
+		this._sessionPaused=false;
+		this._sessionScore={correct:0,total:0};
+		this._timeLeft=30;
+		this._maxQuestions=5;
+		this._currentDifficulty="medium";
+		this._autocontinue=false;
+		this._scope="simple";
+		this._shuffle=false;
+		this._mentalScope="simple";
+		this._mentalShuffle=false;
+		this._unlimitedMode=false;
+		this._totalTimeSpent=0;
+		this._answeredQuestionsCount=0;
+		this._currentQuestionStartTime=null;
+		this._mcqMode=false;
+		this._mcqChoices=[];
+		this._userPickedDifficulty=false;
+		this._answering=false;
+		this._isGenerating=false;
+		this._weakTopicQueue=[];
+	}
 }
 export let appState: AppState=new AppState();
