@@ -93,3 +93,22 @@ export function terminateWorker(): void{
         useWorker=true;
     }
 }
+export async function parseInWorker(expression: string): Promise<any>{
+    if(!useWorker){
+        return evaluateOnMainThread(expression,"parse");
+    }
+    let w=getWorker();
+    if(!w){
+        return evaluateOnMainThread(expression,"parse");
+    }
+    return new Promise((resolve,reject)=>{
+        let id=requestId++;
+        let timeout=setTimeout(()=>{
+            pending?.delete(id);
+            resolve(evaluateOnMainThread(expression,"parse"));
+        },2000);
+        pending?.set(id,{resolve,reject,timeout});
+        let request: MathWorkerRequest={type:"parse",expression,id};
+        w.postMessage(request);
+    });
+}
