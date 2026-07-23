@@ -2082,6 +2082,11 @@ hr.context-menu-divider{
     margin-bottom: var(--spacing-md);
     font-weight: 500;
 }
+.error-title{
+    color: var(--error);
+    margin-bottom: var(--spacing-sm);
+    font-size: 1.1em;
+}
 .error-retry-btn{
     background: var(--primary);
     color: var(--text-on-primary);
