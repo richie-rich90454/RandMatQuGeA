@@ -21,7 +21,7 @@ export function initVirtualGrid(itemElements: HTMLElement[]): void{
     }
 }
 function updateVisibleRange(): void{
-    if(!container)return;
+    if(!container||allElements.length===0)return;
     let scrollTop=container.scrollTop;
     let viewportHeight=container.clientHeight;
     visibleStart=Math.max(0,Math.floor(scrollTop/itemHeight)-overscan);
