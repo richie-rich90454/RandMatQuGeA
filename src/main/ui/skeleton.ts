@@ -32,3 +32,6 @@ export function hideQuestionSkeleton(): void{
 export function isSkeletonActive(): boolean{
     return skeletonActive;
 }
+export function getLastSkeletonTime(): number{
+    return lastSkeletonTime;
+}
