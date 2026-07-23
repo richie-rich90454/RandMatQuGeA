@@ -1,4 +1,4 @@
-import type { RngFn } from "../../types/global";
+import type{RngFn}from"../../types/global";
 /**
  * Mulberry32 seeded PRNG. Returns a function that produces deterministic
  * floats in [0, 1) given a 32-bit seed. Same seed always yields the same
