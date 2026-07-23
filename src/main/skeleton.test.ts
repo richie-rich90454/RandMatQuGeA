@@ -1,13 +1,9 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
 const mocks=vi.hoisted(()=>{
-    let mockQuestionArea={
-        innerHTML:"",
-        classList:{
-            add:vi.fn(),
-            remove:vi.fn(),
-        }
-    };
+    let mockQuestionArea=document.createElement("div");
+    mockQuestionArea.id="question-area";
+    document.body.appendChild(mockQuestionArea);
     return{mockQuestionArea};
 });
 vi.mock("./core/domRegistry",()=>{
@@ -38,6 +34,7 @@ describe("skeleton",()=>{
     });
     it("should clear skeleton on hide",()=>{
         showQuestionSkeleton();
+        expect(isSkeletonActive()).toBe(true);
         hideQuestionSkeleton();
         expect(isSkeletonActive()).toBe(false);
     });
