@@ -17,6 +17,9 @@ export class TopicRegistry{
     getAllTopics(): Map<string, TopicEntry>{
         return this._topics;
     }
+    clear(): void{
+        this._topics.clear();
+    }
     getTopicsByScope(scope: string): TopicEntry[]{
         let result: TopicEntry[]=[];
         for (let entry of this._topics.values()){
