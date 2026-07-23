@@ -1,4 +1,4 @@
-import type { CorrectAnswer } from "../../types/global";
+import type{CorrectAnswer}from"../../types/global";
 export class QuestionState{
 	private _correctAnswer: CorrectAnswer;
 	private _expectedFormat: string;
