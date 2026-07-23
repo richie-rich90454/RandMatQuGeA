@@ -1,9 +1,3 @@
-/**
- * @file weakTopics.ts - Shows popup with weak topics based on performance data.
- * @date 2026-04-12
- * @description Fetches weak topics from backend and displays a modal with practice buttons.
- * Now triggered manually by the user via the "Recommend Topics" button.
- */
 import{invoke}from"@tauri-apps/api/core";
 import{selectTopic}from"./topics";
 import{topics}from"./constants";
