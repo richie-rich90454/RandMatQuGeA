@@ -96,7 +96,7 @@ export async function setupEventListeners(): Promise<void>{
         console.warn("Missing element for listener: checkAnswerButton");
     }
     if (dom.inputs.userAnswer){
-        dom.inputs.userAnswer.addEventListener("keyup",function (e: KeyboardEvent){
+        dom.inputs.userAnswer.addEventListener("keyup",(e: KeyboardEvent)=>{
             if (e.shiftKey&&e.key==="Enter"){
                 if (!questionState.hasQuestion) return;
                 if (dom.buttons.checkAnswerButton?.disabled) return;
