@@ -28,7 +28,7 @@ async function applyAdaptiveRecommendation(): Promise<boolean>{
             currentTopic: appState.selectedTopic,
             currentDifficulty: appState.currentDifficulty
         });
-        const rec=await invoke('get_next_question_recommendation', {
+        let rec=await invoke('get_next_question_recommendation', {
             currentTopic: appState.selectedTopic,
             currentDifficulty: appState.currentDifficulty
         }) as { difficulty: string; weak_topic: string | null };
