@@ -8,6 +8,6 @@ export type{TopicEntry}from"./services/topicRegistry";
 export{bindEvents,countBindings}from"./services/eventBinder";
 export type{EventBinding}from"./services/eventBinder";
 export{evaluateInWorker,simplifyInWorker,parseInWorker,terminateWorker}from"./services/mathWorkerClient";
-export{showQuestionSkeleton,hideQuestionSkeleton,isSkeletonActive}from"./ui/skeleton";
+export{showQuestionSkeleton,hideQuestionSkeleton,isSkeletonActive,getLastSkeletonTime}from"./ui/skeleton";
 export{offlineIndicator,OfflineIndicator}from"./ui/offlineIndicator";
 export{initVirtualGrid,refreshVirtualGrid}from"./ui/virtualTopicGrid";
