@@ -1,9 +1,3 @@
-/**
- * @file dataManagement.ts - Handles viewing, deleting, and resetting performance records.
- * @date 2026-04-12
- * @description Provides a modal to list all user_topic_stats entries with delete buttons for each,
- * a delete all button, and a hard reset button that clears all scores and performance data.
- */
 import{invoke}from"@tauri-apps/api/core";
 import{topics}from"./constants";
 import * as ui from"./ui";
