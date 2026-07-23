@@ -10,13 +10,14 @@ export class OfflineIndicator{
 		window.addEventListener("offline",this.handleOffline);
 		this.updateBadge();
 	}
-	destroy(): void{
-		window.removeEventListener("online",this.handleOnline);
-		window.removeEventListener("offline",this.handleOffline);
-		if(this.badge&&this.badge.parentNode){
-			this.badge.parentNode.removeChild(this.badge);
-		}
-	}
+    destroy(): void{
+        window.removeEventListener("online",this.handleOnline);
+        window.removeEventListener("offline",this.handleOffline);
+        if(this.badge&&this.badge.parentNode){
+            this.badge.parentNode.removeChild(this.badge);
+        }
+        this.badge=null;
+    }
 	private handleOnline(): void{
 		this.isOffline=false;
 		this.updateBadge();
