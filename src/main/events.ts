@@ -326,7 +326,7 @@ export async function setupEventListeners(): Promise<void>{
         console.warn("Missing element for listener: modeMentalBtn");
     }
     if (dom.inputs.difficultySelect){
-        dom.inputs.difficultySelect.addEventListener("change",function (e: Event){
+        dom.inputs.difficultySelect.addEventListener("change",(e: Event)=>{
             appState.currentDifficulty=(e.target as HTMLSelectElement).value;
             appState.userPickedDifficulty=true;
             settings.settings.difficulty=appState.currentDifficulty;
