@@ -63,6 +63,9 @@ export class TopicRegistry{
         if(all.length===0) return undefined;
         return all[Math.floor(Math.random()*all.length)];
     }
+    removeTopic(id: string): boolean{
+        return this._topics.delete(id);
+    }
 }
 export let topicRegistry: TopicRegistry=new TopicRegistry();
 export function registerTopic(id: string, scope: string, fn: string): void{
