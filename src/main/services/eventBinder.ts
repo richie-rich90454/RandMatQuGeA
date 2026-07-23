@@ -26,3 +26,6 @@ export function bindEvents(bindings: EventBinding[]): void{
 export function countBindings(bindings: EventBinding[]): number{
 	return bindings.length;
 }
+export function hasBinding(bindings: EventBinding[],selector: string): boolean{
+	return bindings.some(b=>b.selector===selector);
+}
