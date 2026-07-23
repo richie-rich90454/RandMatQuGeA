@@ -32,6 +32,12 @@ export class QuestionState{
 		this._hasQuestion=value;
 		window.hasQuestion=value;
 	}
+	get hasCorrectAnswer(): boolean{
+		return this._correctAnswer.correct.length>0;
+	}
+	get correctAnswerText(): string{
+		return this._correctAnswer.correct;
+	}
 	reset(): void{
 		this._correctAnswer={ correct: "", alternate: "", display: "" };
 		this._expectedFormat="";
