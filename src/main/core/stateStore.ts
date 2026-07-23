@@ -114,6 +114,9 @@ export class AppState{
 	dequeueWeakTopic(): string|undefined{
 		return this._weakTopicQueue.shift();
 	}
+	getWeakTopicCount(): number{
+		return this._weakTopicQueue.length;
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
