@@ -26,7 +26,10 @@ export default defineConfig({
 		cssMinify: true,
 		cssCodeSplit: true,
 		modulePreload: {polyfill: false},
-		chunkSizeWarningLimit: 2000
+		chunkSizeWarningLimit: 2000,
+		worker: {
+			format: "es",
+		}
 	},
 	plugins: [
 		{
