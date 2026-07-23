@@ -44,6 +44,12 @@ export class QuestionState{
 	get alternateText(): string{
 		return this._correctAnswer.alternate||"";
 	}
+	get choices(): string[]{
+		return this._correctAnswer.choices||[];
+	}
+	get hasChoices(): boolean{
+		return this._correctAnswer.choices!==undefined&&this._correctAnswer.choices.length>0;
+	}
 	reset(): void{
 		this._correctAnswer={ correct: "", alternate: "", display: "" };
 		this._expectedFormat="";
