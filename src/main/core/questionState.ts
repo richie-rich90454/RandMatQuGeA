@@ -32,5 +32,13 @@ export class QuestionState{
 		this._hasQuestion=value;
 		window.hasQuestion=value;
 	}
+	reset(): void{
+		this._correctAnswer={ correct: "", alternate: "", display: "" };
+		this._expectedFormat="";
+		this._hasQuestion=false;
+		window.correctAnswer=this._correctAnswer;
+		window.expectedFormat=this._expectedFormat;
+		window.hasQuestion=this._hasQuestion;
+	}
 }
 export const questionState=new QuestionState();
