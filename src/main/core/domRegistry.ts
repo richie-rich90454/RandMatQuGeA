@@ -32,6 +32,12 @@ export class DomRegistry{
         if(!el) return false;
         return el.offsetParent!==null;
     }
+    getBody(): HTMLElement{
+        return document.body;
+    }
+    getHead(): HTMLElement{
+        return document.head;
+    }
     get appWindow(): Window|null{
         if(this.appWindowChecked) return this._appWindow;
         if(!this._appWindow){
