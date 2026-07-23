@@ -23,6 +23,10 @@ export class DomRegistry{
     invalidateAll(): void{
         this.cache.clear();
     }
+    queryElementAll<T extends HTMLElement>(selector: string): T[]{
+        let elements=document.querySelectorAll(selector);
+        return Array.from(elements) as T[];
+    }
     get appWindow(): Window|null{
         if(this.appWindowChecked) return this._appWindow;
         if(!this._appWindow){
