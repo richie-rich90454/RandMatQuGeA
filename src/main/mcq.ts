@@ -1,9 +1,9 @@
-import {appState} from "./core/stateStore";
-import {questionState} from "./core/questionState";
-import {dom} from "./core/domRegistry";
-import * as settings from "./settings";
-import * as ui from "./ui";
-import type { RngFn } from "../types/global";
+import{appState}from"./core/stateStore";
+import{questionState}from"./core/questionState";
+import{dom}from"./core/domRegistry";
+import * as settings from"./settings";
+import * as ui from"./ui";
+import type{RngFn}from"../types/global";
 let mathjsModule: any=null;
 async function ensureMathjs(): Promise<any>{
     if(mathjsModule) return mathjsModule;
