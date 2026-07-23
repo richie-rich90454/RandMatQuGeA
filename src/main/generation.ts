@@ -1,12 +1,3 @@
-/**
- * @file generation.ts - Handles generation of math questions with adaptive difficulty and weak topic recommendation.
- * @date 2026-04-04
- * @description This module manages question generation for both single and mental modes. It integrates with the
- * adaptive learning system by calling the backend recommendation API to adjust difficulty and suggest weak topics
- * based on user performance. It also coordinates with the specific topic generators and updates the UI.
- * Updated to support adaptive learning: apply adaptive recommendation before generating a new question,
- * with detailed console logging for debugging.
- */
 import{dom}from"./core/domRegistry";
 import{appState}from"./core/stateStore";
 import{questionState}from"./core/questionState";
