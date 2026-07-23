@@ -73,6 +73,17 @@ export class TopicRegistry{
         let entries=Array.from(this._topics.values());
         return entries.length>0?entries[entries.length-1]:undefined;
     }
+    getUniqueScopes(): string[]{
+        return this.getScopes();
+    }
+    getTopicsByIds(ids: string[]): TopicEntry[]{
+        let result: TopicEntry[]=[];
+        for(let id of ids){
+            let entry=this._topics.get(id);
+            if(entry) result.push(entry);
+        }
+        return result;
+    }
 }
 export let topicRegistry: TopicRegistry=new TopicRegistry();
 export function registerTopic(id: string, scope: string, fn: string): void{
