@@ -6,16 +6,16 @@
  */
 import{dom}from"./core/domRegistry";
 import{appState}from"./core/stateStore";
-import {questionState} from "./core/questionState";
-import * as settings from "./settings";
-import * as ui from "./ui";
-import * as topics from "./topics";
-import * as generation from "./generation";
-import * as answer from "./answer";
-import * as session from "./session";
-import {check} from "@tauri-apps/plugin-updater";
-import {relaunch} from "@tauri-apps/plugin-process";
-import packageJson from "../../package.json";
+import{questionState}from"./core/questionState";
+import * as settings from"./settings";
+import * as ui from"./ui";
+import * as topics from"./topics";
+import * as generation from"./generation";
+import * as answer from"./answer";
+import * as session from"./session";
+import{check}from"@tauri-apps/plugin-updater";
+import{relaunch}from"@tauri-apps/plugin-process";
+import packageJson from"../../package.json";
 export async function isVersionGreater(v1: string, v2: string): Promise<boolean>{
     let semver=(await import("semver")).default;
     let cleanV1=v1.replace(/^v/, "");
