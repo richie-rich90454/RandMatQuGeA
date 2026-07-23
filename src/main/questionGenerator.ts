@@ -44,7 +44,7 @@ async function loadModule(scope: string): Promise<any>{
     return mod;
 }
 function isQuestionDto(value: unknown): value is QuestionDto{
-    return value!==null&&typeof value==="object"&&typeof(value as QuestionDto).latex==="string";
+    return value!==null&&typeof value==="object"&&typeof(value as QuestionDto).latex==="string"&&typeof(value as QuestionDto).correct==="string";
 }
 export async function generateQuestion(topicId: string,difficulty: string,rng?: RngFn): Promise<QuestionDto|void>{
     const entry=topicRegistry.getTopic(topicId);
