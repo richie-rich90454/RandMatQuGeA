@@ -1,9 +1,3 @@
-/**
- * @file events.ts - Sets up all event listeners for UI components.
- * @date 2026-04-12
- * @description Handles mode switching, keyboard shortcuts, settings, and button actions.
- * Added event listeners for "Recommend Topics" and "Manage Data" buttons.
- */
 import{dom}from"./core/domRegistry";
 import{appState}from"./core/stateStore";
 import{questionState}from"./core/questionState";
