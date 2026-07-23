@@ -2020,9 +2020,6 @@ hr.context-menu-divider{
     font-size: 0.85em;
     color: var(--text-secondary);
 }
-.practice-topic-btn{
-    margin-left: var(--spacing-sm);
-}
 @keyframes skeleton-shimmer{
     0%{ background-position: -200% 0; }
     100%{ background-position: 200% 0; }
@@ -2059,4 +2056,17 @@ hr.context-menu-divider{
     animation: skeleton-shimmer 1.5s infinite;
     border-radius: var(--radius-md);
     margin-top: var(--spacing-sm);
+}
+.offline-badge{
+    position: fixed;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    background: var(--warning);
+    color: var(--text-on-primary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 1000;
+    box-shadow: var(--shadow-md);
 }
