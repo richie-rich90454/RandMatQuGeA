@@ -47,38 +47,34 @@ function isQuestionDto(value: unknown): value is QuestionDto{
     return value!==null&&typeof value==="object"&&typeof(value as QuestionDto).latex==="string";
 }
 export async function generateQuestion(topicId: string,difficulty: string,rng?: RngFn): Promise<QuestionDto|void>{
-    return errorHandler.wrapAsync(async()=>{
-        const entry=topicRegistry.getTopic(topicId);
-        if(!entry){
-            throw new Error("Unknown topic: "+topicId);
-        }
-        const mod=await loadModule(entry.scope);
-        const generator=mod[entry.fn];
-        if(!generator){
-            throw new Error("Generator function not found: "+entry.fn);
-        }
-        const result=await generator(difficulty,rng);
-        if(isQuestionDto(result)){
-            renderer.applyQuestionDto(result);
-        }
-        return result;
-    });
+    const entry=topicRegistry.getTopic(topicId);
+    if(!entry){
+        throw new Error("Unknown topic: "+topicId);
+    }
+    const mod=await loadModule(entry.scope);
+    const generator=mod[entry.fn];
+    if(!generator){
+        throw new Error("Generator function not found: "+entry.fn);
+    }
+    const result=await errorHandler.wrapAsync(async()=>generator(difficulty,rng));
+    if(result&&isQuestionDto(result)){
+        renderer.applyQuestionDto(result);
+    }
+    return result as QuestionDto|void;
 }
 export async function generateQuestionDto(topicId: string,difficulty: string,rng?: RngFn): Promise<QuestionDto>{
-    return errorHandler.wrapAsync(async()=>{
-        const entry=topicRegistry.getTopic(topicId);
-        if(!entry){
-            throw new Error("Unknown topic: "+topicId);
-        }
-        const mod=await loadModule(entry.scope);
-        const generator=mod[entry.fn];
-        if(!generator){
-            throw new Error("Generator function not found: "+entry.fn);
-        }
-        const result=await generator(difficulty,rng);
-        if(!isQuestionDto(result)){
-            throw new Error("Generator did not return a QuestionDto: "+topicId);
-        }
-        return result;
-    })as Promise<QuestionDto>;
+    const entry=topicRegistry.getTopic(topicId);
+    if(!entry){
+        throw new Error("Unknown topic: "+topicId);
+    }
+    const mod=await loadModule(entry.scope);
+    const generator=mod[entry.fn];
+    if(!generator){
+        throw new Error("Generator function not found: "+entry.fn);
+    }
+    const result=await errorHandler.wrapAsync(async()=>generator(difficulty,rng));
+    if(!result||!isQuestionDto(result)){
+        throw new Error("Generator did not return a QuestionDto: "+topicId);
+    }
+    return result;
 }
