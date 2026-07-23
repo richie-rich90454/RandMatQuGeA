@@ -47,9 +47,16 @@ export class ErrorHandler{
 		this.lastError=null;
 		this.retryFn=null;
 	}
-	getError(): string|null{
-		return this.lastError;
-	}
+    getError(): string|null{
+        return this.lastError;
+    }
+    retry(): void{
+        if(this.retryFn){
+            let fn=this.retryFn;
+            this.clearError();
+            fn();
+        }
+    }
 }
 export let errorHandler: ErrorHandler=new ErrorHandler();
 export function getErrorHandler(): ErrorHandler{
