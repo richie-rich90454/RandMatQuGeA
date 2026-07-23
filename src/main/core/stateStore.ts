@@ -117,6 +117,9 @@ export class AppState{
 	getWeakTopicCount(): number{
 		return this._weakTopicQueue.length;
 	}
+	get isPaused(): boolean{
+		return this._sessionPaused;
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
