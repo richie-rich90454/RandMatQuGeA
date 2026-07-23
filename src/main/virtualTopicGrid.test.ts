@@ -1,17 +1,19 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
-let mockTopicGrid: any=null;
-vi.mock("./core/domRegistry",()=>{
-    mockTopicGrid={
+const mocks=vi.hoisted(()=>{
+    let mockTopicGrid={
         innerHTML:"",
         scrollTop:0,
         clientHeight:400,
         addEventListener:vi.fn(),
     };
+    return{mockTopicGrid};
+});
+vi.mock("./core/domRegistry",()=>{
     return{
         dom:{
             displays:{
-                topicGrid:mockTopicGrid
+                topicGrid:mocks.mockTopicGrid
             }
         }
     };
@@ -20,7 +22,7 @@ import{initVirtualGrid,refreshVirtualGrid}from"./ui/virtualTopicGrid";
 describe("virtualTopicGrid",()=>{
     beforeEach(()=>{
         vi.clearAllMocks();
-        if(mockTopicGrid) mockTopicGrid.innerHTML="";
+        mocks.mockTopicGrid.innerHTML="";
     });
     it("should init with elements",()=>{
         let elements=[
@@ -29,7 +31,7 @@ describe("virtualTopicGrid",()=>{
             document.createElement("button"),
         ];
         initVirtualGrid(elements);
-        expect(mockTopicGrid.innerHTML).toBeDefined();
+        expect(mocks.mockTopicGrid.innerHTML).toBeDefined();
     });
     it("should handle empty elements",()=>{
         initVirtualGrid([]);

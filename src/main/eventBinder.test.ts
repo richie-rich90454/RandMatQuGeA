@@ -1,20 +1,24 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
-let mockElement: HTMLButtonElement|null=null;
+const mocks=vi.hoisted(()=>{
+    let mockElement=null as any;
+    let mockQueryElement=vi.fn((selector: string)=>{
+        if(selector==="#test-btn"){
+            if(!mocks.mockElement){
+                mocks.mockElement=document.createElement("button");
+                mocks.mockElement.id="test-btn";
+                document.body.appendChild(mocks.mockElement);
+            }
+            return mocks.mockElement;
+        }
+        return null;
+    });
+    return{mockElement,mockQueryElement};
+});
 vi.mock("./core/domRegistry",()=>{
     return{
         dom:{
-            queryElement:vi.fn((selector: string)=>{
-                if(selector==="#test-btn"){
-                    if(!mockElement){
-                        mockElement=document.createElement("button");
-                        mockElement.id="test-btn";
-                        document.body.appendChild(mockElement);
-                    }
-                    return mockElement;
-                }
-                return null;
-            })
+            queryElement:mocks.mockQueryElement
         }
     };
 });
@@ -22,10 +26,10 @@ import{bindEvents,type EventBinding}from"./services/eventBinder";
 describe("EventBinding",()=>{
     beforeEach(()=>{
         vi.clearAllMocks();
-        if(mockElement&&mockElement.parentNode){
-            mockElement.parentNode.removeChild(mockElement);
+        if(mocks.mockElement&&mocks.mockElement.parentNode){
+            mocks.mockElement.parentNode.removeChild(mocks.mockElement);
         }
-        mockElement=null;
+        mocks.mockElement=null;
     });
     it("should bind events to existing elements",()=>{
         let handler=vi.fn();
@@ -33,7 +37,7 @@ describe("EventBinding",()=>{
             {selector:"#test-btn",event:"click",handler}
         ];
         bindEvents(bindings);
-        if(mockElement) mockElement.click();
+        if(mocks.mockElement) mocks.mockElement.click();
         expect(handler).toHaveBeenCalled();
     });
     it("should skip null elements with debug warning",()=>{

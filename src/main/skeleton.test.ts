@@ -1,18 +1,20 @@
 /** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
-let mockQuestionArea: any=null;
-vi.mock("./core/domRegistry",()=>{
-    mockQuestionArea={
+const mocks=vi.hoisted(()=>{
+    let mockQuestionArea={
         innerHTML:"",
         classList:{
             add:vi.fn(),
             remove:vi.fn(),
         }
     };
+    return{mockQuestionArea};
+});
+vi.mock("./core/domRegistry",()=>{
     return{
         dom:{
             displays:{
-                questionArea:mockQuestionArea
+                questionArea:mocks.mockQuestionArea
             }
         }
     };
@@ -21,7 +23,7 @@ import{showQuestionSkeleton,hideQuestionSkeleton,isSkeletonActive}from"./ui/skel
 describe("skeleton",()=>{
     beforeEach(()=>{
         vi.clearAllMocks();
-        mockQuestionArea.innerHTML="";
+        mocks.mockQuestionArea.innerHTML="";
     });
     it("should start inactive",()=>{
         expect(isSkeletonActive()).toBe(false);
@@ -32,7 +34,7 @@ describe("skeleton",()=>{
     });
     it("should render skeleton HTML",()=>{
         showQuestionSkeleton();
-        expect(mockQuestionArea.innerHTML).toContain("skeleton-container");
+        expect(mocks.mockQuestionArea.innerHTML).toContain("skeleton-container");
     });
     it("should clear skeleton on hide",()=>{
         showQuestionSkeleton();
