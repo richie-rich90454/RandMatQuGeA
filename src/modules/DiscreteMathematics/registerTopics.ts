@@ -1,0 +1,11 @@
+import{registerTopic}from"../../main/services/topicRegistry";
+registerTopic("perm","discrete","generatePermutation");
+registerTopic("comb","discrete","generateCombination");
+registerTopic("prob","discrete","generateProbability");
+registerTopic("stats","discrete","generateStatistics");
+registerTopic("arithmetic_sequence","discrete","generateArithmeticSequence");
+registerTopic("geometric_sequence","discrete","generateGeometricSequence");
+registerTopic("sequence_limit","discrete","generateSequenceLimit");
+registerTopic("infinite_series","discrete","generateInfiniteGeometricSeries");
+registerTopic("induction","discrete","generateMathematicalInduction");
+registerTopic("binomial","discrete","generateBinomialTheorem");
