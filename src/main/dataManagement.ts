@@ -21,16 +21,16 @@ export async function openDataModal(){
 async function loadData(){
     if(!dataList)return;
     try{
-        const stats=await invoke("get_performance_stats",{difficulty:null,days:null})as Array<any>;
+        let stats=await invoke("get_performance_stats",{difficulty:null,days:null})as Array<any>;
         if(!stats||stats.length===0){
             dataList.innerHTML="<p>No performance data yet. Answer some questions first.</p>";
             return;
         }
         dataList.innerHTML="";
         for(const s of stats){
-            const topicName=topics.find(t=>t.id===s.topic_id)?.name||s.topic_id;
-            const acc=isFinite(s.accuracy)?(s.accuracy*100).toFixed(1):"0.0";
-            const div=document.createElement("div");
+            let topicName=topics.find(t=>t.id===s.topic_id)?.name||s.topic_id;
+            let acc=isFinite(s.accuracy)?(s.accuracy*100).toFixed(1):"0.0";
+            let div=document.createElement("div");
             div.className="data-item";
             div.innerHTML=`
                 <div class="data-info">
@@ -42,7 +42,7 @@ async function loadData(){
             dataList.appendChild(div);
         }
         attachDeleteEvents();
-        const deleteAllBtn=document.getElementById("delete-all-btn");
+        let deleteAllBtn=document.getElementById("delete-all-btn");
         if(deleteAllBtn){
             deleteAllBtn.onclick=async()=>{
                 if(confirm("Delete ALL performance data? This cannot be undone.")){
@@ -59,7 +59,7 @@ async function loadData(){
                 }
             };
         }
-        const resetAllBtn=document.getElementById("reset-all-btn");
+        let resetAllBtn=document.getElementById("reset-all-btn");
         if(resetAllBtn){
             resetAllBtn.onclick=async()=>{
                 if(confirm("HARD RESET: This will delete ALL scores and performance data. This cannot be undone. Are you sure?")){
@@ -104,8 +104,8 @@ function attachDeleteEvents(){
 export function initDataModal(){
     modal=document.getElementById("data-modal");
     if(!modal)return;
-    const closeBtn=document.getElementById("data-close");
-    const refreshBtn=document.getElementById("data-refresh");
+    let closeBtn=document.getElementById("data-close");
+    let refreshBtn=document.getElementById("data-refresh");
     if(closeBtn)closeBtn.onclick=()=>{
         modal?.classList.remove("show");
         modal?.classList.add("hidden");
