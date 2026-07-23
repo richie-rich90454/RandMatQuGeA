@@ -111,5 +111,11 @@ export class QuestionRenderer{
             area.innerHTML="<div class=\"error-card\"><h3 class=\"error-title\">"+title+"</h3><p class=\"error-message\">"+message+"</p></div>";
         }
     }
+    getExpectedFormat(): string{
+        return questionState.expectedFormat;
+    }
+    getHasQuestion(): boolean{
+        return questionState.hasQuestion;
+    }
 }
 export let renderer=new QuestionRenderer(dom);
