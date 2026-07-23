@@ -68,7 +68,7 @@ function sanitize(s: string): string{
 function removeConstants(s: string): string{
     let withPlus=s.replace(/-/g,'+-');
     let terms=withPlus.split('+').filter(t=>t!=='');
-    const isConstant=(term: string): boolean=>{
+    let isConstant=(term: string): boolean=>{
         term=term.replace(/^[+-]/,'');
         if (term==='') return false;
         return /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/.test(term)||
@@ -218,7 +218,7 @@ export async function checkAnswer(userInput?: string): Promise<void>{
     let correct=questionState.correctAnswer.correct;
     let alternate=questionState.correctAnswer.alternate;
     // --- Helper to convert LaTeX to math.js syntax ---
-    const convertLatex=(s: string): string=>{
+    let convertLatex=(s: string): string=>{
         // Replace fancy minus with hyphen
         s=s.replace(/−/g,'-');
         // Convert \frac{num}{den} to (num)/(den)
@@ -247,7 +247,7 @@ export async function checkAnswer(userInput?: string): Promise<void>{
         return s;
     };
     // --- Helper to compare two expressions (used for left/right sides) ---
-    const compareExpressions=(exprA: string, exprB: string, useFullPipeline: boolean=true): boolean=>{
+    let compareExpressions=(exprA: string, exprB: string, useFullPipeline: boolean=true): boolean=>{
         if (exprA===exprB) return true;
         // Convert LaTeX in both expressions
         exprA=convertLatex(exprA);
