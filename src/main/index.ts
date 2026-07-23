@@ -7,7 +7,7 @@ export{topicRegistry,registerTopic}from"./services/topicRegistry";
 export type{TopicEntry}from"./services/topicRegistry";
 export{bindEvents,countBindings,hasBinding}from"./services/eventBinder";
 export type{EventBinding}from"./services/eventBinder";
-export{evaluateInWorker,simplifyInWorker,parseInWorker,terminateWorker,isWorkerAvailable}from"./services/mathWorkerClient";
+export{evaluateInWorker,simplifyInWorker,parseInWorker,terminateWorker,isWorkerAvailable,getPendingCount}from"./services/mathWorkerClient";
 export{showQuestionSkeleton,hideQuestionSkeleton,isSkeletonActive,getLastSkeletonTime}from"./ui/skeleton";
 export{offlineIndicator,OfflineIndicator}from"./ui/offlineIndicator";
 export{initVirtualGrid,refreshVirtualGrid,getVisibleRange,getTotalItems}from"./ui/virtualTopicGrid";
