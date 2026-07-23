@@ -156,8 +156,14 @@ vi.mock("../modules/Geometry/index.js",()=>({
     generateSphereEquation:vi.fn(),
     generateLinePlane3D:vi.fn(),
 }));
-vi.mock("./dom.js",()=>({
-    questionArea:{innerHTML:""},
+vi.mock("./core/domRegistry.js",()=>({
+    dom:{
+        displays:{
+            questionArea:{innerHTML:""},
+            mcqChoicesContainer:null,
+            previewDiv:null,
+        }
+    }
 }));
 import{generateQuestion,generateQuestionDto}from"./questionGenerator.js";
 import{generateAddition}from"../modules/Arithmetic/index.js";
