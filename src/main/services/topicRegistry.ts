@@ -58,6 +58,11 @@ export class TopicRegistry{
         }
         return undefined;
     }
+    getRandomTopic(): TopicEntry|undefined{
+        let all=Array.from(this._topics.values());
+        if(all.length===0) return undefined;
+        return all[Math.floor(Math.random()*all.length)];
+    }
 }
 export let topicRegistry: TopicRegistry=new TopicRegistry();
 export function registerTopic(id: string, scope: string, fn: string): void{
