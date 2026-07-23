@@ -190,4 +190,3 @@ export async function generateChoicesForCurrentQuestion(rng?: RngFn): Promise<vo
     appState.mcqChoices=choices;
     ui.renderMcqChoices(choices);
 }
-
