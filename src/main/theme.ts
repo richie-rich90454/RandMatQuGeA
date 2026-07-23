@@ -1,7 +1,7 @@
-import {dom} from "./core/domRegistry";
-import * as settings from "./settings";
+import{dom}from"./core/domRegistry";
+import * as settings from"./settings";
 let themeChangedUnlisten:(()=>void)|null=null;
-export async function initializeTheme(): Promise<void>{
+export async function initializeTheme():Promise<void>{
 	let savedTheme:string|null=null;
 	try{
 		savedTheme=localStorage.getItem("theme");
