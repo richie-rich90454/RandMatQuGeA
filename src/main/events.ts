@@ -17,9 +17,9 @@ import {check} from "@tauri-apps/plugin-updater";
 import {relaunch} from "@tauri-apps/plugin-process";
 import packageJson from "../../package.json";
 export async function isVersionGreater(v1: string, v2: string): Promise<boolean>{
-    const semver=(await import("semver")).default;
-    const cleanV1=v1.replace(/^v/, "");
-    const cleanV2=v2.replace(/^v/, "");
+    let semver=(await import("semver")).default;
+    let cleanV1=v1.replace(/^v/, "");
+    let cleanV2=v2.replace(/^v/, "");
     return semver.gt(cleanV1, cleanV2);
 }
 export function switchToSingle(): void{
@@ -114,8 +114,8 @@ export async function setupEventListeners(): Promise<void>{
     }
     document.addEventListener("keydown",(e: KeyboardEvent)=>{
         if (e.ctrlKey||e.metaKey){
-            const ae=document.activeElement;
-            const isTyping=ae instanceof HTMLInputElement||ae instanceof HTMLTextAreaElement||ae instanceof HTMLSelectElement;
+            let ae=document.activeElement;
+            let isTyping=ae instanceof HTMLInputElement||ae instanceof HTMLTextAreaElement||ae instanceof HTMLSelectElement;
             switch (e.key){
                 case "g": case "G":
                     e.preventDefault();
@@ -156,7 +156,7 @@ export async function setupEventListeners(): Promise<void>{
     });
     document.addEventListener("keydown", (e: KeyboardEvent)=>{
         if (e.key==="Escape") {
-            const openModals=[dom.modals.settingsModal, dom.modals.shortcutsModal, dom.modals.onboardingOverlay, dom.modals.printModal, dom.modals.weakTopicsModal, dom.modals.dataModal];
+            let openModals=[dom.modals.settingsModal, dom.modals.shortcutsModal, dom.modals.onboardingOverlay, dom.modals.printModal, dom.modals.weakTopicsModal, dom.modals.dataModal];
             openModals.forEach(modal=>{
                 if (modal && modal.classList.contains("show")) {
                     modal.classList.remove("show");
@@ -278,13 +278,13 @@ export async function setupEventListeners(): Promise<void>{
     if (dom.buttons.checkUpdatesBtn){
         dom.buttons.checkUpdatesBtn.addEventListener("click", async ()=>{
             dom.buttons.checkUpdatesBtn!.disabled=true;
-            const originalText=dom.buttons.checkUpdatesBtn!.textContent;
+            let originalText=dom.buttons.checkUpdatesBtn!.textContent;
             dom.buttons.checkUpdatesBtn!.textContent="Checking...";
             try{
-                const update=await check();
+                let update=await check();
                 if (update){
-                    const currentVer=packageJson.version;
-                    const updateVer=update.version.replace(/^v/, "");
+                    let currentVer=packageJson.version;
+                    let updateVer=update.version.replace(/^v/, "");
                     if (!(await isVersionGreater(updateVer, currentVer))) {
                         alert("You are already using the latest version.");
                         return;
@@ -293,8 +293,8 @@ export async function setupEventListeners(): Promise<void>{
                         dom.buttons.checkUpdatesBtn!.textContent="Downloading...";
                         await update.downloadAndInstall((progress)=>{
                             if (progress.event==="Progress") {
-                                const data=progress.data as { chunkLength: number; contentLength: number };
-                                const percent=Math.round((data.chunkLength / data.contentLength) * 100);
+                                let data=progress.data as { chunkLength: number; contentLength: number };
+                                let percent=Math.round((data.chunkLength / data.contentLength) * 100);
                                 console.log(`Download progress: ${percent}%`);
                             }
                         });
@@ -419,8 +419,8 @@ export async function setupEventListeners(): Promise<void>{
         dom.displays.mathToolbar.querySelectorAll(".math-toolbar-btn").forEach(btn=>{
             btn.addEventListener("click",(e)=>{
                 if ((btn as HTMLElement).id==="math-dropdown-btn") return;
-                const target=e.target as HTMLElement;
-                const symbol=target.dataset.symbol||target.dataset.template||"";
+                let target=e.target as HTMLElement;
+                let symbol=target.dataset.symbol||target.dataset.template||"";
                 ui.insertSymbol(symbol);
             });
         });
@@ -482,8 +482,8 @@ export async function setupEventListeners(): Promise<void>{
             if (e.target===dom.modals.dataModal){dom.modals.dataModal!.classList.remove("show");dom.modals.dataModal!.classList.add("hidden");}
         });
     }
-    const dropdownBtn=document.getElementById("math-dropdown-btn");
-    const dropdown=document.getElementById("math-dropdown");
+    let dropdownBtn=document.getElementById("math-dropdown-btn");
+    let dropdown=document.getElementById("math-dropdown");
     if (dropdownBtn&&dropdown) {
         dropdownBtn.addEventListener("click", (e)=>{
             e.stopPropagation();
@@ -495,16 +495,16 @@ export async function setupEventListeners(): Promise<void>{
             }
         });
     }
-    const results=await Promise.allSettled([
+    let results=await Promise.allSettled([
         import("./printWorksheet"),
         import("./dataManagement"),
         import("./weakTopics")
     ]);
     if (results[0].status==="fulfilled"){
         try{
-            const printWorksheet=results[0].value;
+            let printWorksheet=results[0].value;
             printWorksheet.initPrintModal();
-            const printWorksheetBtn=document.getElementById("print-worksheet-btn");
+            let printWorksheetBtn=document.getElementById("print-worksheet-btn");
             if (printWorksheetBtn) printWorksheetBtn.addEventListener("click", printWorksheet.openPrintModal);
         }
         catch(err){
@@ -516,9 +516,9 @@ export async function setupEventListeners(): Promise<void>{
     }
     if (results[1].status==="fulfilled"){
         try{
-            const dataManagement=results[1].value;
+            let dataManagement=results[1].value;
             dataManagement.initDataModal();
-            const manageDataBtn=document.getElementById("manage-data-btn");
+            let manageDataBtn=document.getElementById("manage-data-btn");
             if (manageDataBtn) manageDataBtn.addEventListener("click", dataManagement.openDataModal);
         }
         catch(err){
@@ -530,8 +530,8 @@ export async function setupEventListeners(): Promise<void>{
     }
     if (results[2].status==="fulfilled"){
         try{
-            const weakTopics=results[2].value;
-            const recommendBtn=document.getElementById("recommend-btn");
+            let weakTopics=results[2].value;
+            let recommendBtn=document.getElementById("recommend-btn");
             if (recommendBtn) recommendBtn.addEventListener("click", ()=>{
                 weakTopics.checkAndShowWeakTopicsPopup().catch(console.warn);
             });
