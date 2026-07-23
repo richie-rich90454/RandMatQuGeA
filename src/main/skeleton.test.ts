@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import{describe,it,expect,vi,beforeEach}from"vitest";
+import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 const mocks=vi.hoisted(()=>{
     let mockQuestionArea=document.createElement("div");
     mockQuestionArea.id="question-area";
@@ -18,8 +18,12 @@ vi.mock("./core/domRegistry",()=>{
 import{showQuestionSkeleton,hideQuestionSkeleton,isSkeletonActive}from"./ui/skeleton";
 describe("skeleton",()=>{
     beforeEach(()=>{
+        vi.useFakeTimers();
         vi.clearAllMocks();
         mocks.mockQuestionArea.innerHTML="";
+    });
+    afterEach(()=>{
+        vi.useRealTimers();
     });
     it("should start inactive",()=>{
         expect(isSkeletonActive()).toBe(false);
@@ -35,7 +39,9 @@ describe("skeleton",()=>{
     it("should clear skeleton on hide",()=>{
         showQuestionSkeleton();
         expect(isSkeletonActive()).toBe(true);
+        vi.advanceTimersByTime(500);
         hideQuestionSkeleton();
+        vi.advanceTimersByTime(500);
         expect(isSkeletonActive()).toBe(false);
     });
 });
