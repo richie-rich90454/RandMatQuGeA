@@ -11,6 +11,7 @@ import{dom}from"./core/domRegistry";
 import{appState}from"./core/stateStore";
 import{questionState}from"./core/questionState";
 import{renderer}from"./core/questionRenderer";
+import{showQuestionSkeleton,hideQuestionSkeleton}from"./ui/skeleton";
 import * as ui from "./ui";
 import * as topics from "./topics";
 import{generateQuestion as callGenerator}from"./questionGenerator";
@@ -108,14 +109,10 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
     questionState.hasQuestion=false;
     dom.buttons.checkAnswerButton.disabled=true;
     dom.inputs.userAnswer.disabled=true;
-    renderer.render(`
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <p>Generating question...</p>
-    </div>
-  `);
+    showQuestionSkeleton();
     try {
         await callGenerator(appState.selectedTopic,appState.currentDifficulty);
+        hideQuestionSkeleton();
         if (!questionState.correctAnswer.correct){
             renderer.render(`<div class="empty-state"><p>Could not generate question. Please try another topic.</p></div>`);
             questionState.hasQuestion=false;
@@ -131,6 +128,7 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
         startQuestionTimer();
     } catch (error) {
         console.error("Question generation failed:", error);
+        hideQuestionSkeleton();
         renderer.render(`
             <div class="empty-state" style="color: var(--error);">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
