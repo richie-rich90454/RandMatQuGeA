@@ -75,6 +75,15 @@ export class ErrorHandler{
             return undefined;
         }
     }
+    wrapWithFallback<T>(fn: ()=>T,fallback: T): T{
+        try{
+            return fn();
+        }
+        catch(err){
+            this.handleError(err);
+            return fallback;
+        }
+    }
     showErrorWithTitle(title: string,message: string,retryFn: (()=>void)|null): void{
         this.retryFn=retryFn;
         let area=dom.displays.questionArea;
