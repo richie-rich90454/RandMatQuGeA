@@ -1,7 +1,7 @@
-import {dom} from "./core/domRegistry";
-import {appState} from "./core/stateStore";
-import * as ui from "./ui";
-import {topics,scopeTopics} from "./constants";
+import{dom}from"./core/domRegistry";
+import{appState}from"./core/stateStore";
+import * as ui from"./ui";
+import{topics,scopeTopics}from"./constants";
 let gridInitialized=false;
 let topicElements: Map<string, HTMLButtonElement>=new Map();
 export function resetTopicGrid(): void{
