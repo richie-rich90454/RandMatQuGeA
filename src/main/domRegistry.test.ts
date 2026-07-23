@@ -1,21 +1,33 @@
 /** @vitest-environment jsdom */
-import{describe,it,expect,vi,beforeEach}from"vitest";
+import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 vi.mock("@tauri-apps/api/window",()=>({
     getCurrentWindow:vi.fn(()=>({theme:vi.fn(),setTheme:vi.fn()})),
 }));
 import{DomRegistry}from"./core/domRegistry";
 describe("DomRegistry",()=>{
     let registry: DomRegistry;
+    let testElements: HTMLElement[]=[];
     beforeEach(()=>{
         registry=new DomRegistry();
+        testElements=[];
     });
+    afterEach(()=>{
+        for(let el of testElements){
+            if(el.parentNode) el.parentNode.removeChild(el);
+        }
+    });
+    function addElement(id: string): HTMLElement{
+        let el=document.createElement("div");
+        el.id=id;
+        document.body.appendChild(el);
+        testElements.push(el);
+        return el;
+    }
     it("should create instance",()=>{
         expect(registry).toBeDefined();
     });
     it("should resolve elements by ID",()=>{
-        let el=document.createElement("div");
-        el.id="test-el";
-        document.body.appendChild(el);
+        let el=addElement("test-el");
         let result=registry.getElement("test-el");
         expect(result).toBe(el);
     });
@@ -24,34 +36,24 @@ describe("DomRegistry",()=>{
         expect(result).toBeNull();
     });
     it("should cache resolved elements",()=>{
-        let el=document.createElement("div");
-        el.id="cache-el";
-        document.body.appendChild(el);
+        let el=addElement("cache-el");
         let first=registry.getElement("cache-el");
         let second=registry.getElement("cache-el");
         expect(first).toBe(second);
     });
     it("should invalidate single element",()=>{
-        let el=document.createElement("div");
-        el.id="inv-el";
-        document.body.appendChild(el);
+        let el=addElement("inv-el");
         registry.getElement("inv-el");
         registry.invalidate("inv-el");
-        let el2=document.createElement("div");
-        el2.id="inv-el";
-        document.body.appendChild(el2);
+        let el2=addElement("inv-el");
         let result=registry.getElement("inv-el");
         expect(result).toBe(el2);
     });
     it("should invalidate all elements",()=>{
-        let el=document.createElement("div");
-        el.id="inv-all";
-        document.body.appendChild(el);
+        let el=addElement("inv-all");
         registry.getElement("inv-all");
         registry.invalidateAll();
-        let el2=document.createElement("div");
-        el2.id="inv-all";
-        document.body.appendChild(el2);
+        let el2=addElement("inv-all");
         let result=registry.getElement("inv-all");
         expect(result).toBe(el2);
     });
