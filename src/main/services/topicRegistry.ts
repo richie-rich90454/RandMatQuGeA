@@ -66,6 +66,13 @@ export class TopicRegistry{
     removeTopic(id: string): boolean{
         return this._topics.delete(id);
     }
+    getFirstTopic(): TopicEntry|undefined{
+        return this._topics.values().next().value;
+    }
+    getLastTopic(): TopicEntry|undefined{
+        let entries=Array.from(this._topics.values());
+        return entries.length>0?entries[entries.length-1]:undefined;
+    }
 }
 export let topicRegistry: TopicRegistry=new TopicRegistry();
 export function registerTopic(id: string, scope: string, fn: string): void{
