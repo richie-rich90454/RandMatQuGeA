@@ -20,6 +20,9 @@ export class TopicRegistry{
     clear(): void{
         this._topics.clear();
     }
+    count(): number{
+        return this._topics.size;
+    }
     getTopicsByScope(scope: string): TopicEntry[]{
         let result: TopicEntry[]=[];
         for (let entry of this._topics.values()){
