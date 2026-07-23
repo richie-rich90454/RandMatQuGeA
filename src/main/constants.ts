@@ -174,4 +174,4 @@ export let scopeTopics = {
     ],
     all: topics.map(t=>t.id)
 };
-export const SESSION_STORAGE_KEY="mentalSessionSnapshot";
+export let SESSION_STORAGE_KEY="mentalSessionSnapshot";
