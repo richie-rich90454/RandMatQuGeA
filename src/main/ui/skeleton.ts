@@ -11,13 +11,13 @@ export function showQuestionSkeleton(): void{
         "<div class=\"skeleton-line skeleton-line-short\"></div>" +
         "<div class=\"skeleton-block\"></div>" +
         "</div>";
-    area.classList.add("skeleton-active");
+    if(area.classList) area.classList.add("skeleton-active");
 }
 export function hideQuestionSkeleton(): void{
     if(!skeletonActive)return;
     let area=dom.displays.questionArea;
     if(area){
-        area.classList.remove("skeleton-active");
+        if(area.classList) area.classList.remove("skeleton-active");
     }
     skeletonActive=false;
 }
