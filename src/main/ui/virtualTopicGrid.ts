@@ -40,3 +40,9 @@ export function refreshVirtualGrid(): void{
     updateVisibleRange();
     renderVisibleItems();
 }
+export function getVisibleRange(): {start:number,end:number}{
+    return{start:visibleStart,end:visibleEnd};
+}
+export function getTotalItems(): number{
+    return allElements.length;
+}
