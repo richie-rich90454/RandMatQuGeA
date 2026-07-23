@@ -217,7 +217,6 @@ export async function checkAnswer(userInput?: string): Promise<void>{
     }
     let correct=questionState.correctAnswer.correct;
     let alternate=questionState.correctAnswer.alternate;
-
     // --- Helper to convert LaTeX to math.js syntax ---
     const convertLatex=(s: string): string=>{
         // Replace fancy minus with hyphen
@@ -247,7 +246,6 @@ export async function checkAnswer(userInput?: string): Promise<void>{
         s=s.replace(/\\([a-zA-Z]+)/g,'$1');
         return s;
     };
-
     // --- Helper to compare two expressions (used for left/right sides) ---
     const compareExpressions=(exprA: string, exprB: string, useFullPipeline: boolean=true): boolean=>{
         if (exprA===exprB) return true;
@@ -337,7 +335,6 @@ let numB=mathjs.evaluate(funcB);
         }
         return false;
     };
-
     // --- Main comparison logic ---
     let isCorrect=false;
     // Check if the expression contains an equals sign (equation)
@@ -495,8 +492,8 @@ let numCorrect=mathjs.evaluate(funcCorrect);
             }
         }
     }
-    const responseTime=getResponseTime();
-    const errorType=!isCorrect ? detectErrorType(answer, correct, appState.selectedTopic || '') : null;
+    let responseTime=getResponseTime();
+    let errorType=!isCorrect ? detectErrorType(answer, correct, appState.selectedTopic || '') : null;
     console.log("[Adaptive] Saving performance:", {
         topicId: appState.selectedTopic,
         difficulty: appState.currentDifficulty,
@@ -516,9 +513,9 @@ let numCorrect=mathjs.evaluate(funcCorrect);
         console.warn("[Adaptive] Failed to save performance:", e);
     });
     if (settings.settings.sound){
-        const audioCtx=getAudioContext();
-        const oscillator=audioCtx.createOscillator();
-        const gainNode=audioCtx.createGain();
+        let audioCtx=getAudioContext();
+        let oscillator=audioCtx.createOscillator();
+        let gainNode=audioCtx.createGain();
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
         oscillator.frequency.value=isCorrect?880:440;
@@ -530,7 +527,7 @@ let numCorrect=mathjs.evaluate(funcCorrect);
         navigator.vibrate(isCorrect?50:100);
     }
     // Render the correct answer using KaTeX (fallback to plain text if KaTeX unavailable or errors)
-    const answerToDisplay=questionState.correctAnswer.display||questionState.correctAnswer.correct||"(no answer available)";
+    let answerToDisplay=questionState.correctAnswer.display||questionState.correctAnswer.correct||"(no answer available)";
     let answerHtml='';
     if (window.katex){
         try{
