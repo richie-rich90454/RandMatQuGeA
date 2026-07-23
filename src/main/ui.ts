@@ -40,7 +40,7 @@ export function updateCheckboxAria(checkbox: HTMLInputElement|null): void{
 export function updateProgressBar(): void{
     if(dom.displays.mentalProgressBar){
         if(appState.maxQuestions<=0)return;
-        const now=Math.min(100,(appState.sessionScore.total/appState.maxQuestions)*100);
+        let now=Math.min(100,(appState.sessionScore.total/appState.maxQuestions)*100);
         dom.displays.mentalProgressBar.setAttribute("aria-valuenow",String(now));
     }
 }
@@ -153,7 +153,7 @@ export function showNotification(message: string,type: "info"|"warning"="info"):
 }
 export function updatePreview(): void{
     if(!dom.displays.previewDiv||!dom.inputs.userAnswer)return;
-    const input=dom.inputs.userAnswer.value.trim();
+    let input=dom.inputs.userAnswer.value.trim();
     if(!input){
         dom.displays.previewDiv.innerHTML="";
         dom.displays.previewDiv.classList.remove("has-content");
@@ -168,9 +168,9 @@ export function updatePreview(): void{
         dom.displays.previewDiv.classList.add("has-content");
     }
     catch(e){
-        const errorMessage=e instanceof Error?e.message:String(e);
+        let errorMessage=e instanceof Error?e.message:String(e);
         dom.displays.previewDiv.innerHTML="";
-        const errorSpan=document.createElement("span");
+        let errorSpan=document.createElement("span");
         errorSpan.style.color="var(--error)";
         errorSpan.textContent=errorMessage;
         dom.displays.previewDiv.appendChild(errorSpan);
@@ -186,11 +186,11 @@ export function updatePreviewDebounced(): void{
 }
 export function insertSymbol(symbol: string): void{
     if(!dom.inputs.userAnswer)return;
-    const start=dom.inputs.userAnswer.selectionStart;
-    const end=dom.inputs.userAnswer.selectionEnd;
-    const text=dom.inputs.userAnswer.value;
+    let start=dom.inputs.userAnswer.selectionStart;
+    let end=dom.inputs.userAnswer.selectionEnd;
+    let text=dom.inputs.userAnswer.value;
     if(symbol.includes('{}')||symbol.includes('&')){
-        const newText=text.substring(0,start)+symbol+text.substring(end);
+        let newText=text.substring(0,start)+symbol+text.substring(end);
         dom.inputs.userAnswer.value=newText;
         let placeholderPos=symbol.indexOf('{}');
         if(placeholderPos===-1)placeholderPos=symbol.indexOf('&');
@@ -202,7 +202,7 @@ export function insertSymbol(symbol: string): void{
         }
     }
     else{
-        const newText=text.substring(0,start)+symbol+text.substring(end);
+        let newText=text.substring(0,start)+symbol+text.substring(end);
         dom.inputs.userAnswer.value=newText;
         dom.inputs.userAnswer.selectionStart=dom.inputs.userAnswer.selectionEnd=start+symbol.length;
     }
@@ -258,10 +258,10 @@ export function hideOnboarding(): void{
 }
 export function updateStatistics(): void{
     if(!dom.displays.accuracyStat||!dom.displays.avgTimeStat)return;
-    const accuracy=appState.sessionScore.total>0?(appState.sessionScore.correct/appState.sessionScore.total)*100:0;
+    let accuracy=appState.sessionScore.total>0?(appState.sessionScore.correct/appState.sessionScore.total)*100:0;
     dom.displays.accuracyStat.textContent=`Accuracy: ${accuracy.toFixed(1)}%`;
     if(appState.answeredQuestionsCount>0){
-        const avg=appState.totalTimeSpent/appState.answeredQuestionsCount/1000;
+        let avg=appState.totalTimeSpent/appState.answeredQuestionsCount/1000;
         dom.displays.avgTimeStat.textContent=`Avg: ${avg.toFixed(1)}s`;
     }
     else{
@@ -269,7 +269,7 @@ export function updateStatistics(): void{
     }
 }
 export function toggleMcqMode(): void{
-    const isMcq=dom.inputs.mcqToggle?.checked??false;
+    let isMcq=dom.inputs.mcqToggle?.checked??false;
     appState.mcqMode=isMcq;
     if(appState.currentMode!=="mental"&&appState.currentMode!=="single")return;
     if(isMcq){
@@ -297,11 +297,11 @@ export function renderMcqChoices(choices: string[]): void{
     if(!dom.displays.mcqChoicesContainer)return;
     dom.displays.mcqChoicesContainer.innerHTML="";
     choices.forEach(choice=>{
-        const btn=document.createElement("button");
+        let btn=document.createElement("button");
         btn.className="choice-button secondary-button";
         if(isProbablyLaTeX(choice)&&window.katex){
             try{
-                const renderedHtml=window.katex.renderToString(choice,{
+                let renderedHtml=window.katex.renderToString(choice,{
                     throwOnError:false,
                     displayMode:false
                 });
