@@ -2023,3 +2023,40 @@ hr.context-menu-divider{
 .practice-topic-btn{
     margin-left: var(--spacing-sm);
 }
+@keyframes skeleton-shimmer{
+    0%{ background-position: -200% 0; }
+    100%{ background-position: 200% 0; }
+}
+.skeleton-container{
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+.skeleton-title{
+    height: 24px;
+    width: 60%;
+    background: linear-gradient(90deg,var(--border) 25%,var(--surface-elevated) 50%,var(--border) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+}
+.skeleton-line{
+    height: 16px;
+    background: linear-gradient(90deg,var(--border) 25%,var(--surface-elevated) 50%,var(--border) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+}
+.skeleton-line-long{ width: 90%; }
+.skeleton-line-medium{ width: 70%; }
+.skeleton-line-short{ width: 50%; }
+.skeleton-block{
+    height: 80px;
+    width: 100%;
+    background: linear-gradient(90deg,var(--border) 25%,var(--surface-elevated) 50%,var(--border) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-sm);
+}
