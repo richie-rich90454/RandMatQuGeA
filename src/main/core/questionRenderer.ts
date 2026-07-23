@@ -88,6 +88,9 @@ export class QuestionRenderer{
     setHasQuestion(v: boolean): void{
         questionState.hasQuestion=v;
     }
+    getQuestionArea(): HTMLElement|null{
+        return this.registry.displays.questionArea;
+    }
     hasContent(): boolean{
         let area=this.registry.displays.questionArea;
         return area!==null&&area.innerHTML.length>0;
