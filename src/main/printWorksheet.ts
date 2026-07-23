@@ -6,13 +6,13 @@
  * Supports header fields (title, name, date, period), configurable answer-key modes,
  * page numbers, metadata, seeded reproducibility, and a live preview pane.
  */
-import { topics, scopeTopics } from "./constants";
-import { generateQuestionDto } from "./questionGenerator";
-import { invoke } from "@tauri-apps/api/core";
-import { save } from "@tauri-apps/plugin-dialog";
-import { seededRng } from "./core/rng";
-import { showNotification } from "./ui";
-import type { RngFn, QuestionDto } from "../types/global";
+import{topics,scopeTopics}from"./constants";
+import{generateQuestionDto}from"./questionGenerator";
+import{invoke}from"@tauri-apps/api/core";
+import{save}from"@tauri-apps/plugin-dialog";
+import{seededRng}from"./core/rng";
+import{showNotification}from"./ui";
+import type{RngFn,QuestionDto}from"../types/global";
 let modal: HTMLElement | null = null;
 let questionCountSelect: HTMLSelectElement | null = null;
 let topicSelect: HTMLSelectElement | null = null;
