@@ -16,16 +16,16 @@ let weakTopicsList:HTMLElement|null=null;
 export async function checkAndShowWeakTopicsPopup(){
     if(!settings.settings.showWeakTopicsPopup)return;
     try{
-        const weakTopics=await invoke("get_weak_topics",{limit:5})as Array<{topic_id:string,accuracy:number,attempts:number}>;
+        let weakTopics=await invoke("get_weak_topics",{limit:5})as Array<{topic_id:string,accuracy:number,attempts:number}>;
         if(!weakTopics||weakTopics.length===0){ui.showNotification("No weak topics yet — answer more questions to get recommendations.","info");return;}
         weakTopicsModal=document.getElementById("weak-topics-modal");
         weakTopicsList=document.getElementById("weak-topics-list");
         if(!weakTopicsModal||!weakTopicsList)return;
         weakTopicsList.innerHTML="";
         for(const topic of weakTopics){
-            const topicName=topics.find((t:{id:string,name:string})=>t.id===topic.topic_id)?.name||topic.topic_id;
-            const accuracyPercent=Math.round(topic.accuracy*100);
-            const item=document.createElement("div");
+            let topicName=topics.find((t:{id:string,name:string})=>t.id===topic.topic_id)?.name||topic.topic_id;
+            let accuracyPercent=Math.round(topic.accuracy*100);
+            let item=document.createElement("div");
             item.className="weak-topic-item";
             item.innerHTML=`
                 <div class="weak-topic-info">
@@ -46,14 +46,14 @@ export async function checkAndShowWeakTopicsPopup(){
                 }
             });
         });
-        const dismissBtn=document.getElementById("weak-topics-dismiss");
+        let dismissBtn=document.getElementById("weak-topics-dismiss");
         if(dismissBtn)dismissBtn.onclick=()=>weakTopicsModal?.classList.remove("show");
-        const practiceAllBtn=document.getElementById("weak-topics-practice-all");
+        let practiceAllBtn=document.getElementById("weak-topics-practice-all");
         if(practiceAllBtn){
             practiceAllBtn.onclick=()=>{
                 if(weakTopics.length>0){
                     appState.weakTopicQueue=weakTopics.map((t:{topic_id:string,accuracy:number,attempts:number})=>t.topic_id);
-                    const firstTopic=appState.weakTopicQueue.shift();
+                    let firstTopic=appState.weakTopicQueue.shift();
                     if(firstTopic){
                         selectTopic(firstTopic);
                         generateQuestion(firstTopic).catch((err:unknown)=>ui.showNotification("Failed to generate question: "+((err as Error)?.message||err),"warning"));
