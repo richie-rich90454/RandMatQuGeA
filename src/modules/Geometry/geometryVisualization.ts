@@ -3,7 +3,13 @@
  * @fileoverview Renders 2D (parabola, ellipse, hyperbola, polar conic, circle, triangle) and 3D (sphere, cube, cylinder, cone, pyramid, torus, points, line, plane) shapes. Cleans up previous visualizations and creates new ones in a dedicated container.
  * @date 2026-03-15
  */
-import { questionArea } from "../../script.js";
+let questionArea: HTMLElement|null=null;
+function getQuestionArea(): HTMLElement|null{
+    if(!questionArea){
+        questionArea=document.getElementById("question-area");
+    }
+    return questionArea;
+}
 
 let THREE: any=null;
 let OrbitControls: any=null;
@@ -393,11 +399,11 @@ export async function createVisualization(shape: string, params: any): Promise<v
 	info.style.fontSize="14px";
 	info.style.pointerEvents="none";
 	container.appendChild(info);
-	if (!questionArea){
+	if(!getQuestionArea()){
 		console.error("questionArea not found");
 		return;
 	}
-	questionArea.appendChild(container);
+	getQuestionArea()!.appendChild(container);
 	const twoDShapes=["parabola","ellipse","hyperbola","polarConic","circle","triangle"];
 	if (twoDShapes.includes(shape)){
 		createCanvas2DVisualization(shape,params,container);
