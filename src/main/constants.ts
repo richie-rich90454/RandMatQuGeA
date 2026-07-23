@@ -132,7 +132,6 @@ export let topics: Topic[]=[
     {id: "sphere_eq", name: "Sphere Equation", icon: "○ E", category: "Geometry"},
     {id: "line_plane_3d", name: "Lines & Planes 3D", icon: "L+P", category: "Geometry"},
 ];
-
 export let scopeTopics = {
     simple: ["add","subtrt","mult","divid"],
     algebra: [
