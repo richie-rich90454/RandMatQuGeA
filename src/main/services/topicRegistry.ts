@@ -40,6 +40,9 @@ export class TopicRegistry{
         }
         return Array.from(scopes);
     }
+    getTopicIds(): string[]{
+        return Array.from(this._topics.keys());
+    }
     getTopicsByScope(scope: string): TopicEntry[]{
         let result: TopicEntry[]=[];
         for (let entry of this._topics.values()){
