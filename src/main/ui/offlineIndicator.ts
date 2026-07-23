@@ -31,6 +31,8 @@ export class OfflineIndicator{
 			this.badge=document.createElement("div");
 			this.badge.className="offline-badge hidden";
 			this.badge.textContent="Offline";
+			this.badge.setAttribute("role","status");
+			this.badge.setAttribute("aria-live","polite");
 			let header=document.querySelector("header")||document.querySelector(".app-header");
 			if(header){
 				header.appendChild(this.badge);
@@ -38,9 +40,11 @@ export class OfflineIndicator{
 		}
 		if(this.isOffline){
 			this.badge.classList.remove("hidden");
+			this.badge.setAttribute("aria-hidden","false");
 		}
 		else{
 			this.badge.classList.add("hidden");
+			this.badge.setAttribute("aria-hidden","true");
 		}
 	}
 	getStatus(): boolean{
