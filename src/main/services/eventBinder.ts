@@ -23,3 +23,6 @@ export function bindEvents(bindings: EventBinding[]): void{
 		el.addEventListener(binding.event,binding.handler);
 	}
 }
+export function countBindings(bindings: EventBinding[]): number{
+	return bindings.length;
+}
