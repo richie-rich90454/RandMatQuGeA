@@ -45,10 +45,13 @@ export class ErrorHandler{
 			});
 		}
 	}
-	clearError(): void{
-		this.lastError=null;
-		this.retryFn=null;
-	}
+    clearError(): void{
+        this.lastError=null;
+        this.retryFn=null;
+    }
+    resetCount(): void{
+        this.errorCount=0;
+    }
     getError(): string|null{
         return this.lastError;
     }
