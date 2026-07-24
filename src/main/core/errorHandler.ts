@@ -92,6 +92,20 @@ export class ErrorHandler{
             return fallback;
         }
     }
+    wrapWithRetry<T>(fn: ()=>T,retries: number): T|undefined{
+        for(let i=0;i<=retries;i++){
+            try{
+                return fn();
+            }
+            catch(err){
+                if(i===retries){
+                    this.handleError(err);
+                    return undefined;
+                }
+            }
+        }
+        return undefined;
+    }
     async wrapAsyncWithTimeout<T>(fn: ()=>Promise<T>,timeoutMs: number): Promise<T|undefined>{
         return new Promise((resolve)=>{
             let timer=setTimeout(()=>{
