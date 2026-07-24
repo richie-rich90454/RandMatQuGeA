@@ -66,6 +66,9 @@ export class TopicRegistry{
     removeTopic(id: string): boolean{
         return this._topics.delete(id);
     }
+    replaceTopic(id: string,scope: string,fn: string): void{
+        this._topics.set(id,{id,scope,fn});
+    }
     getFirstTopic(): TopicEntry|undefined{
         return this._topics.values().next().value;
     }
