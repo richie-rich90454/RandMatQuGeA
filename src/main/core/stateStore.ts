@@ -126,6 +126,10 @@ export class AppState{
 	incrementAnsweredCount(): void{
 		this._answeredQuestionsCount++;
 	}
+	incrementSessionScore(correct: boolean): void{
+		this._sessionScore.total++;
+		if(correct) this._sessionScore.correct++;
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
