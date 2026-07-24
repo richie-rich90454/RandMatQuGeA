@@ -123,6 +123,9 @@ export class AppState{
 	getScorePercentage(): number{
 		return this._sessionScore.total>0?Math.round((this._sessionScore.correct/this._sessionScore.total)*100):0;
 	}
+	incrementAnsweredCount(): void{
+		this._answeredQuestionsCount++;
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
