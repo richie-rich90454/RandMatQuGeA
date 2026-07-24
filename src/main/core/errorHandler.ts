@@ -2,6 +2,7 @@ import{dom}from"./domRegistry";
 export class ErrorHandler{
 	private lastError: string|null=null;
 	private retryFn: (()=>void)|null=null;
+	private errorCount: number=0;
 	wrap<T>(fn: ()=>T): T|undefined{
 		try{
 			return fn();
@@ -23,6 +24,7 @@ export class ErrorHandler{
 	handleError(err: unknown): void{
 		let message=err instanceof Error?err.message:String(err);
 		this.lastError=message;
+		this.errorCount++;
 		console.error("ErrorHandler caught:",message,err);
 		this.showError(message,null);
 	}
@@ -58,6 +60,9 @@ export class ErrorHandler{
     }
     getRetryFunction(): (()=>void)|null{
         return this.retryFn;
+    }
+    getErrorCount(): number{
+        return this.errorCount;
     }
     retry(): void{
         if(this.retryFn){
