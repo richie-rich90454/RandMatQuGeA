@@ -145,5 +145,9 @@ export class QuestionRenderer{
         this.setExpectedFormat(format);
         this.render(html);
     }
+    setAnswerWithFormat(answer: CorrectAnswer,format: string): void{
+        this.setAnswer(answer);
+        this.setExpectedFormat(format);
+    }
 }
 export let renderer=new QuestionRenderer(dom);
