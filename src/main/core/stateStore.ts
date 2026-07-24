@@ -120,6 +120,9 @@ export class AppState{
 	get isPaused(): boolean{
 		return this._sessionPaused;
 	}
+	getScorePercentage(): number{
+		return this._sessionScore.total>0?Math.round((this._sessionScore.correct/this._sessionScore.total)*100):0;
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
