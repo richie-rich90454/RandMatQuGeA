@@ -91,6 +91,12 @@ export class TopicRegistry{
         }
         return result;
     }
+    hasScope(scope: string): boolean{
+        for(let entry of this._topics.values()){
+            if(entry.scope===scope) return true;
+        }
+        return false;
+    }
 }
 export let topicRegistry: TopicRegistry=new TopicRegistry();
 export function registerTopic(id: string, scope: string, fn: string): void{
