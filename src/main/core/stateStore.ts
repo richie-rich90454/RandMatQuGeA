@@ -138,6 +138,11 @@ export class AppState{
 	getModeDisplayText(): string{
 		return this._currentMode==="mental"?"Mental Math":"Single Practice";
 	}
+	getTimeDisplayText(): string{
+		let minutes=Math.floor(this._totalTimeSpent/60);
+		let seconds=this._totalTimeSpent%60;
+		return minutes+":"+String(seconds).padStart(2,"0");
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
