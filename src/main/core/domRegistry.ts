@@ -50,6 +50,9 @@ export class DomRegistry{
         let el=this.getElement(id);
         return el?el.getBoundingClientRect():null;
     }
+    querySelectorAll<T extends HTMLElement>(selector: string): T[]{
+        return Array.from(document.querySelectorAll(selector)) as T[];
+    }
     get appWindow(): Window|null{
         if(this.appWindowChecked) return this._appWindow;
         if(!this._appWindow){
