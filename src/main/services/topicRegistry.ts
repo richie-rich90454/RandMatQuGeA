@@ -97,6 +97,17 @@ export class TopicRegistry{
         }
         return false;
     }
+    shuffleTopics(): void{
+        let entries=Array.from(this._topics.entries());
+        for(let i=entries.length-1;i>0;i--){
+            let j=Math.floor(Math.random()*(i+1));
+            [entries[i],entries[j]]=[entries[j],entries[i]];
+        }
+        this._topics.clear();
+        for(let[key,value] of entries){
+            this._topics.set(key,value);
+        }
+    }
 }
 export let topicRegistry: TopicRegistry=new TopicRegistry();
 export function registerTopic(id: string, scope: string, fn: string): void{
