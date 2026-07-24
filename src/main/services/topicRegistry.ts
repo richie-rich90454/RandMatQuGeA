@@ -107,6 +107,10 @@ export class TopicRegistry{
         }
         return result;
     }
+    searchTopics(query: string): TopicEntry[]{
+        let lower=query.toLowerCase();
+        return this.getTopicsByPredicate(e=>e.id.toLowerCase().includes(lower)||e.scope.toLowerCase().includes(lower));
+    }
     shuffleTopics(): void{
         let entries=Array.from(this._topics.entries());
         for(let i=entries.length-1;i>0;i--){
