@@ -135,6 +135,9 @@ export class AppState{
 			this._weakTopicQueue.push(topicId);
 		}
 	}
+	getModeDisplayText(): string{
+		return this._currentMode==="mental"?"Mental Math":"Single Practice";
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
