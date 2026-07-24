@@ -84,6 +84,13 @@ export class TopicRegistry{
         }
         return result;
     }
+    getTopicIdsByScope(scope: string): string[]{
+        let result: string[]=[];
+        for(let[ id,entry] of this._topics){
+            if(entry.scope===scope) result.push(id);
+        }
+        return result;
+    }
 }
 export let topicRegistry: TopicRegistry=new TopicRegistry();
 export function registerTopic(id: string, scope: string, fn: string): void{
