@@ -97,6 +97,13 @@ export class TopicRegistry{
         }
         return false;
     }
+    getTopicsByPredicate(predicate: (entry: TopicEntry)=>boolean): TopicEntry[]{
+        let result: TopicEntry[]=[];
+        for(let entry of this._topics.values()){
+            if(predicate(entry)) result.push(entry);
+        }
+        return result;
+    }
     shuffleTopics(): void{
         let entries=Array.from(this._topics.entries());
         for(let i=entries.length-1;i>0;i--){
