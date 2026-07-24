@@ -84,6 +84,21 @@ export class ErrorHandler{
             return fallback;
         }
     }
+    async wrapAsyncWithTimeout<T>(fn: ()=>Promise<T>,timeoutMs: number): Promise<T|undefined>{
+        return new Promise((resolve)=>{
+            let timer=setTimeout(()=>{
+                resolve(undefined);
+            },timeoutMs);
+            fn().then((result)=>{
+                clearTimeout(timer);
+                resolve(result);
+            }).catch((err)=>{
+                clearTimeout(timer);
+                this.handleError(err);
+                resolve(undefined);
+            });
+        });
+    }
     showErrorWithTitle(title: string,message: string,retryFn: (()=>void)|null): void{
         this.retryFn=retryFn;
         let area=dom.displays.questionArea;
