@@ -46,6 +46,11 @@ export class DomRegistry{
         el.classList.add("temp-element");
         return el;
     }
+    createElementWithClass<K extends keyof HTMLElementTagNameMap>(tag: K,className: string): HTMLElementTagNameMap[K]{
+        let el=document.createElement(tag);
+        el.className=className;
+        return el;
+    }
     getElementBounds(id: string): DOMRect|null{
         let el=this.getElement(id);
         return el?el.getBoundingClientRect():null;
