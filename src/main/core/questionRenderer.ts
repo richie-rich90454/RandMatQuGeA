@@ -141,5 +141,9 @@ export class QuestionRenderer{
         let area=this.registry.displays.questionArea;
         return area===null||area.innerHTML.length===0;
     }
+    setExpectedFormatAndRender(format: string,html: string): void{
+        this.setExpectedFormat(format);
+        this.render(html);
+    }
 }
 export let renderer=new QuestionRenderer(dom);
