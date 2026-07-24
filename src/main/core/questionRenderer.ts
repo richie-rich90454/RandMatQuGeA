@@ -131,5 +131,8 @@ export class QuestionRenderer{
         let area=this.registry.displays.questionArea;
         return area?area.offsetHeight:0;
     }
+    async refreshTypeset(): Promise<void>{
+        await this.typeset();
+    }
 }
 export let renderer=new QuestionRenderer(dom);
