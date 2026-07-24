@@ -127,5 +127,9 @@ export class QuestionRenderer{
         this.clear();
         this.render(html);
     }
+    getQuestionAreaHeight(): number{
+        let area=this.registry.displays.questionArea;
+        return area?area.offsetHeight:0;
+    }
 }
 export let renderer=new QuestionRenderer(dom);
