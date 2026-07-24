@@ -130,6 +130,11 @@ export class AppState{
 		this._sessionScore.total++;
 		if(correct) this._sessionScore.correct++;
 	}
+	addWeakTopic(topicId: string): void{
+		if(!this._weakTopicQueue.includes(topicId)){
+			this._weakTopicQueue.push(topicId);
+		}
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";
