@@ -46,6 +46,10 @@ export class DomRegistry{
         el.classList.add("temp-element");
         return el;
     }
+    getElementBounds(id: string): DOMRect|null{
+        let el=this.getElement(id);
+        return el?el.getBoundingClientRect():null;
+    }
     get appWindow(): Window|null{
         if(this.appWindowChecked) return this._appWindow;
         if(!this._appWindow){
