@@ -53,6 +53,12 @@ export class QuestionState{
 	get choiceCount(): number{
 		return this._correctAnswer.choices?this._correctAnswer.choices.length:0;
 	}
+	getExpectedFormat(): string{
+		return this._expectedFormat;
+	}
+	getHasQuestion(): boolean{
+		return this._hasQuestion;
+	}
 	reset(): void{
 		this._correctAnswer={ correct: "", alternate: "", display: "" };
 		this._expectedFormat="";
