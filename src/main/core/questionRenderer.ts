@@ -134,5 +134,12 @@ export class QuestionRenderer{
     async refreshTypeset(): Promise<void>{
         await this.typeset();
     }
+    getQuestionAreaElement(): HTMLDivElement|null{
+        return this.registry.displays.questionArea;
+    }
+    isQuestionAreaEmpty(): boolean{
+        let area=this.registry.displays.questionArea;
+        return area===null||area.innerHTML.length===0;
+    }
 }
 export let renderer=new QuestionRenderer(dom);
