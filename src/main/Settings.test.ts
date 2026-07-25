@@ -269,18 +269,24 @@ describe("settings",()=>{
     });
     describe("checkAnswerFast",()=>{
         it("should fall back to isAnswerCorrect when not in Tauri",async()=>{
-            const saved=(window as any).__TAURI__;
+            const savedTauri=(window as any).__TAURI__;
+            const savedInternals=(window as any).__TAURI_INTERNALS__;
             delete (window as any).__TAURI__;
+            delete (window as any).__TAURI_INTERNALS__;
             const result=await settings.checkAnswerFast("42","42");
             expect(result).toBe(true);
-            (window as any).__TAURI__=saved;
+            (window as any).__TAURI__=savedTauri;
+            (window as any).__TAURI_INTERNALS__=savedInternals;
         });
         it("should return result from isAnswerCorrect",async()=>{
-            const saved=(window as any).__TAURI__;
+            const savedTauri=(window as any).__TAURI__;
+            const savedInternals=(window as any).__TAURI_INTERNALS__;
             delete (window as any).__TAURI__;
+            delete (window as any).__TAURI_INTERNALS__;
             const result=await settings.checkAnswerFast("hello","42");
             expect(result).toBe(false);
-            (window as any).__TAURI__=saved;
+            (window as any).__TAURI__=savedTauri;
+            (window as any).__TAURI_INTERNALS__=savedInternals;
         });
     });
     describe("settings persistence",()=>{
