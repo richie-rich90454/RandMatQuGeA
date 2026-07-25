@@ -42,6 +42,7 @@ declare global{
 		expectedFormat: string;
 		hasQuestion: boolean;
 		__TAURI__?: any;
+		__TAURI_INTERNALS__?: Record<string, unknown>;
 		katex?: any;
 	}
 }
