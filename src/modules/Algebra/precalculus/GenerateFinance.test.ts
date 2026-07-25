@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateFinance} from "./generateFinance";
-import {seededRng} from "../../../main/core/rng";
+import {generateFinance} from "./GenerateFinance";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateFinance", ()=>{
 	it("generates compound question correctly", ()=>{
 		const rng=vi.fn()

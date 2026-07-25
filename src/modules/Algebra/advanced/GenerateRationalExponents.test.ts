@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateRationalExponents} from "./generateRationalExponents";
-import {seededRng} from "../../../main/core/rng";
+import {generateRationalExponents} from "./GenerateRationalExponents";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateRationalExponents",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateRationalExponents("medium", seededRng(42));

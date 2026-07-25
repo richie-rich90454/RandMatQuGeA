@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Polynomial inequality: solve >0 with factoring.
  * @fileoverview Generates polynomial inequality questions with MCQ distractors.

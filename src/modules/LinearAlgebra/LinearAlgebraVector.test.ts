@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateVector} from "./linearAlgebraVector.js";
-import {seededRng} from "../../main/core/rng";
+import {generateVector} from "./LinearAlgebraVector.js";
+import {seededRng} from "../../main/core/Rng";
 describe("generateVector",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateVector("medium", seededRng(42));

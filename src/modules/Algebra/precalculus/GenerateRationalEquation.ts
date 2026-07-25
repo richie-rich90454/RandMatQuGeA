@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Rational equation: simple or extraneous.
  * @fileoverview Generates rational equation questions with MCQ distractors.

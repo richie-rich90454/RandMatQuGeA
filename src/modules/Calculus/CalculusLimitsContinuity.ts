@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxCoeff} from "./calculusUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxCoeff} from "./CalculusUtils.js";
 /**
  * Generates a random limits and continuity question and returns it as a QuestionDto.
  *

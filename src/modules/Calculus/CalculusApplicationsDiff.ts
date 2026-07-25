@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxCoeff} from "./calculusUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxCoeff} from "./CalculusUtils.js";
 /**
  * Generates and displays a random "applications of derivatives" question in the global `questionArea`.
  * Includes custom multiple‑choice options for MCQ mode.

@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxForDifficulty} from "./geometryUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxForDifficulty} from "./GeometryUtils.js";
 /**
  * Volume calculations for 3D shapes: sphere, cylinder, cone, pyramid.
  * @fileoverview Generates volume questions for common 3D shapes, builds a QuestionDto with plausible wrong answers for MCQ mode.

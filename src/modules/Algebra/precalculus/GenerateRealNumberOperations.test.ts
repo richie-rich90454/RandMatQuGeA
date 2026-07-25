@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateRealNumberOperations} from "./generateRealNumberOperations";
-import {seededRng} from "../../../main/core/rng";
+import {generateRealNumberOperations} from "./GenerateRealNumberOperations";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateRealNumberOperations", ()=>{
 	it("generates absolute value question correctly", ()=>{
 		const rng=vi.fn()

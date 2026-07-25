@@ -1,7 +1,7 @@
-import{invoke}from"@tauri-apps/api/core";
-import{topics}from"./constants";
-import * as ui from"./ui";
-import{updateLeaderboard}from"./session";
+﻿import{invoke}from"@tauri-apps/api/core";
+import{topics}from"./Constants";
+import * as ui from"./Ui";
+import{updateLeaderboard}from"./Session";
 let modal:HTMLElement|null=null;
 let dataList:HTMLElement|null=null;
 export async function openDataModal(){

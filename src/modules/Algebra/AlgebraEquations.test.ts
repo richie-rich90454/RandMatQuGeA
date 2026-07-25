@@ -1,8 +1,8 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi}from"vitest";
-import*as eq from"./algebraEquations.js";
-import{getMaxForDifficulty}from"./algebraUtils.js";
-import{seededRng}from"../../main/core/rng";
+import*as eq from"./AlgebraEquations.js";
+import{getMaxForDifficulty}from"./AlgebraUtils.js";
+import{seededRng}from"../../main/core/Rng";
 vi.mock("./algebraUtils.js",()=>({
     factorial:vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),
     gcd:vi.fn(function g(a:number,b:number):number{return b===0?Math.abs(a):g(b,a%b);}),

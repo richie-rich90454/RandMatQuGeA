@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Power function modeling: direct, inverse, power variation.
  * @fileoverview Generates power function modeling questions with MCQ distractors.

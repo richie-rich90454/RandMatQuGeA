@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Statistics questions generator with MCQ distractors
  * @fileoverview Generates statistical questions (mean, median, mode, range, stem-and-leaf, box plot, standard deviation). Returns a QuestionDto with correct value, alternate representation, display format, and plausible wrong answers for MCQ mode.
  * @date 2026-03-29
  */
 import type {RngFn, QuestionDto} from "../../types/global";
-import {getDataRange, mean, median, mode, range, stdDev} from "./discreteUtils.js";
+import {getDataRange, mean, median, mode, range, stdDev} from "./DiscreteUtils.js";
 export function generateStatistics(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["mean","median","mode","range","stem_leaf","box_plot","standard_deviation"];
 	let type=types[Math.floor(rng()*types.length)];

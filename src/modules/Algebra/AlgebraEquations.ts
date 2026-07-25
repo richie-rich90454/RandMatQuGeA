@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Linear equations: one-step, two-step, both sides, parentheses, literal.
  * Quadratic equations: factoring, completing square, quadratic formula, discriminant.
  * Inequalities: linear, quadratic, rational, compound, absolute.
@@ -7,7 +7,7 @@
  * @date 2026-04-18
  */
 import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxForDifficulty} from "./algebraUtils.js";
+import {getMaxForDifficulty} from "./AlgebraUtils.js";
 export function generateLinearEquation(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let types=["one_step","two_step","both_sides","parentheses","literal"];
 	let type=types[Math.floor(rng()*types.length)];

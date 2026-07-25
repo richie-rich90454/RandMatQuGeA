@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getRangeForDifficulty} from "./arithmeticUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getRangeForDifficulty} from "./ArithmeticUtils.js";
 /**
  * Generates and displays a random addition question.
  * Includes custom multiple‑choice options for MCQ mode.

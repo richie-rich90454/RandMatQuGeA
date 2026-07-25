@@ -1,9 +1,9 @@
-import{topics,scopeTopics}from"./constants";
-import{generateQuestionDto}from"./questionGenerator";
+﻿import{topics,scopeTopics}from"./Constants";
+import{generateQuestionDto}from"./QuestionGenerator";
 import{invoke}from"@tauri-apps/api/core";
 import{save}from"@tauri-apps/plugin-dialog";
-import{seededRng}from"./core/rng";
-import{showNotification}from"./ui";
+import{seededRng}from"./core/Rng";
+import{showNotification}from"./Ui";
 import type{RngFn,QuestionDto}from"../types/global";
 let modal: HTMLElement | null = null;
 let questionCountSelect: HTMLSelectElement | null = null;

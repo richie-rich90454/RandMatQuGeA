@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateUnitConversion} from "./generateUnitConversion";
-import {seededRng} from "../../../main/core/rng";
+import {generateUnitConversion} from "./GenerateUnitConversion";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateUnitConversion",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateUnitConversion("medium", seededRng(42));

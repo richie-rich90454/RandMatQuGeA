@@ -1,4 +1,4 @@
-import{registerTopic}from"../../main/services/topicRegistry";
+﻿import{registerTopic}from"../../main/services/TopicRegistry";
 registerTopic("sin","trigonometry","generateSin");
 registerTopic("cos","trigonometry","generateCosine");
 registerTopic("tan","trigonometry","generateTangent");

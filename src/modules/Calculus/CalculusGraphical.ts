@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxCoeff} from "./calculusUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxCoeff} from "./CalculusUtils.js";
 /**
  * Generates a random "graphical calculus" question involving visual or tabular data.
  * Includes custom multiple‑choice options for MCQ mode.

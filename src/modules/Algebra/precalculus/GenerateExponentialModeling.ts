@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Exponential modeling: growth, decay, half-life, Newton's Law of Cooling.
  * @fileoverview Generates exponential modeling questions with MCQ distractors.

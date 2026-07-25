@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generatePolynomialInequality} from "./generatePolynomialInequality";
-import {seededRng} from "../../../main/core/rng";
+import {generatePolynomialInequality} from "./GeneratePolynomialInequality";
+import {seededRng} from "../../../main/core/Rng";
 describe("generatePolynomialInequality", ()=>{
 	it("generates inequality question correctly", ()=>{
 		const rng=vi.fn()

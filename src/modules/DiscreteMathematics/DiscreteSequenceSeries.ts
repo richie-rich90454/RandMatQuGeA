@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Sequences, series, and induction generator
  * @fileoverview Provides functions to generate questions about arithmetic/geometric sequences, limits, infinite series, mathematical induction, and binomial theorem. Each function returns a QuestionDto with:
  * - latex: question text (may contain LaTeX delimiters \(...\))
@@ -9,7 +9,7 @@
  * @date 2026-03-15
  */
 import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxN, nCr} from "./discreteUtils.js";
+import {getMaxN, nCr} from "./DiscreteUtils.js";
 /**
  * Determines the maximum term value for sequence generation based on difficulty.
  * @param difficulty - 'easy', 'hard', or undefined (medium).

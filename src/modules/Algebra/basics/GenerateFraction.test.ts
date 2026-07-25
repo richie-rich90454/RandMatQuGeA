@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateFraction} from "./generateFraction";
-import {seededRng} from "../../../main/core/rng";
+import {generateFraction} from "./GenerateFraction";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateFraction",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateFraction("medium", seededRng(42));

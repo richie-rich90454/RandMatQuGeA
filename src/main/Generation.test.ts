@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 vi.mock("./core/domRegistry",()=>{
     const difficultySelect={value:"medium"};
@@ -107,20 +107,20 @@ vi.mock("./answer.js",()=>({
 vi.mock("@tauri-apps/api/core",()=>({
     invoke:vi.fn(()=>Promise.resolve({difficulty:"hard",weak_topic:"add"})),
 }));
-import{debounceGenerate,generateQuestion}from"./generation.js";
-import*as stateStore from"./core/stateStore";
+import{debounceGenerate,generateQuestion}from"./Generation.js";
+import*as stateStore from"./core/StateStore";
 let state:any=stateStore.appState;
 import{invoke}from"@tauri-apps/api/core";
-import{generateQuestion as _callGeneratorMock}from"./questionGenerator.js";
+import{generateQuestion as _callGeneratorMock}from"./QuestionGenerator.js";
 let callGeneratorMock=_callGeneratorMock as any;
-import{generateChoicesForCurrentQuestion as _generateChoicesMock}from"./mcq.js";
+import{generateChoicesForCurrentQuestion as _generateChoicesMock}from"./Mcq.js";
 let generateChoicesMock=_generateChoicesMock as any;
-import{showNotification,updateUIState}from"./ui.js";
-import{startQuestionTimer as startTimerMock}from"./answer.js";
-import{pickRandomTopic as pickRandomTopicMock}from"./topics.js";
-import*as domRegistry from"./core/domRegistry";
+import{showNotification,updateUIState}from"./Ui.js";
+import{startQuestionTimer as startTimerMock}from"./Answer.js";
+import{pickRandomTopic as pickRandomTopicMock}from"./Topics.js";
+import*as domRegistry from"./core/DomRegistry";
 let dom:any=domRegistry.dom;
-import*as settings from"./settings.js";
+import*as settings from"./Settings.js";
 describe("generation",()=>{
     it("should export debounceGenerate",()=>{
         expect(typeof debounceGenerate).toBe("function");

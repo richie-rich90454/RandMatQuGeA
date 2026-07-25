@@ -1,4 +1,4 @@
-import{dom}from"./domRegistry";
+﻿import{dom}from"./DomRegistry";
 export class ErrorHandler{
 	private lastError: string|null=null;
 	private retryFn: (()=>void)|null=null;

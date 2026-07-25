@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
 vi.mock("./core/domRegistry",()=>({
     dom:{
@@ -10,7 +10,7 @@ vi.mock("./core/domRegistry",()=>({
         }
     }
 }));
-import{ErrorHandler}from"./core/errorHandler";
+import{ErrorHandler}from"./core/ErrorHandler";
 describe("ErrorHandler",()=>{
     let handler: ErrorHandler;
     beforeEach(()=>{

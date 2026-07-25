@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {seededRng} from "../../main/core/rng";
-import {generateCosecant,generateSecant,generateCotangent} from "./trigReciprocal.js";
+import {seededRng} from "../../main/core/Rng";
+import {generateCosecant,generateSecant,generateCotangent} from "./TrigReciprocal.js";
 describe("generateCosecant",()=>{
 	it("generates evaluate type question",()=>{
 		const rng=vi.fn().mockReturnValueOnce(0).mockReturnValueOnce(0.5);

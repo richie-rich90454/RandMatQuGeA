@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {gcd, getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {gcd, getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Generates a ratio/proportion question (simplify ratio, solve proportion, map scale, or unit rate) with MCQ distractors.
  * @fileoverview Ratios, proportions, scales, unit rates. Sets window.correctAnswer with numeric or plain ratio and plausible wrong answers.

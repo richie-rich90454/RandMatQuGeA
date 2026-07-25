@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Roots: simplify nth roots.
  * @fileoverview Generates root simplification questions with MCQ distractors.

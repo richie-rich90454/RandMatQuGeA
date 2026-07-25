@@ -1,4 +1,4 @@
-import type{MathWorkerRequest,MathWorkerResponse}from"./mathWorker";
+﻿import type{MathWorkerRequest,MathWorkerResponse}from"./MathWorker";
 let worker: Worker|null=null;
 let requestId: number=0;
 let pending: Map<number,{resolve: (v: any)=>void;reject: (e: Error)=>void;timeout: ReturnType<typeof setTimeout>}>|null=null;

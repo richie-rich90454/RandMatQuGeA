@@ -1,10 +1,10 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect,beforeEach,vi} from "vitest";
-import {seededRng} from "../../main/core/rng";
-import {getRangeForDifficulty} from "./arithmeticUtils.js";
-import {generateAddition,generateSubtraction,generateMultiplication,generateDivision} from "./arithmeticBasic.js";
+import {seededRng} from "../../main/core/Rng";
+import {getRangeForDifficulty} from "./ArithmeticUtils.js";
+import {generateAddition,generateSubtraction,generateMultiplication,generateDivision} from "./ArithmeticBasic.js";
 vi.mock("./arithmeticUtils.js",()=>({
 	getRangeForDifficulty: vi.fn(()=>({min:1,max:10}))
 }));

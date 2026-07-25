@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateRationalGraphAnalysis} from "./generateRationalGraphAnalysis";
-import {seededRng} from "../../../main/core/rng";
+import {generateRationalGraphAnalysis} from "./GenerateRationalGraphAnalysis";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateRationalGraphAnalysis", ()=>{
 	it("generates domain question correctly", ()=>{
 		const rng=vi.fn()

@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Logarithm questions: basic, change of base, equations, properties, exponential form.
  * @fileoverview Generates logarithm questions with MCQ distractors. Sets window.correctAnswer with correct value and display.

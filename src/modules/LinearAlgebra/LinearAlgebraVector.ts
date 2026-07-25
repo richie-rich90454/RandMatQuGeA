@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Vector operations in 2D: magnitude, direction, unit, dot, angle, projection, parametric, polar conversion, polar graph, motion, De Moivre, addition, subtraction, parametric to Cartesian.
  * @fileoverview Generates 2D vector and polar coordinate questions with MCQ distractors. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-03-29
  */
 import type {RngFn, QuestionDto} from "../../types/global";
-import {Vector2D, getRange} from "./linearAlgebraUtils.js";
+import {Vector2D, getRange} from "./LinearAlgebraUtils.js";
 export function generateVector(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["magnitude","direction","unit","dot","angle","projection","parametric","polar_convert","cartesian_convert","polar_graph","motion","de_moivre","add","subtract","parametric_to_cartesian"];
 	let type=types[Math.floor(rng()*types.length)];

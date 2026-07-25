@@ -1,5 +1,5 @@
-import{vi}from"vitest";
-import{topicRegistry}from"../main/services/topicRegistry";
+﻿import{vi}from"vitest";
+import{topicRegistry}from"../main/services/TopicRegistry";
 export function setupDomMock(): void{
     let elements: Map<string,HTMLElement>=new Map();
     let elementIds=[

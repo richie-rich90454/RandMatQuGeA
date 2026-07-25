@@ -1,4 +1,4 @@
-import{dom}from"../core/domRegistry";
+﻿import{dom}from"../core/DomRegistry";
 let skeletonActive: boolean=false;
 let lastSkeletonTime: number=0;
 const MIN_SKELETON_DURATION: number=200;

@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateNumberSets} from "./generateNumberSets";
-import {seededRng} from "../../../main/core/rng";
+import {generateNumberSets} from "./GenerateNumberSets";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateNumberSets",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateNumberSets("medium", seededRng(42));

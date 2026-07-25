@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Rational exponents: convert to radical, convert to exponent, evaluate.
  * @fileoverview Generates rational exponent questions with MCQ distractors. Sets window.correctAnswer with correct result and display.

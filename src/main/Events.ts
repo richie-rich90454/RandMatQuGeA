@@ -1,12 +1,12 @@
-import{dom}from"./core/domRegistry";
-import{appState}from"./core/stateStore";
-import{questionState}from"./core/questionState";
-import * as settings from"./settings";
-import * as ui from"./ui";
-import * as topics from"./topics";
-import * as generation from"./generation";
-import * as answer from"./answer";
-import * as session from"./session";
+﻿import{dom}from"./core/DomRegistry";
+import{appState}from"./core/StateStore";
+import{questionState}from"./core/QuestionState";
+import * as settings from"./Settings";
+import * as ui from"./Ui";
+import * as topics from"./Topics";
+import * as generation from"./Generation";
+import * as answer from"./Answer";
+import * as session from"./Session";
 import{check}from"@tauri-apps/plugin-updater";
 import{relaunch}from"@tauri-apps/plugin-process";
 import packageJson from"../../package.json";
@@ -490,9 +490,9 @@ export async function setupEventListeners(): Promise<void>{
         });
     }
     let results=await Promise.allSettled([
-        import("./printWorksheet"),
-        import("./dataManagement"),
-        import("./weakTopics")
+        import("./PrintWorksheet"),
+        import("./DataManagement"),
+        import("./WeakTopics")
     ]);
     if (results[0].status==="fulfilled"){
         try{

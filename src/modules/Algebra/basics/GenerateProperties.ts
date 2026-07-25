@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Generates a question about basic algebraic properties (commutative, associative, distributive, identity, inverse) with MCQ distractors.
  * @fileoverview Algebraic properties identification. Sets window.correctAnswer with plain text property name and plausible wrong answers.

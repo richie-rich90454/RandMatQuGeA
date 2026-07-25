@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Matrix operations: addition, subtraction, multiplication, inverse, transpose, scalar multiplication, power, row echelon, 2x2 system.
  * @fileoverview Generates 2x2 matrix questions with MCQ distractors. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-03-29
  */
 import type {RngFn, QuestionDto} from "../../types/global";
-import {Matrix2x2, getRange, matrixToString} from "./linearAlgebraUtils.js";
+import {Matrix2x2, getRange, matrixToString} from "./LinearAlgebraUtils.js";
 export function generateMatrix(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["add","subtract","multiply","inverse","system","transpose","scalar_mult","power","row_echelon"];
 	let type=types[Math.floor(rng()*types.length)];

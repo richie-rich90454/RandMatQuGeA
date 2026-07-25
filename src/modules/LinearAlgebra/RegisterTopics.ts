@@ -1,4 +1,4 @@
-import{registerTopic}from"../../main/services/topicRegistry";
+﻿import{registerTopic}from"../../main/services/TopicRegistry";
 registerTopic("mtrx","linearAlgebra","generateMatrix");
 registerTopic("vctr","linearAlgebra","generateVector");
 registerTopic("system3x3","linearAlgebra","generateSystem3x3");

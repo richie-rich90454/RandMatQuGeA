@@ -1,5 +1,5 @@
-import {describe,it,expect} from "vitest";
-import {factorial,nPr,nCr,gcd,lcm,getMaxN,getDataRange,mean,median,mode,range,stdDev,getOrdinal} from "./discreteUtils";
+﻿import {describe,it,expect} from "vitest";
+import {factorial,nPr,nCr,gcd,lcm,getMaxN,getDataRange,mean,median,mode,range,stdDev,getOrdinal} from "./DiscreteUtils";
 describe("factorial",()=>{
     it("returns1for0",()=>{
         expect(factorial(0)).toBe(1);

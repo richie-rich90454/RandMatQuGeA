@@ -1,9 +1,9 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
 vi.mock("@tauri-apps/api/window",()=>({
     getCurrentWindow:vi.fn(()=>({theme:vi.fn(),setTheme:vi.fn()})),
 }));
-import{DomRegistry}from"./core/domRegistry";
+import{DomRegistry}from"./core/DomRegistry";
 describe("DomRegistry",()=>{
     let registry: DomRegistry;
     beforeEach(()=>{

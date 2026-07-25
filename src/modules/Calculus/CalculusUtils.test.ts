@@ -1,5 +1,5 @@
-import {describe,it,expect} from "vitest";
-import {getMaxCoeff,latexToPlain,trigFunctions,expFunctions,logFunctions,trigIntegrals} from "./calculusUtils";
+﻿import {describe,it,expect} from "vitest";
+import {getMaxCoeff,latexToPlain,trigFunctions,expFunctions,logFunctions,trigIntegrals} from "./CalculusUtils";
 describe("getMaxCoeff",()=>{
     it("returns3foreasy",()=>{
         expect(getMaxCoeff("easy")).toBe(3);

@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Advanced trigonometry: inverse trig functions, equations, graphs.
  * @fileoverview Generates questions on inverse trigonometric functions, solving trigonometric equations, and interpreting trig graphs. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers for MCQ mode.
  * @date 2026-04-18
  */
 import type {RngFn, QuestionDto} from "../../types/global";
-import {formatPiFraction} from "./trigUtils.js";
+import {formatPiFraction} from "./TrigUtils.js";
 export function generateInverseTrig(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let types=["arcsin","arccos","arctan"];
 	let type=types[Math.floor(rng()*types.length)];

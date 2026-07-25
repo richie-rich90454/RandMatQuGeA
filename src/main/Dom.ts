@@ -1,1 +1,1 @@
-export{dom}from"./core/domRegistry";
+﻿export{dom}from"./core/DomRegistry";

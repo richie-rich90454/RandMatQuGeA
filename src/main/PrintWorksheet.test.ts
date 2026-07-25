@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 const mockInvoke=vi.hoisted(()=>vi.fn().mockResolvedValue(undefined));
 vi.mock("@tauri-apps/api/core",()=>({
@@ -21,9 +21,9 @@ const mockSave=vi.hoisted(()=>vi.fn().mockResolvedValue(null));
 vi.mock("@tauri-apps/plugin-dialog",()=>({
 	save: mockSave,
 }));
-import{initPrintModal,openPrintModal,closePrintModal,renderKatexInElement,wrapLatexIfNeeded}from"./printWorksheet.js";
-import{generateQuestionDto}from"./questionGenerator.js";
-import{showNotification}from"./ui.js";
+import{initPrintModal,openPrintModal,closePrintModal,renderKatexInElement,wrapLatexIfNeeded}from"./PrintWorksheet.js";
+import{generateQuestionDto}from"./QuestionGenerator.js";
+import{showNotification}from"./Ui.js";
 function createPrintModal():HTMLElement{
 	let modal=document.createElement("div");
 	modal.id="print-modal";

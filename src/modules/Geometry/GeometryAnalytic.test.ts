@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateParabola,generateEllipse,generateHyperbola,generatePolarConic,generate3DDistanceMidpoint,generateSphereEquation,generateLinePlane3D} from "./geometryAnalytic.js";
-import {seededRng} from "../../main/core/rng";
+import {generateParabola,generateEllipse,generateHyperbola,generatePolarConic,generate3DDistanceMidpoint,generateSphereEquation,generateLinePlane3D} from "./GeometryAnalytic.js";
+import {seededRng} from "../../main/core/Rng";
 describe("generateParabola",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateParabola("medium", seededRng(42));

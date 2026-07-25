@@ -1,4 +1,4 @@
-import{registerTopic}from"../../main/services/topicRegistry";
+﻿import{registerTopic}from"../../main/services/TopicRegistry";
 registerTopic("perm","discrete","generatePermutation");
 registerTopic("comb","discrete","generateCombination");
 registerTopic("prob","discrete","generateProbability");

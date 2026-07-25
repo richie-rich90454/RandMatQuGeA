@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
 const mocks=vi.hoisted(()=>{
     let mockTopicGrid=document.createElement("div");
@@ -14,7 +14,7 @@ vi.mock("./core/domRegistry",()=>{
         }
     };
 });
-import{initVirtualGrid,refreshVirtualGrid}from"./ui/virtualTopicGrid";
+import{initVirtualGrid,refreshVirtualGrid}from"./ui/VirtualTopicGrid";
 describe("virtualTopicGrid",()=>{
     beforeEach(()=>{
         vi.clearAllMocks();

@@ -1,4 +1,4 @@
-import{registerTopic}from"../../main/services/topicRegistry";
+﻿import{registerTopic}from"../../main/services/TopicRegistry";
 registerTopic("area_circle","geometry","generateAreaCircle");
 registerTopic("pythag","geometry","generatePythagorean");
 registerTopic("volume_sphere","geometry","generateVolumeSphere");

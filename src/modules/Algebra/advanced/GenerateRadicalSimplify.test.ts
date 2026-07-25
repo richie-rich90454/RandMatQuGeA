@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateRadicalSimplify} from "./generateRadicalSimplify";
-import {seededRng} from "../../../main/core/rng";
+import {generateRadicalSimplify} from "./GenerateRadicalSimplify";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateRadicalSimplify",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateRadicalSimplify("medium", seededRng(42));

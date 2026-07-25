@@ -1,8 +1,8 @@
-import{appState}from"./core/stateStore";
-import{questionState}from"./core/questionState";
-import{dom}from"./core/domRegistry";
-import * as settings from"./settings";
-import * as ui from"./ui";
+﻿import{appState}from"./core/StateStore";
+import{questionState}from"./core/QuestionState";
+import{dom}from"./core/DomRegistry";
+import * as settings from"./Settings";
+import * as ui from"./Ui";
 import type{RngFn}from"../types/global";
 let mathjsModule: any=null;
 async function ensureMathjs(): Promise<any>{

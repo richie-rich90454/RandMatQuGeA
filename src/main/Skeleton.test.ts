@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 const mocks=vi.hoisted(()=>{
     let mockQuestionArea=document.createElement("div");
@@ -15,7 +15,7 @@ vi.mock("./core/domRegistry",()=>{
         }
     };
 });
-import{showQuestionSkeleton,hideQuestionSkeleton,isSkeletonActive}from"./ui/skeleton";
+import{showQuestionSkeleton,hideQuestionSkeleton,isSkeletonActive}from"./ui/Skeleton";
 describe("skeleton",()=>{
     beforeEach(()=>{
         vi.useFakeTimers();

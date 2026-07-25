@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Exponential expressions: evaluate, solve, apply laws, growth factor, compare.
  * @fileoverview Generates exponent questions with MCQ distractors. Sets window.correctAnswer with correct result and display.
  * @date 2026-03-29
  * @returns QuestionDto
  */
 import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 export function generateExponent(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
 	let types=["basic","solve","laws","growth","compare"];
 	let type=types[Math.floor(rng()*types.length)];

@@ -1,6 +1,6 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,beforeEach}from"vitest";
-import{TopicRegistry}from"./services/topicRegistry";
+import{TopicRegistry}from"./services/TopicRegistry";
 describe("TopicRegistry",()=>{
     let registry: TopicRegistry;
     beforeEach(()=>{

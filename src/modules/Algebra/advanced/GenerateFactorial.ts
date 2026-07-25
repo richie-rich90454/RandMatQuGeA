@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {factorial, getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {factorial, getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Factorial questions: basic, division, equation, approximation, prime exponent.
  * @fileoverview Generates factorial questions with MCQ distractors. Sets window.correctAnswer with correct result and display.

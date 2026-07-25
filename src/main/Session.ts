@@ -1,15 +1,15 @@
-import * as settings from"./settings";
-import * as ui from"./ui";
-import * as topicsModule from"./topics";
-import{topics as topicList,scopeTopics,SESSION_STORAGE_KEY}from"./constants";
-import{generateQuestion as callGenerator}from"./questionGenerator";
+﻿import * as settings from"./Settings";
+import * as ui from"./Ui";
+import * as topicsModule from"./Topics";
+import{topics as topicList,scopeTopics,SESSION_STORAGE_KEY}from"./Constants";
+import{generateQuestion as callGenerator}from"./QuestionGenerator";
 import{invoke}from"@tauri-apps/api/core";
-import{generateChoicesForCurrentQuestion}from"./mcq";
-import{getAudioContext}from"./answer";
-import{appState}from"./core/stateStore";
-import{dom}from"./core/domRegistry";
-import{questionState}from"./core/questionState";
-import{renderer}from"./core/questionRenderer";
+import{generateChoicesForCurrentQuestion}from"./Mcq";
+import{getAudioContext}from"./Answer";
+import{appState}from"./core/StateStore";
+import{dom}from"./core/DomRegistry";
+import{questionState}from"./core/QuestionState";
+import{renderer}from"./core/QuestionRenderer";
 let _previousDeleteHandler: ((e: Event)=>void)|null=null;
 export function saveSessionSnapshot(): void{
     if(!appState.sessionActive)return;

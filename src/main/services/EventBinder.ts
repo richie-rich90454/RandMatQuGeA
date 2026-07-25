@@ -1,4 +1,4 @@
-import{dom}from"../core/domRegistry";
+﻿import{dom}from"../core/DomRegistry";
 export interface EventBinding{
 	selector: string;
 	event: string;

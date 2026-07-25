@@ -1,5 +1,5 @@
-import {describe,it,expect} from "vitest";
-import {getRangeForDifficulty,getMaxForDifficulty,gcd,isPrime} from "./arithmeticUtils.js";
+﻿import {describe,it,expect} from "vitest";
+import {getRangeForDifficulty,getMaxForDifficulty,gcd,isPrime} from "./ArithmeticUtils.js";
 describe("getRangeForDifficulty",()=>{
     it("returns easy range",()=>{
         expect(getRangeForDifficulty("easy")).toEqual({min:1,max:50});

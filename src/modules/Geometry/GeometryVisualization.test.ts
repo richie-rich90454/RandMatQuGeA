@@ -1,8 +1,8 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect,beforeEach} from "vitest";
-import {cleanupVisualization} from "./geometryVisualization.js";
+import {cleanupVisualization} from "./GeometryVisualization.js";
 describe("cleanupVisualization",()=>{
 	beforeEach(()=>{
 		document.body.innerHTML='<div id="geometry-visualization">vis</div><div id="geometry-info">info</div>';

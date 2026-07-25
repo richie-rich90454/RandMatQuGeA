@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateComplexZeros} from "./generateComplexZeros";
-import {seededRng} from "../../../main/core/rng";
+import {generateComplexZeros} from "./GenerateComplexZeros";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateComplexZeros", ()=>{
 	it("generates fundamental theorem question correctly", ()=>{
 		const rng=vi.fn()

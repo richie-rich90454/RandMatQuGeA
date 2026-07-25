@@ -1,4 +1,4 @@
-import {dom} from "./domRegistry";
+﻿import {dom} from "./DomRegistry";
 export class AppState{
 	private _selectedTopic: string|null=null;
 	private _currentMode: "single"|"mental"="single";

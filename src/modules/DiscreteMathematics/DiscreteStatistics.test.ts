@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateStatistics} from "./discreteStatistics";
-import {seededRng} from "../../main/core/rng";
+import {generateStatistics} from "./DiscreteStatistics";
+import {seededRng} from "../../main/core/Rng";
 describe("generateStatistics",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateStatistics("medium", seededRng(42));

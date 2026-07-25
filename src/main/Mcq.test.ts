@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,afterEach}from"vitest";
 vi.mock("./core/stateStore",()=>{
     let mcqMode=false;
@@ -35,10 +35,10 @@ vi.mock("mathjs",()=>{
     });
     return{evaluate,default:{evaluate}};
 });
-import{generateDistractors,generateChoicesForCurrentQuestion}from"./mcq.js";
-import*as stateStore from"./core/stateStore";
-import*as ui from"./ui.js";
-import*as settings from"./settings.js";
+import{generateDistractors,generateChoicesForCurrentQuestion}from"./Mcq.js";
+import*as stateStore from"./core/StateStore";
+import*as ui from"./Ui.js";
+import*as settings from"./Settings.js";
 const state:any=stateStore.appState;
 describe("generateDistractors",()=>{
     it("should return an array of the given count",async()=>{

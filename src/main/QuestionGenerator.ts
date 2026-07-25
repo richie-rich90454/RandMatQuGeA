@@ -1,14 +1,14 @@
-import{topicRegistry}from"./services/topicRegistry";
-import{renderer}from"./core/questionRenderer";
-import{errorHandler}from"./core/errorHandler";
+﻿import{topicRegistry}from"./services/TopicRegistry";
+import{renderer}from"./core/QuestionRenderer";
+import{errorHandler}from"./core/ErrorHandler";
 import type{RngFn,QuestionDto}from"../types/global";
-import"../modules/Algebra/registerTopics";
-import"../modules/Arithmetic/registerTopics";
-import"../modules/Calculus/registerTopics";
-import"../modules/DiscreteMathematics/registerTopics";
-import"../modules/Geometry/registerTopics";
-import"../modules/LinearAlgebra/registerTopics";
-import"../modules/Trigonometry/registerTopics";
+import"../modules/Algebra/RegisterTopics";
+import"../modules/Arithmetic/RegisterTopics";
+import"../modules/Calculus/RegisterTopics";
+import"../modules/DiscreteMathematics/RegisterTopics";
+import"../modules/Geometry/RegisterTopics";
+import"../modules/LinearAlgebra/RegisterTopics";
+import"../modules/Trigonometry/RegisterTopics";
 let moduleCache: Map<string, any>=new Map();
 async function loadModule(scope: string): Promise<any>{
     if(moduleCache.has(scope)){

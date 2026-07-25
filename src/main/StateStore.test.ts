@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
 vi.mock("@tauri-apps/api/window",()=>({
     getCurrentWindow:vi.fn(()=>({theme:vi.fn(),setTheme:vi.fn()})),
@@ -11,7 +11,7 @@ vi.mock("./core/domRegistry",()=>({
         }
     }
 }));
-import{AppState}from"./core/stateStore";
+import{AppState}from"./core/StateStore";
 describe("AppState",()=>{
     let state: AppState;
     beforeEach(()=>{

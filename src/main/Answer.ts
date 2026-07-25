@@ -1,9 +1,9 @@
-import{dom}from"./core/domRegistry";
-import{appState}from"./core/stateStore";
-import{questionState}from"./core/questionState";
-import * as settings from"./settings";
-import * as ui from"./ui";
-import * as generation from"./generation";
+﻿import{dom}from"./core/DomRegistry";
+import{appState}from"./core/StateStore";
+import{questionState}from"./core/QuestionState";
+import * as settings from"./Settings";
+import * as ui from"./Ui";
+import * as generation from"./Generation";
 import{invoke}from"@tauri-apps/api/core";
 let _audioCtx: AudioContext|null=null;
 export function getAudioContext(): AudioContext{

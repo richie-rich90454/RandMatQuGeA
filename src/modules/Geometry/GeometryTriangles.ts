@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxForDifficulty} from "./geometryUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxForDifficulty} from "./GeometryUtils.js";
 /**
  * Triangle geometry: Pythagorean theorem, similar triangles, triangle classification.
  * @fileoverview Generates questions about right triangles (hypotenuse), similar triangles (scale factor), and triangle classification (equilateral/isosceles/scalene). Builds a QuestionDto with plausible wrong answers for MCQ mode.

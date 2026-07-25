@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxForDifficulty, isPrime, gcd} from "./arithmeticUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxForDifficulty, isPrime, gcd} from "./ArithmeticUtils.js";
 /**
  * Generates and displays a random whole number and place value question (place value, expanded form, or rounding).
  * Includes custom multiple‑choice options for MCQ mode.

@@ -1,5 +1,5 @@
-import{describe,it,expect}from"vitest";
-import{getMaxForDifficulty,cleanupVisualization,getShapeName,getUnit,round,formatNumber}from"./geometryUtils";
+﻿import{describe,it,expect}from"vitest";
+import{getMaxForDifficulty,cleanupVisualization,getShapeName,getUnit,round,formatNumber}from"./GeometryUtils";
 describe("getMaxForDifficulty",()=>{
     it("returns baseMax when difficulty is undefined",()=>{
         expect(getMaxForDifficulty(undefined,10)).toBe(10);

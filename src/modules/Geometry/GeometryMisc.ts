@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxForDifficulty} from "./geometryUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxForDifficulty} from "./GeometryUtils.js";
 /**
  * Miscellaneous geometry: perimeter, arc length, distance formula, angle relations.
  * @fileoverview Generates questions about perimeter (rectangle/triangle), arc length, distance between points, and complementary/supplementary angles. Builds a QuestionDto with plausible wrong answers for MCQ mode.

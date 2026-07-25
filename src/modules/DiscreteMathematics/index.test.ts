@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
 import * as dm from "./index";
-import {seededRng} from "../../main/core/rng";
+import {seededRng} from "../../main/core/Rng";
 describe("DiscreteMathematics index exports",()=>{
 	it("exports generatePermutation",()=>{
 		expect(typeof dm.generatePermutation).toBe("function");

@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
 vi.mock("./core/domRegistry",()=>{
     const modeSingleBtn={setAttribute:vi.fn()};
@@ -174,9 +174,9 @@ vi.mock("./session.js",()=>({
 vi.mock("./answer.js",()=>({
     checkAnswer:vi.fn(),
 }));
-import*as stateStore from"./core/stateStore";
+import*as stateStore from"./core/StateStore";
 let state:any=stateStore.appState;
-import*as ui from"./ui.js";
+import*as ui from"./Ui.js";
 describe("ui",()=>{
     it("should export clearAllTimeouts",()=>{
         expect(typeof ui.clearAllTimeouts).toBe("function");

@@ -1,4 +1,4 @@
-import{dom}from"../core/domRegistry";
+﻿import{dom}from"../core/DomRegistry";
 let container: HTMLElement|null=null;
 let visibleStart: number=0;
 let visibleEnd: number=0;

@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Analytic trigonometry: degrees/radians conversion, arc length, angular/linear speed, right triangle definitions, special triangles, elevation/depression, reference angles, ASTC signs, sum/difference, double/half-angle, polar coordinates, parametric equations, complex numbers.
  * @fileoverview Generates a variety of analytic trigonometry questions with MCQ distractors. Returns a QuestionDto with LaTeX display and plain text alternate.
  * @date 2026-04-18
  */
 import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxForDifficulty} from "../Algebra/algebraUtils.js";
-import {formatPiFraction} from "./trigUtils.js";
+import {getMaxForDifficulty} from "../Algebra/AlgebraUtils.js";
+import {formatPiFraction} from "./TrigUtils.js";
 export function generateDegreesToRadians(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let angleDeg: number;
 	if(difficulty==="easy"){

@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
 vi.mock("./core/domRegistry",()=>({
     dom:{
@@ -9,7 +9,7 @@ vi.mock("./core/domRegistry",()=>({
         }
     }
 }));
-import{QuestionState}from"./core/questionState";
+import{QuestionState}from"./core/QuestionState";
 describe("QuestionState",()=>{
     let state: QuestionState;
     beforeEach(()=>{

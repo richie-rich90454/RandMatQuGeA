@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {seededRng} from "../../main/core/rng";
-import {generateDegreesToRadians,generateRadiansToDegrees,generateArcLength,generateAngularLinearSpeed,generateRightTriangleDefs,generateSpecialTriangle,generateElevationDepression,generateReferenceAngle,generateASTCSign,generateSumDifference,generateDoubleAngle,generateHalfAngle,generatePolarToRectangular,generateRectangularToPolar,generatePolarDistance,generatePolarGraphEquation,generateParametricToCartesian,generateParametricMotion,generateComplexPolarForm,generateComplexMultiplyDivide,generateDeMoivre,generateComplexRoots} from "./trigAnalytic.js";
+import {seededRng} from "../../main/core/Rng";
+import {generateDegreesToRadians,generateRadiansToDegrees,generateArcLength,generateAngularLinearSpeed,generateRightTriangleDefs,generateSpecialTriangle,generateElevationDepression,generateReferenceAngle,generateASTCSign,generateSumDifference,generateDoubleAngle,generateHalfAngle,generatePolarToRectangular,generateRectangularToPolar,generatePolarDistance,generatePolarGraphEquation,generateParametricToCartesian,generateParametricMotion,generateComplexPolarForm,generateComplexMultiplyDivide,generateDeMoivre,generateComplexRoots} from "./TrigAnalytic.js";
 vi.mock("../Algebra/algebraUtils.js",()=>({
 	getMaxForDifficulty: vi.fn(()=>5),
 	factorial: vi.fn(function f(n:number):number{return n<=1?1:n*f(n-1);}),

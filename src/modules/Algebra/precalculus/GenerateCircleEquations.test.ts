@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateCircleEquations} from "./generateCircleEquations";
-import {seededRng} from "../../../main/core/rng";
+import {generateCircleEquations} from "./GenerateCircleEquations";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateCircleEquations", ()=>{
 	it("generates standard form question correctly", ()=>{
 		const rng=vi.fn()

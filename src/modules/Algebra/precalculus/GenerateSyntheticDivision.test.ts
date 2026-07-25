@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateSyntheticDivision} from "./generateSyntheticDivision";
-import {seededRng} from "../../../main/core/rng";
+import {generateSyntheticDivision} from "./GenerateSyntheticDivision";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateSyntheticDivision", ()=>{
 	it("generates divide question correctly", ()=>{
 		const rng=vi.fn()

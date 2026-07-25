@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
 const mocks=vi.hoisted(()=>{
     let mockElement=null as any;
@@ -22,7 +22,7 @@ vi.mock("./core/domRegistry",()=>{
         }
     };
 });
-import{bindEvents,type EventBinding}from"./services/eventBinder";
+import{bindEvents,type EventBinding}from"./services/EventBinder";
 describe("EventBinding",()=>{
     beforeEach(()=>{
         vi.clearAllMocks();

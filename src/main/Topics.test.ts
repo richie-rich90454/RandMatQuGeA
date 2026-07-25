@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,afterEach,beforeEach}from"vitest";
 vi.mock("./core/domRegistry",()=>{
     let topicGridHTML="";
@@ -63,12 +63,12 @@ vi.mock("./constants.js",()=>({
         one:["add"],
     },
 }));
-import*as topics from"./topics.js";
-import*as stateStore from"./core/stateStore";
+import*as topics from"./Topics.js";
+import*as stateStore from"./core/StateStore";
 let state:any=stateStore.appState;
-import*as domRegistry from"./core/domRegistry";
+import*as domRegistry from"./core/DomRegistry";
 let dom:any=domRegistry.dom;
-import*as ui from"./ui.js";
+import*as ui from"./Ui.js";
 describe("topics",()=>{
     afterEach(()=>{
         document.querySelectorAll(".topic-pill").forEach(el=>el.remove());

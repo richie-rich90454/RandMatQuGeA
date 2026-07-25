@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {gcd, getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {gcd, getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Generates a fraction arithmetic question (add, subtract, multiply, divide, simplify, or convert decimal to fraction) with MCQ distractors.
  * @fileoverview Fraction operations. Sets window.correctAnswer with plain fraction string and LaTeX display, plus plausible wrong answers.

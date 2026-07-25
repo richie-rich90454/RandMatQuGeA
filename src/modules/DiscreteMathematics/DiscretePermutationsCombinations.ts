@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Discrete mathematics: permutations and combinations generator
  * @fileoverview Provides functions to generate permutation and combination questions with MCQ distractors.
  * Each question returns a QuestionDto with:
@@ -11,7 +11,7 @@
  * @date 2026-03-29
  */
 import type {RngFn, QuestionDto} from "../../types/global";
-import {factorial, nPr, nCr, getMaxN} from "./discreteUtils.js";
+import {factorial, nPr, nCr, getMaxN} from "./DiscreteUtils.js";
 /**
  * Generates a random permutation question with MCQ distractors.
  * @param difficulty - optional difficulty level

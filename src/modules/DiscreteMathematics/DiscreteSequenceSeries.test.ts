@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateArithmeticSequence,generateGeometricSequence,generateSequenceLimit,generateInfiniteGeometricSeries,generateMathematicalInduction,generateBinomialTheorem} from "./discreteSequenceSeries";
-import {seededRng} from "../../main/core/rng";
+import {generateArithmeticSequence,generateGeometricSequence,generateSequenceLimit,generateInfiniteGeometricSeries,generateMathematicalInduction,generateBinomialTheorem} from "./DiscreteSequenceSeries";
+import {seededRng} from "../../main/core/Rng";
 describe("generateArithmeticSequence",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateArithmeticSequence("medium", seededRng(42));

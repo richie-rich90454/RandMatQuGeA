@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Complex number operations: addition, subtraction, multiplication, division, powers of i.
  * @fileoverview Generates complex number arithmetic questions with MCQ distractors. Sets window.correctAnswer with correct result and display.

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Polynomial operations: addition, subtraction, multiplication, division, factoring.
  * Function concepts: domain, range, notation, evaluation.
  * Graphing: linear (slope, intercepts, equation from points, parallel/perpendicular), nonlinear (parabola vertex, absolute value, sqrt, transformations).
@@ -6,7 +6,7 @@
  * @date 2026-04-18
  */
 import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxForDifficulty} from "./algebraUtils.js";
+import {getMaxForDifficulty} from "./AlgebraUtils.js";
 export function generatePolynomial(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
 	let types=["add","subtract","multiply"];
 	let type=types[Math.floor(rng()*types.length)];

@@ -1,15 +1,15 @@
-import{dom}from"./core/domRegistry";
-import{appState}from"./core/stateStore";
-import{questionState}from"./core/questionState";
-import{renderer}from"./core/questionRenderer";
-import{showQuestionSkeleton,hideQuestionSkeleton}from"./ui/skeleton";
-import * as ui from "./ui";
-import * as topics from "./topics";
-import{generateQuestion as callGenerator}from"./questionGenerator";
-import{generateChoicesForCurrentQuestion}from"./mcq";
+﻿import{dom}from"./core/DomRegistry";
+import{appState}from"./core/StateStore";
+import{questionState}from"./core/QuestionState";
+import{renderer}from"./core/QuestionRenderer";
+import{showQuestionSkeleton,hideQuestionSkeleton}from"./ui/Skeleton";
+import * as ui from "./Ui";
+import * as topics from "./Topics";
+import{generateQuestion as callGenerator}from"./QuestionGenerator";
+import{generateChoicesForCurrentQuestion}from"./Mcq";
 import{invoke}from"@tauri-apps/api/core";
-import * as settings from "./settings";
-import{startQuestionTimer}from"./answer";
+import * as settings from "./Settings";
+import{startQuestionTimer}from"./Answer";
 async function applyAdaptiveRecommendation(): Promise<boolean>{
     console.log("[Adaptive] Called, adaptive setting =", settings.settings.adaptive);
     if (!settings.settings.adaptive) return false;

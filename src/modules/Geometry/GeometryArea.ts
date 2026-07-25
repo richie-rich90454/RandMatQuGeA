@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxForDifficulty} from "./geometryUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxForDifficulty} from "./GeometryUtils.js";
 /**
  * Area and surface area: circle, rectangle, triangle, sector, cube.
  * @fileoverview Generates questions about area and surface area for common 2D and 3D shapes. Builds a QuestionDto with plausible wrong answers for MCQ mode.

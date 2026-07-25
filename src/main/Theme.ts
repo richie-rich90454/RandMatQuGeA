@@ -1,5 +1,5 @@
-import{dom}from"./core/domRegistry";
-import * as settings from"./settings";
+﻿import{dom}from"./core/DomRegistry";
+import * as settings from"./Settings";
 let themeChangedUnlisten:(()=>void)|null=null;
 export async function initializeTheme():Promise<void>{
 	let savedTheme:string|null=null;

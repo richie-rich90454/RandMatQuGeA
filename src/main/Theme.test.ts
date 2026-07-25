@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 let mockApplyTheme=vi.fn();
 let mockAddEventListener=vi.fn();
@@ -19,7 +19,7 @@ vi.mock("./settings.js",()=>({
 }));
 let mockSettings={theme:"system"};
 let mockThemeToggle: any=null;
-import{initializeTheme}from"./theme.js";
+import{initializeTheme}from"./Theme.js";
 describe("theme",()=>{
     it("should export initializeTheme",()=>{
         expect(typeof initializeTheme).toBe("function");

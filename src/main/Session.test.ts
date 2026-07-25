@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 vi.mock("./core/domRegistry",()=>{
     const timerDisplay={innerHTML:"",style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
@@ -163,12 +163,12 @@ vi.mock("./questionGenerator.js",()=>({
 vi.mock("./mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
-import{saveSessionSnapshot,restoreSessionSnapshot,startTimer,generateNextMentalQuestion,handleMentalAnswer,handleMcqChoice,startMentalSession,pauseMentalSession,skipMentalQuestion,stopMentalSession,endMentalSession,promptSaveScore,updateLeaderboard}from"./session.js";
-import*as stateStore from"./core/stateStore";
+import{saveSessionSnapshot,restoreSessionSnapshot,startTimer,generateNextMentalQuestion,handleMentalAnswer,handleMcqChoice,startMentalSession,pauseMentalSession,skipMentalQuestion,stopMentalSession,endMentalSession,promptSaveScore,updateLeaderboard}from"./Session.js";
+import*as stateStore from"./core/StateStore";
 let state:any=stateStore.appState;
-import * as ui from "./ui.js";
-import * as settings from "./settings.js";
-import * as questionGenerator from "./questionGenerator.js";
+import * as ui from "./Ui.js";
+import * as settings from "./Settings.js";
+import * as questionGenerator from "./QuestionGenerator.js";
 describe("session",()=>{
     window.correctAnswer={correct:"42",alternate:"42",display:"42"};
     window.hasQuestion=true;

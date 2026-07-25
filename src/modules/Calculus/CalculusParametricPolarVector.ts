@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxCoeff} from "./calculusUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxCoeff} from "./CalculusUtils.js";
 /**
  * Generates a random question involving parametric equations, polar coordinates, or vector-valued functions.
  * Includes custom multiple‑choice options for MCQ mode.

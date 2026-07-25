@@ -1,4 +1,4 @@
-import{registerTopic}from"../../main/services/topicRegistry";
+﻿import{registerTopic}from"../../main/services/TopicRegistry";
 registerTopic("fraction","algebra","generateFraction");
 registerTopic("percent","algebra","generatePercent");
 registerTopic("ratio","algebra","generateRatioProportion");

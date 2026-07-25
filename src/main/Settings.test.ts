@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,afterEach,beforeEach}from"vitest";
 let mockAppWindow:any=null;
 vi.mock("./core/domRegistry",()=>{
@@ -69,7 +69,7 @@ vi.mock("mathjs",()=>{
     });
     return{evaluate,default:{evaluate}};
 });
-import*as settings from"./settings.js";
+import*as settings from"./Settings.js";
 describe("settings",()=>{
     beforeEach(()=>{
         mockAppWindow=null;

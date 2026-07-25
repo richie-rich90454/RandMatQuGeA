@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Generates an order‑of‑operations question (basic, with exponents, or with parentheses) with MCQ distractors.
  * @fileoverview Order of operations evaluation. Sets window.correctAnswer with numeric result and plausible wrong answers.

@@ -1,10 +1,10 @@
-import{dom}from"./core/domRegistry";
-import{appState}from"./core/stateStore";
-import{questionState}from"./core/questionState";
-import*as settings from"./settings";
-import{generateChoicesForCurrentQuestion}from"./mcq";
-import*as session from"./session";
-import*as answer from"./answer";
+﻿import{dom}from"./core/DomRegistry";
+import{appState}from"./core/StateStore";
+import{questionState}from"./core/QuestionState";
+import*as settings from"./Settings";
+import{generateChoicesForCurrentQuestion}from"./Mcq";
+import*as session from"./Session";
+import*as answer from"./Answer";
 export function clearAllTimeouts(): void{
     if(appState.autoTimeout){clearTimeout(appState.autoTimeout);appState.autoTimeout=null;}
     if(appState.previewTimeout){clearTimeout(appState.previewTimeout);appState.previewTimeout=null;}

@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateOrderOfOperations} from "./generateOrderOfOperations";
-import {seededRng} from "../../../main/core/rng";
+import {generateOrderOfOperations} from "./GenerateOrderOfOperations";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateOrderOfOperations",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateOrderOfOperations("medium", seededRng(42));

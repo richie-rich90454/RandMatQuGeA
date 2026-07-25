@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {generateIntegrationAdvanced} from "./calculusIntegrationAdvanced";
-import {seededRng} from "../../main/core/rng";
+import {generateIntegrationAdvanced} from "./CalculusIntegrationAdvanced";
+import {seededRng} from "../../main/core/Rng";
 describe("generateIntegrationAdvanced",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateIntegrationAdvanced("medium", seededRng(42));

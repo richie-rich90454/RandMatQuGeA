@@ -1,6 +1,6 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect}from"vitest";
-import{topics,scopeTopics,SESSION_STORAGE_KEY}from"./constants.js";
+import{topics,scopeTopics,SESSION_STORAGE_KEY}from"./Constants.js";
 describe("constants",()=>{
     it("should export topics as a non-empty array",()=>{
         expect(Array.isArray(topics)).toBe(true);

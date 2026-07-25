@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxCoeff} from "./calculusUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxCoeff} from "./CalculusUtils.js";
 /**
  * Generates a random limit question and returns it as a QuestionDto.
  * Includes custom multiple‑choice options for MCQ mode.

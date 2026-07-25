@@ -1,4 +1,4 @@
-import{registerTopic}from"../../main/services/topicRegistry";
+﻿import{registerTopic}from"../../main/services/TopicRegistry";
 registerTopic("deri","calculus","generateDerivative");
 registerTopic("inte","calculus","generateIntegral");
 registerTopic("lim","calculus","generateLimit");

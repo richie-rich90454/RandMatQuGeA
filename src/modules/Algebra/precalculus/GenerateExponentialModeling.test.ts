@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateExponentialModeling} from "./generateExponentialModeling";
-import {seededRng} from "../../../main/core/rng";
+import {generateExponentialModeling} from "./GenerateExponentialModeling";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateExponentialModeling", ()=>{
 	it("generates growth question correctly", ()=>{
 		const rng=vi.fn()

@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi}from"vitest";
 vi.mock("../modules/Algebra/index.js",()=>({
     generateLinearEquation:vi.fn(),
@@ -165,7 +165,7 @@ vi.mock("./core/domRegistry.js",()=>({
         }
     }
 }));
-import{generateQuestion,generateQuestionDto}from"./questionGenerator.js";
+import{generateQuestion,generateQuestionDto}from"./QuestionGenerator.js";
 import{generateAddition}from"../modules/Arithmetic/index.js";
 describe("questionGenerator",()=>{
     it("should export generateQuestion",()=>{

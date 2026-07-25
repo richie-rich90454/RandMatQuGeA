@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateScientificNotation} from "./generateScientificNotation";
-import {seededRng} from "../../../main/core/rng";
+import {generateScientificNotation} from "./GenerateScientificNotation";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateScientificNotation",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateScientificNotation("medium", seededRng(42));

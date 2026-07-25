@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generatePythagorean,generateSimilarTriangles,generateTriangleClassification} from "./geometryTriangles.js";
-import {seededRng} from "../../main/core/rng";
+import {generatePythagorean,generateSimilarTriangles,generateTriangleClassification} from "./GeometryTriangles.js";
+import {seededRng} from "../../main/core/Rng";
 describe("generatePythagorean",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generatePythagorean("medium", seededRng(42));

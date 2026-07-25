@@ -1,5 +1,5 @@
-import{DomRegistry,dom}from"./domRegistry";
-import{questionState}from"./questionState";
+﻿import{DomRegistry,dom}from"./DomRegistry";
+import{questionState}from"./QuestionState";
 import{type CorrectAnswer,type QuestionDto}from"../../types/global";
 export class QuestionRenderer{
     private registry: DomRegistry;

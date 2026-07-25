@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {generateGraphicalCalculus} from "./calculusGraphical";
-import {seededRng} from "../../main/core/rng";
+import {generateGraphicalCalculus} from "./CalculusGraphical";
+import {seededRng} from "../../main/core/Rng";
 describe("generateGraphicalCalculus",()=>{
 	it("generates diffContinuity correctly",()=>{
 		const rng=vi.fn()

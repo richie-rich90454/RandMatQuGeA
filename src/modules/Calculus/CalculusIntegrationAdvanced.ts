@@ -1,6 +1,6 @@
-import type {RngFn, QuestionDto} from "../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
 // @ts-expect-error - latexToPlain is imported for potential future use
-import {getMaxCoeff, latexToPlain} from "./calculusUtils.js";
+import {getMaxCoeff, latexToPlain} from "./CalculusUtils.js";
 /**
  * Generates a random advanced integration or differential equations question.
  * Includes custom multiple‑choice options for MCQ mode.

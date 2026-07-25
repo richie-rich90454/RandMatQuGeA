@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxCoeff, trigFunctions, expFunctions, logFunctions, latexToPlain} from "./calculusUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
+import {getMaxCoeff, trigFunctions, expFunctions, logFunctions, latexToPlain} from "./CalculusUtils.js";
 /**
  * Generates a random differentiation question and displays it in the global question area.
  *

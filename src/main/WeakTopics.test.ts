@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 vi.mock("./topics.js",()=>({
     selectTopic:vi.fn(),
@@ -12,7 +12,7 @@ vi.mock("./settings.js",()=>({
 vi.mock("@tauri-apps/api/core",()=>({
     invoke:vi.fn().mockResolvedValue([]),
 }));
-import{checkAndShowWeakTopicsPopup}from"./weakTopics.js";
+import{checkAndShowWeakTopicsPopup}from"./WeakTopics.js";
 import{invoke}from"@tauri-apps/api/core";
 describe("weakTopics",()=>{
     it("should export checkAndShowWeakTopicsPopup",()=>{

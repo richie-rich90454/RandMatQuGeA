@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
 vi.mock("@tauri-apps/plugin-updater",()=>({
     check:vi.fn(),
@@ -223,17 +223,17 @@ vi.mock("./dataManagement.js",()=>({
     openDataModal:vi.fn(),
     initDataModal:vi.fn(),
 }));
-import{switchToSingle,switchToMental,setupEventListeners,isVersionGreater}from"./events.js";
-import*as stateStore from"./core/stateStore";
+import{switchToSingle,switchToMental,setupEventListeners,isVersionGreater}from"./Events.js";
+import*as stateStore from"./core/StateStore";
 let state:any=stateStore.appState;
-import*as domRegistry from"./core/domRegistry";
+import*as domRegistry from"./core/DomRegistry";
 let dom:any=domRegistry.dom;
-import{questionState}from"./core/questionState";
-import * as session from "./session.js";
+import{questionState}from"./core/QuestionState";
+import * as session from "./Session.js";
 import{gt as semverGt}from"semver";
-import*as generation from"./generation.js";
-import*as answer from"./answer.js";
-import*as ui from"./ui.js";
+import*as generation from"./Generation.js";
+import*as answer from"./Answer.js";
+import*as ui from"./Ui.js";
 describe("events",()=>{
     it("should export switchToSingle",()=>{
         expect(typeof switchToSingle).toBe("function");

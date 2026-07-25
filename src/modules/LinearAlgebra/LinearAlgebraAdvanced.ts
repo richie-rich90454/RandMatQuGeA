@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Linear algebra advanced topics: 3x3 systems, row echelon, partial fractions, linear programming, 3D vectors, lines, planes.
  * @fileoverview Generates advanced linear algebra questions with MCQ distractors. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-03-29
  */
 import type {RngFn, QuestionDto} from "../../types/global";
-import {getRange} from "./linearAlgebraUtils.js";
+import {getRange} from "./LinearAlgebraUtils.js";
 function generate3x3Matrix(range: number, rng: RngFn): number[][]{
 	let mat: number[][]=[];
 	for(let i=0;i<3;i++){

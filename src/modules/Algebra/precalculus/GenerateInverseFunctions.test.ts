@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateInverseFunctions} from "./generateInverseFunctions";
-import {seededRng} from "../../../main/core/rng";
+import {generateInverseFunctions} from "./GenerateInverseFunctions";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateInverseFunctions", ()=>{
 	it("generates find question correctly", ()=>{
 		const rng=vi.fn()

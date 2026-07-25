@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Exponent rules: product, quotient, power, negative, zero.
  * @fileoverview Generates questions on exponent rules with MCQ distractors. Sets window.correctAnswer with correct expression and display.

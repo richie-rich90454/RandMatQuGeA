@@ -1,7 +1,7 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect}from"vitest";
-import*as precalc from"./algebraInPrecalculus.js";
-import{seededRng}from"../../main/core/rng";
+import*as precalc from"./AlgebraInPrecalculus.js";
+import{seededRng}from"../../main/core/Rng";
 describe("algebraInPrecalculus exports",()=>{
 	it("should export generateRealNumberOperations",()=>{
 		expect(typeof precalc.generateRealNumberOperations).toBe("function");

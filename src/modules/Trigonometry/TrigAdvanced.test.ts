@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {seededRng} from "../../main/core/rng";
-import {generateInverseTrig,generateTrigEquations,generateTrigGraphs} from "./trigAdvanced.js";
+import {seededRng} from "../../main/core/Rng";
+import {generateInverseTrig,generateTrigEquations,generateTrigGraphs} from "./TrigAdvanced.js";
 describe("generateInverseTrig",()=>{
 	it("generates arcsin type question",()=>{
 		const rng=vi.fn().mockReturnValueOnce(0.01).mockReturnValue(0.5);

@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateProperties} from "./generateProperties";
-import {seededRng} from "../../../main/core/rng";
+import {generateProperties} from "./GenerateProperties";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateProperties",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateProperties("medium", seededRng(42));

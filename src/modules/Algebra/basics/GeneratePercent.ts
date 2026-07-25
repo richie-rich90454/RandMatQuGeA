@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Generates a percentage question (percent of, increase, decrease, simple interest, or markup) with MCQ distractors.
  * @fileoverview Percentage calculations. Sets window.correctAnswer with numeric result and plausible wrong answers.

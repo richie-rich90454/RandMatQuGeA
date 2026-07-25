@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Barrel file exporting all arithmetic question generators and utilities.
  *
  * This file aggregates the various arithmetic modules, providing a single import entry point
@@ -21,6 +21,6 @@
  *
  * @packageDocumentation
  */
-export * from "./arithmeticUtils.js";
-export * from "./arithmeticBasic.js";
-export * from "./arithmeticAdvanced.js";
+export * from "./ArithmeticUtils.js";
+export * from "./ArithmeticBasic.js";
+export * from "./ArithmeticAdvanced.js";

@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Radical equations: one radical or two radicals.
  * @fileoverview Generates radical equation questions with MCQ distractors. Sets window.correctAnswer with correct value and display.

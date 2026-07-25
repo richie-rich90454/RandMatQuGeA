@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi}from"vitest";
 vi.mock("./main/settings.js",()=>({
     loadSettings:vi.fn(),
@@ -25,11 +25,11 @@ vi.mock("./main/theme.js",()=>({
     initializeTheme:vi.fn(),
 }));
 import"./script.js";
-import*as settingsMod from"./main/settings.js";
-import*as themeMod from"./main/theme.js";
-import*as eventsMod from"./main/events.js";
-import*as sessionMod from"./main/session.js";
-import*as _uiMod from"./main/ui.js";
+import*as settingsMod from"./main/Settings.js";
+import*as themeMod from"./main/Theme.js";
+import*as eventsMod from"./main/Events.js";
+import*as sessionMod from"./main/Session.js";
+import*as _uiMod from"./main/Ui.js";
 describe("script",()=>{
     it("should set window globals on load",()=>{
         expect(window.correctAnswer).toEqual({correct:"", alternate:"", display:""});

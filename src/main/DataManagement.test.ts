@@ -1,4 +1,4 @@
-/** @vitest-environment jsdom */
+﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 vi.mock("./ui.js",()=>({
     showNotification:vi.fn(),
@@ -10,7 +10,7 @@ vi.mock("@tauri-apps/api/core",()=>({
     invoke:vi.fn(),
 }));
 import{invoke}from"@tauri-apps/api/core";
-import{openDataModal,initDataModal}from"./dataManagement.js";
+import{openDataModal,initDataModal}from"./DataManagement.js";
 declare const process: { on: (e: string, h: Function) => void; off: (e: string, h: Function) => void; };
 describe("dataManagement",()=>{
     it("should export openDataModal",()=>{

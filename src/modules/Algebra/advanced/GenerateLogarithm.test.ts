@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateLogarithm} from "./generateLogarithm";
-import {seededRng} from "../../../main/core/rng";
+import {generateLogarithm} from "./GenerateLogarithm";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateLogarithm",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateLogarithm("medium", seededRng(42));

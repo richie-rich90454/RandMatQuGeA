@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateTransformations} from "./generateTransformations";
-import {seededRng} from "../../../main/core/rng";
+import {generateTransformations} from "./GenerateTransformations";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateTransformations", ()=>{
 	it("generates translation question correctly", ()=>{
 		const rng=vi.fn()

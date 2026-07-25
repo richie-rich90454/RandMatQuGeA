@@ -1,10 +1,10 @@
-import{invoke}from"@tauri-apps/api/core";
-import{selectTopic}from"./topics";
-import{topics}from"./constants";
-import{generateQuestion}from"./generation";
-import*as settings from"./settings";
-import*as ui from"./ui";
-import {appState} from"./core/stateStore";
+﻿import{invoke}from"@tauri-apps/api/core";
+import{selectTopic}from"./Topics";
+import{topics}from"./Constants";
+import{generateQuestion}from"./Generation";
+import*as settings from"./Settings";
+import*as ui from"./Ui";
+import {appState} from"./core/StateStore";
 let weakTopicsModal:HTMLElement|null=null;
 let weakTopicsList:HTMLElement|null=null;
 export async function checkAndShowWeakTopicsPopup(){

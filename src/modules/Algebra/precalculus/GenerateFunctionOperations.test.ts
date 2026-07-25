@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateFunctionOperations} from "./generateFunctionOperations";
-import {seededRng} from "../../../main/core/rng";
+import {generateFunctionOperations} from "./GenerateFunctionOperations";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateFunctionOperations", ()=>{
 	it("generates composition question correctly", ()=>{
 		const rng=vi.fn()

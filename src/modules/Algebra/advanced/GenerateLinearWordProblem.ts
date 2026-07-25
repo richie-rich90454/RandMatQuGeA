@@ -1,5 +1,5 @@
-import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../algebraUtils.js";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Linear word problems: consecutive integers, money, distance, age, mixture.
  * @fileoverview Generates linear word problems with MCQ distractors. Sets window.correctAnswer with correct result and display.
