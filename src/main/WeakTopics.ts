@@ -4,11 +4,16 @@ import{topics}from"./Constants";
 import{generateQuestion}from"./Generation";
 import*as settings from"./Settings";
 import*as ui from"./Ui";
-import {appState} from"./core/StateStore";
+import{appState}from"./core/StateStore";
+import{isTauri}from"../utils/envUtils";
 let weakTopicsModal:HTMLElement|null=null;
 let weakTopicsList:HTMLElement|null=null;
 export async function checkAndShowWeakTopicsPopup(){
     if(!settings.settings.showWeakTopicsPopup)return;
+    if(!isTauri()){
+        ui.showNotification("Weak topic analysis is only available in the desktop app.","info");
+        return;
+    }
     try{
         let weakTopics=await invoke("get_weak_topics",{limit:5})as Array<{topic_id:string,accuracy:number,attempts:number}>;
         if(!weakTopics||weakTopics.length===0){ui.showNotification("No weak topics yet — answer more questions to get recommendations.","info");return;}
