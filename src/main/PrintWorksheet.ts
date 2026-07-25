@@ -4,6 +4,7 @@ import{invoke}from"@tauri-apps/api/core";
 import{save}from"@tauri-apps/plugin-dialog";
 import{seededRng}from"./core/Rng";
 import{showNotification}from"./Ui";
+import{isTauri}from"../utils/envUtils";
 import type{RngFn,QuestionDto}from"../types/global";
 let modal: HTMLElement | null = null;
 let questionCountSelect: HTMLSelectElement | null = null;
@@ -114,16 +115,13 @@ function buildTopicList(opts: WorksheetOptions): string[]{
 	}
 	return [opts.topic];
 }
-function isTauriAvailable(): boolean{
-	return typeof (window as any).__TAURI_INTERNALS__ !== "undefined" || typeof (window as any).__TAURI__ !== "undefined";
-}
 async function resolveSeed(): Promise<number>{
 	let inputVal = seedInput?.value?.trim() || "";
 	if (inputVal){
 		let parsed = parseInt(inputVal, 10);
 		if (!isNaN(parsed) && parsed > 0) return parsed;
 	}
-	if (isTauriAvailable()){
+	if (isTauri()){
 		try{
 			let seed = await invoke<number>("generate_worksheet_seed");
 			if (typeof seed === "number" && seed > 0) return seed;
@@ -312,7 +310,7 @@ async function exportToPdf(opts: WorksheetOptions, dtos: QuestionDto[]): Promise
 	// integrals, Greek letters, etc. If the Rust command fails for any reason,
 	// fall back to window.print(), which reuses the KaTeX-rendered HTML from
 	// the live preview via #ws-print-container.
-	if (isTauriAvailable()){
+	if (isTauri()){
 		try{
 			let filename=(opts.title || "worksheet").replace(/[^a-zA-Z0-9_-]/g, "_")+".pdf";
 			let filepath=await save({
