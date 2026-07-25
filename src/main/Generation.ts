@@ -10,6 +10,7 @@ import{generateChoicesForCurrentQuestion}from"./Mcq";
 import{invoke}from"@tauri-apps/api/core";
 import * as settings from "./Settings";
 import{startQuestionTimer}from"./Answer";
+import{isTauri}from"../utils/envUtils";
 async function applyAdaptiveRecommendation(): Promise<boolean>{
     console.log("[Adaptive] Called, adaptive setting =", settings.settings.adaptive);
     if (!settings.settings.adaptive) return false;
@@ -48,6 +49,10 @@ export function debounceGenerate(): void{
         appState.generateDebounceTimeout=null;
     },150);
 }
+async function applyAdaptiveSafe(): Promise<boolean>{
+    if (!isTauri()||!settings.settings.adaptive) return false;
+    return applyAdaptiveRecommendation();
+}
 export async function generateQuestion(explicitTopicId?: string): Promise<void>{
     if (appState.isGenerating) return;
     appState.isGenerating=true;
@@ -62,7 +67,7 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
         topics.selectTopic(explicitTopicId!);
     }
     else{
-        adaptiveActive=await applyAdaptiveRecommendation();
+        adaptiveActive=await applyAdaptiveSafe();
     }
     if (!adaptiveActive&&!hasExplicitTopic&&appState.shuffle&&appState.currentMode==="single"){
         let randomTopic=topics.pickRandomTopic();
