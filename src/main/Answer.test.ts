@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from'vitest';
-vi.mock('./core/domRegistry',()=>{
+vi.mock('./core/DomRegistry',()=>{
 	const userAnswer={value: '', focus: vi.fn()};
 	const answerResults={
 		innerHTML: '',
@@ -16,7 +16,7 @@ vi.mock('./core/domRegistry',()=>{
 	};
 	return {dom};
 });
-vi.mock('./core/stateStore', () => {
+vi.mock('./core/StateStore', () => {
 	let selectedTopic='topic';
 	let currentMode='single';
 	let sessionActive=false;
@@ -112,7 +112,7 @@ vi.mock('./core/stateStore', () => {
 	};
 	return {appState};
 });
-vi.mock('./core/questionState', () => ({
+vi.mock('./core/QuestionState', () => ({
 	questionState: {
 		get correctAnswer(){return (window as any).correctAnswer;},
 		set correctAnswer(v: any){(window as any).correctAnswer=v;},
@@ -122,7 +122,7 @@ vi.mock('./core/questionState', () => ({
 		set hasQuestion(v: any){(window as any).hasQuestion=v;}
 	}
 }));
-vi.mock('./settings', () => ({
+vi.mock('./Settings', () => ({
 	settings: {
 		sound: false,
 		vibration: false,
@@ -134,12 +134,12 @@ vi.mock('./settings', () => ({
 	isAnswerCorrect: vi.fn(),
 	checkAnswerFast: vi.fn(),
 }));
-vi.mock('./ui', () => ({
+vi.mock('./Ui', () => ({
 	showNotification: vi.fn(),
 	updatePreview: vi.fn(),
 	updatePreviewDebounced: vi.fn(),
 }));
-vi.mock('./generation', () => ({
+vi.mock('./Generation', () => ({
 	generateQuestion: vi.fn(() => Promise.resolve()),
 }));
 vi.mock("mathjs",()=>{

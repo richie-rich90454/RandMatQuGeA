@@ -5,7 +5,7 @@ import {describe,it,expect,beforeEach,vi} from "vitest";
 import {seededRng} from "../../main/core/Rng";
 import {getRangeForDifficulty} from "./ArithmeticUtils.js";
 import {generateAddition,generateSubtraction,generateMultiplication,generateDivision} from "./ArithmeticBasic.js";
-vi.mock("./arithmeticUtils.js",()=>({
+vi.mock("./ArithmeticUtils.js",()=>({
 	getRangeForDifficulty: vi.fn(()=>({min:1,max:10}))
 }));
 describe("generateAddition",()=>{

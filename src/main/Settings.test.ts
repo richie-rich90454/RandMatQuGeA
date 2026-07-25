@@ -1,7 +1,7 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,afterEach,beforeEach}from"vitest";
 let mockAppWindow:any=null;
-vi.mock("./core/domRegistry",()=>{
+vi.mock("./core/DomRegistry",()=>{
     const settings={
         settingsTheme:{value:"system"},
         settingsDefaultMode:{value:"single"},
@@ -47,16 +47,16 @@ vi.mock("./core/domRegistry",()=>{
     };
     return{dom};
 });
-vi.mock("./core/stateStore",()=>({
+vi.mock("./core/StateStore",()=>({
     appState:{mcqMode:false}
 }));
-vi.mock("./core/questionState",()=>({
+vi.mock("./core/QuestionState",()=>({
     questionState:{
         hasQuestion:false,
         get correctAnswer(){return(window as any).correctAnswer;}
     }
 }));
-vi.mock("./mcq.js",()=>({
+vi.mock("./Mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
 vi.mock("mathjs",()=>{

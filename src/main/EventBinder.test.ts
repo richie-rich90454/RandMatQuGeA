@@ -15,7 +15,7 @@ const mocks=vi.hoisted(()=>{
     });
     return{mockElement,mockQueryElement};
 });
-vi.mock("./core/domRegistry",()=>{
+vi.mock("./core/DomRegistry",()=>{
     return{
         dom:{
             queryElement:mocks.mockQueryElement

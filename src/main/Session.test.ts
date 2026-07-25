@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
-vi.mock("./core/domRegistry",()=>{
+vi.mock("./core/DomRegistry",()=>{
     const timerDisplay={innerHTML:"",style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
     const scoreDisplay={innerHTML:""};
     const mentalProgressBar={style:{width:""},setAttribute:vi.fn(),classList:{add:vi.fn(),remove:vi.fn()}};
@@ -31,7 +31,7 @@ vi.mock("./core/domRegistry",()=>{
     const dom={buttons,inputs,displays,session};
     return{dom};
 });
-vi.mock("./core/stateStore",()=>{
+vi.mock("./core/StateStore",()=>{
     let sessionActive=false;
     let sessionPaused=false;
     let sessionScore={correct:0,total:0};
@@ -116,7 +116,7 @@ vi.mock("./core/stateStore",()=>{
     };
     return{appState};
 });
-vi.mock("./core/questionState",()=>{
+vi.mock("./core/QuestionState",()=>{
     return{questionState:{
         get correctAnswer(){return(window as any).correctAnswer;},
         set correctAnswer(v:any){(window as any).correctAnswer=v;},
@@ -126,7 +126,7 @@ vi.mock("./core/questionState",()=>{
         set hasQuestion(v:any){(window as any).hasQuestion=v;}
     }};
 });
-vi.mock("./settings.js",()=>({
+vi.mock("./Settings.js",()=>({
     settings:{
         timer:30,
         maxQuestions:5,
@@ -138,7 +138,7 @@ vi.mock("./settings.js",()=>({
     },
     checkAnswerFast:vi.fn(()=>Promise.resolve(true)),
 }));
-vi.mock("./ui.js",()=>({
+vi.mock("./Ui.js",()=>({
     showNotification:vi.fn(),
     clearAllTimeouts:vi.fn(),
     updateScoreDisplay:vi.fn(),
@@ -152,15 +152,15 @@ vi.mock("./ui.js",()=>({
     updatePreview:vi.fn(),
     updateStatistics:vi.fn(),
 }));
-vi.mock("./topics.js",()=>({
+vi.mock("./Topics.js",()=>({
     pickRandomTopic:vi.fn(()=>"add"),
     selectTopic:vi.fn(),
     default:{},
 }));
-vi.mock("./questionGenerator.js",()=>({
+vi.mock("./QuestionGenerator.js",()=>({
     generateQuestion:vi.fn(),
 }));
-vi.mock("./mcq.js",()=>({
+vi.mock("./Mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
 import{saveSessionSnapshot,restoreSessionSnapshot,startTimer,generateNextMentalQuestion,handleMentalAnswer,handleMcqChoice,startMentalSession,pauseMentalSession,skipMentalQuestion,stopMentalSession,endMentalSession,promptSaveScore,updateLeaderboard}from"./Session.js";

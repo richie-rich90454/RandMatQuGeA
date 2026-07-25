@@ -156,7 +156,7 @@ vi.mock("../modules/Geometry/index.js",()=>({
     generateSphereEquation:vi.fn(),
     generateLinePlane3D:vi.fn(),
 }));
-vi.mock("./core/domRegistry.js",()=>({
+vi.mock("./core/DomRegistry.js",()=>({
     dom:{
         displays:{
             questionArea:{innerHTML:""},

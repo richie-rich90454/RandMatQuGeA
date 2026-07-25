@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
-vi.mock("./core/domRegistry",()=>{
+vi.mock("./core/DomRegistry",()=>{
     const difficultySelect={value:"medium"};
     const answerResults={innerHTML:"",className:"",classList:{add:vi.fn(),remove:vi.fn()}};
     const userAnswer={value:"",disabled:false,focus:vi.fn(),removeAttribute:vi.fn(),style:{display:""}};
@@ -20,7 +20,7 @@ vi.mock("./core/domRegistry",()=>{
     };
     return{dom};
 });
-vi.mock("./core/stateStore",()=>{
+vi.mock("./core/StateStore",()=>{
     let selectedTopic:string|null=null;
     let currentMode="single";
     let currentDifficulty="medium";
@@ -63,7 +63,7 @@ vi.mock("./core/stateStore",()=>{
     };
     return{appState};
 });
-vi.mock("./core/questionState",()=>{
+vi.mock("./core/QuestionState",()=>{
     return{
         questionState:{
             get correctAnswer(){return(window as any).correctAnswer;},
@@ -75,7 +75,7 @@ vi.mock("./core/questionState",()=>{
         }
     };
 });
-vi.mock("./core/questionRenderer",()=>{
+vi.mock("./core/QuestionRenderer",()=>{
     return{
         renderer:{
             render:vi.fn(),
@@ -83,25 +83,25 @@ vi.mock("./core/questionRenderer",()=>{
         }
     };
 });
-vi.mock("./ui.js",()=>({
+vi.mock("./Ui.js",()=>({
     showNotification:vi.fn(),
     updatePreview:vi.fn(),
     updateUIState:vi.fn(),
 }));
-vi.mock("./topics.js",()=>({
+vi.mock("./Topics.js",()=>({
     pickRandomTopic:vi.fn(()=>"add"),
     selectTopic:vi.fn(),
 }));
-vi.mock("./questionGenerator.js",()=>({
+vi.mock("./QuestionGenerator.js",()=>({
     generateQuestion:vi.fn(),
 }));
-vi.mock("./mcq.js",()=>({
+vi.mock("./Mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
-vi.mock("./settings.js",()=>({
+vi.mock("./Settings.js",()=>({
     settings:{adaptive:false},
 }));
-vi.mock("./answer.js",()=>({
+vi.mock("./Answer.js",()=>({
     startQuestionTimer:vi.fn(),
 }));
 vi.mock("@tauri-apps/api/core",()=>({

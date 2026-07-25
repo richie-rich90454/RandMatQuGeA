@@ -11,7 +11,7 @@ vi.mock("semver",()=>{
     return{gt,default:{gt}};
 });
 vi.mock("../../package.json",()=>({default:{version:"1.0.0"},version:"1.0.0"}));
-vi.mock("./core/domRegistry",()=>{
+vi.mock("./core/DomRegistry",()=>{
     const btnProps=(o:any={})=>({addEventListener:vi.fn(),classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()},disabled:false,textContent:"",setAttribute:vi.fn(),click:vi.fn(),style:{display:""},value:"",checked:false,innerHTML:"",querySelectorAll:vi.fn(()=>[]),dataset:{},...o});
     const modalProps=()=>({classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn(()=>false)},style:{display:""},addEventListener:vi.fn()});
     const inputProps=(o:any={})=>({value:"",disabled:false,style:{display:""},focus:vi.fn(),addEventListener:vi.fn(),selectionStart:0,selectionEnd:0,setAttribute:vi.fn(),removeAttribute:vi.fn(),checked:false,...o});
@@ -112,7 +112,7 @@ vi.mock("./core/domRegistry",()=>{
     };
     return{dom};
 });
-vi.mock("./core/stateStore",()=>{
+vi.mock("./core/StateStore",()=>{
     let sessionActive=false;
     let autoTimeout:any=null;
     let mcqMode=false;
@@ -169,7 +169,7 @@ vi.mock("./core/stateStore",()=>{
     };
     return{appState};
 });
-vi.mock("./settings.js",()=>({
+vi.mock("./Settings.js",()=>({
     openSettings:vi.fn(),
     closeSettings:vi.fn(),
     saveSettings:vi.fn(),
@@ -178,7 +178,7 @@ vi.mock("./settings.js",()=>({
     previewSetting:vi.fn(),
     settings:{theme:"system",mcqMode:false},
 }));
-vi.mock("./ui.js",()=>({
+vi.mock("./Ui.js",()=>({
     clearAllTimeouts:vi.fn(),
     updateAriaPressed:vi.fn(),
     updateCheckboxAria:vi.fn(),
@@ -195,16 +195,16 @@ vi.mock("./ui.js",()=>({
     copyCorrectAnswer:vi.fn(),
     toggleMcqMode:vi.fn(),
 }));
-vi.mock("./topics.js",()=>({
+vi.mock("./Topics.js",()=>({
     renderTopicGrid:vi.fn(),
 }));
-vi.mock("./generation.js",()=>({
+vi.mock("./Generation.js",()=>({
     debounceGenerate:vi.fn(),
 }));
-vi.mock("./answer.js",()=>({
+vi.mock("./Answer.js",()=>({
     checkAnswer:vi.fn().mockResolvedValue(undefined),
 }));
-vi.mock("./session.js",()=>({
+vi.mock("./Session.js",()=>({
     endMentalSession:vi.fn().mockResolvedValue(undefined),
     startMentalSession:vi.fn(),
     stopMentalSession:vi.fn(),
@@ -212,14 +212,14 @@ vi.mock("./session.js",()=>({
     skipMentalQuestion:vi.fn(),
     handleMentalAnswer:vi.fn().mockResolvedValue(undefined),
 }));
-vi.mock("./printWorksheet.js",()=>({
+vi.mock("./PrintWorksheet.js",()=>({
     initPrintModal:vi.fn(),
     openPrintModal:vi.fn(),
 }));
-vi.mock("./weakTopics.js",()=>({
+vi.mock("./WeakTopics.js",()=>({
     checkAndShowWeakTopicsPopup:vi.fn(()=>Promise.resolve()),
 }));
-vi.mock("./dataManagement.js",()=>({
+vi.mock("./DataManagement.js",()=>({
     openDataModal:vi.fn(),
     initDataModal:vi.fn(),
 }));

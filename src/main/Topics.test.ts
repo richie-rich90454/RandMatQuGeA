@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,afterEach,beforeEach}from"vitest";
-vi.mock("./core/domRegistry",()=>{
+vi.mock("./core/DomRegistry",()=>{
     let topicGridHTML="";
     const topicGrid={
         get innerHTML(){return topicGridHTML;},
@@ -21,7 +21,7 @@ vi.mock("./core/domRegistry",()=>{
     };
     return{dom};
 });
-vi.mock("./core/stateStore",()=>{
+vi.mock("./core/StateStore",()=>{
     let selectedTopic:string|null=null;
     let currentMode="single";
     let scope="simple";
@@ -43,10 +43,10 @@ vi.mock("./core/stateStore",()=>{
     };
     return{appState};
 });
-vi.mock("./ui.js",()=>({
+vi.mock("./Ui.js",()=>({
     updateUIState:vi.fn(),
 }));
-vi.mock("./constants.js",()=>({
+vi.mock("./Constants.js",()=>({
     topics:[
         {id:"add",name:"Addition",icon:"+",category:"Arithmetic"},
         {id:"subtrt",name:"Subtraction",icon:"-",category:"Arithmetic"},

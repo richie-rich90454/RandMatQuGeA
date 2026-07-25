@@ -5,7 +5,7 @@ const mocks=vi.hoisted(()=>{
     mockTopicGrid.id="topic-grid";
     return{mockTopicGrid};
 });
-vi.mock("./core/domRegistry",()=>{
+vi.mock("./core/DomRegistry",()=>{
     return{
         dom:{
             displays:{

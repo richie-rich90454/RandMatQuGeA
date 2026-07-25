@@ -4,7 +4,7 @@ let mockApplyTheme=vi.fn();
 let mockAddEventListener=vi.fn();
 let mockMatchMedia=vi.fn();
 let mockAppWindow: any=null;
-vi.mock("./core/domRegistry",()=>({
+vi.mock("./core/DomRegistry",()=>({
     dom:{
         get appWindow(){return mockAppWindow;},
         buttons:{
@@ -12,7 +12,7 @@ vi.mock("./core/domRegistry",()=>({
         }
     }
 }));
-vi.mock("./settings.js",()=>({
+vi.mock("./Settings.js",()=>({
     get settings(){return mockSettings;},
     applyTheme:(t: any)=>mockApplyTheme(t),
     saveSettings:vi.fn(),

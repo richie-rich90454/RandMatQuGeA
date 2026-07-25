@@ -5,7 +5,7 @@ import {describe,it,expect,beforeEach,vi} from "vitest";
 import {seededRng} from "../../main/core/Rng";
 import {getMaxForDifficulty} from "./ArithmeticUtils.js";
 import {generateWholeNumberPlaceValue,generateNumberLineOrdering,generateDivisibility,generateGCFLCM} from "./ArithmeticAdvanced.js";
-vi.mock("./arithmeticUtils.js",()=>({
+vi.mock("./ArithmeticUtils.js",()=>({
 	getMaxForDifficulty: vi.fn(()=>100),
 	isPrime: vi.fn((n:number)=>{
 		if (n<2) return false;
