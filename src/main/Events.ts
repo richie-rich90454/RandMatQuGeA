@@ -9,6 +9,7 @@ import * as answer from"./Answer";
 import * as session from"./Session";
 import{check}from"@tauri-apps/plugin-updater";
 import{relaunch}from"@tauri-apps/plugin-process";
+import{isTauri}from"../utils/envUtils";
 import packageJson from"../../package.json";
 export async function isVersionGreater(v1: string, v2: string): Promise<boolean>{
     let semver=(await import("semver")).default;
@@ -271,6 +272,10 @@ export async function setupEventListeners(): Promise<void>{
     }
     if (dom.buttons.checkUpdatesBtn){
         dom.buttons.checkUpdatesBtn.addEventListener("click", async ()=>{
+            if (!isTauri()){
+                alert("Updates are only available in the desktop app.");
+                return;
+            }
             dom.buttons.checkUpdatesBtn!.disabled=true;
             let originalText=dom.buttons.checkUpdatesBtn!.textContent;
             dom.buttons.checkUpdatesBtn!.textContent="Checking...";
