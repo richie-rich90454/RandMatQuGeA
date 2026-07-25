@@ -105,6 +105,44 @@ export class AppState{
 	get scoreDisplayText(): string{
 		return this._sessionScore.correct+"/"+this._sessionScore.total;
 	}
+	get isUnlimitedMode(): boolean{
+		return this._unlimitedMode;
+	}
+	get hasWeakTopics(): boolean{
+		return this._weakTopicQueue.length>0;
+	}
+	dequeueWeakTopic(): string|undefined{
+		return this._weakTopicQueue.shift();
+	}
+	getWeakTopicCount(): number{
+		return this._weakTopicQueue.length;
+	}
+	get isPaused(): boolean{
+		return this._sessionPaused;
+	}
+	getScorePercentage(): number{
+		return this._sessionScore.total>0?Math.round((this._sessionScore.correct/this._sessionScore.total)*100):0;
+	}
+	incrementAnsweredCount(): void{
+		this._answeredQuestionsCount++;
+	}
+	incrementSessionScore(correct: boolean): void{
+		this._sessionScore.total++;
+		if(correct) this._sessionScore.correct++;
+	}
+	addWeakTopic(topicId: string): void{
+		if(!this._weakTopicQueue.includes(topicId)){
+			this._weakTopicQueue.push(topicId);
+		}
+	}
+	getModeDisplayText(): string{
+		return this._currentMode==="mental"?"Mental Math":"Single Practice";
+	}
+	getTimeDisplayText(): string{
+		let minutes=Math.floor(this._totalTimeSpent/60);
+		let seconds=this._totalTimeSpent%60;
+		return minutes+":"+String(seconds).padStart(2,"0");
+	}
 	reset(): void{
 		this._selectedTopic=null;
 		this._currentMode="single";

@@ -38,6 +38,26 @@ export class DomRegistry{
     getHead(): HTMLElement{
         return document.head;
     }
+    createElement<K extends keyof HTMLElementTagNameMap>(tag: K): HTMLElementTagNameMap[K]{
+        return document.createElement(tag);
+    }
+    createTemporaryElement(tag: string): HTMLElement{
+        let el=document.createElement(tag);
+        el.classList.add("temp-element");
+        return el;
+    }
+    createElementWithClass<K extends keyof HTMLElementTagNameMap>(tag: K,className: string): HTMLElementTagNameMap[K]{
+        let el=document.createElement(tag);
+        el.className=className;
+        return el;
+    }
+    getElementBounds(id: string): DOMRect|null{
+        let el=this.getElement(id);
+        return el?el.getBoundingClientRect():null;
+    }
+    querySelectorAll<T extends HTMLElement>(selector: string): T[]{
+        return Array.from(document.querySelectorAll(selector)) as T[];
+    }
     get appWindow(): Window|null{
         if(this.appWindowChecked) return this._appWindow;
         if(!this._appWindow){

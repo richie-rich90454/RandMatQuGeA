@@ -105,5 +105,49 @@ export class QuestionRenderer{
             area.innerHTML=html;
         }
     }
+    showErrorInQuestionArea(title: string,message: string): void{
+        let area=this.registry.displays.questionArea;
+        if(area){
+            area.innerHTML="<div class=\"error-card\"><h3 class=\"error-title\">"+title+"</h3><p class=\"error-message\">"+message+"</p></div>";
+        }
+    }
+    getExpectedFormat(): string{
+        return questionState.expectedFormat;
+    }
+    getHasQuestion(): boolean{
+        return questionState.hasQuestion;
+    }
+    setQuestionText(text: string): void{
+        let area=this.registry.displays.questionArea;
+        if(area){
+            area.textContent=text;
+        }
+    }
+    clearAndRender(html: string): void{
+        this.clear();
+        this.render(html);
+    }
+    getQuestionAreaHeight(): number{
+        let area=this.registry.displays.questionArea;
+        return area?area.offsetHeight:0;
+    }
+    async refreshTypeset(): Promise<void>{
+        await this.typeset();
+    }
+    getQuestionAreaElement(): HTMLDivElement|null{
+        return this.registry.displays.questionArea;
+    }
+    isQuestionAreaEmpty(): boolean{
+        let area=this.registry.displays.questionArea;
+        return area===null||area.innerHTML.length===0;
+    }
+    setExpectedFormatAndRender(format: string,html: string): void{
+        this.setExpectedFormat(format);
+        this.render(html);
+    }
+    setAnswerWithFormat(answer: CorrectAnswer,format: string): void{
+        this.setAnswer(answer);
+        this.setExpectedFormat(format);
+    }
 }
 export let renderer=new QuestionRenderer(dom);

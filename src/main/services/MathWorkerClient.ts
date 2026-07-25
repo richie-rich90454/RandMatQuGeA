@@ -93,6 +93,12 @@ export function terminateWorker(): void{
         useWorker=true;
     }
 }
+export function isWorkerAvailable(): boolean{
+    return useWorker&&typeof Worker!=="undefined";
+}
+export function getPendingCount(): number{
+    return pending?pending.size:0;
+}
 export async function parseInWorker(expression: string): Promise<any>{
     if(!useWorker){
         return evaluateOnMainThread(expression,"parse");

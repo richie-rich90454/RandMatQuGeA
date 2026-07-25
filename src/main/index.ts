@@ -1,4 +1,4 @@
-﻿export{appState,AppState}from"./core/StateStore";
+export{appState,AppState}from"./core/StateStore";
 export{dom,DomRegistry}from"./core/DomRegistry";
 export{questionState,QuestionState}from"./core/QuestionState";
 export{renderer,QuestionRenderer}from"./core/QuestionRenderer";

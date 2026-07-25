@@ -44,6 +44,21 @@ export class QuestionState{
 	get alternateText(): string{
 		return this._correctAnswer.alternate||"";
 	}
+	get choices(): string[]{
+		return this._correctAnswer.choices||[];
+	}
+	get hasChoices(): boolean{
+		return this._correctAnswer.choices!==undefined&&this._correctAnswer.choices.length>0;
+	}
+	get choiceCount(): number{
+		return this._correctAnswer.choices?this._correctAnswer.choices.length:0;
+	}
+	getExpectedFormat(): string{
+		return this._expectedFormat;
+	}
+	getHasQuestion(): boolean{
+		return this._hasQuestion;
+	}
 	reset(): void{
 		this._correctAnswer={ correct: "", alternate: "", display: "" };
 		this._expectedFormat="";

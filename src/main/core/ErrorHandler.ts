@@ -2,6 +2,7 @@
 export class ErrorHandler{
 	private lastError: string|null=null;
 	private retryFn: (()=>void)|null=null;
+	private errorCount: number=0;
 	wrap<T>(fn: ()=>T): T|undefined{
 		try{
 			return fn();
@@ -23,6 +24,7 @@ export class ErrorHandler{
 	handleError(err: unknown): void{
 		let message=err instanceof Error?err.message:String(err);
 		this.lastError=message;
+		this.errorCount++;
 		console.error("ErrorHandler caught:",message,err);
 		this.showError(message,null);
 	}
@@ -43,10 +45,13 @@ export class ErrorHandler{
 			});
 		}
 	}
-	clearError(): void{
-		this.lastError=null;
-		this.retryFn=null;
-	}
+    clearError(): void{
+        this.lastError=null;
+        this.retryFn=null;
+    }
+    resetCount(): void{
+        this.errorCount=0;
+    }
     getError(): string|null{
         return this.lastError;
     }
@@ -59,12 +64,62 @@ export class ErrorHandler{
     getRetryFunction(): (()=>void)|null{
         return this.retryFn;
     }
+    getErrorCount(): number{
+        return this.errorCount;
+    }
     retry(): void{
         if(this.retryFn){
             let fn=this.retryFn;
             this.clearError();
             fn();
         }
+    }
+    wrapSync<T>(fn: ()=>T): T|undefined{
+        try{
+            return fn();
+        }
+        catch(err){
+            this.handleError(err);
+            return undefined;
+        }
+    }
+    wrapWithFallback<T>(fn: ()=>T,fallback: T): T{
+        try{
+            return fn();
+        }
+        catch(err){
+            this.handleError(err);
+            return fallback;
+        }
+    }
+    wrapWithRetry<T>(fn: ()=>T,retries: number): T|undefined{
+        for(let i=0;i<=retries;i++){
+            try{
+                return fn();
+            }
+            catch(err){
+                if(i===retries){
+                    this.handleError(err);
+                    return undefined;
+                }
+            }
+        }
+        return undefined;
+    }
+    async wrapAsyncWithTimeout<T>(fn: ()=>Promise<T>,timeoutMs: number): Promise<T|undefined>{
+        return new Promise((resolve)=>{
+            let timer=setTimeout(()=>{
+                resolve(undefined);
+            },timeoutMs);
+            fn().then((result)=>{
+                clearTimeout(timer);
+                resolve(result);
+            }).catch((err)=>{
+                clearTimeout(timer);
+                this.handleError(err);
+                resolve(undefined);
+            });
+        });
     }
     showErrorWithTitle(title: string,message: string,retryFn: (()=>void)|null): void{
         this.retryFn=retryFn;

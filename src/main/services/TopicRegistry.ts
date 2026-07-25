@@ -40,6 +40,9 @@ export class TopicRegistry{
         }
         return Array.from(scopes);
     }
+    getTopicIds(): string[]{
+        return Array.from(this._topics.keys());
+    }
     getTopicsByScope(scope: string): TopicEntry[]{
         let result: TopicEntry[]=[];
         for (let entry of this._topics.values()){
@@ -54,6 +57,70 @@ export class TopicRegistry{
             if(predicate(entry)) return entry;
         }
         return undefined;
+    }
+    getRandomTopic(): TopicEntry|undefined{
+        let all=Array.from(this._topics.values());
+        if(all.length===0) return undefined;
+        return all[Math.floor(Math.random()*all.length)];
+    }
+    removeTopic(id: string): boolean{
+        return this._topics.delete(id);
+    }
+    replaceTopic(id: string,scope: string,fn: string): void{
+        this._topics.set(id,{id,scope,fn});
+    }
+    getFirstTopic(): TopicEntry|undefined{
+        return this._topics.values().next().value;
+    }
+    getLastTopic(): TopicEntry|undefined{
+        let entries=Array.from(this._topics.values());
+        return entries.length>0?entries[entries.length-1]:undefined;
+    }
+    getUniqueScopes(): string[]{
+        return this.getScopes();
+    }
+    getTopicsByIds(ids: string[]): TopicEntry[]{
+        let result: TopicEntry[]=[];
+        for(let id of ids){
+            let entry=this._topics.get(id);
+            if(entry) result.push(entry);
+        }
+        return result;
+    }
+    getTopicIdsByScope(scope: string): string[]{
+        let result: string[]=[];
+        for(let[ id,entry] of this._topics){
+            if(entry.scope===scope) result.push(id);
+        }
+        return result;
+    }
+    hasScope(scope: string): boolean{
+        for(let entry of this._topics.values()){
+            if(entry.scope===scope) return true;
+        }
+        return false;
+    }
+    getTopicsByPredicate(predicate: (entry: TopicEntry)=>boolean): TopicEntry[]{
+        let result: TopicEntry[]=[];
+        for(let entry of this._topics.values()){
+            if(predicate(entry)) result.push(entry);
+        }
+        return result;
+    }
+    searchTopics(query: string): TopicEntry[]{
+        let lower=query.toLowerCase();
+        return this.getTopicsByPredicate(e=>e.id.toLowerCase().includes(lower)||e.scope.toLowerCase().includes(lower));
+    }
+    shuffleTopics(): void{
+        let entries=Array.from(this._topics.entries());
+        for(let i=entries.length-1;i>0;i--){
+            let j=Math.floor(Math.random()*(i+1));
+            [entries[i],entries[j]]=[entries[j],entries[i]];
+        }
+        this._topics.clear();
+        for(let[key,value] of entries){
+            this._topics.set(key,value);
+        }
     }
 }
 export let topicRegistry: TopicRegistry=new TopicRegistry();
