@@ -6,9 +6,17 @@ import * as events from"./main/Events";
 import * as theme from"./main/Theme";
 import{questionState}from"./main/core/QuestionState";
 import{offlineIndicator}from"./main/ui/OfflineIndicator";
+import{isTauri}from"./utils/envUtils";
 questionState.correctAnswer={correct:"",alternate:"",display:""};
 questionState.expectedFormat="";
 questionState.hasQuestion=false;
+function showEnvBadge(): void{
+    let badge=document.createElement("div");
+    badge.className="env-badge "+(isTauri()?"desktop":"web");
+    badge.textContent=isTauri()?"Desktop":"Web";
+    badge.setAttribute("aria-hidden","true");
+    document.body.appendChild(badge);
+}
 async function initApp(): Promise<void>{
     settings.loadSettings();
     ui.syncSettingsToState();
@@ -45,6 +53,7 @@ async function initApp(): Promise<void>{
     }
     ui.showOnboarding();
     offlineIndicator.init();
+    showEnvBadge();
     if (import.meta.env.PROD && "serviceWorker" in navigator){
         navigator.serviceWorker.register(import.meta.env.BASE_URL+"sw.js").catch(()=>{
             // SW registration failed - app still works

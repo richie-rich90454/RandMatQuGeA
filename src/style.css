@@ -805,7 +805,7 @@ input[type="checkbox"]:hover{
     padding: var(--spacing-md);
 }
 .question-display{
-    display: inline-flexbox;
+    display: inline-flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -2069,6 +2069,28 @@ hr.context-menu-divider{
     font-weight: 600;
     z-index: 1000;
     box-shadow: var(--shadow-md);
+}
+.env-badge{
+    position: fixed;
+    top: var(--spacing-sm);
+    left: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 700;
+    z-index: 1000;
+    box-shadow: var(--shadow-sm);
+    pointer-events: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.env-badge.web{
+    background: var(--primary);
+    color: var(--text-on-primary);
+}
+.env-badge.desktop{
+    background: var(--success);
+    color: var(--text-on-primary);
 }
 .error-card{
     padding: var(--spacing-xl);
