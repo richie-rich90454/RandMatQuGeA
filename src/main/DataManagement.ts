@@ -2,11 +2,16 @@
 import{topics}from"./Constants";
 import * as ui from"./Ui";
 import{updateLeaderboard}from"./Session";
+import{isTauri}from"../utils/envUtils";
 let modal:HTMLElement|null=null;
 let dataList:HTMLElement|null=null;
 export async function openDataModal(){
     modal=document.getElementById("data-modal");
     if(!modal)return;
+    if(!isTauri()){
+        alert("Performance data is only available in the desktop app.");
+        return;
+    }
     dataList=document.getElementById("data-list");
     await loadData();
     modal.classList.add("show");
