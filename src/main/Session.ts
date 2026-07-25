@@ -10,6 +10,7 @@ import{appState}from"./core/StateStore";
 import{dom}from"./core/DomRegistry";
 import{questionState}from"./core/QuestionState";
 import{renderer}from"./core/QuestionRenderer";
+import{isTauri}from"../utils/envUtils";
 let _previousDeleteHandler: ((e: Event)=>void)|null=null;
 export function saveSessionSnapshot(): void{
     if(!appState.sessionActive)return;
@@ -427,12 +428,18 @@ export async function endMentalSession(): Promise<void>{
     if(dom.buttons.copyAnswerBtn)dom.buttons.copyAnswerBtn.classList.add("hidden");
     if(dom.displays.expectedFormatDiv)dom.displays.expectedFormatDiv.textContent="";
     ui.showNotification('Session finished! Score: ' + appState.sessionScore.correct + '/' + appState.sessionScore.total,'info');
-    await promptSaveScore();
-    await updateLeaderboard();
+    if(isTauri()){
+        await promptSaveScore();
+        await updateLeaderboard();
+    }
 }
 export async function promptSaveScore(): Promise<void>{
     if(!appState.selectedTopic){
         ui.showNotification("No topic selected. Score not saved.","warning");
+        return;
+    }
+    if(!isTauri()){
+        ui.showNotification("Score saving is only available in the desktop app.","info");
         return;
     }
     try{
@@ -458,6 +465,10 @@ export async function promptSaveScore(): Promise<void>{
 }
 export async function updateLeaderboard(): Promise<void>{
     if(!dom.displays.leaderboardContent)return;
+    if(!isTauri()){
+        dom.displays.leaderboardContent.innerHTML='<div class="empty-state"><p>Leaderboard is only available in the desktop app.</p></div>';
+        return;
+    }
     try{
         let scores: any[] = await invoke("load_scores");
         if(!scores||scores.length===0){
