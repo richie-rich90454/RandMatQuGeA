@@ -5,6 +5,7 @@ import * as settings from"./Settings";
 import * as ui from"./Ui";
 import * as generation from"./Generation";
 import{invoke}from"@tauri-apps/api/core";
+import{isTauri}from"../utils/envUtils";
 let _audioCtx: AudioContext|null=null;
 export function getAudioContext(): AudioContext{
     if(!_audioCtx){
@@ -493,17 +494,19 @@ let numCorrect=mathjs.evaluate(funcCorrect);
         responseTimeMs: responseTime,
         errorType: errorType
     });
-    invoke('save_performance', {
-        topicId: appState.selectedTopic,
-        difficulty: appState.currentDifficulty,
-        correct: isCorrect,
-        responseTimeMs: responseTime,
-        errorType: errorType
-    }).then(()=>{
-        console.log("[Adaptive] Performance saved successfully");
-    }).catch((e)=>{
-        console.warn("[Adaptive] Failed to save performance:", e);
-    });
+    if (isTauri()){
+        invoke('save_performance', {
+            topicId: appState.selectedTopic,
+            difficulty: appState.currentDifficulty,
+            correct: isCorrect,
+            responseTimeMs: responseTime,
+            errorType: errorType
+        }).then(()=>{
+            console.log("[Adaptive] Performance saved successfully");
+        }).catch((e)=>{
+            console.warn("[Adaptive] Failed to save performance:", e);
+        });
+    }
     if (settings.settings.sound){
         let audioCtx=getAudioContext();
         let oscillator=audioCtx.createOscillator();
