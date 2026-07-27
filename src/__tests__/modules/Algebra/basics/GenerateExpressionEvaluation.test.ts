@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateExpressionEvaluation} from "./GenerateExpressionEvaluation";
-import {seededRng} from "../../../main/core/Rng";
+import {generateExpressionEvaluation} from "../../../../modules/Algebra/basics/GenerateExpressionEvaluation";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateExpressionEvaluation",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateExpressionEvaluation("medium", seededRng(42));
