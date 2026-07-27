@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import * as trig from "./index.js";
+import * as trig from "../../../modules/Trigonometry/index.js";
 describe("Trigonometry index exports",()=>{
 	it("exports generateSin",()=>{
 		expect(typeof trig.generateSin).toBe("function");
