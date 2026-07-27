@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Complex zeros: Fundamental Theorem, conjugate pairs, factoring.

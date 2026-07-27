@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Polynomial end behavior: end behavior, multiplicity, IVT.

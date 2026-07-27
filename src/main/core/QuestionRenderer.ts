@@ -1,4 +1,4 @@
-﻿import{DomRegistry,dom}from"./DomRegistry";
+﻿﻿import{DomRegistry,dom}from"./DomRegistry";
 import{questionState}from"./QuestionState";
 import{type CorrectAnswer,type QuestionDto}from"../../types/global";
 export class QuestionRenderer{

@@ -1,4 +1,4 @@
-﻿import"./style.css";
+﻿﻿import"./style.css";
 import * as settings from"./main/Settings";
 import * as ui from"./main/Ui";
 import * as session from"./main/Session";

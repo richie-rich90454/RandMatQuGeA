@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿/**
  * Polynomial operations: addition, subtraction, multiplication, division, factoring.
  * Function concepts: domain, range, notation, evaluation.
  * Graphing: linear (slope, intercepts, equation from points, parallel/perpendicular), nonlinear (parabola vertex, absolute value, sqrt, transformations).

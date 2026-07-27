@@ -1,4 +1,4 @@
-﻿import * as settings from"./Settings";
+﻿﻿import * as settings from"./Settings";
 import * as ui from"./Ui";
 import * as topicsModule from"./Topics";
 import{topics as topicList,scopeTopics,SESSION_STORAGE_KEY}from"./Constants";

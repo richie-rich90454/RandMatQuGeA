@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Power function modeling: direct, inverse, power variation.

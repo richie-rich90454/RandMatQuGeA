@@ -1,4 +1,4 @@
-﻿import{invoke}from"@tauri-apps/api/core";
+﻿﻿import{invoke}from"@tauri-apps/api/core";
 import{topics}from"./Constants";
 import * as ui from"./Ui";
 import{updateLeaderboard}from"./Session";

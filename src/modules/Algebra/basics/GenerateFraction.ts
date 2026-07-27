@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {gcd, getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Generates a fraction arithmetic question (add, subtract, multiply, divide, simplify, or convert decimal to fraction) with MCQ distractors.

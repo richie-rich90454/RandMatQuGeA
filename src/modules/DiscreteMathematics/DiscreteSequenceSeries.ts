@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿/**
  * Sequences, series, and induction generator
  * @fileoverview Provides functions to generate questions about arithmetic/geometric sequences, limits, infinite series, mathematical induction, and binomial theorem. Each function returns a QuestionDto with:
  * - latex: question text (may contain LaTeX delimiters \(...\))

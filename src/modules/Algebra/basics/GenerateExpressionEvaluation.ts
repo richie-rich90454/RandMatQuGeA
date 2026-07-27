@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Generates an expression evaluation question (linear, quadratic, or with substitution of two variables) with MCQ distractors.

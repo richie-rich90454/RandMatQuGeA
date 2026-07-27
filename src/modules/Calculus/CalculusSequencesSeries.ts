@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
 /**
  * Generates a random sequences and series question and returns it as a QuestionDto.

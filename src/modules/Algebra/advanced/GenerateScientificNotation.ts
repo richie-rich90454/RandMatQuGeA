@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
 function formatScientific(value: number, precision: number): { mantissa: number; exponent: number }{
 	let exponent=Math.floor(Math.log10(Math.abs(value)));

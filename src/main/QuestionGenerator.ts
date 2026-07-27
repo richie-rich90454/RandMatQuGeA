@@ -1,4 +1,4 @@
-﻿import{topicRegistry}from"./services/TopicRegistry";
+﻿﻿import{topicRegistry}from"./services/TopicRegistry";
 import{renderer}from"./core/QuestionRenderer";
 import{errorHandler}from"./core/ErrorHandler";
 import type{RngFn,QuestionDto}from"../types/global";

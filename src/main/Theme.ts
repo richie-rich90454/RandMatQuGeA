@@ -1,4 +1,4 @@
-﻿import{dom}from"./core/DomRegistry";
+﻿﻿import{dom}from"./core/DomRegistry";
 import * as settings from"./Settings";
 let themeChangedUnlisten:(()=>void)|null=null;
 export async function initializeTheme():Promise<void>{

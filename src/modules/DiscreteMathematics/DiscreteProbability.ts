@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿/**
  * Probability questions generator with MCQ distractors
  * @fileoverview Generates various probability questions (basic, conditional, independent, mutually exclusive, Bayes, binomial, expected value, complement, permutation/combination, geometric). Returns a QuestionDto with correct value, alternate representation, display LaTeX, and plausible wrong answers for MCQ mode.
  * @date 2026-03-29

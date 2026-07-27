@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty, getOrdinal} from "../AlgebraUtils.js";
 interface SeriesType{
 	expr: string;

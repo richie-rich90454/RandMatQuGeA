@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿/**
  * Statistics questions generator with MCQ distractors
  * @fileoverview Generates statistical questions (mean, median, mode, range, stem-and-leaf, box plot, standard deviation). Returns a QuestionDto with correct value, alternate representation, display format, and plausible wrong answers for MCQ mode.
  * @date 2026-03-29

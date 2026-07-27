@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxForDifficulty} from "./GeometryUtils.js";
 /**
  * Area and surface area: circle, rectangle, triangle, sector, cube.

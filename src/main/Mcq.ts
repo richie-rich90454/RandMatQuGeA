@@ -1,4 +1,4 @@
-﻿import{appState}from"./core/StateStore";
+﻿﻿import{appState}from"./core/StateStore";
 import{questionState}from"./core/QuestionState";
 import{dom}from"./core/DomRegistry";
 import * as settings from"./Settings";

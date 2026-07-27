@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxForDifficulty, isPrime, gcd} from "./ArithmeticUtils.js";
 /**
  * Generates and displays a random whole number and place value question (place value, expanded form, or rounding).

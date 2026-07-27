@@ -1,4 +1,4 @@
-﻿import{dom}from"./core/DomRegistry";
+﻿﻿import{dom}from"./core/DomRegistry";
 import{appState}from"./core/StateStore";
 import{questionState}from"./core/QuestionState";
 import{renderer}from"./core/QuestionRenderer";

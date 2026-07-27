@@ -1,4 +1,4 @@
-﻿import{topics,scopeTopics}from"./Constants";
+﻿﻿import{topics,scopeTopics}from"./Constants";
 import{generateQuestionDto}from"./QuestionGenerator";
 import{invoke}from"@tauri-apps/api/core";
 import{save}from"@tauri-apps/plugin-dialog";

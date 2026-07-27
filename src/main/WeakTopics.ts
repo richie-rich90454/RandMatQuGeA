@@ -1,4 +1,4 @@
-﻿import{invoke}from"@tauri-apps/api/core";
+﻿﻿import{invoke}from"@tauri-apps/api/core";
 import{selectTopic}from"./Topics";
 import{topics}from"./Constants";
 import{generateQuestion}from"./Generation";

@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxForDifficulty} from "./GeometryUtils.js";
 /**
  * Analytic geometry: conic sections (parabola, ellipse, hyperbola), polar conics, 3D geometry (distance/midpoint, sphere equations, line/plane).

@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getRangeForDifficulty} from "./ArithmeticUtils.js";
 /**
  * Generates and displays a random addition question.

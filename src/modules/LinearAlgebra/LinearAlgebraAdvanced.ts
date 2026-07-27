@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿/**
  * Linear algebra advanced topics: 3x3 systems, row echelon, partial fractions, linear programming, 3D vectors, lines, planes.
  * @fileoverview Generates advanced linear algebra questions with MCQ distractors. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-03-29

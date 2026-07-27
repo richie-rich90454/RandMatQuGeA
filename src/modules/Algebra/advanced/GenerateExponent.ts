@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿/**
  * Exponential expressions: evaluate, solve, apply laws, growth factor, compare.
  * @fileoverview Generates exponent questions with MCQ distractors. Sets window.correctAnswer with correct result and display.
  * @date 2026-03-29

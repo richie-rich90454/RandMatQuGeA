@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿/**
  * Analytic trigonometry: degrees/radians conversion, arc length, angular/linear speed, right triangle definitions, special triangles, elevation/depression, reference angles, ASTC signs, sum/difference, double/half-angle, polar coordinates, parametric equations, complex numbers.
  * @fileoverview Generates a variety of analytic trigonometry questions with MCQ distractors. Returns a QuestionDto with LaTeX display and plain text alternate.
  * @date 2026-04-18

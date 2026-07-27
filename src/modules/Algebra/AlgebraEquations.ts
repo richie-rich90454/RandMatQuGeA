@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿/**
  * Linear equations: one-step, two-step, both sides, parentheses, literal.
  * Quadratic equations: factoring, completing square, quadratic formula, discriminant.
  * Inequalities: linear, quadratic, rational, compound, absolute.

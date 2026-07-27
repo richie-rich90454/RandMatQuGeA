@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿/**
  * Advanced trigonometry: inverse trig functions, equations, graphs.
  * @fileoverview Generates questions on inverse trigonometric functions, solving trigonometric equations, and interpreting trig graphs. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers for MCQ mode.
  * @date 2026-04-18

@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿/**
  * Matrix operations: addition, subtraction, multiplication, inverse, transpose, scalar multiplication, power, row echelon, 2x2 system.
  * @fileoverview Generates 2x2 matrix questions with MCQ distractors. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-03-29

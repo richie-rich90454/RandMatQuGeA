@@ -1,4 +1,4 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {factorial, getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Factorial questions: basic, division, equation, approximation, prime exponent.
