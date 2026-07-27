@@ -15,7 +15,7 @@ vi.mock("../../main/core/DomRegistry",()=>{
         }
     };
 });
-import{showQuestionSkeleton,hideQuestionSkeleton,isSkeletonActive}from"./ui/Skeleton";
+import{showQuestionSkeleton,hideQuestionSkeleton,isSkeletonActive}from"../../main/ui/Skeleton";
 describe("skeleton",()=>{
     beforeEach(()=>{
         vi.useFakeTimers();
