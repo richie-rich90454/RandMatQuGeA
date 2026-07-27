@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateLogisticFunctions} from "./GenerateLogisticFunctions";
-import {seededRng} from "../../../main/core/Rng";
+import {generateLogisticFunctions} from "../../../../modules/Algebra/precalculus/GenerateLogisticFunctions";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateLogisticFunctions", ()=>{
 	it("generates identify question correctly", ()=>{
 		const rng=vi.fn()
