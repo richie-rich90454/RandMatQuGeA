@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {generateLimitsContinuity} from "./CalculusLimitsContinuity";
-import {seededRng} from "../../main/core/Rng";
+import {generateLimitsContinuity} from "../../../modules/Calculus/CalculusLimitsContinuity";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateLimitsContinuity",()=>{
 	it("generates limitSqueeze correctly",()=>{
 		const rng=vi.fn()
