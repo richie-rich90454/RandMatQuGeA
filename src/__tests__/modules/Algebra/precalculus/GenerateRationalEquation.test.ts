@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateRationalEquation} from "./GenerateRationalEquation";
-import {seededRng} from "../../../main/core/Rng";
+import {generateRationalEquation} from "../../../../modules/Algebra/precalculus/GenerateRationalEquation";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateRationalEquation", ()=>{
 	it("generates simple rational equation correctly", ()=>{
 		const rng=vi.fn()
