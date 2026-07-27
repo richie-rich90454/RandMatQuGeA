@@ -1,5 +1,5 @@
 ﻿import{describe,it,expect}from"vitest";
-import{formatPiFraction,getTrigFunction,getAngle,getPeriod,formatAngle,getReferenceAngle}from"./TrigUtils";
+import{formatPiFraction,getTrigFunction,getAngle,getPeriod,formatAngle,getReferenceAngle}from"../../../modules/Trigonometry/TrigUtils";
 describe("formatPiFraction",()=>{
     it("returns 0 for zero",()=>{
         expect(formatPiFraction(0)).toBe("0");
