@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateVariation} from "./GenerateVariation";
-import {seededRng} from "../../../main/core/Rng";
+import {generateVariation} from "../../../../modules/Algebra/advanced/GenerateVariation";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateVariation",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateVariation("medium", seededRng(42));
