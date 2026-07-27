@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import * as la from "./index.js";
-import {seededRng} from "../../main/core/Rng";
+import * as la from "../../../modules/LinearAlgebra/index.js";
+import {seededRng} from "../../../main/core/Rng";
 describe("LinearAlgebra index exports",()=>{
 	it("exports generateMatrix",()=>{
 		expect(typeof la.generateMatrix).toBe("function");
