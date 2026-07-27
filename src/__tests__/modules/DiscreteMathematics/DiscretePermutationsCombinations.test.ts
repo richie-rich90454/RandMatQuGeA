@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generatePermutation,generateCombination} from "./DiscretePermutationsCombinations";
-import {seededRng} from "../../main/core/Rng";
+import {generatePermutation,generateCombination} from "../../../modules/DiscreteMathematics/DiscretePermutationsCombinations";
+import {seededRng} from "../../../main/core/Rng";
 describe("generatePermutation",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generatePermutation("medium", seededRng(42));
