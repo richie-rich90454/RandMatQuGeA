@@ -6,7 +6,7 @@ const mocks=vi.hoisted(()=>{
     document.body.appendChild(mockQuestionArea);
     return{mockQuestionArea};
 });
-vi.mock("./core/DomRegistry",()=>{
+vi.mock("../../main/core/DomRegistry",()=>{
     return{
         dom:{
             displays:{
