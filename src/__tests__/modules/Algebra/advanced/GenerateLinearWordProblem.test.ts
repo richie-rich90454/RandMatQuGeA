@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateLinearWordProblem} from "./GenerateLinearWordProblem";
-import {seededRng} from "../../../main/core/Rng";
+import {generateLinearWordProblem} from "../../../../modules/Algebra/advanced/GenerateLinearWordProblem";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateLinearWordProblem",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateLinearWordProblem("medium", seededRng(42));
