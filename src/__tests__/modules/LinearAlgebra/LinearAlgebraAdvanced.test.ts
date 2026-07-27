@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateSystem3x3,generateRowEchelon3x3,generatePartialFractions,generateLinearProgramming,generateVector3D,generateLine3D,generatePlane3D} from "./LinearAlgebraAdvanced.js";
-import {seededRng} from "../../main/core/Rng";
+import {generateSystem3x3,generateRowEchelon3x3,generatePartialFractions,generateLinearProgramming,generateVector3D,generateLine3D,generatePlane3D} from "../../../modules/LinearAlgebra/LinearAlgebraAdvanced.js";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateSystem3x3",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateSystem3x3("medium", seededRng(42));
