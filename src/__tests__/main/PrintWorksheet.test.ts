@@ -4,7 +4,7 @@ const mockInvoke=vi.hoisted(()=>vi.fn().mockResolvedValue(undefined));
 vi.mock("@tauri-apps/api/core",()=>({
 	invoke: mockInvoke,
 }));
-vi.mock("./QuestionGenerator.js",()=>({
+vi.mock("../../main/QuestionGenerator.js",()=>({
 	generateQuestionDto:vi.fn().mockResolvedValue({
 		latex: "\\(x^2 + 1\\)",
 		correct: "2",
@@ -14,7 +14,7 @@ vi.mock("./QuestionGenerator.js",()=>({
 		expectedFormat: "Enter a number"
 	}),
 }));
-vi.mock("./Ui.js",()=>({
+vi.mock("../../main/Ui.js",()=>({
 	showNotification: vi.fn(),
 }));
 const mockSave=vi.hoisted(()=>vi.fn().mockResolvedValue(null));
