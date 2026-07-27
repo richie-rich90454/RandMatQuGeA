@@ -1,0 +1,17 @@
+{
+  "name": "randmatqugea-docs",
+  "version": "1.0.0",
+  "description": "The documentation site for RandMatQuGeA",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "richie-rich90454",
+  "type": "module",
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  },
+  "overrides": {
+    "vite": "^7.3.6"
+  }
+}
