@@ -22,7 +22,7 @@ vi.mock("../../main/core/DomRegistry",()=>{
         }
     };
 });
-import{bindEvents,type EventBinding}from"./services/EventBinder";
+import{bindEvents,type EventBinding}from"../../main/services/EventBinder";
 describe("EventBinding",()=>{
     beforeEach(()=>{
         vi.clearAllMocks();
