@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateComplex} from "./GenerateComplex";
-import {seededRng} from "../../../main/core/Rng";
+import {generateComplex} from "../../../../modules/Algebra/advanced/GenerateComplex";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateComplex",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateComplex("medium", seededRng(42));
