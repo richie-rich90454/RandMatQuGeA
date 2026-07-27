@@ -1,5 +1,5 @@
 ﻿import {describe,it,expect} from "vitest";
-import {factorial,gcd,getOrdinal,getMaxForDifficulty} from "./AlgebraUtils.js";
+import {factorial,gcd,getOrdinal,getMaxForDifficulty} from "../../../modules/Algebra/AlgebraUtils.js";
 describe("factorial",()=>{
     it("returns 1 for 0",()=>{
         expect(factorial(0)).toBe(1);
