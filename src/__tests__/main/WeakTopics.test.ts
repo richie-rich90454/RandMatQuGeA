@@ -12,7 +12,7 @@ vi.mock("../../main/Settings.js",()=>({
 vi.mock("@tauri-apps/api/core",()=>({
     invoke:vi.fn().mockResolvedValue([]),
 }));
-import{checkAndShowWeakTopicsPopup}from"./WeakTopics.js";
+import{checkAndShowWeakTopicsPopup}from"../../main/WeakTopics.js";
 import{invoke}from"@tauri-apps/api/core";
 describe("weakTopics",()=>{
     it("should export checkAndShowWeakTopicsPopup",()=>{
