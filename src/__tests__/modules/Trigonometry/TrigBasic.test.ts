@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {seededRng} from "../../main/core/Rng";
-import {generateSin,generateCosine,generateTangent} from "./TrigBasic.js";
+import {seededRng} from "../../../main/core/Rng";
+import {generateSin,generateCosine,generateTangent} from "../../../modules/Trigonometry/TrigBasic.js";
 describe("generateSin",()=>{
 	it("generates evaluate type question",()=>{
 		const rng=vi.fn().mockReturnValueOnce(0).mockReturnValueOnce(0.5);
