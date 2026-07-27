@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
-vi.mock("./core/DomRegistry",()=>{
+vi.mock("../../main/core/DomRegistry",()=>{
     const modeSingleBtn={setAttribute:vi.fn()};
     const modeMentalBtn={setAttribute:vi.fn()};
     const mentalProgressBar={setAttribute:vi.fn()};
@@ -41,7 +41,7 @@ vi.mock("./core/DomRegistry",()=>{
     const dom={buttons,inputs,displays,modals,session,appWindow:null};
     return{dom};
 });
-vi.mock("./core/StateStore",()=>{
+vi.mock("../../main/core/StateStore",()=>{
     let autoTimeout:any=null;
     let previewTimeout:any=null;
     let generateDebounceTimeout:any=null;
@@ -143,7 +143,7 @@ vi.mock("./core/StateStore",()=>{
     };
     return{appState};
 });
-vi.mock("./core/QuestionState",()=>{
+vi.mock("../../main/core/QuestionState",()=>{
     return{questionState:{
         get correctAnswer(){return(window as any).correctAnswer;},
         set correctAnswer(v:any){(window as any).correctAnswer=v;},
@@ -153,7 +153,7 @@ vi.mock("./core/QuestionState",()=>{
         set hasQuestion(v:any){(window as any).hasQuestion=v;}
     }};
 });
-vi.mock("./Settings.js",()=>({
+vi.mock("../../main/Settings.js",()=>({
     settings:{
         notifications:true,
         scope:"simple",
@@ -165,13 +165,13 @@ vi.mock("./Settings.js",()=>({
         mcqMode:false,
     },
 }));
-vi.mock("./Mcq.js",()=>({
+vi.mock("../../main/Mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
-vi.mock("./Session.js",()=>({
+vi.mock("../../main/Session.js",()=>({
     handleMcqChoice:vi.fn(),
 }));
-vi.mock("./Answer.js",()=>({
+vi.mock("../../main/Answer.js",()=>({
     checkAnswer:vi.fn(),
 }));
 import*as stateStore from"./core/StateStore";
