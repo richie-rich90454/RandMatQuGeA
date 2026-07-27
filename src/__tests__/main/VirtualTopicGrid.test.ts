@@ -14,7 +14,7 @@ vi.mock("../../main/core/DomRegistry",()=>{
         }
     };
 });
-import{initVirtualGrid,refreshVirtualGrid}from"./ui/VirtualTopicGrid";
+import{initVirtualGrid,refreshVirtualGrid}from"../../main/ui/VirtualTopicGrid";
 describe("virtualTopicGrid",()=>{
     beforeEach(()=>{
         vi.clearAllMocks();
