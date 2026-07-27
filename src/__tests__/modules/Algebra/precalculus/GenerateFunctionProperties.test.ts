@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateFunctionProperties} from "./GenerateFunctionProperties";
-import {seededRng} from "../../../main/core/Rng";
+import {generateFunctionProperties} from "../../../../modules/Algebra/precalculus/GenerateFunctionProperties";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateFunctionProperties", ()=>{
 	it("generates continuity question correctly", ()=>{
 		const rng=vi.fn()
