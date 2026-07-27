@@ -1,5 +1,5 @@
 ﻿import {describe,it,expect} from "vitest";
-import {getRange,matrixToString,getMatrixSize,getVectorDimension,formatMatrix,formatVector,getDeterminant} from "./LinearAlgebraUtils.js";
+import {getRange,matrixToString,getMatrixSize,getVectorDimension,formatMatrix,formatVector,getDeterminant} from "../../../modules/LinearAlgebra/LinearAlgebraUtils.js";
 describe("getRange",()=>{
     it("returns 3 for easy difficulty",()=>{
         expect(getRange("easy")).toBe(3);
