@@ -11,7 +11,7 @@ vi.mock("../../main/core/DomRegistry",()=>({
         }
     }
 }));
-import{AppState}from"./core/StateStore";
+import{AppState}from"../../main/core/StateStore";
 describe("AppState",()=>{
     let state: AppState;
     beforeEach(()=>{
