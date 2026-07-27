@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {generateSequencesSeries} from "./CalculusSequencesSeries";
-import {seededRng} from "../../main/core/Rng";
+import {generateSequencesSeries} from "../../../modules/Calculus/CalculusSequencesSeries";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateSequencesSeries",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateSequencesSeries("medium", seededRng(42));
