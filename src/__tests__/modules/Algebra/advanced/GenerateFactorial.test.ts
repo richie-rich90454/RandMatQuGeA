@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateFactorial} from "./GenerateFactorial";
-import {seededRng} from "../../../main/core/Rng";
+import {generateFactorial} from "../../../../modules/Algebra/advanced/GenerateFactorial";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateFactorial",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateFactorial("medium", seededRng(42));
