@@ -163,8 +163,8 @@ vi.mock("../../main/QuestionGenerator.js",()=>({
 vi.mock("../../main/Mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
-import{saveSessionSnapshot,restoreSessionSnapshot,startTimer,generateNextMentalQuestion,handleMentalAnswer,handleMcqChoice,startMentalSession,pauseMentalSession,skipMentalQuestion,stopMentalSession,endMentalSession,promptSaveScore,updateLeaderboard}from"./Session.js";
-import*as stateStore from"./core/StateStore";
+import{saveSessionSnapshot,restoreSessionSnapshot,startTimer,generateNextMentalQuestion,handleMentalAnswer,handleMcqChoice,startMentalSession,pauseMentalSession,skipMentalQuestion,stopMentalSession,endMentalSession,promptSaveScore,updateLeaderboard}from"../../main/Session.js";
+import*as stateStore from"../../main/core/StateStore";
 let state:any=stateStore.appState;
 import * as ui from "../../main/Ui.js";
 import * as settings from "../../main/Settings.js";
