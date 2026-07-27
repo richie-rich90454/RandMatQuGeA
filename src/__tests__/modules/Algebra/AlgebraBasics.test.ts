@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect}from"vitest";
-import*as basics from"./AlgebraBasics.js";
+import*as basics from"../../../modules/Algebra/AlgebraBasics.js";
 describe("algebraBasics exports",()=>{
     it("should export generateFraction",()=>{
         expect(typeof basics.generateFraction).toBe("function");
