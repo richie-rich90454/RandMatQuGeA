@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateLogarithmicModeling} from "./GenerateLogarithmicModeling";
-import {seededRng} from "../../../main/core/Rng";
+import {generateLogarithmicModeling} from "../../../../modules/Algebra/precalculus/GenerateLogarithmicModeling";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateLogarithmicModeling", ()=>{
 	it("generates richter question correctly", ()=>{
 		const rng=vi.fn()
