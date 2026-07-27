@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generatePerimeter,generateArcLength,generateDistanceFormula,generateAngleRelations} from "./GeometryMisc.js";
-import {seededRng} from "../../main/core/Rng";
+import {generatePerimeter,generateArcLength,generateDistanceFormula,generateAngleRelations} from "../../../modules/Geometry/GeometryMisc.js";
+import {seededRng} from "../../../main/core/Rng";
 describe("generatePerimeter",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generatePerimeter("medium", seededRng(42));
