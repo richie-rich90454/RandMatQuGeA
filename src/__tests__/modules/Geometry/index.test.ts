@@ -1,5 +1,5 @@
 import {describe,it,expect} from "vitest";
-import * as geom from "./index.js";
+import * as geom from "../../../modules/Geometry/index.js";
 describe("Geometry index exports",()=>{
 	it("exports generateAreaCircle",()=>{
 		expect(typeof geom.generateAreaCircle).toBe("function");
