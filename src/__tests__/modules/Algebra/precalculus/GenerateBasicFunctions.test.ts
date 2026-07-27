@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateBasicFunctions} from "./GenerateBasicFunctions";
-import {seededRng} from "../../../main/core/Rng";
+import {generateBasicFunctions} from "../../../../modules/Algebra/precalculus/GenerateBasicFunctions";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateBasicFunctions", ()=>{
 	it("generates identify question type correctly", ()=>{
 		const rng=vi.fn()
