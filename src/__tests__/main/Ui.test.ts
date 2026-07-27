@@ -174,9 +174,9 @@ vi.mock("../../main/Session.js",()=>({
 vi.mock("../../main/Answer.js",()=>({
     checkAnswer:vi.fn(),
 }));
-import*as stateStore from"./core/StateStore";
+import*as stateStore from"../../main/core/StateStore";
 let state:any=stateStore.appState;
-import*as ui from"./Ui.js";
+import*as ui from"../../main/Ui.js";
 describe("ui",()=>{
     it("should export clearAllTimeouts",()=>{
         expect(typeof ui.clearAllTimeouts).toBe("function");
