@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {generateParametricPolarVector} from "./CalculusParametricPolarVector";
-import {seededRng} from "../../main/core/Rng";
+import {generateParametricPolarVector} from "../../../modules/Calculus/CalculusParametricPolarVector";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateParametricPolarVector",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateParametricPolarVector("medium", seededRng(42));
