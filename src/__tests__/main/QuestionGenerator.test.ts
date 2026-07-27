@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi}from"vitest";
-vi.mock("../modules/Algebra/index.js",()=>({
+vi.mock("../../modules/Algebra/index.js",()=>({
     generateLinearEquation:vi.fn(),
     generateQuadraticEquation:vi.fn(),
     generateLinearInequality:vi.fn(),
@@ -56,7 +56,7 @@ vi.mock("../modules/Algebra/index.js",()=>({
     generateLogarithmicModeling:vi.fn(),
     generateFinance:vi.fn(),
 }));
-vi.mock("../modules/Arithmetic/index.js",()=>({
+vi.mock("../../modules/Arithmetic/index.js",()=>({
     generateAddition:vi.fn(()=>{
         window.correctAnswer={correct:"2",alternate:"2",display:"2",choices:["2","3","1","4"]};
         window.expectedFormat="Enter a number (up to 3 decimals)";
@@ -78,7 +78,7 @@ vi.mock("../modules/Arithmetic/index.js",()=>({
         window.hasQuestion=true;
     }),
 }));
-vi.mock("../modules/Calculus/index.js",()=>({
+vi.mock("../../modules/Calculus/index.js",()=>({
     generateDerivative:vi.fn(),
     generateIntegral:vi.fn(),
     generateLimit:vi.fn(),
@@ -90,7 +90,7 @@ vi.mock("../modules/Calculus/index.js",()=>({
     generateParametricPolarVector:vi.fn(),
     generateSequencesSeries:vi.fn(),
 }));
-vi.mock("../modules/DiscreteMathematics/index.js",()=>({
+vi.mock("../../modules/DiscreteMathematics/index.js",()=>({
     generatePermutation:vi.fn(),
     generateCombination:vi.fn(),
     generateProbability:vi.fn(),
@@ -102,7 +102,7 @@ vi.mock("../modules/DiscreteMathematics/index.js",()=>({
     generateMathematicalInduction:vi.fn(),
     generateBinomialTheorem:vi.fn(),
 }));
-vi.mock("../modules/LinearAlgebra/index.js",()=>({
+vi.mock("../../modules/LinearAlgebra/index.js",()=>({
     generateMatrix:vi.fn(),
     generateVector:vi.fn(),
     generateSystem3x3:vi.fn(),
@@ -113,7 +113,7 @@ vi.mock("../modules/LinearAlgebra/index.js",()=>({
     generateLine3D:vi.fn(),
     generatePlane3D:vi.fn(),
 }));
-vi.mock("../modules/Trigonometry/index.js",()=>({
+vi.mock("../../modules/Trigonometry/index.js",()=>({
     generateSin:vi.fn(),
     generateCosine:vi.fn(),
     generateTangent:vi.fn(),
@@ -144,7 +144,7 @@ vi.mock("../modules/Trigonometry/index.js",()=>({
     generateDeMoivre:vi.fn(),
     generateComplexRoots:vi.fn(),
 }));
-vi.mock("../modules/Geometry/index.js",()=>({
+vi.mock("../../modules/Geometry/index.js",()=>({
     generateAreaCircle:vi.fn(),
     generatePythagorean:vi.fn(),
     generateVolumeSphere:vi.fn(),
@@ -156,7 +156,7 @@ vi.mock("../modules/Geometry/index.js",()=>({
     generateSphereEquation:vi.fn(),
     generateLinePlane3D:vi.fn(),
 }));
-vi.mock("./core/DomRegistry.js",()=>({
+vi.mock("../../main/core/DomRegistry.js",()=>({
     dom:{
         displays:{
             questionArea:{innerHTML:""},
