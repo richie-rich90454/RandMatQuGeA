@@ -19,7 +19,7 @@ vi.mock("../../main/Settings.js",()=>({
 }));
 let mockSettings={theme:"system"};
 let mockThemeToggle: any=null;
-import{initializeTheme}from"./Theme.js";
+import{initializeTheme}from"../../main/Theme.js";
 describe("theme",()=>{
     it("should export initializeTheme",()=>{
         expect(typeof initializeTheme).toBe("function");
