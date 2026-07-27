@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateRatioProportion} from "./GenerateRatioProportion";
-import {seededRng} from "../../../main/core/Rng";
+import {generateRatioProportion} from "../../../../modules/Algebra/basics/GenerateRatioProportion";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateRatioProportion",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateRatioProportion("medium", seededRng(42));
