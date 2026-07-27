@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from"vitest";
-vi.mock("./core/DomRegistry",()=>({
+vi.mock("../../main/core/DomRegistry",()=>({
     dom:{
         displays:{
             questionArea:null,
