@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generatePowerFunctionModeling} from "./GeneratePowerFunctionModeling";
-import {seededRng} from "../../../main/core/Rng";
+import {generatePowerFunctionModeling} from "../../../../modules/Algebra/precalculus/GeneratePowerFunctionModeling";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generatePowerFunctionModeling", ()=>{
 	it("generates direct variation question correctly", ()=>{
 		const rng=vi.fn()
