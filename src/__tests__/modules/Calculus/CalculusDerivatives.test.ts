@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {generateDerivative} from "./CalculusDerivatives";
-import {seededRng} from "../../main/core/Rng";
+import {generateDerivative} from "../../../modules/Calculus/CalculusDerivatives";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateDerivative",()=>{
 	it("generates trigonometric derivative correctly",()=>{
 		const rng=vi.fn()
