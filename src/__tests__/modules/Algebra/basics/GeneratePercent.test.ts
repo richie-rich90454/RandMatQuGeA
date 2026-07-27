@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generatePercent} from "./GeneratePercent";
-import {seededRng} from "../../../main/core/Rng";
+import {generatePercent} from "../../../../modules/Algebra/basics/GeneratePercent";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generatePercent",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generatePercent("medium", seededRng(42));
