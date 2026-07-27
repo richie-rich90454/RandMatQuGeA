@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {generateIntegral} from "./CalculusIntegrals";
-import {seededRng} from "../../main/core/Rng";
+import {generateIntegral} from "../../../modules/Calculus/CalculusIntegrals";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateIntegral",()=>{
 	it("generates trigonometric integral correctly",()=>{
 		const rng=vi.fn()
