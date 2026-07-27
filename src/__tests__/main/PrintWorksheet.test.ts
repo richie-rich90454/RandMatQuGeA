@@ -21,9 +21,9 @@ const mockSave=vi.hoisted(()=>vi.fn().mockResolvedValue(null));
 vi.mock("@tauri-apps/plugin-dialog",()=>({
 	save: mockSave,
 }));
-import{initPrintModal,openPrintModal,closePrintModal,renderKatexInElement,wrapLatexIfNeeded}from"./PrintWorksheet.js";
-import{generateQuestionDto}from"./QuestionGenerator.js";
-import{showNotification}from"./Ui.js";
+import{initPrintModal,openPrintModal,closePrintModal,renderKatexInElement,wrapLatexIfNeeded}from"../../main/PrintWorksheet.js";
+import{generateQuestionDto}from"../../main/QuestionGenerator.js";
+import{showNotification}from"../../main/Ui.js";
 function createPrintModal():HTMLElement{
 	let modal=document.createElement("div");
 	modal.id="print-modal";
