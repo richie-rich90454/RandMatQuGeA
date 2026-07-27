@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach}from'vitest';
-vi.mock('./core/DomRegistry',()=>{
+vi.mock('../../main/core/DomRegistry',()=>{
 	const userAnswer={value: '', focus: vi.fn()};
 	const answerResults={
 		innerHTML: '',
@@ -16,7 +16,7 @@ vi.mock('./core/DomRegistry',()=>{
 	};
 	return {dom};
 });
-vi.mock('./core/StateStore', () => {
+vi.mock('../../main/core/StateStore', () => {
 	let selectedTopic='topic';
 	let currentMode='single';
 	let sessionActive=false;
@@ -112,7 +112,7 @@ vi.mock('./core/StateStore', () => {
 	};
 	return {appState};
 });
-vi.mock('./core/QuestionState', () => ({
+vi.mock('../../main/core/QuestionState', () => ({
 	questionState: {
 		get correctAnswer(){return (window as any).correctAnswer;},
 		set correctAnswer(v: any){(window as any).correctAnswer=v;},
@@ -122,7 +122,7 @@ vi.mock('./core/QuestionState', () => ({
 		set hasQuestion(v: any){(window as any).hasQuestion=v;}
 	}
 }));
-vi.mock('./Settings', () => ({
+vi.mock('../../main/Settings', () => ({
 	settings: {
 		sound: false,
 		vibration: false,
@@ -134,12 +134,12 @@ vi.mock('./Settings', () => ({
 	isAnswerCorrect: vi.fn(),
 	checkAnswerFast: vi.fn(),
 }));
-vi.mock('./Ui', () => ({
+vi.mock('../../main/Ui', () => ({
 	showNotification: vi.fn(),
 	updatePreview: vi.fn(),
 	updatePreviewDebounced: vi.fn(),
 }));
-vi.mock('./Generation', () => ({
+vi.mock('../../main/Generation', () => ({
 	generateQuestion: vi.fn(() => Promise.resolve()),
 }));
 vi.mock("mathjs",()=>{
@@ -163,15 +163,15 @@ vi.mock("mathjs",()=>{
 	}));
 	return{evaluate,simplify,parse,default:{evaluate,simplify,parse}};
 });
-import * as domRegistry from './core/DomRegistry';
-import * as stateStore from './core/StateStore';
+import * as domRegistry from '../../main/core/DomRegistry';
+import * as stateStore from '../../main/core/StateStore';
 const dom:any=domRegistry.dom;
 const state:any=stateStore.appState;
-import * as settings from './Settings';
-import * as ui from './Ui';
-import * as generation from './Generation';
+import * as settings from '../../main/Settings';
+import * as ui from '../../main/Ui';
+import * as generation from '../../main/Generation';
 import { invoke } from '@tauri-apps/api/core';
-import { checkAnswer, startQuestionTimer } from './Answer';
+import { checkAnswer, startQuestionTimer } from '../../main/Answer';
 describe('checkAnswer', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
