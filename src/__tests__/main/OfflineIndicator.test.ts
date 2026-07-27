@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,beforeEach}from"vitest";
-import{OfflineIndicator}from"./ui/OfflineIndicator";
+import{OfflineIndicator}from"../../main/ui/OfflineIndicator";
 describe("OfflineIndicator",()=>{
     let indicator: OfflineIndicator;
     beforeEach(()=>{
