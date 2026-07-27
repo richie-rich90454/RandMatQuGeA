@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateRadicalEquation} from "./GenerateRadicalEquation";
-import {seededRng} from "../../../main/core/Rng";
+import {generateRadicalEquation} from "../../../../modules/Algebra/advanced/GenerateRadicalEquation";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateRadicalEquation",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateRadicalEquation("medium", seededRng(42));
