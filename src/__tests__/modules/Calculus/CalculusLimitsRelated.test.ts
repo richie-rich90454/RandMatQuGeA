@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {generateLimit,generateRelatedRates} from "./CalculusLimitsRelated";
-import {seededRng} from "../../main/core/Rng";
+import {generateLimit,generateRelatedRates} from "../../../modules/Calculus/CalculusLimitsRelated";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateLimit",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateLimit("medium", seededRng(42));
