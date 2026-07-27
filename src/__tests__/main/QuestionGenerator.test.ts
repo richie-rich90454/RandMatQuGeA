@@ -165,8 +165,8 @@ vi.mock("../../main/core/DomRegistry.js",()=>({
         }
     }
 }));
-import{generateQuestion,generateQuestionDto}from"./QuestionGenerator.js";
-import{generateAddition}from"../modules/Arithmetic/index.js";
+import{generateQuestion,generateQuestionDto}from"../../main/QuestionGenerator.js";
+import{generateAddition}from"../../modules/Arithmetic/index.js";
 describe("questionGenerator",()=>{
     it("should export generateQuestion",()=>{
         expect(typeof generateQuestion).toBe("function");
