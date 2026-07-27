@@ -107,20 +107,20 @@ vi.mock("../../main/Answer.js",()=>({
 vi.mock("@tauri-apps/api/core",()=>({
     invoke:vi.fn(()=>Promise.resolve({difficulty:"hard",weak_topic:"add"})),
 }));
-import{debounceGenerate,generateQuestion}from"./Generation.js";
-import*as stateStore from"./core/StateStore";
+import{debounceGenerate,generateQuestion}from"../../main/Generation.js";
+import*as stateStore from"../../main/core/StateStore";
 let state:any=stateStore.appState;
 import{invoke}from"@tauri-apps/api/core";
-import{generateQuestion as _callGeneratorMock}from"./QuestionGenerator.js";
+import{generateQuestion as _callGeneratorMock}from"../../main/QuestionGenerator.js";
 let callGeneratorMock=_callGeneratorMock as any;
-import{generateChoicesForCurrentQuestion as _generateChoicesMock}from"./Mcq.js";
+import{generateChoicesForCurrentQuestion as _generateChoicesMock}from"../../main/Mcq.js";
 let generateChoicesMock=_generateChoicesMock as any;
-import{showNotification,updateUIState}from"./Ui.js";
-import{startQuestionTimer as startTimerMock}from"./Answer.js";
-import{pickRandomTopic as pickRandomTopicMock}from"./Topics.js";
-import*as domRegistry from"./core/DomRegistry";
+import{showNotification,updateUIState}from"../../main/Ui.js";
+import{startQuestionTimer as startTimerMock}from"../../main/Answer.js";
+import{pickRandomTopic as pickRandomTopicMock}from"../../main/Topics.js";
+import*as domRegistry from"../../main/core/DomRegistry";
 let dom:any=domRegistry.dom;
-import*as settings from"./Settings.js";
+import*as settings from"../../main/Settings.js";
 describe("generation",()=>{
     it("should export debounceGenerate",()=>{
         expect(typeof debounceGenerate).toBe("function");
