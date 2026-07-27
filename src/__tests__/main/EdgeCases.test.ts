@@ -6,7 +6,7 @@ import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
 
 // Mock the questionArea to be settable
 const mockQuestionArea=document.createElement("div");
-vi.mock("../script.js",()=>({
+vi.mock("../../script.js",()=>({
     questionArea: mockQuestionArea,
 }));
 vi.mock("mathjs",()=>{
