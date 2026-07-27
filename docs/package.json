@@ -1,9 +1,11 @@
 {
   "name": "randmatqugea-docs",
-  "version": "1.0.0",
+  "version": "5.0.0",
   "description": "The documentation site for RandMatQuGeA",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
   },
   "keywords": [],
   "author": "richie-rich90454",

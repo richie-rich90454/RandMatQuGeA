@@ -9,9 +9,6 @@
     "build:web": "vite build",
     "build": "npm run build:typescript && npm run build:web",
     "start:nodejs": "vite preview",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs",
     "tauri": "tauri",
     "test": "vitest",
     "test:run": "vitest run",
@@ -51,7 +48,6 @@
     "rollup-plugin-visualizer": "^7.0.1",
     "typescript": "^7.0.2",
     "vite": "^8.1.5",
-    "vitepress": "^1.6.4",
     "vitest": "^4.1.10"
   }
 }
