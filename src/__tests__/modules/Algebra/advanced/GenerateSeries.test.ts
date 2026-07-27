@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateSeries} from "./GenerateSeries";
-import {seededRng} from "../../../main/core/Rng";
+import {generateSeries} from "../../../../modules/Algebra/advanced/GenerateSeries";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateSeries",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateSeries("medium", seededRng(42));
