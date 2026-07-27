@@ -1,12 +1,12 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
-vi.mock("./Topics.js",()=>({
+vi.mock("../../main/Topics.js",()=>({
     selectTopic:vi.fn(),
 }));
-vi.mock("./Generation.js",()=>({
+vi.mock("../../main/Generation.js",()=>({
     generateQuestion:vi.fn().mockResolvedValue(undefined),
 }));
-vi.mock("./Settings.js",()=>({
+vi.mock("../../main/Settings.js",()=>({
     settings:{showWeakTopicsPopup:true},
 }));
 vi.mock("@tauri-apps/api/core",()=>({
