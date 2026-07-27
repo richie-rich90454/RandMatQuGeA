@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect,vi} from "vitest";
-import {generateApplicationsDiff} from "./CalculusApplicationsDiff";
-import {seededRng} from "../../main/core/Rng";
+import {generateApplicationsDiff} from "../../../modules/Calculus/CalculusApplicationsDiff";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateApplicationsDiff",()=>{
 	it("generates lhopital correctly",()=>{
 		const rng=vi.fn()
