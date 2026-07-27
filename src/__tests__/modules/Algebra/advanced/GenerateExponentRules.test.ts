@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateExponentRules} from "./GenerateExponentRules";
-import {seededRng} from "../../../main/core/Rng";
+import {generateExponentRules} from "../../../../modules/Algebra/advanced/GenerateExponentRules";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateExponentRules",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateExponentRules("medium", seededRng(42));
