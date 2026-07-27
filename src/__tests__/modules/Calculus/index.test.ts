@@ -19,7 +19,7 @@ import{
 	generateGraphicalCalculus,
 	generateParametricPolarVector,
 	generateSequencesSeries,
-}from "./index";
+}from "../../../modules/Calculus/index";
 describe("index barrel",()=>{
 	it("exports calculusUtils functions",()=>{
 		expect(getMaxCoeff).toBeDefined();
