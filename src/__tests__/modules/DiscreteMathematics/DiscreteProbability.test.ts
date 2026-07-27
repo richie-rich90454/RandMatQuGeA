@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateProbability} from "./DiscreteProbability";
-import {seededRng} from "../../main/core/Rng";
+import {generateProbability} from "../../../modules/DiscreteMathematics/DiscreteProbability";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateProbability",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateProbability("medium", seededRng(42));
