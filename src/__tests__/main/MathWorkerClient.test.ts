@@ -5,15 +5,15 @@ describe("mathWorkerClient",()=>{
         vi.clearAllMocks();
     });
     it("should export evaluateInWorker",async()=>{
-        let{evaluateInWorker}=await import("./services/MathWorkerClient");
+        let{evaluateInWorker}=await import("../../main/services/MathWorkerClient");
         expect(typeof evaluateInWorker).toBe("function");
     });
     it("should export simplifyInWorker",async()=>{
-        let{simplifyInWorker}=await import("./services/MathWorkerClient");
+        let{simplifyInWorker}=await import("../../main/services/MathWorkerClient");
         expect(typeof simplifyInWorker).toBe("function");
     });
     it("should export terminateWorker",async()=>{
-        let{terminateWorker}=await import("./services/MathWorkerClient");
+        let{terminateWorker}=await import("../../main/services/MathWorkerClient");
         expect(typeof terminateWorker).toBe("function");
     });
 });
