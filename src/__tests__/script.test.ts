@@ -24,12 +24,12 @@ vi.mock("../main/Events.js",()=>({
 vi.mock("../main/Theme.js",()=>({
     initializeTheme:vi.fn(),
 }));
-import"../__tests__/script.js";
-import*as settingsMod from"../__tests__/main/Settings.js";
-import*as themeMod from"../__tests__/main/Theme.js";
-import*as eventsMod from"../__tests__/main/Events.js";
-import*as sessionMod from"../__tests__/main/Session.js";
-import*as _uiMod from"../__tests__/main/Ui.js";
+import"../script.js";
+import*as settingsMod from"../main/Settings.js";
+import*as themeMod from"../main/Theme.js";
+import*as eventsMod from"../main/Events.js";
+import*as sessionMod from"../main/Session.js";
+import*as _uiMod from"../main/Ui.js";
 describe("script",()=>{
     it("should set window globals on load",()=>{
         expect(window.correctAnswer).toEqual({correct:"", alternate:"", display:""});
