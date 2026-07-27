@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect}from"vitest";
-import*as adv from"./AlgebraAdvanced.js";
+import*as adv from"../../../modules/Algebra/AlgebraAdvanced.js";
 describe("algebraAdvanced exports",()=>{
     it("should export generateLogarithm",()=>{
         expect(typeof adv.generateLogarithm).toBe("function");
