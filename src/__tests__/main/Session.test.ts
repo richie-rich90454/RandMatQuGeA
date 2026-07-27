@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
-vi.mock("./core/DomRegistry",()=>{
+vi.mock("../../main/core/DomRegistry",()=>{
     const timerDisplay={innerHTML:"",style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
     const scoreDisplay={innerHTML:""};
     const mentalProgressBar={style:{width:""},setAttribute:vi.fn(),classList:{add:vi.fn(),remove:vi.fn()}};
@@ -31,7 +31,7 @@ vi.mock("./core/DomRegistry",()=>{
     const dom={buttons,inputs,displays,session};
     return{dom};
 });
-vi.mock("./core/StateStore",()=>{
+vi.mock("../../main/core/StateStore",()=>{
     let sessionActive=false;
     let sessionPaused=false;
     let sessionScore={correct:0,total:0};
@@ -116,7 +116,7 @@ vi.mock("./core/StateStore",()=>{
     };
     return{appState};
 });
-vi.mock("./core/QuestionState",()=>{
+vi.mock("../../main/core/QuestionState",()=>{
     return{questionState:{
         get correctAnswer(){return(window as any).correctAnswer;},
         set correctAnswer(v:any){(window as any).correctAnswer=v;},
@@ -126,7 +126,7 @@ vi.mock("./core/QuestionState",()=>{
         set hasQuestion(v:any){(window as any).hasQuestion=v;}
     }};
 });
-vi.mock("./Settings.js",()=>({
+vi.mock("../../main/Settings.js",()=>({
     settings:{
         timer:30,
         maxQuestions:5,
@@ -138,7 +138,7 @@ vi.mock("./Settings.js",()=>({
     },
     checkAnswerFast:vi.fn(()=>Promise.resolve(true)),
 }));
-vi.mock("./Ui.js",()=>({
+vi.mock("../../main/Ui.js",()=>({
     showNotification:vi.fn(),
     clearAllTimeouts:vi.fn(),
     updateScoreDisplay:vi.fn(),
@@ -152,23 +152,23 @@ vi.mock("./Ui.js",()=>({
     updatePreview:vi.fn(),
     updateStatistics:vi.fn(),
 }));
-vi.mock("./Topics.js",()=>({
+vi.mock("../../main/Topics.js",()=>({
     pickRandomTopic:vi.fn(()=>"add"),
     selectTopic:vi.fn(),
     default:{},
 }));
-vi.mock("./QuestionGenerator.js",()=>({
+vi.mock("../../main/QuestionGenerator.js",()=>({
     generateQuestion:vi.fn(),
 }));
-vi.mock("./Mcq.js",()=>({
+vi.mock("../../main/Mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
 import{saveSessionSnapshot,restoreSessionSnapshot,startTimer,generateNextMentalQuestion,handleMentalAnswer,handleMcqChoice,startMentalSession,pauseMentalSession,skipMentalQuestion,stopMentalSession,endMentalSession,promptSaveScore,updateLeaderboard}from"./Session.js";
 import*as stateStore from"./core/StateStore";
 let state:any=stateStore.appState;
-import * as ui from "./Ui.js";
-import * as settings from "./Settings.js";
-import * as questionGenerator from "./QuestionGenerator.js";
+import * as ui from "../../main/Ui.js";
+import * as settings from "../../main/Settings.js";
+import * as questionGenerator from "../../main/QuestionGenerator.js";
 describe("session",()=>{
     window.correctAnswer={correct:"42",alternate:"42",display:"42"};
     window.hasQuestion=true;
