@@ -10,7 +10,7 @@ vi.mock("@tauri-apps/api/core",()=>({
     invoke:vi.fn(),
 }));
 import{invoke}from"@tauri-apps/api/core";
-import{openDataModal,initDataModal}from"./DataManagement.js";
+import{openDataModal,initDataModal}from"../../main/DataManagement.js";
 declare const process: { on: (e: string, h: Function) => void; off: (e: string, h: Function) => void; };
 describe("dataManagement",()=>{
     it("should export openDataModal",()=>{
