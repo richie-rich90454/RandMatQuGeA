@@ -10,7 +10,7 @@ vi.mock("../../main/core/DomRegistry",()=>({
         }
     }
 }));
-import{ErrorHandler}from"./core/ErrorHandler";
+import{ErrorHandler}from"../../main/core/ErrorHandler";
 describe("ErrorHandler",()=>{
     let handler: ErrorHandler;
     beforeEach(()=>{
