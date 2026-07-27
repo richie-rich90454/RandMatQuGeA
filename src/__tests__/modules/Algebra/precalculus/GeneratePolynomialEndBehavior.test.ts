@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generatePolynomialEndBehavior} from "./GeneratePolynomialEndBehavior";
-import {seededRng} from "../../../main/core/Rng";
+import {generatePolynomialEndBehavior} from "../../../../modules/Algebra/precalculus/GeneratePolynomialEndBehavior";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generatePolynomialEndBehavior", ()=>{
 	it("generates endbehavior question correctly", ()=>{
 		const rng=vi.fn()
