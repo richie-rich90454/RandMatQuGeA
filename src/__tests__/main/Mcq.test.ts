@@ -35,10 +35,10 @@ vi.mock("mathjs",()=>{
     });
     return{evaluate,default:{evaluate}};
 });
-import{generateDistractors,generateChoicesForCurrentQuestion}from"./Mcq.js";
-import*as stateStore from"./core/StateStore";
-import*as ui from"./Ui.js";
-import*as settings from"./Settings.js";
+import{generateDistractors,generateChoicesForCurrentQuestion}from"../../main/Mcq.js";
+import*as stateStore from"../../main/core/StateStore";
+import*as ui from"../../main/Ui.js";
+import*as settings from"../../main/Settings.js";
 const state:any=stateStore.appState;
 describe("generateDistractors",()=>{
     it("should return an array of the given count",async()=>{
