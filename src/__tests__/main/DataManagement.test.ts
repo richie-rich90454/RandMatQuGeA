@@ -1,9 +1,9 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
-vi.mock("./Ui.js",()=>({
+vi.mock("../../main/Ui.js",()=>({
     showNotification:vi.fn(),
 }));
-vi.mock("./Session.js",()=>({
+vi.mock("../../main/Session.js",()=>({
     updateLeaderboard:vi.fn(),
 }));
 vi.mock("@tauri-apps/api/core",()=>({
