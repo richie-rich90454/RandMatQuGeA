@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateExponent} from "./GenerateExponent";
-import {seededRng} from "../../../main/core/Rng";
+import {generateExponent} from "../../../../modules/Algebra/advanced/GenerateExponent";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateExponent",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateExponent("medium", seededRng(42));
