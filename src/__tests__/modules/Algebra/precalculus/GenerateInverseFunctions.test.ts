@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateInverseFunctions} from "./GenerateInverseFunctions";
-import {seededRng} from "../../../main/core/Rng";
+import {generateInverseFunctions} from "../../../../modules/Algebra/precalculus/GenerateInverseFunctions";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateInverseFunctions", ()=>{
 	it("generates find question correctly", ()=>{
 		const rng=vi.fn()
