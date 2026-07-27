@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {generateAreaCircle,generateAreaRectangle,generateAreaTriangle,generateSectorArea,generateSurfaceAreaCube} from "./GeometryArea.js";
-import {seededRng} from "../../main/core/Rng";
+import {generateAreaCircle,generateAreaRectangle,generateAreaTriangle,generateSectorArea,generateSurfaceAreaCube} from "../../../modules/Geometry/GeometryArea.js";
+import {seededRng} from "../../../main/core/Rng";
 describe("generateAreaCircle",()=>{
 	it("returns a QuestionDto with required fields",()=>{
 		const dto=generateAreaCircle("medium", seededRng(42));
