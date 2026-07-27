@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateLinearEquationSpecial} from "./GenerateLinearEquationSpecial";
-import {seededRng} from "../../../main/core/Rng";
+import {generateLinearEquationSpecial} from "../../../../modules/Algebra/precalculus/GenerateLinearEquationSpecial";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateLinearEquationSpecial", ()=>{
 	it("generates identity question correctly", ()=>{
 		const rng=vi.fn()
