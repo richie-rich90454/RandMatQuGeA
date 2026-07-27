@@ -69,7 +69,7 @@ vi.mock("mathjs",()=>{
     });
     return{evaluate,default:{evaluate}};
 });
-import*as settings from"./Settings.js";
+import*as settings from"../../main/Settings.js";
 describe("settings",()=>{
     beforeEach(()=>{
         mockAppWindow=null;
