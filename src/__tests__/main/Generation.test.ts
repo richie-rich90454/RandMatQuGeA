@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
-vi.mock("./core/DomRegistry",()=>{
+vi.mock("../../main/core/DomRegistry",()=>{
     const difficultySelect={value:"medium"};
     const answerResults={innerHTML:"",className:"",classList:{add:vi.fn(),remove:vi.fn()}};
     const userAnswer={value:"",disabled:false,focus:vi.fn(),removeAttribute:vi.fn(),style:{display:""}};
@@ -20,7 +20,7 @@ vi.mock("./core/DomRegistry",()=>{
     };
     return{dom};
 });
-vi.mock("./core/StateStore",()=>{
+vi.mock("../../main/core/StateStore",()=>{
     let selectedTopic:string|null=null;
     let currentMode="single";
     let currentDifficulty="medium";
@@ -63,7 +63,7 @@ vi.mock("./core/StateStore",()=>{
     };
     return{appState};
 });
-vi.mock("./core/QuestionState",()=>{
+vi.mock("../../main/core/QuestionState",()=>{
     return{
         questionState:{
             get correctAnswer(){return(window as any).correctAnswer;},
@@ -75,7 +75,7 @@ vi.mock("./core/QuestionState",()=>{
         }
     };
 });
-vi.mock("./core/QuestionRenderer",()=>{
+vi.mock("../../main/core/QuestionRenderer",()=>{
     return{
         renderer:{
             render:vi.fn(),
@@ -83,25 +83,25 @@ vi.mock("./core/QuestionRenderer",()=>{
         }
     };
 });
-vi.mock("./Ui.js",()=>({
+vi.mock("../../main/Ui.js",()=>({
     showNotification:vi.fn(),
     updatePreview:vi.fn(),
     updateUIState:vi.fn(),
 }));
-vi.mock("./Topics.js",()=>({
+vi.mock("../../main/Topics.js",()=>({
     pickRandomTopic:vi.fn(()=>"add"),
     selectTopic:vi.fn(),
 }));
-vi.mock("./QuestionGenerator.js",()=>({
+vi.mock("../../main/QuestionGenerator.js",()=>({
     generateQuestion:vi.fn(),
 }));
-vi.mock("./Mcq.js",()=>({
+vi.mock("../../main/Mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
-vi.mock("./Settings.js",()=>({
+vi.mock("../../main/Settings.js",()=>({
     settings:{adaptive:false},
 }));
-vi.mock("./Answer.js",()=>({
+vi.mock("../../main/Answer.js",()=>({
     startQuestionTimer:vi.fn(),
 }));
 vi.mock("@tauri-apps/api/core",()=>({
