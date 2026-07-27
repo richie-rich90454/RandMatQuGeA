@@ -38,7 +38,7 @@ describe("Generator MCQ dedup edge cases",()=>{
     });
 
     it("arithmeticBasic generates unique choices with correct answer",async()=>{
-        const mod=await import("../modules/Arithmetic/ArithmeticBasic.js");
+        const mod=await import("../../modules/Arithmetic/ArithmeticBasic.js");
         const originalRandom=Math.random;
         Math.random=vi.fn()
             .mockReturnValueOnce(0.1) // pick "addition" type
@@ -52,7 +52,7 @@ describe("Generator MCQ dedup edge cases",()=>{
     });
 
     it("trigBasic sin generates unique choices with correct answer across seeds",async()=>{
-        const mod=await import("../modules/Trigonometry/TrigBasic.js");
+        const mod=await import("../../modules/Trigonometry/TrigBasic.js");
         const originalRandom=Math.random;
         for(let seed=0;seed<10;seed++){
             Math.random=vi.fn()
@@ -67,7 +67,7 @@ describe("Generator MCQ dedup edge cases",()=>{
     });
 
     it("algebraEquations choices always contain correct answer",async()=>{
-        const mod=await import("../modules/Algebra/AlgebraEquations.js");
+        const mod=await import("../../modules/Algebra/AlgebraEquations.js");
         const originalRandom=Math.random;
         for(let seed=0;seed<10;seed++){
             Math.random=vi.fn().mockReturnValue(seed/10);
@@ -88,7 +88,7 @@ describe("Generator MCQ dedup edge cases",()=>{
 describe("Generator null-safety",()=>{
     it("should not crash when MathJax is undefined",async()=>{
         delete (window as any).MathJax;
-        const mod=await import("../modules/Trigonometry/TrigBasic.js");
+        const mod=await import("../../modules/Trigonometry/TrigBasic.js");
         const originalRandom=Math.random;
         Math.random=vi.fn().mockReturnValue(0.5);
         const dto=mod.generateSin();
@@ -99,7 +99,7 @@ describe("Generator null-safety",()=>{
 
     it("should not crash when MathJax.typesetPromise is undefined",async()=>{
         (window as any).MathJax={};
-        const mod=await import("../modules/Calculus/CalculusDerivatives.js");
+        const mod=await import("../../modules/Calculus/CalculusDerivatives.js");
         const originalRandom=Math.random;
         Math.random=vi.fn().mockReturnValue(0.5);
         expect(()=>{mod.generateDerivative();}).not.toThrow();
@@ -122,7 +122,7 @@ describe("Generator numeric stability",()=>{
     });
 
     it("basic arithmetic never produces NaN or Infinity",async()=>{
-        const arithMod=await import("../modules/Arithmetic/ArithmeticBasic.js");
+        const arithMod=await import("../../modules/Arithmetic/ArithmeticBasic.js");
         const originalRandom=Math.random;
         const generators=[
             arithMod.generateAddition,
@@ -147,7 +147,7 @@ describe("Generator numeric stability",()=>{
     });
 
     it("trig evaluate never produces NaN for all 16 special angles",async()=>{
-        const mod=await import("../modules/Trigonometry/TrigBasic.js");
+        const mod=await import("../../modules/Trigonometry/TrigBasic.js");
         const originalRandom=Math.random;
         for(let angleIdx=0;angleIdx<16;angleIdx++){
             Math.random=vi.fn()
@@ -164,7 +164,7 @@ describe("Generator numeric stability",()=>{
     });
 
     it("trig cosine evaluate never produces NaN for all angles",async()=>{
-        const mod=await import("../modules/Trigonometry/TrigBasic.js");
+        const mod=await import("../../modules/Trigonometry/TrigBasic.js");
         const originalRandom=Math.random;
         for(let angleIdx=0;angleIdx<16;angleIdx++){
             Math.random=vi.fn()
@@ -197,7 +197,7 @@ describe("Display stability",()=>{
     });
 
     it("generates non-empty HTML for all arithmetic types",async()=>{
-        const mod=await import("../modules/Arithmetic/ArithmeticBasic.js");
+        const mod=await import("../../modules/Arithmetic/ArithmeticBasic.js");
         const originalRandom=Math.random;
         const generators=[
             mod.generateAddition,
@@ -214,7 +214,7 @@ describe("Display stability",()=>{
     });
 
     it("correctAnswer contains all required properties",async()=>{
-        const mod=await import("../modules/Algebra/AlgebraEquations.js");
+        const mod=await import("../../modules/Algebra/AlgebraEquations.js");
         const originalRandom=Math.random;
         Math.random=vi.fn().mockReturnValue(0.5);
         const dto=mod.generateLinearEquation();
@@ -229,7 +229,7 @@ describe("Display stability",()=>{
     });
 
     it("correctAnswer.display is always a string",async()=>{
-        const mod=await import("../modules/Geometry/GeometryArea.js");
+        const mod=await import("../../modules/Geometry/GeometryArea.js");
         const originalRandom=Math.random;
         for(let seed=0;seed<5;seed++){
             Math.random=vi.fn().mockReturnValue(seed/5);
@@ -247,13 +247,13 @@ describe("Display stability",()=>{
 describe("MCQ answer checking",()=>{
     it("answer.test.ts loads all expected test cases",async()=>{
         // Verify the test module loads without error
-        const answerModule=await import("../main/Answer.js");
+        const answerModule=await import("../../main/Answer.js");
         expect(answerModule.checkAnswer).toBeDefined();
         expect(answerModule.startQuestionTimer).toBeDefined();
     });
 
     it("mcq.test.ts loads all expected test cases",async()=>{
-        const mcqModule=await import("../main/Mcq.js");
+        const mcqModule=await import("../../main/Mcq.js");
         expect(mcqModule.generateDistractors).toBeDefined();
         expect(mcqModule.generateChoicesForCurrentQuestion).toBeDefined();
     });
@@ -284,31 +284,31 @@ describe("UI null-safety fixes",()=>{
     });
 
     it("updateUIState does not crash when correctAnswer is undefined",async()=>{
-        const uiMod=await import("../main/Ui.js");
+        const uiMod=await import("../../main/Ui.js");
         expect(()=>uiMod.updateUIState()).not.toThrow();
     });
 
     it("updateUIState does not crash when correctAnswer is null",async()=>{
         (window as any).correctAnswer=null;
-        const uiMod=await import("../main/Ui.js");
+        const uiMod=await import("../../main/Ui.js");
         // Force re-import for fresh window state
         expect(()=>uiMod.updateUIState()).not.toThrow();
     });
 
     it("updateUIState does not crash when correctAnswer.correct is undefined",async()=>{
         (window as any).correctAnswer={};
-        const uiMod=await import("../main/Ui.js");
+        const uiMod=await import("../../main/Ui.js");
         expect(()=>uiMod.updateUIState()).not.toThrow();
     });
 
     it("copyCorrectAnswer does not crash when correctAnswer is undefined",async()=>{
-        const uiMod=await import("../main/Ui.js");
+        const uiMod=await import("../../main/Ui.js");
         expect(()=>uiMod.copyCorrectAnswer()).not.toThrow();
     });
 
     it("copyCorrectAnswer does not crash when correctAnswer.correct is undefined",async()=>{
         (window as any).correctAnswer={};
-        const uiMod=await import("../main/Ui.js");
+        const uiMod=await import("../../main/Ui.js");
         expect(()=>uiMod.copyCorrectAnswer()).not.toThrow();
     });
 });
@@ -318,7 +318,7 @@ describe("UI null-safety fixes",()=>{
 // ========================================
 describe("MCQ distractor stability fixes",()=>{
     it("generateNumericDistractors never returns NaN as choice",async()=>{
-        const mcqMod=await import("../main/Mcq.js");
+        const mcqMod=await import("../../main/Mcq.js");
         const choices=await mcqMod.generateDistractors("-16", 4);
         for(const c of choices){
             const val=Number(c);
@@ -330,7 +330,7 @@ describe("MCQ distractor stability fixes",()=>{
     });
 
     it("generateNumericDistractors handles negative numbers without infinite loop",async()=>{
-        const mcqMod=await import("../main/Mcq.js");
+        const mcqMod=await import("../../main/Mcq.js");
         const choices=await mcqMod.generateDistractors("-1", 4);
         expect(choices.length).toBe(4);
         for(const c of choices){
@@ -342,27 +342,27 @@ describe("MCQ distractor stability fixes",()=>{
     });
 
     it("generateNumericDistractors handles zero without infinite loop",async()=>{
-        const mcqMod=await import("../main/Mcq.js");
+        const mcqMod=await import("../../main/Mcq.js");
         const choices=await mcqMod.generateDistractors("0", 4);
         expect(choices.length).toBe(4);
     });
 
     it("generateNumericDistractors terminates even when given extreme values",async()=>{
-        const mcqMod=await import("../main/Mcq.js");
+        const mcqMod=await import("../../main/Mcq.js");
         // Very large number where variations may produce the same rounded value
         const choices=await mcqMod.generateDistractors("999999999", 4);
         expect(choices.length).toBeGreaterThanOrEqual(2);
     });
 
     it("generateDistractors handles non-numeric patterns",async()=>{
-        const mcqMod=await import("../main/Mcq.js");
+        const mcqMod=await import("../../main/Mcq.js");
         const choices=await mcqMod.generateDistractors("center (0, 0), radius 5", 4);
         expect(choices.length).toBeGreaterThanOrEqual(2);
         expect(choices).toContain("center (0, 0), radius 5");
     });
 
     it("generateDistractors handles quadrant answers",async()=>{
-        const mcqMod=await import("../main/Mcq.js");
+        const mcqMod=await import("../../main/Mcq.js");
         const choices=await mcqMod.generateDistractors("II", 4);
         expect(choices.length).toBeGreaterThanOrEqual(2);
         expect(choices).toContain("II");
@@ -379,29 +379,29 @@ describe("Progress bar division by zero fixes",()=>{
 
     it("updateProgressBar does not crash when maxQuestions is 0",async()=>{
         // Set up state with maxQuestions=0
-        const stateMod=await import("../main/core/StateStore.js");
+        const stateMod=await import("../../main/core/StateStore.js");
         const originalMax=stateMod.appState.maxQuestions;
         stateMod.appState.maxQuestions=0;
-        const uiMod=await import("../main/Ui.js");
+        const uiMod=await import("../../main/Ui.js");
         expect(()=>uiMod.updateProgressBar()).not.toThrow();
         stateMod.appState.maxQuestions=originalMax;
     });
 
     it("updateProgressBar does not crash when maxQuestions is negative",async()=>{
-        const stateMod=await import("../main/core/StateStore.js");
+        const stateMod=await import("../../main/core/StateStore.js");
         const originalMax=stateMod.appState.maxQuestions;
         stateMod.appState.maxQuestions=-1;
-        const uiMod=await import("../main/Ui.js");
+        const uiMod=await import("../../main/Ui.js");
         expect(()=>uiMod.updateProgressBar()).not.toThrow();
         stateMod.appState.maxQuestions=originalMax;
     });
 
     it("updateProgressBar produces finite percentage when maxQuestions is positive",async()=>{
-        const stateMod=await import("../main/core/StateStore.js");
+        const stateMod=await import("../../main/core/StateStore.js");
         const originalMax=stateMod.appState.maxQuestions;
         stateMod.appState.maxQuestions=10;
         stateMod.appState.sessionScore={correct:3,total:5};
-        const uiMod=await import("../main/Ui.js");
+        const uiMod=await import("../../main/Ui.js");
         expect(()=>uiMod.updateProgressBar()).not.toThrow();
         stateMod.appState.maxQuestions=originalMax;
     });
@@ -421,8 +421,8 @@ describe("endMentalSession null topic fix",()=>{
     });
 
     it("endMentalSession does not crash when selectedTopic is null",async()=>{
-        const sessionMod=await import("../main/Session.js");
-        const stateMod=await import("../main/core/StateStore.js");
+        const sessionMod=await import("../../main/Session.js");
+        const stateMod=await import("../../main/core/StateStore.js");
         // Set session active with null topic
         stateMod.appState.selectedTopic=null;
         stateMod.appState.sessionActive=true;
@@ -444,7 +444,7 @@ describe("endMentalSession null topic fix",()=>{
 // ========================================
 describe("Leaderboard event delegation",()=>{
     it("updateLeaderboard uses event delegation not per-button handlers",async()=>{
-        const sessionMod=await import("../main/Session.js");
+        const sessionMod=await import("../../main/Session.js");
         // The implementation should use event delegation on leaderboardContent
         // rather than attaching per-button click handlers
         expect(sessionMod.updateLeaderboard).toBeDefined();
