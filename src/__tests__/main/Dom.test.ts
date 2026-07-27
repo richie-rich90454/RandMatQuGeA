@@ -3,7 +3,7 @@ import{describe,it,expect,vi}from"vitest";
 vi.mock("@tauri-apps/api/window",()=>({
     getCurrentWindow:vi.fn(()=>({theme:vi.fn(),setTheme:vi.fn()})),
 }));
-import{dom}from"./Dom.js";
+import{dom}from"../../main/Dom.js";
 describe("dom",()=>{
     it("should export the dom singleton",()=>{
         expect(dom).toBeDefined();
