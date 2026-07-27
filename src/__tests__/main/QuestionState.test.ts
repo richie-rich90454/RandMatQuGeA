@@ -9,7 +9,7 @@ vi.mock("../../main/core/DomRegistry",()=>({
         }
     }
 }));
-import{QuestionState}from"./core/QuestionState";
+import{QuestionState}from"../../main/core/QuestionState";
 describe("QuestionState",()=>{
     let state: QuestionState;
     beforeEach(()=>{
