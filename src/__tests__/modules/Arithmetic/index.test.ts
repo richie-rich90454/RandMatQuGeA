@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe,it,expect} from "vitest";
-import {getRangeForDifficulty,getMaxForDifficulty,gcd,isPrime,generateAddition,generateSubtraction,generateMultiplication,generateDivision,generateWholeNumberPlaceValue,generateNumberLineOrdering,generateDivisibility,generateGCFLCM} from "./index.js";
-import {seededRng} from "../../main/core/Rng";
+import {getRangeForDifficulty,getMaxForDifficulty,gcd,isPrime,generateAddition,generateSubtraction,generateMultiplication,generateDivision,generateWholeNumberPlaceValue,generateNumberLineOrdering,generateDivisibility,generateGCFLCM} from "../../../modules/Arithmetic/index.js";
+import {seededRng} from "../../../main/core/Rng";
 describe("barrel exports",()=>{
 	it("exports getRangeForDifficulty",()=>{
 		expect(typeof getRangeForDifficulty).toBe("function");
