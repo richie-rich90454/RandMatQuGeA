@@ -1,6 +1,6 @@
 ﻿/** @vitest-environment jsdom */
 import{describe,it,expect,vi,afterEach}from"vitest";
-vi.mock("./core/StateStore",()=>{
+vi.mock("../../main/core/StateStore",()=>{
     let mcqMode=false;
     let mcqChoices:string[]=[];
     const setMcqChoices=vi.fn((c:string[])=>{mcqChoices=c;});
@@ -13,16 +13,16 @@ vi.mock("./core/StateStore",()=>{
     };
     return{appState};
 });
-vi.mock("./core/QuestionState",()=>({
+vi.mock("../../main/core/QuestionState",()=>({
     questionState:{
         get correctAnswer(){return(window as any).correctAnswer;},
         set correctAnswer(v:any){(window as any).correctAnswer=v;},
     }
 }));
-vi.mock("./Settings.js",()=>({
+vi.mock("../../main/Settings.js",()=>({
     settings:{mcqChoicesCount:4},
 }));
-vi.mock("./Ui.js",()=>({
+vi.mock("../../main/Ui.js",()=>({
     renderMcqChoices:vi.fn(),
 }));
 vi.mock("mathjs",()=>{
