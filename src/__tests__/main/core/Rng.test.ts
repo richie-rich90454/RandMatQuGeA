@@ -1,5 +1,5 @@
 ﻿import { describe, it, expect } from "vitest";
-import { seededRng, randInt, pick, shuffle } from "./Rng";
+import { seededRng, randInt, pick, shuffle } from "../../../main/core/Rng";
 describe("seededRng", ()=>{
 	it("returns values in [0, 1)", ()=>{
 		let rng = seededRng(12345);
