@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateCartesianConcepts} from "./GenerateCartesianConcepts";
-import {seededRng} from "../../../main/core/Rng";
+import {generateCartesianConcepts} from "../../../../modules/Algebra/precalculus/GenerateCartesianConcepts";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateCartesianConcepts", ()=>{
 	it("generates quadrant question correctly", ()=>{
 		const rng=vi.fn()
