@@ -63,12 +63,12 @@ vi.mock("../../main/Constants.js",()=>({
         one:["add"],
     },
 }));
-import*as topics from"./Topics.js";
-import*as stateStore from"./core/StateStore";
+import*as topics from"../../main/Topics.js";
+import*as stateStore from"../../main/core/StateStore";
 let state:any=stateStore.appState;
-import*as domRegistry from"./core/DomRegistry";
+import*as domRegistry from"../../main/core/DomRegistry";
 let dom:any=domRegistry.dom;
-import*as ui from"./Ui.js";
+import*as ui from"../../main/Ui.js";
 describe("topics",()=>{
     afterEach(()=>{
         document.querySelectorAll(".topic-pill").forEach(el=>el.remove());
