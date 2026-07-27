@@ -223,17 +223,17 @@ vi.mock("../../main/DataManagement.js",()=>({
     openDataModal:vi.fn(),
     initDataModal:vi.fn(),
 }));
-import{switchToSingle,switchToMental,setupEventListeners,isVersionGreater}from"./Events.js";
-import*as stateStore from"./core/StateStore";
+import{switchToSingle,switchToMental,setupEventListeners,isVersionGreater}from"../../main/Events.js";
+import*as stateStore from"../../main/core/StateStore";
 let state:any=stateStore.appState;
-import*as domRegistry from"./core/DomRegistry";
+import*as domRegistry from"../../main/core/DomRegistry";
 let dom:any=domRegistry.dom;
-import{questionState}from"./core/QuestionState";
+import{questionState}from"../../main/core/QuestionState";
 import * as session from "../../main/Session.js";
 import{gt as semverGt}from"semver";
-import*as generation from"./Generation.js";
-import*as answer from"./Answer.js";
-import*as ui from"./Ui.js";
+import*as generation from"../../main/Generation.js";
+import*as answer from"../../main/Answer.js";
+import*as ui from"../../main/Ui.js";
 describe("events",()=>{
     it("should export switchToSingle",()=>{
         expect(typeof switchToSingle).toBe("function");
