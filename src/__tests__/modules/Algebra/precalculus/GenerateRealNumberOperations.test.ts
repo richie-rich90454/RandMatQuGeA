@@ -2,8 +2,8 @@
  * @vitest-environment jsdom
  */
 import {describe, it, expect, vi} from "vitest";
-import {generateRealNumberOperations} from "./GenerateRealNumberOperations";
-import {seededRng} from "../../../main/core/Rng";
+import {generateRealNumberOperations} from "../../../../modules/Algebra/precalculus/GenerateRealNumberOperations";
+import {seededRng} from "../../../../main/core/Rng";
 describe("generateRealNumberOperations", ()=>{
 	it("generates absolute value question correctly", ()=>{
 		const rng=vi.fn()
