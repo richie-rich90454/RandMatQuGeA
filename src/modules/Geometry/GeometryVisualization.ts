@@ -132,6 +132,19 @@ function createCanvas2DVisualization(shape: string, params: any, container: HTML
 			xMax=base+1;
 			yMin=-1;
 			yMax=height+1;
+		}else if (shape==="graph"){
+			const fn=params.fn||"sin";
+			const amp=params.a||1;
+			xMin=params.xmin!==undefined?params.xmin:-2*Math.PI;
+			xMax=params.xmax!==undefined?params.xmax:2*Math.PI;
+			if(fn==="tan"){
+				yMin=-4;
+				yMax=4;
+			}
+			else{
+				yMin=-amp-0.5;
+				yMax=amp+0.5;
+			}
 		}
 		let dataWidth=xMax-xMin;
 		let dataHeight=yMax-yMin;
@@ -322,6 +335,49 @@ function createCanvas2DVisualization(shape: string, params: any, container: HTML
 				info.textContent=`Triangle: base = ${base}, height = ${height}`;
 				break;
 			}
+			case "graph":{
+				const fn=params.fn||"sin";
+				const a=params.a||1;
+				const b=params.b||1;
+				const c=params.c||0;
+				ctx.beginPath();
+				ctx.strokeStyle="#44aaff";
+				ctx.lineWidth=3/scale;
+				let penDown=false;
+				const steps=400;
+				for (let i=0;i<=steps;i++){
+					const x=xMin+(i/steps)*(xMax-xMin);
+					let y: number;
+					if (fn==="tan"){
+						y=Math.tan(b*x-c);
+					}
+					else if (fn==="cos"){
+						y=a*Math.cos(b*x+c);
+					}
+					else{
+						y=a*Math.sin(b*x+c);
+					}
+					if (!isFinite(y)||Math.abs(y)>30){
+						penDown=false;
+						continue;
+					}
+					if (!penDown){
+						ctx.moveTo(x,y);
+						penDown=true;
+					}
+					else{
+						ctx.lineTo(x,y);
+					}
+				}
+				ctx.stroke();
+				if (fn==="tan"){
+					info.textContent=`y = tan(${b}x ${c>=0?'−':'+'} ${Math.abs(c)})`;
+				}
+				else{
+					info.textContent=`y = ${a}${fn}(${b}x ${c>=0?'+':'−'} ${Math.abs(c)})`;
+				}
+				break;
+			}
 		}
 		ctx.restore();
 		ctx.save();
@@ -418,7 +474,15 @@ export async function createVisualization(shape: string, params: any): Promise<v
 	const width=container.clientWidth;
 	const height=container.clientHeight;
 	await ensureThree();
-	const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
+	let renderer: any=null;
+	try{
+		renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
+	}
+	catch(e){
+		console.warn("WebGL unavailable for 3D visualization:",e);
+		container.innerHTML='<div class="empty-state"><p>3D visualization is not available in this environment.</p></div>';
+		return;
+	}
 	renderer.setSize(width,height);
 	renderer.setClearColor(0x1a1a2e);
 	renderer.setPixelRatio(window.devicePixelRatio);
