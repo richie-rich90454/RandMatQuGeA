@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
 // @ts-expect-error - latexToPlain is imported for potential future use
 import {getMaxCoeff, latexToPlain} from "./CalculusUtils.js";
 /**
@@ -120,7 +120,7 @@ export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math
 		case "volumeCrossSemi":{
 			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Base: } y=x^2, y=${a}. \\text{ Cross sections perpendicular to x-axis are semicircles. Volume?} \\]`;
-			let val=(2*Math.PI/15)*Math.pow(a, 2.5);
+			let val=(Math.PI/15)*Math.pow(a, 2.5);
 			plainCorrectAnswer=val.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter a number";
