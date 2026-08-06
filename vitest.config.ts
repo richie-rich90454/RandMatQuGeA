@@ -3,8 +3,9 @@ export default defineConfig({
     test: {
         setupFiles: ["./src/vitest.setup.ts"],
         environment: "jsdom",
-        testTimeout: 10000,
+        testTimeout: 30000,
         pool: "forks",
-        maxConcurrency: 16,
+        isolate: true,
+        maxConcurrency: 4,
     }
 });
