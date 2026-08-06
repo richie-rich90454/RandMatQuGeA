@@ -188,6 +188,14 @@ body{
     src: url("/LibertinusMath-Regular.ttf");
     font-display: swap;
 }
+@font-face{
+    font-family: "OpenDyslexic";
+    src: url("/OpenDyslexic-Regular.woff2") format("woff2");
+    font-display: swap;
+}
+body.font-opendyslexic{
+    font-family: "OpenDyslexic", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
 #wave-container{
     position: fixed;
     top: 0;
@@ -820,6 +828,7 @@ input[type="checkbox"]:hover{
     border: 1px dashed var(--border);
     transition: border-color var(--transition-fast), background-color 0.3s ease;
     box-shadow: var(--shadow-sm);
+    width: 100%;
 }
 .question-display.has-content{
     border: 1px solid var(--border);
@@ -2075,28 +2084,6 @@ hr.context-menu-divider{
     font-weight: 600;
     z-index: 1000;
     box-shadow: var(--shadow-md);
-}
-.env-badge{
-    position: fixed;
-    top: var(--spacing-sm);
-    left: var(--spacing-sm);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--radius-full);
-    font-size: 0.7rem;
-    font-weight: 700;
-    z-index: 1000;
-    box-shadow: var(--shadow-sm);
-    pointer-events: none;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.env-badge.web{
-    background: var(--primary);
-    color: var(--text-on-primary);
-}
-.env-badge.desktop{
-    background: var(--success);
-    color: var(--text-on-primary);
 }
 .error-card{
     padding: var(--spacing-xl);
