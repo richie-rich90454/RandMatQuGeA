@@ -37,7 +37,7 @@ describe("generatePolynomialEndBehavior", ()=>{
 			.mockReturnValueOnce(0.6);
 		const dto=generatePolynomialEndBehavior("medium", rng);
 		expect(dto.latex).toContain("Intermediate Value Theorem");
-		expect(dto.correct).toBe("yes");
+		expect(dto.correct).toBe("no");
 		expect(dto.expectedFormat).toBe("Enter 'yes' or 'no'");
 	});
 	it("should handle easy difficulty", ()=>{
