@@ -38,7 +38,7 @@ for (const [scope, mod] of Object.entries(barrels)) {
 }
 
 describe("generator integrity across seeds and difficulties", () => {
-	it.each(cases)("%s (%s, seed=%i) returns a structurally valid question", (name, diff, seed, fn) => {
+	it.each(cases)("%s (%s, seed=%i) returns a structurally valid question", (_name, diff, seed, fn) => {
 		const dto = fn(diff, seededRng(seed));
 		expect(dto).toBeDefined();
 		expect(typeof dto.latex).toBe("string");
