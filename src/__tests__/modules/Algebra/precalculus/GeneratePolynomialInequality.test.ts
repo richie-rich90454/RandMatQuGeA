@@ -11,12 +11,12 @@ describe("generatePolynomialInequality", ()=>{
 			.mockReturnValueOnce(0.7)
 			.mockReturnValueOnce(0.9);
 		const dto=generatePolynomialInequality("medium", rng);
-		expect(dto.latex).toBe("Solve the inequality: \\( (x + 2)(x - 1)(x - 2)>0 \\). (Enter intervals)");
-		expect(dto.correct).toBe("(-2, 1) ∪ (2, ∞)");
-		expect(dto.alternate).toBe("(-2, 1) ∪ (2, infinity)");
-		expect(dto.display).toBe("(-2, 1) ∪ (2, ∞)");
+		expect(dto.latex).toBe("Solve the inequality: \\( (x + 2)(x - 1)(x - 3)>0 \\). (Enter intervals)");
+		expect(dto.correct).toBe("(-2, 1) ∪ (3, ∞)");
+		expect(dto.alternate).toBe("(-2, 1) ∪ (3, infinity)");
+		expect(dto.display).toBe("(-2, 1) ∪ (3, ∞)");
 		expect(dto.expectedFormat).toBe("Enter intervals like (-∞,1) ∪ (3,∞)");
-		expect(dto.choices).toContain("(-2, 1) ∪ (2, ∞)");
+		expect(dto.choices).toContain("(-2, 1) ∪ (3, ∞)");
 	});
 	it("includes correct answer in choices", ()=>{
 		const rng=vi.fn()
