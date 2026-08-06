@@ -1,4 +1,5 @@
-import {Page, expect} from "@playwright/test";
+import {Page, expect, test} from "@playwright/test";
+import {topics} from "../src/main/Constants";
 
 export const BASE_URL = "http://localhost:1331";
 export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
@@ -128,4 +129,20 @@ export async function switchMode(page: Page, mode: "single" | "mental"): Promise
 	const btn = mode === "single" ? "#mode-single" : "#mode-mental";
 	await page.locator(btn).click();
 	await expect(page.locator(btn)).toHaveAttribute("aria-pressed", "true");
+}
+
+export function topicsForCategory(category: string): string[]{
+	return topics.filter((t)=>t.category === category).map((t)=>t.id);
+}
+
+export async function verifyTopicMatrix(page: Page, topicIds: string[], difficulty: string): Promise<void>{
+	for (const topicId of topicIds){
+		await test.step(`topic ${topicId} (${difficulty})`, async ()=>{
+			await selectTopic(page, topicId);
+			await generateQuestion(page);
+			const answer = await getCorrectAnswer(page);
+			await submitAnswer(page, answer, false);
+			await expectResult(page, "correct");
+		});
+	}
 }
