@@ -160,7 +160,7 @@ export function updatePreview(): void{
         return;
     }
     try{
-        if(!(window as any).katex)return;
+        if(!window.katex)return;
         window.katex.render(input,dom.displays.previewDiv,{
             throwOnError:false,
             displayMode:false
