@@ -73,8 +73,10 @@ function createCanvas2DVisualization(shape: string, params: any, container: HTML
 			setTimeout(draw,50);
 			return;
 		}
-		canvas.width=width;
-		canvas.height=height;
+		const dpr=window.devicePixelRatio||1;
+		canvas.width=width*dpr;
+		canvas.height=height*dpr;
+		ctx.setTransform(dpr,0,0,dpr,0,0);
 		ctx.clearRect(0,0,width,height);
 		let xMin=-6,xMax=6,yMin=-6,yMax=6;
 		if (shape==="parabola"){
@@ -471,8 +473,9 @@ export async function createVisualization(shape: string, params: any): Promise<v
 	canvas.style.height="100%";
 	canvas.style.display="block";
 	container.appendChild(canvas);
-	const width=container.clientWidth;
-	const height=container.clientHeight;
+	await new Promise(resolve=>requestAnimationFrame(()=>resolve(null)));
+	const width=container.clientWidth||300;
+	const height=container.clientHeight||150;
 	await ensureThree();
 	let renderer: any=null;
 	try{
@@ -497,6 +500,10 @@ export async function createVisualization(shape: string, params: any): Promise<v
 	controls.dampingFactor=0.05;
 	controls.screenSpacePanning=true;
 	controls.maxPolarAngle=Math.PI/2;
+	controls.enableZoom=true;
+	controls.zoomSpeed=1.2;
+	controls.minDistance=1.5;
+	controls.maxDistance=60;
 	currentControls=controls;
 	const labelRenderer=new CSS2DRenderer();
 	labelRenderer.setSize(width,height);
