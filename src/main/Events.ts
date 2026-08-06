@@ -439,7 +439,7 @@ export async function setupEventListeners(): Promise<void>{
             if (dom.modals.answerCard) dom.modals.answerCard.classList.add("focused");
         });
         dom.inputs.userAnswer?.addEventListener("blur", (e)=>{
-            if (dom.displays.mathToolbar&&e.relatedTarget instanceof Node&&dom.displays.mathToolbar.contains(e.relatedTarget)){
+            if (dom.modals.answerCard&&e.relatedTarget instanceof Node&&dom.modals.answerCard.contains(e.relatedTarget)){
                 return;
             }
             if (dom.modals.answerCard) dom.modals.answerCard.classList.remove("focused");
