@@ -1478,3 +1478,273 @@ mod tests{
 		let _=std::fs::remove_file(&path);
 	}
 }
+
+#[cfg(test)]
+mod helper_tests{
+	use super::*;
+
+	#[test]
+	fn superscript_digit_two_is_squared(){
+		assert_eq!(to_superscript_char('2'), Some('\u{00B2}'));
+	}
+	#[test]
+	fn superscript_n_is_superscript_n(){
+		assert_eq!(to_superscript_char('n'), Some('\u{207F}'));
+	}
+	#[test]
+	fn superscript_unknown_char_is_none(){
+		assert_eq!(to_superscript_char('x'), None);
+	}
+	#[test]
+	fn superscript_letter_a_is_none(){
+		assert_eq!(to_superscript_char('a'), None);
+	}
+	#[test]
+	fn subscript_digit_two_is_subscript_two(){
+		assert_eq!(to_subscript_char('2'), Some('\u{2082}'));
+	}
+	#[test]
+	fn subscript_x_is_subscript_x(){
+		assert_eq!(to_subscript_char('x'), Some('\u{2093}'));
+	}
+	#[test]
+	fn subscript_unknown_char_is_none(){
+		assert_eq!(to_subscript_char('b'), None);
+	}
+	#[test]
+	fn try_convert_superscript_two_three(){
+		assert_eq!(try_convert_superscript("23"), Some("\u{00B2}\u{00B3}".to_string()));
+	}
+	#[test]
+	fn try_convert_superscript_with_unsupported_returns_none(){
+		assert_eq!(try_convert_superscript("2x"), None);
+	}
+	#[test]
+	fn try_convert_subscript_works(){
+		assert_eq!(try_convert_subscript("12"), Some("\u{2081}\u{2082}".to_string()));
+	}
+	#[test]
+	fn try_convert_subscript_with_unsupported_returns_none(){
+		assert_eq!(try_convert_subscript("2y"), None);
+	}
+	#[test]
+	fn convert_superscripts_single_caret(){
+		assert_eq!(convert_superscripts("x^2"), "x\u{00B2}");
+	}
+	#[test]
+	fn convert_superscripts_braced(){
+		assert_eq!(convert_superscripts("x^{2}"), "x\u{00B2}");
+	}
+	#[test]
+	fn convert_superscripts_falls_back_to_parens(){
+		assert_eq!(convert_superscripts("x^{2y}"), "x^(2y)");
+	}
+	#[test]
+	fn convert_superscripts_superscript_n(){
+		assert_eq!(convert_superscripts("a^{n}"), "a\u{207F}");
+	}
+	#[test]
+	fn convert_superscripts_multiple(){
+		assert_eq!(convert_superscripts("x^2+1"), "x\u{00B2}+1");
+	}
+	#[test]
+	fn convert_superscripts_trailing_caret_untouched(){
+		assert_eq!(convert_superscripts("x^"), "x^");
+	}
+	#[test]
+	fn convert_subscripts_single_underscore(){
+		assert_eq!(convert_subscripts("x_1"), "x\u{2081}");
+	}
+	#[test]
+	fn convert_subscripts_braced(){
+		assert_eq!(convert_subscripts("x_{1}"), "x\u{2081}");
+	}
+	#[test]
+	fn convert_subscripts_letter(){
+		assert_eq!(convert_subscripts("a_n"), "a\u{2099}");
+	}
+	#[test]
+	fn convert_subscripts_falls_back_to_parens(){
+		assert_eq!(convert_subscripts("x_{2y}"), "x_(2y)");
+	}
+	#[test]
+	fn strip_html_removes_tags(){
+		assert_eq!(strip_html("<b>bold</b>"), "bold");
+	}
+	#[test]
+	fn strip_html_decodes_amp(){
+		assert_eq!(strip_html("a &amp; b"), "a & b");
+	}
+	#[test]
+	fn strip_html_decodes_lt(){
+		assert_eq!(strip_html("5 &lt; 7"), "5 < 7");
+	}
+	#[test]
+	fn strip_html_turns_br_into_newline(){
+		assert_eq!(strip_html("a<br>b"), "a\nb");
+	}
+	#[test]
+	fn strip_html_leaves_plain_text(){
+		assert_eq!(strip_html("no tags here"), "no tags here");
+	}
+	#[test]
+	fn wrap_text_splits_at_max_chars(){
+		assert_eq!(wrap_text("hello world", 5), vec!["hello".to_string(), "world".to_string()]);
+	}
+	#[test]
+	fn wrap_text_short_string_one_line(){
+		assert_eq!(wrap_text("short", 20), vec!["short".to_string()]);
+	}
+	#[test]
+	fn wrap_text_empty_string(){
+		assert_eq!(wrap_text("", 5), vec![String::new()]);
+	}
+	#[test]
+	fn wrap_text_zero_max_chars(){
+		assert_eq!(wrap_text("", 0), vec![String::new()]);
+	}
+	#[test]
+	fn wrap_text_hard_breaks_long_word(){
+		assert_eq!(wrap_text("abcdef", 3), vec!["abc".to_string(), "def".to_string()]);
+	}
+	#[test]
+	fn wrap_text_multi_word_fits(){
+		assert_eq!(wrap_text("a b c", 5), vec!["a b c".to_string()]);
+	}
+	#[test]
+	fn wrap_text_three_words(){
+		assert_eq!(wrap_text("hello world foo", 7), vec!["hello".to_string(), "world".to_string(), "foo".to_string()]);
+	}
+	#[test]
+	fn latex_superscript_readable(){
+		assert_eq!(latex_to_readable("x^2"), "x\u{00B2}");
+	}
+	#[test]
+	fn latex_pi_readable(){
+		assert_eq!(latex_to_readable("\\pi"), "\u{03C0}");
+	}
+	#[test]
+	fn latex_frac_readable(){
+		assert_eq!(latex_to_readable("\\frac{1}{2}"), "1/2");
+	}
+	#[test]
+	fn latex_sqrt_readable(){
+		assert_eq!(latex_to_readable("\\sqrt{9}"), "\u{221A}9");
+	}
+	#[test]
+	fn latex_times_readable(){
+		assert_eq!(latex_to_readable("a\\times b"), "a\u{00D7} b");
+	}
+	#[test]
+	fn latex_leq_readable(){
+		assert_eq!(latex_to_readable("x\\leq 5"), "x\u{2264} 5");
+	}
+	#[test]
+	fn latex_sin_readable(){
+		assert_eq!(latex_to_readable("\\sin x"), "sin x");
+	}
+	#[test]
+	fn latex_cdot_readable(){
+		assert_eq!(latex_to_readable("a\\cdot b"), "a\u{00B7} b");
+	}
+	#[test]
+	fn latex_int_readable(){
+		assert_eq!(latex_to_readable("\\int"), "\u{222B}");
+	}
+	#[test]
+	fn latex_inline_delimiters_stripped(){
+		assert_eq!(latex_to_readable("\\(x+1\\)"), "x+1");
+	}
+	#[test]
+	fn latex_display_delimiters_stripped(){
+		assert_eq!(latex_to_readable("$$x$$"), "x");
+	}
+	#[test]
+	fn latex_infty_readable(){
+		assert_eq!(latex_to_readable("\\infty"), "\u{221E}");
+	}
+	#[test]
+	fn pt_to_mm_converts_about_10mm(){
+		let mm=pt_to_mm(28.3465);
+		assert!((mm-10.0).abs()<0.01, "expected ~10mm, got {}", mm);
+	}
+	#[test]
+	fn pt_to_mm_zero_is_zero(){
+		assert_eq!(pt_to_mm(0.0), 0.0);
+	}
+	#[test]
+	fn line_height_scales_with_font(){
+		assert!(line_height(20.0)>line_height(10.0));
+	}
+	#[test]
+	fn line_height_positive(){
+		assert!(line_height(12.0)>0.0);
+	}
+	#[test]
+	fn lookup_command_pi(){
+		assert_eq!(lookup_command("pi"), Some("\u{03C0}"));
+	}
+	#[test]
+	fn lookup_command_times(){
+		assert_eq!(lookup_command("times"), Some("\u{00D7}"));
+	}
+	#[test]
+	fn lookup_command_frac_is_empty_string(){
+		assert_eq!(lookup_command("frac"), Some(""));
+	}
+	#[test]
+	fn lookup_command_unknown_is_none(){
+		assert_eq!(lookup_command("nonexistent"), None);
+	}
+	#[test]
+	fn read_brace_group_extracts_content(){
+		let chars: Vec<char>="abc{12}x".chars().collect();
+		let result=read_brace_group(&chars, 3);
+		assert!(result.is_some());
+		let (content, end)=result.unwrap();
+		assert_eq!(content, "12");
+		assert_eq!(&chars[end], &'x');
+	}
+	#[test]
+	fn read_brace_group_unclosed_returns_none(){
+		let chars: Vec<char>="a{12".chars().collect();
+		assert!(read_brace_group(&chars, 1).is_none());
+	}
+	#[test]
+	fn parse_segments_plain_text(){
+		let segs=parse_segments("plain text");
+		assert_eq!(segs.len(), 1);
+		assert!(matches!(&segs[0], Segment::Text(_)));
+	}
+	#[test]
+	fn parse_segments_inline_math(){
+		let segs=parse_segments("a $x$ b");
+		assert_eq!(segs.len(), 3);
+		assert!(matches!(&segs[0], Segment::Text(_)));
+		assert!(matches!(&segs[1], Segment::InlineMath(_)));
+		assert!(matches!(&segs[2], Segment::Text(_)));
+	}
+	#[test]
+	fn parse_segments_display_math_dollars(){
+		let segs=parse_segments("$$x$$");
+		assert_eq!(segs.len(), 1);
+		assert!(matches!(&segs[0], Segment::DisplayMath(_)));
+	}
+	#[test]
+	fn parse_segments_inline_parens(){
+		let segs=parse_segments("\\(x\\)");
+		assert_eq!(segs.len(), 1);
+		assert!(matches!(&segs[0], Segment::InlineMath(_)));
+	}
+	#[test]
+	fn parse_segments_display_brackets(){
+		let segs=parse_segments("\\[x\\]");
+		assert_eq!(segs.len(), 1);
+		assert!(matches!(&segs[0], Segment::DisplayMath(_)));
+	}
+	#[test]
+	fn parse_segments_empty_returns_nothing(){
+		let segs=parse_segments("");
+		assert_eq!(segs.len(), 0);
+	}
+}
