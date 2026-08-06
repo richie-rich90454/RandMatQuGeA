@@ -272,6 +272,7 @@ export async function handleMentalAnswer(answer?: string): Promise<void>{
     let newTotal=appState.sessionScore.total+1;
     appState.sessionScore={correct:newCorrect,total:newTotal};
     ui.updateScoreDisplay();
+    ui.updateStatistics();
     ui.updateProgressBar();
     if(dom.displays.mentalProgressBar){
         let percent=(newTotal/appState.maxQuestions)*100;
