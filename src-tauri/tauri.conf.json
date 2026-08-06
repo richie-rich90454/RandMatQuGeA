@@ -1,7 +1,7 @@
 {
     "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
     "productName": "RandMatQuGeA",
-    "version": "5.0.0",
+    "version": "3.0.0",
     "identifier": "com.richierich.mathgen",
     "build": {
         "frontendDist": "../dist",
