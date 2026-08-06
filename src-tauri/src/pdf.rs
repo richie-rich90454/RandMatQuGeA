@@ -1057,7 +1057,7 @@ pub fn export_worksheet_pdf_impl(
 	// Answer key
 	let show_answers=opts.answer_key_mode != "none";
 	if show_answers{
-		if opts.answer_key_mode=="separate" || opts.answer_key_mode=="only"{
+		if opts.answer_key_mode=="separate"{
 			writer.new_page();
 		}
 		else{
