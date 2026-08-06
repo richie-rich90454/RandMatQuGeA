@@ -20,6 +20,7 @@ export interface QuestionDto{
 	choices?: string[];
 	expectedFormat?: string;
 	hint?: string;
+	visualization?: { shape: string; params?: Record<string, unknown> };
 }
 export interface MathJaxConfig{
 	tex:{
