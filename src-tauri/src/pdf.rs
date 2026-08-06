@@ -755,6 +755,39 @@ fn wrap_text(text: &str, max_chars: usize)->Vec<String>{
 	}
 	lines
 }
+/// Push a text run (possibly a single unbreakable word) into `line_items`,
+/// hard-splitting it into chunks that fit `available` so no glyphs run past
+/// the right margin. `flush` emits the accumulated line and resets the cursor.
+fn push_text_word<'a>(
+	full: String,
+	char_width_mm: f32,
+	available: f32,
+	line_items: &mut Vec<LineItem>,
+	x_off: &mut f32,
+	flush: &mut impl FnMut(&mut Vec<LineItem>, &mut f32, &mut PdfWriter<'a>),
+	writer: &mut PdfWriter<'a>,
+){
+	let full_w=full.chars().count() as f32*char_width_mm;
+	if full_w>available{
+		let max_chars=((available/char_width_mm) as usize).max(1);
+		for chunk in full.chars().collect::<Vec<char>>().chunks(max_chars){
+			let piece: String=chunk.iter().collect();
+			let piece_w=piece.chars().count() as f32*char_width_mm;
+			if *x_off+piece_w>available && (!line_items.is_empty() || *x_off>0.0){
+				flush(line_items, x_off, writer);
+			}
+			line_items.push(LineItem::Text(piece));
+			*x_off += piece_w;
+		}
+	}
+	else{
+		if *x_off+full_w>available && (!line_items.is_empty() || *x_off>0.0){
+			flush(line_items, x_off, writer);
+		}
+		line_items.push(LineItem::Text(full));
+		*x_off += full_w;
+	}
+}
 const PAGE_WIDTH: f32=215.9;
 const PAGE_HEIGHT: f32=279.4;
 const MARGIN: f32=19.0;
@@ -913,7 +946,7 @@ impl<'a> PdfWriter<'a>{
 		let mut line_items: Vec<LineItem>=Vec::new();
 		let mut x_offset: f32=0.0; // current x within content area (mm)
 		// Render whatever is currently accumulated on the line, then reset.
-		let flush=|items: &mut Vec<LineItem>, x_off: &mut f32, this: &mut Self|{
+		let mut flush=|items: &mut Vec<LineItem>, x_off: &mut f32, this: &mut Self|{
 			if items.is_empty(){
 				return;
 			}
@@ -934,12 +967,7 @@ impl<'a> PdfWriter<'a>{
 						for (wi, word) in words.iter().enumerate(){
 							let sep=if wi>0 { " " } else { "" };
 							let run=format!("{}{}", sep, word);
-							let run_w=run.chars().count() as f32*char_width_mm;
-							if x_offset+run_w>available && (!line_items.is_empty() || x_offset>0.0){
-								flush(&mut line_items, &mut x_offset, self);
-							}
-							line_items.push(LineItem::Text(run));
-							x_offset += run_w;
+							push_text_word(run, char_width_mm, available, &mut line_items, &mut x_offset, &mut flush, self);
 						}
 					}
 				}
@@ -961,12 +989,7 @@ impl<'a> PdfWriter<'a>{
 							for (wi, word) in words.iter().enumerate(){
 								let sep=if wi>0 { " " } else { "" };
 								let run=format!("{}{}", sep, word);
-								let run_w=run.chars().count() as f32*char_width_mm;
-								if x_offset+run_w>available && (!line_items.is_empty() || x_offset>0.0){
-									flush(&mut line_items, &mut x_offset, self);
-								}
-								line_items.push(LineItem::Text(run));
-								x_offset += run_w;
+								push_text_word(run, char_width_mm, available, &mut line_items, &mut x_offset, &mut flush, self);
 							}
 						}
 					}
