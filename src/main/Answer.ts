@@ -182,7 +182,18 @@ function tryEvaluate(expr: string): any{
  *
  * @throws No exceptions are thrown; errors are caught and logged, with user‑friendly notifications.
  */
+let checkInFlight=false;
 export async function checkAnswer(userInput?: string): Promise<void>{
+    if (checkInFlight) return;
+    checkInFlight=true;
+    try{
+        await checkAnswerImpl(userInput);
+    }
+    finally{
+        checkInFlight=false;
+    }
+}
+async function checkAnswerImpl(userInput?: string): Promise<void>{
     try{
         await ensureMathjs();
     }
