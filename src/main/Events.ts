@@ -91,8 +91,9 @@ export async function setupEventListeners(): Promise<void>{
         console.warn("Missing element for listener: checkAnswerButton");
     }
     if (dom.inputs.userAnswer){
-        dom.inputs.userAnswer.addEventListener("keyup",(e: KeyboardEvent)=>{
+        dom.inputs.userAnswer.addEventListener("keydown",(e: KeyboardEvent)=>{
             if (e.shiftKey&&e.key==="Enter"){
+                e.preventDefault();
                 if (!questionState.hasQuestion) return;
                 if (dom.buttons.checkAnswerButton?.disabled) return;
                 if (appState.currentMode==="single") answer.checkAnswer().catch((err: unknown)=>console.error("checkAnswer failed:",err));
