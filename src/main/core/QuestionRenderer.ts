@@ -1,6 +1,32 @@
-﻿﻿import{DomRegistry,dom}from"./DomRegistry";
+﻿import{DomRegistry,dom}from"./DomRegistry";
 import{questionState}from"./QuestionState";
 import{type CorrectAnswer,type QuestionDto}from"../../types/global";
+let mathJaxPromise: Promise<void>|null=null;
+function ensureMathJax(): Promise<void>{
+    if(window.MathJax&&typeof window.MathJax.typesetPromise==="function"){
+        if(window.MathJax.startup&&window.MathJax.startup.promise){
+            return window.MathJax.startup.promise.then(()=>{});
+        }
+        return Promise.resolve();
+    }
+    if(mathJaxPromise)return mathJaxPromise;
+    mathJaxPromise=new Promise<void>((resolve,reject)=>{
+        let script=document.createElement("script");
+        script.src="/mathjax/tex-chtml.js";
+        script.async=true;
+        script.onload=()=>{
+            if(window.MathJax&&window.MathJax.startup&&window.MathJax.startup.promise){
+                window.MathJax.startup.promise.then(()=>resolve()).catch(reject);
+            }
+            else{
+                resolve();
+            }
+        };
+        script.onerror=()=>reject(new Error("Failed to load MathJax"));
+        document.head.appendChild(script);
+    });
+    return mathJaxPromise;
+}
 export class QuestionRenderer{
     private registry: DomRegistry;
     constructor(registry: DomRegistry){
@@ -61,6 +87,13 @@ export class QuestionRenderer{
         questionState.expectedFormat=text;
     }
     async typeset(): Promise<void>{
+        try{
+            await ensureMathJax();
+        }
+        catch(err){
+            console.log("MathJax load error:",err);
+            return;
+        }
         if(!window.MathJax||!window.MathJax.typesetPromise)return;
         let area=this.registry.displays.questionArea;
         if(!area)return;
