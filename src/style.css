@@ -136,24 +136,24 @@
         --wave-color-alt: rgba(150, 100, 180, 0.4);
         --overlay-color: rgba(255, 255, 255, 0.03);
     }
-    .dark .difficulty-select, .dark .scope-select{
-        background-color: #2D3748;
-        color: #F1F5F9;
-        border-color: #4A5568;
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a0aec0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
-    }
-    .dark .difficulty-select option, .dark .scope-select option{
-        background-color: #2d3748;
-        color: #f1f5f9;
-    }
-    .dark .difficulty-select:hover, .dark .scope-select:hover{
-        background-color: #374151;
-        border-color: #6B7280;
-    }
-    .dark .difficulty-select:focus-visible,.dark .scope-select:focus-visible{
-        outline: 2px solid var(--primary-light);
-        outline-offset: 1px;
-    }
+}
+.dark .difficulty-select, .dark .scope-select{
+    background-color: #2D3748;
+    color: #F1F5F9;
+    border-color: #4A5568;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a0aec0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+}
+.dark .difficulty-select option, .dark .scope-select option{
+    background-color: #2d3748;
+    color: #f1f5f9;
+}
+.dark .difficulty-select:hover, .dark .scope-select:hover{
+    background-color: #374151;
+    border-color: #6B7280;
+}
+.dark .difficulty-select:focus-visible,.dark .scope-select:focus-visible{
+    outline: 2px solid var(--primary-light);
+    outline-offset: 1px;
 }
 *{
     box-sizing: border-box;
@@ -335,7 +335,6 @@ body{
     padding-right: var(--spacing-xs);
     max-height: 20dvh;
     overflow-y: auto;
-    padding-right: .5dvh;
     padding-top: 0.4rem;
     padding-bottom: 0.4rem;
 }
@@ -1175,7 +1174,7 @@ input[type="checkbox"]:hover{
         overflow-x: auto;
         padding-bottom: var(--spacing-xs);
         -webkit-overflow-scrolling: touch;
-        display: block;
+        display: flex;
     }
     .topic-pills-container::after{
         content: "";
