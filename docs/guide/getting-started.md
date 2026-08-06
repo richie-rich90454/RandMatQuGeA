@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-- **Node.js** ≥ 18
-- **npm** or **pnpm** or **yarn**
+- **Node.js** ≥ 20.19 (Vite 8 requirement; 22.12+ recommended)
+- **npm**
 - **Rust toolchain** (for Tauri desktop build; web-only mode skips this)
 
 ## Quick Start
@@ -22,11 +22,14 @@ npm run dev
 # Type-check
 npm run typecheck
 
-# Run tests
+# Run unit tests (Vitest)
 npm run test:run
+
+# Run end-to-end tests (Playwright, uses your installed Chrome)
+npm run test:e2e
 ```
 
-Open `http://localhost:5173` in your browser — the app is fully functional as a web app without Tauri.
+Open `http://localhost:1331` in your browser — the app is fully functional as a web app without Tauri.
 
 ## Tauri Desktop Build
 
@@ -50,25 +53,31 @@ RandMatQuGeA/
 ├── src/
 │   ├── index.html          # SPA entry point
 │   ├── script.ts           # App bootstrap
-│   ├── style.css           # Complete theme (glassmorphism, 2124 lines)
+│   ├── style.css           # Complete theme (glassmorphism)
+│   ├── vitest.setup.ts     # Vitest global mocks
 │   ├── main/               # Core modules
 │   │   ├── core/           # StateStore, DomRegistry, QuestionRenderer
 │   │   ├── services/       # TopicRegistry, EventBinder, MathWorkerClient
 │   │   ├── ui/             # Skeleton, OfflineIndicator, VirtualTopicGrid
 │   │   ├── Settings.ts     # 50+ settings with persistence
 │   │   ├── Generation.ts   # Question orchestration + adaptive
-│   │   ├── Answer.ts       # Answer checking pipeline (583 lines)
+│   │   ├── Answer.ts       # Answer checking pipeline
 │   │   ├── Session.ts      # Mental math session manager
-│   │   ├── Ui.ts           # UI helpers (notifications, score, timers)
+│   │   ├── Mcq.ts          # MCQ distractor generation
+│   │   ├── PrintWorksheet.ts
 │   │   └── ...
 │   ├── modules/            # Question generators by subject
 │   │   ├── Arithmetic/
 │   │   ├── Algebra/
 │   │   ├── Calculus/
 │   │   ├── ...
+│   ├── __tests__/          # 7,000+ Vitest unit tests
 │   └── types/              # TypeScript type definitions
+├── e2e/                    # Playwright end-to-end tests (85+ tests)
 ├── src-tauri/              # Rust backend (SQLite, PDF, adaptive)
-└── public/                 # Static assets (fonts, MathJax, KaTeX)
+├── public/                 # Static assets (fonts, MathJax, KaTeX, service worker)
+├── playwright.config.ts    # E2E config (system Chrome, dev server on :1331)
+└── vite.config.ts          # Vite build config
 ```
 
 ## Next Steps

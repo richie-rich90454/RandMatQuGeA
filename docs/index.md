@@ -3,7 +3,7 @@ layout: home
 hero:
     name: RandMatQuGeA
     text: Random Math Question Generator Algorithm
-    tagline: 134+ topics across 7 subjects — Tauri v2 desktop app + web fallback
+    tagline: 125 topics across 7 subjects — Tauri v2 desktop app + web fallback
     actions:
         - theme: brand
           text: Get Started
@@ -16,7 +16,7 @@ hero:
           link: https://github.com/richie-rich90454/RandMatQuGeA
 features:
     - title: 7 Subject Areas
-      details: Arithmetic, Algebra, Precalculus, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry
+      details: Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry
     - title: Dual Modes
       details: Single practice mode for focused study + Mental Math timed sessions with leaderboard
     - title: Adaptive Learning
@@ -31,6 +31,8 @@ features:
       details: Tauri v2 desktop app (Windows, macOS, Linux) + full web build via Vite 8
     - title: Offline Ready
       details: Service worker, cached MathJax/KaTeX assets, localStorage settings persistence
+    - title: Thoroughly Tested
+      details: 7,000+ Vitest unit tests, 200+ Rust tests, and a Playwright E2E suite covering all topics and modes
     - title: Accessibility
       details: OpenDyslexic font support, keyboard navigation, reduced motion, ARIA labels
 ---
