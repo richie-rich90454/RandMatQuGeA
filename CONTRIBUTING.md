@@ -35,7 +35,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 
 ### Prerequisites
 
-- **Node.js**: Version 18 or higher
+- **Node.js**: Version 20.19 or higher (Vite 8 requirement; 22.12+ recommended)
 - **Rust**: Latest stable version (install via [rustup](https://rustup.rs/))
 - **Tauri CLI**: Provided via the project's `@tauri-apps/cli` devDependency; run Tauri commands with `npm run tauri ...` (no separate install needed).
 - **Platform-specific dependencies**:  
@@ -70,11 +70,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 ├── src/                    # Frontend source code (TypeScript, CSS, HTML)
 │   ├── index.html          # Main web application interface
 │   ├── script.ts           # App entry / wiring
-│   ├── style.css           # Global styles
+│   ├── style.css           # Global styles (glassmorphism theme)
+│   ├── vitest.setup.ts     # Vitest global mocks (Tauri API, three.js, canvas)
 │   ├── main/               # Core application code
-│   │   ├── core/           # domRegistry, questionState, stateStore, questionRenderer
-│   │   └── services/       # topicRegistry and other services
-│   ├── modules/            # Question generation modules (algebra, calculus, etc.)
+│   │   ├── core/           # StateStore, QuestionState, DomRegistry, QuestionRenderer
+│   │   ├── services/       # TopicRegistry, EventBinder, MathWorkerClient
+│   │   ├── ui/             # Skeleton, OfflineIndicator, VirtualTopicGrid
+│   │   └── ...             # Settings, Generation, Answer, Session, Mcq, PrintWorksheet, ...
+│   ├── modules/            # Question generation modules (7 subjects, 125 topics)
 │   │   ├── Algebra/
 │   │   ├── Arithmetic/
 │   │   ├── Calculus/
@@ -82,14 +85,19 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 │   │   ├── Geometry/
 │   │   ├── LinearAlgebra/
 │   │   └── Trigonometry/
+│   ├── __tests__/          # 7,000+ Vitest unit tests (mirror src structure)
 │   └── types/              # TypeScript type definitions (global.d.ts)
+├── e2e/                    # Playwright end-to-end tests (85+ tests)
 ├── src-tauri/              # Rust backend (Tauri v2)
 │   ├── src/
-│   │   ├── lib.rs          # Main library logic
+│   │   ├── lib.rs          # Tauri commands (scores, performance, PDF, adaptive)
+│   │   ├── adaptive.rs     # Difficulty + weak-topic recommendation logic
+│   │   ├── pdf.rs          # Rust PDF worksheet engine (printpdf + RaTeX)
 │   │   └── main.rs         # Entry point (calls lib)
-│   ├── Cargo.toml          # Rust dependencies (sqlx, tauri, etc.)
+│   ├── Cargo.toml          # Rust dependencies (sqlx, tauri, printpdf, ratex)
 │   └── tauri.conf.json     # Tauri configuration (window, tray, updater)
-├── public/                 # Public assets (fonts, MathJax, KaTeX)
+├── public/                 # Public assets (fonts, MathJax, KaTeX, service worker)
+├── playwright.config.ts    # E2E config (system Chrome, dev server on :1331)
 ├── package.json            # Node dependencies and scripts
 ├── vite.config.ts          # Vite build configuration
 ├── tsconfig.json           # TypeScript configuration
@@ -185,14 +193,19 @@ The check runs automatically in CI after the build step. If your PR adds a new d
 
 ## Testing
 
-We use **Vitest** for unit testing. Tests are colocated with source as `*.test.ts` files (e.g., `src/main/answer.test.ts`, `src/modules/Algebra/basics/generateFraction.test.ts`).
+The project uses a three-layer test strategy:
 
-To run tests:
-```bash
-npm test            # watch mode (local development)
-npm run test:run    # single non-watch run (CI / one-shot)
-npm run check       # typecheck + non-watch tests
-```
+- **Unit tests** — Vitest + jsdom, colocated under `src/__tests__/` (7,000+ cases):
+  ```bash
+  npm test            # watch mode (local development)
+  npm run test:run    # single non-watch run (CI / one-shot)
+  npm run check       # typecheck + non-watch unit tests
+  ```
+- **End-to-end tests** — Playwright in `e2e/` (85+ tests). Uses your installed Chrome (`channel: "chrome"`, no browser download) and auto-starts the Vite dev server on port 1331:
+  ```bash
+  npm run test:e2e
+  ```
+- **Rust tests** — `cargo test` in `src-tauri/` (200+ cases for scores, performance, adaptive logic, and PDF export).
 
 Write tests for new features and bug fixes when applicable. Aim to cover edge cases, especially in answer‑checking logic.
 
