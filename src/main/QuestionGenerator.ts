@@ -1,4 +1,4 @@
-﻿﻿import{topicRegistry}from"./services/TopicRegistry";
+﻿import{topicRegistry}from"./services/TopicRegistry";
 import{renderer}from"./core/QuestionRenderer";
 import{errorHandler}from"./core/ErrorHandler";
 import type{RngFn,QuestionDto}from"../types/global";
@@ -9,36 +9,37 @@ import"../modules/DiscreteMathematics/RegisterTopics";
 import"../modules/Geometry/RegisterTopics";
 import"../modules/LinearAlgebra/RegisterTopics";
 import"../modules/Trigonometry/RegisterTopics";
-let moduleCache: Map<string, any>=new Map();
-async function loadModule(scope: string): Promise<any>{
+type GeneratorFn=(difficulty?: string, rng?: RngFn)=>QuestionDto;
+let moduleCache: Map<string, Record<string, GeneratorFn>>=new Map();
+async function loadModule(scope: string): Promise<Record<string, GeneratorFn>>{
     if(moduleCache.has(scope)){
-        return moduleCache.get(scope);
+        return moduleCache.get(scope)!;
     }
-    let mod: any=null;
+    let mod: Record<string, GeneratorFn>;
     switch(scope){
         case"algebra":
-            mod=await import("../modules/Algebra/index");
+            mod=await import("../modules/Algebra/index") as unknown as Record<string, GeneratorFn>;
             break;
         case"arithmetic":
-            mod=await import("../modules/Arithmetic/index");
+            mod=await import("../modules/Arithmetic/index") as unknown as Record<string, GeneratorFn>;
             break;
         case"calculus":
-            mod=await import("../modules/Calculus/index");
+            mod=await import("../modules/Calculus/index") as unknown as Record<string, GeneratorFn>;
             break;
         case"discrete":
-            mod=await import("../modules/DiscreteMathematics/index");
+            mod=await import("../modules/DiscreteMathematics/index") as unknown as Record<string, GeneratorFn>;
             break;
         case"geometry":
-            mod=await import("../modules/Geometry/index");
+            mod=await import("../modules/Geometry/index") as unknown as Record<string, GeneratorFn>;
             break;
         case"linearAlgebra":
-            mod=await import("../modules/LinearAlgebra/index");
+            mod=await import("../modules/LinearAlgebra/index") as unknown as Record<string, GeneratorFn>;
             break;
         case"trigonometry":
-            mod=await import("../modules/Trigonometry/index");
+            mod=await import("../modules/Trigonometry/index") as unknown as Record<string, GeneratorFn>;
             break;
         default:
-            mod=await import("../modules/Algebra/index");
+            mod=await import("../modules/Algebra/index") as unknown as Record<string, GeneratorFn>;
     }
     moduleCache.set(scope,mod);
     return mod;
