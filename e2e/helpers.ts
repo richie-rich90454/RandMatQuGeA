@@ -8,21 +8,22 @@ export type SettingsSeed = Record<string, unknown>;
 export async function gotoApp(page: Page, seed: SettingsSeed = {}, fresh = false): Promise<void>{
 	await page.addInitScript(({seed, fresh}: { seed: SettingsSeed; fresh: boolean })=>{
 		try{
-			localStorage.clear();
-			const merged = {onboardingShown: "1"};
-			for (const [key, value] of Object.entries(seed)){
-				merged[key] = value;
+			if (!sessionStorage.getItem("__e2e_initialized")){
+				localStorage.clear();
+				sessionStorage.setItem("__e2e_initialized", "1");
 			}
-			for (const [key, value] of Object.entries(merged)){
-				if (typeof value === "string"){
+			if (!sessionStorage.getItem("__e2e_seeded")){
+				const merged: Record<string, string> = {onboardingShown: "1"};
+				for (const [key, value] of Object.entries(seed)){
+					merged[key] = typeof value === "string" ? value : JSON.stringify(value);
+				}
+				for (const [key, value] of Object.entries(merged)){
 					localStorage.setItem(key, value);
 				}
-				else{
-					localStorage.setItem(key, JSON.stringify(value));
+				if (fresh){
+					localStorage.removeItem("onboardingShown");
 				}
-			}
-			if (fresh){
-				localStorage.removeItem("onboardingShown");
+				sessionStorage.setItem("__e2e_seeded", "1");
 			}
 		}
 		catch (e){
@@ -30,6 +31,11 @@ export async function gotoApp(page: Page, seed: SettingsSeed = {}, fresh = false
 		}
 	}, {seed, fresh});
 	await page.goto("/");
+	await waitForAppReady(page);
+}
+
+export async function waitForAppReady(page: Page): Promise<void>{
+	await expect(page.locator("#leaderboard-content")).toContainText("Leaderboard", {timeout: 15000});
 }
 
 export async function seedSettings(page: Page, settings: Record<string, unknown>): Promise<void>{
