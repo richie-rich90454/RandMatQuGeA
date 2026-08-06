@@ -812,7 +812,7 @@ input[type="checkbox"]:hover{
     padding: var(--spacing-md);
 }
 .question-display{
-    display: inline-flex;
+    display: inline-block;
     flex-direction: column;
     align-items: center;
     justify-content: center;
