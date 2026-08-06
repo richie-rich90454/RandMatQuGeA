@@ -352,7 +352,6 @@ describe("isVersionGreater",()=>{
     });
 });
 describe("keyboard shortcuts",()=>{
-    let keyupHandler:any;
     let mathKeydownHandler:any;
     let ctrlKeydownHandler:any;
     let escapeKeydownHandler:any;
@@ -361,8 +360,6 @@ describe("keyboard shortcuts",()=>{
         let docAddSpy=vi.spyOn(document,"addEventListener");
         await setupEventListeners();
         let userAnswerCalls=(dom.userAnswer!.addEventListener as any).mock.calls;
-        let keyupCall=userAnswerCalls.find((c:any[])=>c[0]==="keyup");
-        keyupHandler=keyupCall?keyupCall[1]:null;
         let keydownCall=userAnswerCalls.find((c:any[])=>c[0]==="keydown");
         mathKeydownHandler=keydownCall?keydownCall[1]:null;
         let docKeydownCalls=docAddSpy.mock.calls.filter((c:any[])=>c[0]==="keydown");
@@ -370,11 +367,11 @@ describe("keyboard shortcuts",()=>{
         escapeKeydownHandler=docKeydownCalls.length>1?docKeydownCalls[1][1]:null;
         docAddSpy.mockRestore();
     });
-    it("should handle Enter key in answer box",()=>{
-        expect(keyupHandler).toBeDefined();
+    it("should handle Shift+Enter key in answer box",()=>{
+        expect(mathKeydownHandler).toBeDefined();
         questionState.hasQuestion=true;
         let mockEvent={shiftKey:true,key:"Enter",preventDefault:vi.fn(),ctrlKey:false,metaKey:false};
-        keyupHandler(mockEvent);
+        mathKeydownHandler(mockEvent);
         expect(answer.checkAnswer).toHaveBeenCalled();
         questionState.hasQuestion=false;
     });
