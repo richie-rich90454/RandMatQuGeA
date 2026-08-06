@@ -205,7 +205,7 @@ async fn get_performance_stats(
             SUM(attempts) as total_attempts,
             SUM(correct) as total_correct,
             COALESCE(CAST(SUM(correct) AS REAL) / NULLIF(SUM(attempts), 0), 0.0) as accuracy,
-            COALESCE(AVG(total_response_time_ms), 0.0) as avg_response_time
+            COALESCE(CAST(SUM(total_response_time_ms) AS REAL) / NULLIF(SUM(attempts), 0), 0.0) as avg_response_time
          FROM user_topic_stats
          WHERE 1=1",
     );
@@ -213,7 +213,7 @@ async fn get_performance_stats(
         builder.push(" AND difficulty = ");
         builder.push_bind(diff);
     }
-    if let Some(d) = days {
+    if let Some(d) = days.filter(|d| *d > 0) {
         builder.push(" AND last_updated >= datetime('now', ");
         builder.push_bind(format!("-{} days", d));
         builder.push(")");
