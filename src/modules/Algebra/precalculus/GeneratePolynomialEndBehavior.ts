@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Polynomial end behavior: end behavior, multiplicity, IVT.
@@ -65,10 +65,12 @@ export function generatePolynomialEndBehavior(difficulty?: string, rng: RngFn = 
 			const val1=Math.floor(rng()*10)-5;
 			const val2=val1+Math.floor(rng()*5)+2;
 			const poly=`x^3 - ${a}x + ${b}`;
+			const f=(x:number):number=>x*x*x-a*x+b;
+			const hasRoot=f(val1)*f(val2)<=0;
 			mathExpression=`Use the Intermediate Value Theorem to show that \\( ${poly} \\) has a root between ${val1} and ${val2}. (Enter yes/no if it applies)`;
-			correct="yes";
-			alternate="yes";
-			display="yes";
+			correct=hasRoot?"yes":"no";
+			alternate=correct;
+			display=correct;
 			choices=["yes","no","maybe","cannot determine"];
 			expectedFormat="Enter 'yes' or 'no'";
 			break;
