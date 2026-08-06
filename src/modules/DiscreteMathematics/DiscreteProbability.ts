@@ -1,4 +1,4 @@
-﻿﻿/**
+﻿/**
  * Probability questions generator with MCQ distractors
  * @fileoverview Generates various probability questions (basic, conditional, independent, mutually exclusive, Bayes, binomial, expected value, complement, permutation/combination, geometric). Returns a QuestionDto with correct value, alternate representation, display LaTeX, and plausible wrong answers for MCQ mode.
  * @date 2026-03-29
@@ -99,8 +99,9 @@ export function generateProbability(difficulty?: string, rng: RngFn=Math.random)
 		}
 		case "bayes":{
 			let probA=rng()*0.5+0.2;
-			let probB=rng()*0.5+0.2;
 			let probBgivenA=rng()*0.8+0.1;
+			const minB=probBgivenA*probA;
+			let probB=minB+rng()*(0.7-minB);
 			let probAgivenB=(probBgivenA*probA)/probB;
 			let probAStr=probA.toFixed(2);
 			let probBStr=probB.toFixed(2);
