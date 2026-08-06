@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
 /**
  * Generates a random limit question and returns it as a QuestionDto.
@@ -57,6 +57,7 @@ export function generateLimit(difficulty?: string, rng: RngFn=Math.random): Ques
 			let exactNum=a*x0+1;
 			let exactDen=b*x0-1;
 			let exactFraction=`${exactNum}/${exactDen}`;
+			mathExpression=`\\[ \\lim_{x \\to ${x0}} \\frac{${a}x+1}{${b}x-1} \\]`;
 			plainCorrectAnswer=limit.toFixed(2);
 			latexAnswer=plainCorrectAnswer;
 			let altNum=exactNum+1;
