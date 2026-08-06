@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
 /**
  * Polynomial inequality: solve >0 with factoring.
@@ -14,8 +14,11 @@ export function generatePolynomialInequality(difficulty?: string, rng: RngFn = M
 	let choices:string[]=[];
 	const max=getMaxForDifficulty(difficulty,3);
 	let roots: number[]=[];
-	for(let i=0;i<3;i++){
-		roots.push(Math.floor(rng()*max*2)-max);
+	let guard=0;
+	while(roots.length<3&&guard<100){
+		const r=Math.floor(rng()*(2*max+1))-max;
+		if(!roots.includes(r)) roots.push(r);
+		guard++;
 	}
 	roots.sort((a,b)=>a-b);
 	const factors=roots.map(r=>`(x ${r>=0?'-':'+'} ${Math.abs(r)})`).join('');
