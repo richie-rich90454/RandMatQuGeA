@@ -9,7 +9,7 @@ test("generates a question for the selected topic and shows expected format", as
 	expect(answer.length).toBeGreaterThan(0);
 	const qText = await page.locator("#question-area").textContent();
 	expect(qText!.trim().length).toBeGreaterThan(0);
-	expect(await page.locator("#expected-format")).toBeVisible();
+	await expect(page.locator("#expected-format")).toHaveText(/Expected format:/);
 });
 
 test("correct answer via Shift+Enter shows Correct", async ({page})=>{
