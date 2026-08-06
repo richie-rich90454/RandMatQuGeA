@@ -511,6 +511,7 @@ export function generateTrigGraphs(difficulty?: string, rng: RngFn = Math.random
 		alternate: alternateAnswerStr,
 		display: displayAnswerStr,
 		choices: uniqueChoices,
-		expectedFormat: hint
+		expectedFormat: hint,
+		visualization: {shape:"graph", params:{fn: type, a: A, b: B, c: C}}
 	};
 }
