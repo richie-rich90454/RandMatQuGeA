@@ -12,7 +12,7 @@ function seededRng(seed: number): () => number {
 	};
 }
 
-const seeds = Array.from({length: 60}, (_, i) => i + 1);
+const seeds = Array.from({length: 100}, (_, i) => i + 1);
 
 describe("regression: rational equations never emit non-finite answers", () => {
 	it.each(seeds)("seed %i produces a finite answer or 'no solution'", (seed) => {

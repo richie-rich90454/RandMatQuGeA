@@ -22,7 +22,7 @@ const barrels: Record<string, Record<string, unknown>> = {
 };
 
 const difficulties = ["easy", "medium", "hard"];
-const seeds = [1, 2, 3];
+const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 const cases: [string, string, number, GenFn][] = [];
 for (const [scope, mod] of Object.entries(barrels)) {
