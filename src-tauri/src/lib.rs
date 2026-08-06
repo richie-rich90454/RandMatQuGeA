@@ -993,3 +993,105 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod check_math_extended_tests {
+    use super::check_math;
+    #[test]
+    fn numeric_equal() {
+        assert!(check_math("2".into(), "2".into(), None));
+    }
+    #[test]
+    fn numeric_tolerance() {
+        assert!(check_math("2".into(), "2.0000001".into(), None));
+    }
+    #[test]
+    fn numeric_outside_tolerance() {
+        assert!(!check_math("3.141".into(), "3.14".into(), None));
+    }
+    #[test]
+    fn whitespace_trimmed_numeric() {
+        assert!(check_math(" 5 ".into(), "5".into(), None));
+    }
+    #[test]
+    fn string_equality_case_insensitive() {
+        assert!(check_math("X^2".into(), "x^2".into(), None));
+    }
+    #[test]
+    fn string_equality_ignores_spaces() {
+        assert!(check_math("x + 1".into(), "x+1".into(), None));
+    }
+    #[test]
+    fn string_equality_distinct() {
+        assert!(!check_math("x+1".into(), "x+2".into(), None));
+    }
+    #[test]
+    fn alternate_exact_match() {
+        assert!(check_math("1/2".into(), "0.5".into(), Some("1/2".into())));
+    }
+    #[test]
+    fn alternate_numeric_match() {
+        assert!(check_math("0.5".into(), "1/2".into(), Some("0.50".into())));
+    }
+    #[test]
+    fn alternate_no_match() {
+        assert!(!check_math("x+1".into(), "x+2".into(), Some("y+1".into())));
+    }
+    #[test]
+    fn empty_both_match() {
+        assert!(check_math("".into(), "".into(), None));
+    }
+    #[test]
+    fn unicode_minus_is_not_ascii_minus() {
+        assert!(!check_math("\u{2212}2".into(), "-2".into(), None));
+    }
+    #[test]
+    fn scientific_notation_matches() {
+        assert!(check_math("1e3".into(), "1000".into(), None));
+    }
+    #[test]
+    fn integer_vs_decimal_match() {
+        assert!(check_math("5".into(), "5.0".into(), None));
+    }
+    #[test]
+    fn different_powers_no_match() {
+        assert!(!check_math("x^2".into(), "x^3".into(), None));
+    }
+    #[test]
+    fn alternate_numeric_match_with_whitespace() {
+        assert!(check_math("0.5".into(), "1/2".into(), Some(" 0.50 ".into())));
+    }
+}
+
+#[cfg(test)]
+mod difficulty_serde_tests {
+    use crate::models::Difficulty;
+    #[test]
+    fn serializes_easy_lowercase() {
+        assert_eq!(serde_json::to_string(&Difficulty::Easy).unwrap(), "\"easy\"");
+    }
+    #[test]
+    fn serializes_medium_lowercase() {
+        assert_eq!(serde_json::to_string(&Difficulty::Medium).unwrap(), "\"medium\"");
+    }
+    #[test]
+    fn serializes_hard_lowercase() {
+        assert_eq!(serde_json::to_string(&Difficulty::Hard).unwrap(), "\"hard\"");
+    }
+    #[test]
+    fn deserializes_easy() {
+        assert_eq!(serde_json::from_str::<Difficulty>("\"easy\"").unwrap(), Difficulty::Easy);
+    }
+    #[test]
+    fn deserializes_medium() {
+        assert_eq!(serde_json::from_str::<Difficulty>("\"medium\"").unwrap(), Difficulty::Medium);
+    }
+    #[test]
+    fn deserializes_hard() {
+        assert_eq!(serde_json::from_str::<Difficulty>("\"hard\"").unwrap(), Difficulty::Hard);
+    }
+    #[test]
+    fn deserializes_pascal_case_fails() {
+        assert!(serde_json::from_str::<Difficulty>("\"Easy\"").is_err());
+    }
+}
