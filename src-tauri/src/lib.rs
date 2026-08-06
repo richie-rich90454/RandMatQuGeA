@@ -145,7 +145,7 @@ async fn get_next_question_recommendation(
         .await
         .map_err(|e| e.to_string())?;
     let new_difficulty = if let Some(s) = stats {
-        if s.attempts == 0 {
+        if s.attempts < 3 {
             diff
         } else {
             let accuracy = s.correct as f64 / s.attempts as f64;
