@@ -473,7 +473,7 @@ export async function promptSaveScore(): Promise<void>{
         console.error("Save score error details:",err);
         let errorMsg="Failed to save score";
         if(typeof err==="string") errorMsg = err;
-        else if(err && typeof err==="object" && "message" in err) errorMsg = (err as any).message;
+        else if(err && typeof err==="object" && "message" in err) errorMsg = (err as {message: string}).message;
         ui.showNotification(errorMsg,"warning");
     }
 }
