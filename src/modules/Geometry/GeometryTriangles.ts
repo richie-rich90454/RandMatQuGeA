@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxForDifficulty} from "./GeometryUtils.js";
 /**
  * Triangle geometry: Pythagorean theorem, similar triangles, triangle classification.
@@ -29,7 +29,8 @@ export function generatePythagorean(difficulty?: string, rng: RngFn=Math.random)
 		alternate: Math.sqrt(a*a+b*b).toFixed(2),
 		display: correct,
 		choices: uniqueChoices,
-		expectedFormat: "Enter a decimal (e.g., 5.83)"
+		expectedFormat: "Enter a decimal (e.g., 5.83)",
+		visualization: {shape:"triangle", params:{base:a, height:b}}
 	};
 }
 export function generateSimilarTriangles(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
