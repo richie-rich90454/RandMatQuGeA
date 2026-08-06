@@ -346,10 +346,21 @@ pub fn run() {
                 .execute(&pool)
                 .await
                 .map_err(|e| format!("DB init error: {}", e))?;
-                sqlx::migrate!("./migrations")
-                    .run(&pool)
-                    .await
-                    .map_err(|e| format!("DB migration error: {}", e))?;
+                sqlx::query(
+                    "CREATE TABLE IF NOT EXISTS user_topic_stats (
+						topic_id TEXT NOT NULL,
+						difficulty TEXT NOT NULL,
+						attempts INTEGER DEFAULT 0,
+						correct INTEGER DEFAULT 0,
+						total_response_time_ms INTEGER DEFAULT 0,
+						last_error_type TEXT,
+						last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+						PRIMARY KEY (topic_id, difficulty)
+					);",
+                )
+                .execute(&pool)
+                .await
+                .map_err(|e| format!("DB init error for user_topic_stats: {}", e))?;
                 Ok::<SqlitePool, String>(pool)
             })
             .map_err(|e| {
