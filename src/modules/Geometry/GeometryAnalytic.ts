@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxForDifficulty} from "./GeometryUtils.js";
 /**
  * Analytic geometry: conic sections (parabola, ellipse, hyperbola), polar conics, 3D geometry (distance/midpoint, sphere equations, line/plane).
@@ -45,7 +45,8 @@ export function generateParabola(difficulty?: string, rng: RngFn=Math.random): Q
 		alternate: `${focus}, ${directrix}`,
 		display: correctAnswer,
 		choices: uniqueChoices,
-		expectedFormat: "Enter as 'focus: (x,y), directrix: line'"
+		expectedFormat: "Enter as 'focus: (x,y), directrix: line'",
+		visualization: {shape:"parabola", params:{a, type}}
 	};
 }
 export function generateEllipse(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -114,7 +115,8 @@ export function generateEllipse(difficulty?: string, rng: RngFn=Math.random): Qu
 		alternate: `${foci}, ${eccentricity.toFixed(2)}`,
 		display: correctAnswer,
 		choices: uniqueChoices,
-		expectedFormat: "Enter as 'foci: (x,y) (±), e = number'"
+		expectedFormat: "Enter as 'foci: (x,y) (±), e = number'",
+		visualization: {shape:"ellipse", params:{a, b, center, h, k}}
 	};
 }
 export function generateHyperbola(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -188,7 +190,8 @@ export function generateHyperbola(difficulty?: string, rng: RngFn=Math.random): 
 		alternate: `${foci}, ${asymptotes}, ${eccentricity.toFixed(2)}`,
 		display: correctAnswer,
 		choices: uniqueChoices,
-		expectedFormat: "Enter as 'foci: ..., asymptotes: ..., e = ...'"
+		expectedFormat: "Enter as 'foci: ..., asymptotes: ..., e = ...'",
+		visualization: {shape:"hyperbola", params:{a, b, center, h, k}}
 	};
 }
 export function generatePolarConic(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -241,7 +244,8 @@ export function generatePolarConic(difficulty?: string, rng: RngFn=Math.random):
 		alternate: `${conicType}, ${e}`,
 		display: correctAnswer,
 		choices: uniqueChoices,
-		expectedFormat: "Enter as 'type, e = number'"
+		expectedFormat: "Enter as 'type, e = number'",
+		visualization: {shape:"polarConic", params:{e:eNum, k:parseFloat(k)}}
 	};
 }
 export function generate3DDistanceMidpoint(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -281,7 +285,8 @@ export function generate3DDistanceMidpoint(difficulty?: string, rng: RngFn=Math.
 		alternate: `${dist.toFixed(2)}, (${mx.toFixed(2)},${my.toFixed(2)},${mz.toFixed(2)})`,
 		display: correctAnswer,
 		choices: uniqueChoices,
-		expectedFormat: "Enter as 'distance: ..., midpoint: (x,y,z)'"
+		expectedFormat: "Enter as 'distance: ..., midpoint: (x,y,z)'",
+		visualization: {shape:"points3D", params:{points:[{x:x1,y:y1,z:z1},{x:x2,y:y2,z:z2}]}}
 	};
 }
 export function generateSphereEquation(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -332,7 +337,8 @@ export function generateSphereEquation(difficulty?: string, rng: RngFn=Math.rand
 		alternate: correctAnswer,
 		display: correctAnswer,
 		choices: uniqueChoices,
-		expectedFormat: "Enter the equation or center/radius as appropriate"
+		expectedFormat: "Enter the equation or center/radius as appropriate",
+		visualization: {shape:"sphere", params:{radius:r}}
 	};
 }
 export function generateLinePlane3D(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -367,7 +373,8 @@ export function generateLinePlane3D(difficulty?: string, rng: RngFn=Math.random)
 			alternate: `(${x},${y},${z})`,
 			display: correctAnswer,
 			choices: uniqueChoices,
-			expectedFormat: "Enter as (x, y, z)"
+			expectedFormat: "Enter as (x, y, z)",
+			visualization: {shape:"line3D", params:{point:[x0,y0,z0], direction:[a,b,c], t:tVal}}
 		};
 	}
 	else{
@@ -392,7 +399,8 @@ export function generateLinePlane3D(difficulty?: string, rng: RngFn=Math.random)
 			alternate: "yes",
 			display: "yes",
 			choices: uniqueChoices,
-			expectedFormat: "Enter 'yes' or 'no'"
+			expectedFormat: "Enter 'yes' or 'no'",
+			visualization: {shape:"plane3D", params:{normal:[a,b,c], d, point:[x,y,z]}}
 		};
 	}
 }
