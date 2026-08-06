@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
 function isSquareFree(n: number): boolean{
 	if(n<2) return true;
@@ -44,10 +44,10 @@ export function generateRadicalSimplify(difficulty?: string, rng: RngFn=Math.ran
 	switch(type){
 		case "simplify":{
 			let a=Math.floor(rng()*maxVal)+1;
-			let b=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+2;
 			let attempts=0;
 			while(!isSquareFree(b)&&attempts<100){
-				b=Math.floor(rng()*maxVal)+1;
+				b=Math.floor(rng()*maxVal)+2;
 				attempts++;
 			}
 			if(!isSquareFree(b)) b=2;
@@ -66,10 +66,10 @@ export function generateRadicalSimplify(difficulty?: string, rng: RngFn=Math.ran
 		case "add":{
 			let a=Math.floor(rng()*maxVal)+1;
 			let c=Math.floor(rng()*maxVal)+1;
-			let b=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+2;
 			let attempts=0;
 			while(!isSquareFree(b)&&attempts<100){
-				b=Math.floor(rng()*maxVal)+1;
+				b=Math.floor(rng()*maxVal)+2;
 				attempts++;
 			}
 			if(!isSquareFree(b)) b=2;
@@ -88,10 +88,10 @@ export function generateRadicalSimplify(difficulty?: string, rng: RngFn=Math.ran
 		case "subtract":{
 			let a=Math.floor(rng()*maxVal)+1;
 			let c=Math.floor(rng()*maxVal)+1;
-			let b=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+2;
 			let attempts=0;
 			while(!isSquareFree(b)&&attempts<100){
-				b=Math.floor(rng()*maxVal)+1;
+				b=Math.floor(rng()*maxVal)+2;
 				attempts++;
 			}
 			if(!isSquareFree(b)) b=2;
@@ -109,7 +109,7 @@ export function generateRadicalSimplify(difficulty?: string, rng: RngFn=Math.ran
 		}
 		case "multiply":{
 			let a=Math.floor(rng()*maxVal)+1;
-			let b=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+2;
 			let product=a*b;
 			let ans=simplifyRadical(product);
 			correct=ans;
@@ -127,7 +127,7 @@ export function generateRadicalSimplify(difficulty?: string, rng: RngFn=Math.ran
 		}
 		case "divide":{
 			let a=Math.floor(rng()*maxVal)+1;
-			let b=Math.floor(rng()*maxVal)+1;
+			let b=Math.floor(rng()*maxVal)+2;
 			let num=Math.sqrt(a);
 			let den=Math.sqrt(b);
 			let ans: string;
