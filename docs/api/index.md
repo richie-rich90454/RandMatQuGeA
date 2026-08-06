@@ -207,9 +207,16 @@ Registers a topic so the question generator can find it. Called by each subject 
 ### `EventBinder`
 
 ```typescript
-function bindEvents(target: EventTarget, map: Record<string, EventListener>): EventBinding;
-function countBindings(): number;
-function hasBinding(target: EventTarget): boolean;
+interface EventBinding {
+    selector: string;
+    event: string;
+    handler: (e: Event) => void;
+    scope?: "document" | "window";
+}
+
+function bindEvents(bindings: EventBinding[]): void;
+function countBindings(bindings: EventBinding[]): number;
+function hasBinding(bindings: EventBinding[], selector: string): boolean;
 ```
 
 ### `MathWorkerClient`
@@ -253,7 +260,7 @@ Debounced wrapper (150ms) for `generateQuestion()`.
 
 ## Answer Checking
 
-### `checkAnswer` / `checkAnswerVisible`
+### `checkAnswer`
 
 Exported from `Answer.ts`. Multi-stage equivalence checking pipeline:
 
@@ -261,6 +268,8 @@ Exported from `Answer.ts`. Multi-stage equivalence checking pipeline:
 2. Sanitization (lowercase, whitespace, Unicode normalization)
 3. Constant removal (+C for integrals)
 4. String equality → symbolic comparison → numeric evaluation → equation splitting
+
+In Tauri mode, `settings.checkAnswerFast` first invokes the Rust `check_math` command and falls back to the JS pipeline for symbolic answers the Rust fast path can't verify.
 
 ## MCQ
 
@@ -284,10 +293,13 @@ Generates `count` plausible wrong answers using three strategies: numeric pertur
 function startTimer(): void;
 function saveSessionSnapshot(): void;
 function restoreSessionSnapshot(): void;
-function startMentalSession(): Promise<void>;
-function pauseMentalSession(): void;
-function resumeMentalSession(): void;
-function endMentalSession(): void;
+function startMentalSession(): void;
+function pauseMentalSession(): void;   // toggles pause/resume
+function skipMentalQuestion(): void;
+function handleMentalAnswer(answer?: string): Promise<void>;
+function handleMcqChoice(choice: string): Promise<void>;
+function stopMentalSession(): void;
+function endMentalSession(): Promise<void>;
 function generateNextMentalQuestion(): Promise<void>;
 ```
 
@@ -352,11 +364,11 @@ let settings = {
     autoContinue: boolean,
     shuffle: boolean,
     mentalShuffle: boolean,
-    scope: "simple" | "advanced" | "all",
-    mentalScope: "simple" | "advanced" | "all",
+    scope: "simple" | "algebra" | "precalc" | "calc" | "all",
+    mentalScope: "simple" | "algebra" | "precalc" | "calc" | "all",
     difficulty: "easy" | "medium" | "hard",
-    timer: number,         // seconds
-    maxQuestions: number,  // 1-100
+    timer: number,         // seconds (10-120)
+    maxQuestions: number,  // 1-20
     font: "default" | "opendyslexic",
     perfMaster: boolean,   // master toggle
     perfWave: boolean,
@@ -388,18 +400,18 @@ Invoked via `@tauri-apps/api/core` `invoke()`:
 
 | Command | Parameters | Returns |
 |---|---|---|
-| `check_math` | `{ userAnswer, correctAnswer, topicId }` | `{ correct, display }` |
-| `save_score` | `{ difficulty, correct, total, topic, mode }` | `void` |
-| `load_scores` | — | `Score[]` |
+| `check_math` | `{ user_expr, correct_expr, alternate? }` | `bool` |
+| `save_score` | `{ entry: { topic, score, total, difficulty, date } }` | `void` |
+| `load_scores` | — | `ScoreEntry[]` |
 | `delete_score` | `{ id }` | `void` |
-| `save_performance` | `{ topic_id, difficulty, correct, response_time_ms }` | `void` |
-| `get_performance_stats` | `{ topic_id? }` | `PerformanceStats` |
-| `delete_performance_record` | `{ topic_id }` | `void` |
+| `save_performance` | `{ topic_id, difficulty, correct, response_time_ms, error_type? }` | `void` |
+| `get_performance_stats` | `{ difficulty?, days? }` | `{ topic_id, difficulty, attempts, correct, accuracy, avg_time_ms }[]` |
+| `delete_performance_record` | `{ topic_id, difficulty }` | `void` |
 | `delete_all_performance_records` | — | `void` |
-| `get_next_question_recommendation` | `{ currentTopic, currentDifficulty }` | `{ difficulty, weak_topic? }` |
-| `get_weak_topics` | — | `{ topic_id, accuracy, attempts }[]` |
+| `get_next_question_recommendation` | `{ current_topic, current_difficulty }` | `{ difficulty, weak_topic? }` |
+| `get_weak_topics` | `{ limit? }` | `{ topic_id, accuracy, attempts }[]` |
 | `generate_worksheet_seed` | — | `number` |
-| `export_worksheet_pdf` | `{ questions, seed, includeAnswers }` | `string` (file path) |
+| `export_worksheet_pdf` | `{ questions, opts, filepath }` | `void` |
 | `reset_all_data` | — | `void` |
 
 ## Generator Modules
@@ -448,7 +460,7 @@ Topics: sin/cos/tan, identities, equations, unit circle across `trigonometry` an
 ### `topics`
 
 ```typescript
-let topics: Topic[];  // All 134+ topic definitions with id, name, icon, category
+let topics: Topic[];  // All 125 topic definitions with id, name, icon, category
 ```
 
 ### `scopeTopics`

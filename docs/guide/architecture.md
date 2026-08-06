@@ -122,3 +122,15 @@ src/modules/
 ```
 
 All generators follow the same signature: `(difficulty: string, rng?: RngFn) => QuestionDto`.
+
+There are **125 topics** across 7 subject modules (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry).
+
+## Testing
+
+The project uses a three-layer test strategy:
+
+1. **Unit tests (Vitest + jsdom)** — `src/__tests__/` mirrors the `src/` structure. 7,000+ cases cover generator integrity (every topic × difficulty × seeds), math regression values, answer-checking edge cases, settings persistence, and session logic. `src/vitest.setup.ts` mocks the Tauri API, three.js, and canvas.
+2. **End-to-end tests (Playwright)** — `e2e/` drives the real app in headless system Chrome against the Vite dev server (`:1331`). The `all-topics-*.spec.ts` files run a full matrix (every topic × easy/medium/hard) and assert each generator accepts its own correct answer; other specs cover Single/Mental modes, MCQ, settings, print worksheets, keyboard shortcuts, and graceful desktop-only fallbacks. A console-error sweep asserts zero runtime errors across the whole app.
+3. **Rust tests (`cargo test`)** — 200+ tests in `src-tauri/src` cover the score/perf/adaptive SQL logic, `check_math`, models, and PDF export.
+
+`npm run check` runs the TypeScript type-check plus the Vitest suite; `npm run test:e2e` runs Playwright.
