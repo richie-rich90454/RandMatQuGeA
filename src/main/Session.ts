@@ -1,4 +1,4 @@
-﻿﻿import * as settings from"./Settings";
+﻿import * as settings from"./Settings";
 import * as ui from"./Ui";
 import * as topicsModule from"./Topics";
 import{topics as topicList,scopeTopics,SESSION_STORAGE_KEY}from"./Constants";
@@ -21,6 +21,7 @@ export function saveSessionSnapshot(): void{
         currentDifficulty:appState.currentDifficulty,
         mentalShuffle:appState.mentalShuffle,
         mentalScope:appState.mentalScope,
+        unlimitedMode:appState.unlimitedMode,
         selectedTopic:appState.selectedTopic,
         timestamp:Date.now()
     };
@@ -49,9 +50,18 @@ export function restoreSessionSnapshot(): void{
         appState.maxQuestions=snap.maxQuestions;
         appState.sessionScore=snap.sessionScore;
         appState.timeLeft=snap.timeLeft;
+        appState.unlimitedMode=snap.unlimitedMode===true;
         if(dom.buttons.modeMentalBtn)dom.buttons.modeMentalBtn.click();
         appState.sessionActive=true;
         appState.sessionPaused=false;
+        if(appState.unlimitedMode){
+            if(dom.displays.mentalProgressBar)dom.displays.mentalProgressBar.classList.add("hidden");
+            if(dom.displays.timerDisplay)dom.displays.timerDisplay.classList.add("hidden");
+        }
+        else{
+            if(dom.displays.mentalProgressBar)dom.displays.mentalProgressBar.classList.remove("hidden");
+            if(dom.displays.timerDisplay)dom.displays.timerDisplay.classList.remove("hidden");
+        }
         ui.updateScoreDisplay();
         ui.updateTimerDisplay();
         ui.updateProgressBar();
@@ -93,6 +103,7 @@ export function startTimer(): void{
                 });
                 return;
             }
+            questionState.hasQuestion=false;
             appState.sessionScore={correct:appState.sessionScore.correct,total:appState.sessionScore.total+1};
             requestAnimationFrame(()=>{
                 ui.updateScoreDisplay();
@@ -196,6 +207,7 @@ export async function generateNextMentalQuestion(): Promise<void>{
         endMentalSession();
         return;
     }
+    if(!appState.sessionActive)return;
     if(dom.displays.expectedFormatDiv&&questionState.expectedFormat){
         dom.displays.expectedFormatDiv.textContent="Expected format: "+questionState.expectedFormat;
     }
@@ -213,6 +225,7 @@ export async function handleMentalAnswer(answer?: string): Promise<void>{
     if(!appState.sessionActive||appState.sessionPaused)return;
     if(!dom.inputs.userAnswer||!dom.displays.answerResults)return;
     if(!questionState.hasQuestion)return;
+    if(appState.answering)return;
     appState.answering=true;
     try{
     if(dom.buttons.checkAnswerButton) dom.buttons.checkAnswerButton.disabled=true;
