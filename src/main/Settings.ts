@@ -466,7 +466,9 @@ export async function isAnswerCorrect(userInput:string,correct:string,alternate?
 export async function checkAnswerFast(userInput:string,correct:string,alternate?:string):Promise<boolean>{
     if (isTauri()){
         try{
-            return await invoke("check_math",{userExpr:userInput,correctExpr:correct,alternate:alternate??null});
+            if (await invoke("check_math",{userExpr:userInput,correctExpr:correct,alternate:alternate??null})){
+                return true;
+            }
         }
         catch(e){
             console.warn("Rust check failed, falling back to JS",e);
