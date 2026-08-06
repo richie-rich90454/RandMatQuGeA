@@ -45,6 +45,9 @@ export class QuestionRenderer{
     applyQuestionDto(dto: QuestionDto): void{
         let area=this.registry.displays.questionArea;
         if(area){
+            if(typeof (area as HTMLElement).querySelector==="function"&&area.querySelector("#geometry-visualization")){
+                import("../../modules/Geometry/GeometryVisualization").then((m)=>m.cleanupVisualization()).catch(()=>{});
+            }
             area.innerHTML=dto.latex;
         }
         let answer: CorrectAnswer={
