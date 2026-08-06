@@ -175,7 +175,7 @@ export function generateParametricPolarVector(difficulty?: string, rng: RngFn=Ma
 		case "polarAreaBetween":{
 			let a=Math.floor(rng()*maxCoeff)+1;
 			mathExpression=`\\[ \\text{Area inside } r=${a}(1-\\cos\\theta) \\text{ and outside } r=${a}. \\]`;
-			let area=(Math.PI/2)*a*a;
+			let area=(Math.PI/4+2)*a*a;
 			plainCorrectAnswer=area.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
@@ -225,7 +225,7 @@ export function generateParametricPolarVector(difficulty?: string, rng: RngFn=Ma
 			}
 			if(b>=a) b=1;
 			mathExpression=`\\[ \\text{Area inside } r=${a}+${b}\\cos\\theta \\text{ and outside } r=${a}. \\]`;
-			let area=Math.PI*b*b/2;
+			let area=2*a*b+Math.PI*b*b/4;
 			plainCorrectAnswer=area.toFixed(3);
 			latexAnswer=plainCorrectAnswer;
 			expectedFormat="Enter number";
