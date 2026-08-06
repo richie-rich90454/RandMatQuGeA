@@ -111,8 +111,10 @@ export async function setupEventListeners(): Promise<void>{
         if (e.ctrlKey||e.metaKey){
             let ae=document.activeElement;
             let isTyping=ae instanceof HTMLInputElement||ae instanceof HTMLTextAreaElement||ae instanceof HTMLSelectElement;
+            if (document.querySelector(".modal.show")) return;
             switch (e.key){
                 case "g": case "G":
+                    if (isTyping) break;
                     e.preventDefault();
                     if (appState.currentMode==="single") generation.debounceGenerate();
                     break;
@@ -151,6 +153,12 @@ export async function setupEventListeners(): Promise<void>{
     });
     document.addEventListener("keydown", (e: KeyboardEvent)=>{
         if (e.key==="Escape") {
+            let dropdown=document.getElementById("math-dropdown");
+            if (dropdown&&dropdown.classList.contains("show")){
+                dropdown.classList.remove("show");
+                let dropdownBtn=document.getElementById("math-dropdown-btn");
+                if (dropdownBtn) dropdownBtn.setAttribute("aria-expanded","false");
+            }
             let openModals=[dom.modals.settingsModal, dom.modals.shortcutsModal, dom.modals.onboardingOverlay, dom.modals.printModal, dom.modals.weakTopicsModal, dom.modals.dataModal];
             openModals.forEach(modal=>{
                 if (modal && modal.classList.contains("show")) {
@@ -487,6 +495,7 @@ export async function setupEventListeners(): Promise<void>{
         dropdownBtn.addEventListener("click", (e)=>{
             e.stopPropagation();
             dropdown.classList.toggle("show");
+            dropdownBtn.setAttribute("aria-expanded", dropdown.classList.contains("show")?"true":"false");
         });
         document.addEventListener("click", (e)=>{
             if (!dropdown.contains(e.target as Node)&&!dropdownBtn.contains(e.target as Node)) {
