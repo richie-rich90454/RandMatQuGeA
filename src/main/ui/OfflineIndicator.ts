@@ -33,10 +33,8 @@ export class OfflineIndicator{
 			this.badge.textContent="Offline";
 			this.badge.setAttribute("role","status");
 			this.badge.setAttribute("aria-live","polite");
-			let header=document.querySelector("header")||document.querySelector(".app-header");
-			if(header){
-				header.appendChild(this.badge);
-			}
+			let header=document.querySelector("header")||document.querySelector(".app-header")||document.body;
+			header.appendChild(this.badge);
 		}
 		if(this.isOffline){
 			this.badge.classList.remove("hidden");
