@@ -135,7 +135,7 @@ self.addEventListener("fetch",(event)=>{
 				}
 				return r;
 			}).catch(()=>{
-				return caches.match(new URL("index.html", self.registration.scope))||Response.error();
+				return caches.match(new URL("index.html", self.registration.scope)).then((r)=>r||Response.error());
 			});
 		})
 	);
