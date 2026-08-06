@@ -80,11 +80,14 @@ export async function selectTopic(page: Page, topicId: string): Promise<void>{
 
 export async function generateQuestion(page: Page): Promise<void>{
 	await page.locator("#genQ").click();
-	await page.waitForFunction(()=>{
-		const w = window as unknown as { hasQuestion?: boolean; correctAnswer?: { correct?: string } };
-		return w.hasQuestion === true && !!w.correctAnswer && !!w.correctAnswer.correct && w.correctAnswer.correct.length > 0;
-	}, null, { timeout: 20000 });
-	await expect(page.locator("#answer-box")).toBeEnabled();
+	await expect(page.locator("#answer-box")).toBeDisabled({timeout: 5000}).catch(()=>{});
+	await expect(page.locator("#answer-box")).toBeEnabled({timeout: 20000});
+	await expect
+		.poll(()=>page.evaluate(()=>{
+			const w = window as unknown as { correctAnswer?: { correct?: string } };
+			return w.correctAnswer?.correct ?? "";
+		}), {timeout: 20000})
+		.not.toBe("");
 }
 
 export async function getCorrectAnswer(page: Page): Promise<string>{
