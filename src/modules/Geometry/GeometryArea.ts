@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxForDifficulty} from "./GeometryUtils.js";
 /**
  * Area and surface area: circle, rectangle, triangle, sector, cube.
@@ -28,7 +28,8 @@ export function generateAreaCircle(difficulty?: string, rng: RngFn=Math.random):
 		alternate: (Math.PI*radius*radius).toFixed(2),
 		display: correctStr,
 		choices: uniqueChoices,
-		expectedFormat: "Enter a decimal (e.g., 78.54)"
+		expectedFormat: "Enter a decimal (e.g., 78.54)",
+		visualization: {shape:"circle", params:{radius}}
 	};
 }
 export function generateAreaRectangle(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -82,7 +83,8 @@ export function generateAreaTriangle(difficulty?: string, rng: RngFn=Math.random
 		alternate: (0.5*base*height).toFixed(2),
 		display: correctStr,
 		choices: uniqueChoices,
-		expectedFormat: "Enter a decimal (e.g., 12.5)"
+		expectedFormat: "Enter a decimal (e.g., 12.5)",
+		visualization: {shape:"triangle", params:{base, height}}
 	};
 }
 export function generateSectorArea(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -134,6 +136,7 @@ export function generateSurfaceAreaCube(difficulty?: string, rng: RngFn=Math.ran
 		alternate: correctStr,
 		display: correctStr,
 		choices: uniqueChoices,
-		expectedFormat: "Enter a whole number"
+		expectedFormat: "Enter a whole number",
+		visualization: {shape:"cube", params:{size:s}}
 	};
 }
