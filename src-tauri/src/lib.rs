@@ -266,12 +266,14 @@ fn generate_worksheet_seed() -> u64 {
     rand::random()
 }
 #[tauri::command]
-fn export_worksheet_pdf(
+async fn export_worksheet_pdf(
     questions: Vec<pdf::QuestionDtoRust>,
     opts: pdf::WorksheetOptsRust,
     filepath: String,
 ) -> Result<(), String> {
-    pdf::export_worksheet_pdf_impl(questions, opts, &filepath)
+    tauri::async_runtime::spawn_blocking(move || pdf::export_worksheet_pdf_impl(questions, opts, &filepath))
+        .await
+        .map_err(|e| e.to_string())?
 }
 #[tauri::command]
 async fn delete_score(state: tauri::State<'_, DbState>, id: i32) -> Result<(), String> {
@@ -344,21 +346,10 @@ pub fn run() {
                 .execute(&pool)
                 .await
                 .map_err(|e| format!("DB init error: {}", e))?;
-                sqlx::query(
-                    "CREATE TABLE IF NOT EXISTS user_topic_stats (
-						topic_id TEXT NOT NULL,
-						difficulty TEXT NOT NULL,
-						attempts INTEGER DEFAULT 0,
-						correct INTEGER DEFAULT 0,
-						total_response_time_ms INTEGER DEFAULT 0,
-						last_error_type TEXT,
-						last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-						PRIMARY KEY (topic_id, difficulty)
-					);",
-                )
-                .execute(&pool)
-                .await
-                .map_err(|e| format!("DB init error for user_topic_stats: {}", e))?;
+                sqlx::migrate!("./migrations")
+                    .run(&pool)
+                    .await
+                    .map_err(|e| format!("DB migration error: {}", e))?;
                 Ok::<SqlitePool, String>(pool)
             })
             .map_err(|e| {
