@@ -1,4 +1,4 @@
-﻿﻿import{topics,scopeTopics}from"./Constants";
+﻿import{topics,scopeTopics}from"./Constants";
 import{generateQuestionDto}from"./QuestionGenerator";
 import{invoke}from"@tauri-apps/api/core";
 import{save}from"@tauri-apps/plugin-dialog";
@@ -243,7 +243,7 @@ function renderToHiddenDiv(html: string): HTMLElement{
 	return container;
 }
 export function renderKatexInElement(el: HTMLElement): void{
-	let katexRef: any = (window as any).katex;
+	let katexRef = window.katex;
 	if (!katexRef) return;
 	let renderToString = (latex: string, displayMode: boolean): string=>{
 		try{
