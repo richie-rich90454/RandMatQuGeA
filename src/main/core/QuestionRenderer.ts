@@ -58,6 +58,11 @@ export class QuestionRenderer{
             this.setExpectedFormat(dto.expectedFormat);
         }
         this.setHasQuestion(true);
+        if(dto.visualization){
+            import("../../modules/Geometry/GeometryVisualization").then((m)=>{
+                m.createVisualization(dto.visualization!.shape, dto.visualization!.params||{});
+            }).catch((err)=>console.warn("Failed to load geometry visualization:",err));
+        }
         let mcqContainer=this.registry.displays.mcqChoicesContainer;
         if(mcqContainer){
             mcqContainer.innerHTML="";
