@@ -1,13 +1,26 @@
 /// <reference types="vitest" />
-import { defineConfig } from "vite";
-import { readFileSync } from "fs";
-import { join } from "path";
-import { visualizer } from "rollup-plugin-visualizer";
-let packageJson = JSON.parse(readFileSync(join(import.meta.dirname, "package.json"), "utf-8"));
-let version = packageJson.version;
+import {defineConfig} from "vite";
+import {readFileSync} from "fs";
+import {join} from "path";
+import {visualizer} from "rollup-plugin-visualizer";
+let packageJson=JSON.parse(readFileSync(join(__dirname,"package.json"),"utf-8"));
+let version=packageJson.version;
 export default defineConfig({
     clearScreen: false,
     base: "./",
+    test:{
+        setupFiles:["./vitest.setup.ts"],
+        environment:"jsdom",
+        testTimeout:10000,
+        pool:"forks",
+        maxConcurrency:16,
+        experimental: {
+            fsModuleCache: true
+        }
+    },
+    worker: {
+        format: "es",
+    },
     root: "src",
     publicDir: "../public",
     build: {
@@ -18,11 +31,8 @@ export default defineConfig({
         target: "es2020",
         cssMinify: true,
         cssCodeSplit: true,
-        modulePreload: { polyfill: false },
-        chunkSizeWarningLimit: 2000,
-    },
-    worker: {
-        format: "es",
+        modulePreload: {polyfill: false},
+        chunkSizeWarningLimit: 2000
     },
     plugins: [
         {
@@ -31,7 +41,7 @@ export default defineConfig({
                 return html.replace(/__APP_VERSION__/g, version);
             }
         },
-        visualizer({ open: false, gzipSize: true, brotliSize: true })
+        visualizer({open: false, gzipSize: true, brotliSize: true})
     ],
     server: {
         host: false,
