@@ -3,7 +3,7 @@ import {defineConfig} from "vite";
 import {readFileSync} from "fs";
 import {join} from "path";
 import {visualizer} from "rollup-plugin-visualizer";
-let packageJson=JSON.parse(readFileSync(join(__dirname,"package.json"),"utf-8"));
+let packageJson=JSON.parse(readFileSync(join(import.meta.dirname,"package.json"),"utf-8"));
 let version=packageJson.version;
 export default defineConfig({
     clearScreen: false,
