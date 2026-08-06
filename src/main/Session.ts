@@ -174,6 +174,7 @@ export async function generateNextMentalQuestion(): Promise<void>{
     questionState.correctAnswer={correct:"",alternate:"",display:""};
     questionState.expectedFormat="";
     questionState.hasQuestion=false;
+    if(dom.inputs.userAnswer)dom.inputs.userAnswer.value="";
     dom.buttons.checkAnswerButton.disabled=true;
     dom.inputs.userAnswer.disabled=true;
     dom.displays.questionArea.innerHTML=`\n    <div class="loading-state">\n      <div class="spinner"></div>\n      <p>Generating...</p>\n    </div>\n  `;
