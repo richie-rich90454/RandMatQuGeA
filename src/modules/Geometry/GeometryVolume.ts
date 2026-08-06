@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxForDifficulty} from "./GeometryUtils.js";
 /**
  * Volume calculations for 3D shapes: sphere, cylinder, cone, pyramid.
@@ -28,7 +28,8 @@ export function generateVolumeSphere(difficulty?: string, rng: RngFn=Math.random
 		alternate: (4/3*Math.PI*radius**3).toFixed(2),
 		display: correct,
 		choices: uniqueChoices,
-		expectedFormat: "Enter a decimal (e.g., 113.10)"
+		expectedFormat: "Enter a decimal (e.g., 113.10)",
+		visualization: {shape:"sphere", params:{radius}}
 	};
 }
 export function generateVolumeCylinder(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -56,7 +57,8 @@ export function generateVolumeCylinder(difficulty?: string, rng: RngFn=Math.rand
 		alternate: (Math.PI*r*r*h).toFixed(2),
 		display: correct,
 		choices: uniqueChoices,
-		expectedFormat: "Enter a decimal"
+		expectedFormat: "Enter a decimal",
+		visualization: {shape:"cylinder", params:{radius:r, height:h}}
 	};
 }
 export function generateVolumeCone(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -84,7 +86,8 @@ export function generateVolumeCone(difficulty?: string, rng: RngFn=Math.random):
 		alternate: ((1/3)*Math.PI*r*r*h).toFixed(2),
 		display: correct,
 		choices: uniqueChoices,
-		expectedFormat: "Enter a decimal"
+		expectedFormat: "Enter a decimal",
+		visualization: {shape:"cone", params:{radius:r, height:h}}
 	};
 }
 export function generateVolumePyramid(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -111,6 +114,7 @@ export function generateVolumePyramid(difficulty?: string, rng: RngFn=Math.rando
 		alternate: ((1/3)*base*base*height).toFixed(2),
 		display: correct,
 		choices: uniqueChoices,
-		expectedFormat: "Enter a decimal"
+		expectedFormat: "Enter a decimal",
+		visualization: {shape:"pyramid", params:{radius:base/2, height}}
 	};
 }
