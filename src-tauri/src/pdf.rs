@@ -1010,11 +1010,13 @@ pub fn export_worksheet_pdf_impl(
 	);
 	let regular_font=doc.add_external_font(Cursor::new(MATH_FONT_BYTES))
 		.map_err(|e| format!("Failed to load embedded math font: {}", e))?;
-	let bold_font=doc.add_external_font(Cursor::new(MATH_FONT_BYTES))
-		.map_err(|e| format!("Failed to load embedded math font (bold): {}", e))?;
+	let bold_font=doc.add_builtin_font(BuiltinFont::HelveticaBold)
+		.map_err(|e| format!("Failed to load builtin bold font: {}", e))?;
 	let mut writer=PdfWriter::new(&doc, page1, layer1);
-	// Title (centered, bold)
-	writer.write_line(&opts.title, TITLE_SIZE, &bold_font);
+	// Title (centered, bold). Builtin fonts are WinAnsi-only, so fall back to the
+	// Unicode math font when the title contains non-Latin-1 characters.
+	let title_font=if opts.title.chars().all(|c| (c as u32)<=0xFF){ &bold_font } else { &regular_font };
+	writer.write_line(&opts.title, TITLE_SIZE, title_font);
 	writer.add_spacing(line_height(HEADER_SIZE));
 	// Header fields (Name / Date / Period)
 	let mut header_parts: Vec<String>=Vec::new();
