@@ -1,4 +1,4 @@
-﻿﻿/**
+﻿/**
  * Analytic trigonometry: degrees/radians conversion, arc length, angular/linear speed, right triangle definitions, special triangles, elevation/depression, reference angles, ASTC signs, sum/difference, double/half-angle, polar coordinates, parametric equations, complex numbers.
  * @fileoverview Generates a variety of analytic trigonometry questions with MCQ distractors. Returns a QuestionDto with LaTeX display and plain text alternate.
  * @date 2026-04-18
@@ -175,7 +175,6 @@ export function generateAngularLinearSpeed(difficulty?: string, rng: RngFn = Mat
 	};
 }
 export function generateRightTriangleDefs(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
-	const sides=["opposite","adjacent","hypotenuse"];
 	let funcs: string[];
 	if(difficulty==="hard"){
 		funcs=["sin","cos","tan","csc","sec","cot"];
@@ -183,16 +182,15 @@ export function generateRightTriangleDefs(difficulty?: string, rng: RngFn = Math
 	else{
 		funcs=["sin","cos","tan"];
 	}
-	const side=sides[Math.floor(rng()*sides.length)];
 	const func=funcs[Math.floor(rng()*funcs.length)];
 	let answer="";
-	if(func==="sin") answer=(side==="opposite")?"opposite/hypotenuse":"adjacent/hypotenuse";
-	else if(func==="cos") answer=(side==="adjacent")?"adjacent/hypotenuse":"opposite/hypotenuse";
-	else if(func==="tan") answer=(side==="opposite")?"opposite/adjacent":"adjacent/opposite";
-	else if(func==="csc") answer=(side==="hypotenuse")?"hypotenuse/opposite":"hypotenuse/adjacent";
-	else if(func==="sec") answer=(side==="hypotenuse")?"hypotenuse/adjacent":"hypotenuse/opposite";
-	else if(func==="cot") answer=(side==="adjacent")?"adjacent/opposite":"opposite/adjacent";
-	let latex=`In a right triangle, what is the definition of ${func} of an angle in terms of ${side} and the hypotenuse?`;
+	if(func==="sin") answer="opposite/hypotenuse";
+	else if(func==="cos") answer="adjacent/hypotenuse";
+	else if(func==="tan") answer="opposite/adjacent";
+	else if(func==="csc") answer="hypotenuse/opposite";
+	else if(func==="sec") answer="hypotenuse/adjacent";
+	else if(func==="cot") answer="adjacent/opposite";
+	let latex=`In a right triangle, what is the definition of ${func} of an angle?`;
 	let correct=answer;
 	let choices=[correct];
 	if(func==="sin"){
@@ -462,6 +460,20 @@ export function generateSumDifference(difficulty?: string, rng: RngFn = Math.ran
 		a=Math.floor(rng()*45)+1;
 		b=Math.floor(rng()*45)+1;
 	}
+	if(func==="tan"&&op==="sum"){
+		let guard=0;
+		while(a+b===90&&guard<20){
+			if(difficulty==="easy"){
+				a=[30,45,60][Math.floor(rng()*3)];
+				b=[30,45,60][Math.floor(rng()*3)];
+			}
+			else{
+				a=Math.floor(rng()*45)+1;
+				b=Math.floor(rng()*45)+1;
+			}
+			guard++;
+		}
+	}
 	let expr="";
 	if(op==="sum"){
 		expr=`${func}(${a}° + ${b}°)`;
@@ -507,6 +519,14 @@ export function generateDoubleAngle(difficulty?: string, rng: RngFn = Math.rando
 	}
 	else{
 		angle=Math.floor(rng()*45)+1;
+	}
+	if(func==="tan"){
+		let guard=0;
+		while(angle===45&&guard<20){
+			if(difficulty==="easy") angle=[30,45,60][Math.floor(rng()*3)];
+			else angle=Math.floor(rng()*45)+1;
+			guard++;
+		}
 	}
 	let latex=`Use the double-angle formula to find \\( ${func}(2 \\cdot ${angle}°) \\).`;
 	const rad=angle*Math.PI/180;
