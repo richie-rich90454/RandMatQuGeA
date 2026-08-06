@@ -833,7 +833,7 @@ input[type="checkbox"]:hover{
     flex-direction: column;
     align-items: center;
     gap: var(--spacing-sm);
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
 }
 .empty-state svg{
     width: 40px;
@@ -880,6 +880,7 @@ input[type="checkbox"]:hover{
 #topic-search{
     width: 100%;
     min-height: 28px;
+    resize: none;
     padding: 4px var(--spacing-sm);
     font-size: 0.8rem;
     background: var(--surface);
@@ -1030,10 +1031,15 @@ input[type="checkbox"]:hover{
 .footer-text{
     opacity: 0.7;
 }
-.mjx-chtml, .MathJax_Display{
+.mjx-chtml{
     max-width: 100%;
     overflow-x: auto;
+    color: var(--text-primary) !important;
+}
+.mjx-container[display="true"], .MathJax_Display{
     display: block;
+    max-width: 100%;
+    overflow-x: auto;
     color: var(--text-primary) !important;
 }
 .mjx-container{
@@ -1397,6 +1403,9 @@ input[type="checkbox"]:hover{
     justify-content: center;
     font-weight: bold;
 }
+.answer-card{
+    overflow: visible;
+}
 .answer-card .math-toolbar{
     display: none;
 }
@@ -1436,8 +1445,6 @@ input[type="checkbox"]:hover{
     border: 1px solid var(--border);
     box-shadow: var(--shadow-glass);
     margin-bottom: 0.5rem;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
 }
 .math-toolbar-row{
     display: flex;
@@ -1674,7 +1681,7 @@ hr.context-menu-divider{
     visibility: hidden;
 }
 .context-menu.hidden{
-    display: block;
+    display: block !important;
 }
 .setting-item select{
     width: 160px;
@@ -2006,7 +2013,7 @@ hr.context-menu-divider{
     justify-content: space-between;
     align-items: center;
     padding: var(--spacing-sm);
-    background: var(--surface-2);
+    background: var(--surface-alt);
     border-radius: var(--radius-md);
 }
 .weak-topic-info{
