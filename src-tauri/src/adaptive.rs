@@ -66,7 +66,7 @@ pub async fn find_weakest_topic(pool: &SqlitePool) -> Result<Option<String>, sql
             COALESCE(CAST(SUM(correct) AS REAL) / NULLIF(SUM(attempts), 0), 0.0) as accuracy
          FROM user_topic_stats
          GROUP BY topic_id
-         HAVING SUM(attempts) > 0
+         HAVING SUM(attempts) >= 3
          ORDER BY accuracy ASC
          LIMIT 1",
     )
