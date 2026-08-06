@@ -164,9 +164,12 @@ export async function setupEventListeners(): Promise<void>{
                 if (modal && modal.classList.contains("show")) {
                     modal.classList.remove("show");
                     modal.classList.add("hidden");
-                    if (modal===dom.modals.settingsModal) settings.closeSettings();
-                    else if (modal===dom.modals.shortcutsModal) ui.hideShortcutsModal();
-                    else if (modal===dom.modals.onboardingOverlay) ui.hideOnboarding();
+                    if (modal===dom.modals.settingsModal){ settings.closeSettings(); document.getElementById("settings-button")?.focus(); }
+                    else if (modal===dom.modals.shortcutsModal){ ui.hideShortcutsModal(); document.getElementById("shortcuts-button")?.focus(); }
+                    else if (modal===dom.modals.onboardingOverlay){ ui.hideOnboarding(); }
+                    else if (modal===dom.modals.printModal){ document.getElementById("print-worksheet-btn")?.focus(); }
+                    else if (modal===dom.modals.weakTopicsModal){ document.getElementById("recommend-btn")?.focus(); }
+                    else if (modal===dom.modals.dataModal){ document.getElementById("manage-data-btn")?.focus(); }
                 }
             });
         }
