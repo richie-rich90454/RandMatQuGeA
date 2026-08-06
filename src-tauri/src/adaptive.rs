@@ -166,3 +166,24 @@ mod tests {
         assert_eq!(recommend_next_difficulty(-0.1), Difficulty::Easy);
     }
 }
+
+    #[test]
+    fn test_recommend_nan_returns_medium() {
+        assert_eq!(recommend_next_difficulty(f64::NAN), Difficulty::Medium);
+    }
+    #[test]
+    fn test_recommend_just_below_medium_boundary() {
+        assert_eq!(recommend_next_difficulty(0.39999), Difficulty::Easy);
+    }
+    #[test]
+    fn test_recommend_just_above_easy_boundary() {
+        assert_eq!(recommend_next_difficulty(0.40001), Difficulty::Medium);
+    }
+    #[test]
+    fn test_recommend_just_below_hard_boundary() {
+        assert_eq!(recommend_next_difficulty(0.79999), Difficulty::Medium);
+    }
+    #[test]
+    fn test_recommend_just_above_hard_boundary() {
+        assert_eq!(recommend_next_difficulty(0.80001), Difficulty::Hard);
+    }
