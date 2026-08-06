@@ -12,7 +12,6 @@ export function resetTopicGrid(): void{
 }
 export function renderTopicGrid(): void{
 	if (!dom.displays.topicGrid) return;
-	let hadSelection=!!appState.selectedTopic;
 	let currentScope=appState.currentMode==="single"?appState.scope:appState.mentalScope;
 	let allowedIds=scopeTopics[currentScope as keyof typeof scopeTopics]||scopeTopics.simple;
 	let filteredTopics=topics.filter(t=>allowedIds.includes(t.id));
@@ -57,7 +56,7 @@ export function renderTopicGrid(): void{
 			if (dom.displays.currentTopicDisplay) dom.displays.currentTopicDisplay.textContent="Select a topic";
 		}
 	}
-	else if (!appState.selectedTopic&&displayedTopics.length>0&&!hadSelection){
+	else if (!appState.selectedTopic&&displayedTopics.length>0&&!searchTerm){
 		selectTopic(displayedTopics[0].id);
 	}
 	else if (appState.selectedTopic){
