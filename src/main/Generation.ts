@@ -1,4 +1,4 @@
-﻿﻿import{dom}from"./core/DomRegistry";
+﻿import{dom}from"./core/DomRegistry";
 import{appState}from"./core/StateStore";
 import{questionState}from"./core/QuestionState";
 import{renderer}from"./core/QuestionRenderer";
@@ -63,8 +63,9 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
     let hasExplicitTopic=typeof explicitTopicId==="string"&&explicitTopicId.length>0;
     let adaptiveActive=false;
     if(hasExplicitTopic){
-        appState.selectedTopic=explicitTopicId!;
-        topics.selectTopic(explicitTopicId!);
+        if(appState.selectedTopic!==explicitTopicId){
+            topics.selectTopic(explicitTopicId!);
+        }
     }
     else{
         adaptiveActive=await applyAdaptiveSafe();
@@ -72,7 +73,12 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
     if (!adaptiveActive&&!hasExplicitTopic&&appState.shuffle&&appState.currentMode==="single"){
         let randomTopic=topics.pickRandomTopic();
         if (randomTopic){
-            topics.selectTopic(randomTopic);
+            appState.selectedTopic=randomTopic;
+            document.querySelectorAll(".topic-pill").forEach(item=>{
+                item.classList.remove("active");
+            });
+            let selectedElement=document.querySelector(`[data-topic-id="${randomTopic}"]`);
+            if(selectedElement)selectedElement.classList.add("active");
         }
         else{
             ui.showNotification("No topics available in current scope","warning");
