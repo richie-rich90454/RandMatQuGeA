@@ -1,5 +1,5 @@
-const PRECACHE="precache-v3.0.0";
-const RUNTIME="runtime-v3.0.0";
+const PRECACHE="precache-v3.0.1";
+const RUNTIME="runtime-v3.0.1";
 const PRECACHE_URLS=[
 	".",
 	"index.html",
@@ -113,6 +113,26 @@ self.addEventListener("fetch",(event)=>{
 		sameOrigin=false;
 	}
 	if (!sameOrigin){
+		return;
+	}
+	// Navigation (HTML) requests: network-first so rebuilt bundles are always
+	// picked up, with a cached fallback for offline use.
+	if (event.request.mode==="navigate"){
+		event.respondWith(
+			fetch(event.request).then((r)=>{
+				if (r&&r.ok){
+					const copy=r.clone();
+					caches.open(RUNTIME).then((cache)=>{
+						cache.put(event.request, copy);
+					}).catch(()=>{});
+				}
+				return r;
+			}).catch(()=>{
+				return caches.match(event.request).then((c)=>{
+					return c||caches.match(new URL("index.html", self.registration.scope)).then((h)=>h||Response.error());
+				});
+			})
+		);
 		return;
 	}
 	event.respondWith(
