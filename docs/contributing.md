@@ -8,9 +8,10 @@ editLink: true
 
 ```bash
 npm install
-npm run dev       # Web dev server
-npm run typecheck # TypeScript check
-npm run test:run  # Run all tests
+npm run dev        # Web dev server on :1331
+npm run typecheck  # TypeScript check
+npm run test:run   # Unit tests (Vitest)
+npm run test:e2e   # End-to-end tests (Playwright, system Chrome)
 ```
 
 ## Project Conventions
@@ -18,13 +19,13 @@ npm run test:run  # Run all tests
 ### Code Style
 
 - TypeScript with strict mode enabled
-- No semicolons, single quotes
+- Semicolons at the end of statements
 - 4-space indentation, no trailing whitespace
 - `let` over `const` throughout
 - No blank lines between statements
-- Brace on same line (`if (x) {`)
+- Brace on same line (`if (x) {`), `else if` / `else` on their own lines
 - No space after function name before `(`
-- Arrow functions with explicit `return` when multi-line
+- No spaces around operators (`a+b`, `let x=1;`)
 
 ### Adding a New Topic Generator
 
@@ -50,15 +51,14 @@ Every generator must return a valid `QuestionDto`:
 
 ### Testing
 
-- Vitest with jsdom environment
-- Tests mirror the `src/` structure under `src/__tests__/`
-- Run: `npm run test:run`
-- Coverage: `npm run test:coverage`
+- **Unit tests**: Vitest with jsdom environment. Tests mirror the `src/` structure under `src/__tests__/` — run with `npm run test:run` (7,000+ cases) or `npm run test:coverage`.
+- **E2E tests**: Playwright in `e2e/` — `npm run test:e2e`. Uses your installed Chrome (`channel: "chrome"`, no browser download) and auto-starts the Vite dev server on port 1331. A full matrix spec exercises every topic × difficulty.
+- **Rust tests**: `cargo test` in `src-tauri/` (200+ cases).
 
 ## Pull Request Process
 
 1. Fork the repo and create a feature branch
-2. Ensure `npm run check` passes (typecheck + tests)
+2. Ensure `npm run check` passes (typecheck + unit tests) and `npm run test:e2e` is green for UI changes
 3. Open a PR against `main` with a clear description
 4. Keep changes focused — one feature per PR
 5. Include tests for new functionality

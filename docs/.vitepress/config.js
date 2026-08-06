@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 export default defineConfig({
     title: "RandMatQuGeA",
-    description: "Random math question generator — 134+ topics across 7 subjects",
+    description: "Random math question generator — 125 topics across 7 subjects",
     base: "/",
     lang: "en-US",
     themeConfig: {
