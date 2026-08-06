@@ -1,4 +1,4 @@
-﻿﻿/**
+﻿/**
  * Advanced trigonometry: inverse trig functions, equations, graphs.
  * @fileoverview Generates questions on inverse trigonometric functions, solving trigonometric equations, and interpreting trig graphs. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers for MCQ mode.
  * @date 2026-04-18
@@ -466,7 +466,7 @@ export function generateTrigGraphs(difficulty?: string, rng: RngFn = Math.random
 			}
 			else{
 				const period=Math.PI/B;
-				let firstAsymp=(Math.PI/2 - C)/B;
+				let firstAsymp=(Math.PI/2 + C)/B;
 				if(firstAsymp<0) firstAsymp+=period;
 				const exactAsymp=formatPiFraction(firstAsymp);
 				questionText=`Give the equation of the vertical asymptote that lies between 0 and π/${B.toFixed(2)}.`;
