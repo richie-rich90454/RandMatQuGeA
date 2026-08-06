@@ -15,6 +15,7 @@
     "test:watch": "vitest watch",
     "test:run": "vitest run",
     "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
     "bundle:check": "node scripts/bundle-check.js",
     "check": "npm run build:typescript && npm run test:run"
   },
@@ -42,6 +43,7 @@
   },
   "description": "Random math question generator made with HTML, CSS, and JS.",
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tauri-apps/cli": "^2.11.4",
     "@types/node": "^26.1.2",
     "@types/semver": "^7.8.0",
