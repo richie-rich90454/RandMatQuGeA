@@ -32,9 +32,9 @@ describe("generateRationalEquation", ()=>{
 			.mockReturnValueOnce(0.8);
 		const dto=generateRationalEquation("medium", rng);
 		expect(dto.latex).toBe("Solve and check for extraneous solutions: \\( \\frac{1}{x - 2} = \\frac{4}{x - 2} + 1 \\)");
-		expect(dto.correct).toBe("no solution");
-		expect(dto.alternate).toBe("no solution");
-		expect(dto.display).toBe("no solution");
+		expect(dto.correct).toBe("-1.00");
+		expect(dto.alternate).toBe("-1");
+		expect(dto.display).toBe("-1.00");
 		expect(dto.expectedFormat).toBe("Enter 'no solution' or the solution");
 		expect(dto.choices).toContain("no solution");
 	});
