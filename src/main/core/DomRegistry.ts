@@ -174,6 +174,10 @@ export class DomRegistry{
             get settingsVibration(){return self.getElement<HTMLInputElement>("settings-vibration");},
             get settingsMcqChoices(){return self.getElement<HTMLInputElement>("settings-mcq-choices");},
             get settingsAdaptive(){return self.getElement<HTMLInputElement>("settings-adaptive");},
+            get settingsPersistence(){return self.getElement<HTMLSelectElement>("settings-persistence");},
+            get settingsPersistenceHelp(){return self.getElement("settings-persistence-help");},
+            get settingEraseData(){return self.getElement("setting-erase-data");},
+            get settingsEraseData(){return self.getElement<HTMLButtonElement>("settings-erase-data");},
         };
     }
     get session(){
