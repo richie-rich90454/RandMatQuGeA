@@ -12,7 +12,9 @@ import{relaunch}from"@tauri-apps/plugin-process";
 import{isTauri}from"../utils/envUtils";
 import * as storage from"./services/Storage";
 import * as reviewStore from"./services/ReviewStore";
+import * as help from"./services/Help";
 import type{PersistenceMode}from"./services/Storage";
+import type{Confidence}from"./services/Scheduler";
 import packageJson from"../../package.json";
 export async function isVersionGreater(v1: string, v2: string): Promise<boolean>{
     let semver=(await import("semver")).default;
@@ -306,6 +308,23 @@ export async function setupEventListeners(): Promise<void>{
             await reviewStore.forgetEverything();
             await storage.clear();
             ui.showNotification("Your learning record has been erased from this device.");
+        });
+    }
+    if (dom.help.showHintBtn){
+        dom.help.showHintBtn.addEventListener("click",()=>{
+            help.revealNextHint();
+        });
+    }
+    if (dom.help.showSolutionBtn){
+        dom.help.showSolutionBtn.addEventListener("click",()=>{
+            help.showSolution();
+        });
+    }
+    for(let button of dom.help.confidenceButtons){
+        button.addEventListener("click",()=>{
+            let value=button.dataset.confidence as Confidence|undefined;
+            if (!value) return;
+            help.recordConfidence(value);
         });
     }
     if (dom.buttons.checkUpdatesBtn){
