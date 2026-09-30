@@ -226,6 +226,30 @@ export async function clear(): Promise<void>{
 }
 
 /**
+ * Reports whether this build can keep a learner's history at all. The desktop
+ * build has its own local database, so it is usable regardless of the browser
+ * storage mode, which is why the answer is not simply whether the mode is
+ * persistent.
+ *
+ * @returns True when a record written now would still be there after a reload.
+ */
+export function isPersistenceUsable(): boolean{
+    return mode==="desktop"||mode==="indexed";
+}
+
+/**
+ * Reports whether a durable write is actually possible in this browser, which is
+ * a separate question from whether the mode permits one.
+ *
+ * @returns A promise resolving to true when a write can succeed.
+ */
+export async function isPersistenceUsableHere(): Promise<boolean>{
+    if (mode==="desktop") return true;
+    if (mode!=="indexed") return false;
+    return isPersistenceAvailable();
+}
+
+/**
  * Moves anything already held in localStorage into the store the current mode
  * uses, then removes it from localStorage. This is what makes the switch from
  * the previous behaviour real rather than cosmetic: a record that was written
