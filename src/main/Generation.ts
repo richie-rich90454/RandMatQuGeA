@@ -7,6 +7,7 @@ import * as ui from "./Ui";
 import * as topics from "./Topics";
 import{generateQuestion as callGenerator}from"./QuestionGenerator";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
+import type{RngFn}from"../types/global";
 import{invoke}from"@tauri-apps/api/core";
 import * as settings from "./Settings";
 import{startQuestionTimer}from"./Answer";
@@ -53,7 +54,7 @@ async function applyAdaptiveSafe(): Promise<boolean>{
     if (!isTauri()||!settings.settings.adaptive) return false;
     return applyAdaptiveRecommendation();
 }
-export async function generateQuestion(explicitTopicId?: string): Promise<void>{
+export async function generateQuestion(explicitTopicId?: string, rng?: RngFn): Promise<void>{
     if (appState.isGenerating) return;
     appState.isGenerating=true;
     try{
@@ -113,7 +114,10 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
     dom.inputs.userAnswer.disabled=true;
     showQuestionSkeleton();
     try {
-        await callGenerator(appState.selectedTopic,appState.currentDifficulty);
+        // The source is threaded through rather than left to each generator's
+        // default, so a caller that supplies a seed gets the same question, and
+        // the same option order, on every visit.
+        await callGenerator(appState.selectedTopic,appState.currentDifficulty,rng);
         hideQuestionSkeleton();
         if (!questionState.correctAnswer.correct){
             renderer.render(`<div class="empty-state"><p>Could not generate question. Please try another topic.</p></div>`);
@@ -125,7 +129,7 @@ export async function generateQuestion(explicitTopicId?: string): Promise<void>{
         }
         questionState.hasQuestion=true;
         if (appState.mcqMode){
-            await generateChoicesForCurrentQuestion();
+            await generateChoicesForCurrentQuestion(rng);
         }
         startQuestionTimer();
     } catch (error) {
