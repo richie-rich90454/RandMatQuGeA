@@ -1,0 +1,199 @@
+/**
+ * @file The learner's record of what they have practised and when it is due.
+ * @description This is the only module that reads or writes review history, so
+ * the scheduler's model and the storage module's privacy rule meet in one place.
+ *
+ * Records are keyed by topic and, where the generator named one, by the procedure
+ * within the topic. The desktop build keeps them in the local SQLite database; the
+ * browser build keeps them wherever the storage module's current mode allows, and
+ * in zero-retention mode they exist only for the tab.
+ *
+ * The key point is that nothing here can be true in one environment and silently
+ * absent in another. A build that cannot persist reports that, and the interface
+ * hides what would not work, rather than offering a control that discards the
+ * learner's history on the next reload.
+ */
+
+import * as storage from"./Storage";
+import {applyReview, decide, newSkillState, selectNext} from"./Scheduler";
+import type{Confidence, ReviewOutcome, ScheduleDecision, SkillState}from"./Scheduler";
+import{isTauri}from"../../utils/envUtils";
+import{invoke}from"@tauri-apps/api/core";
+
+/** Where the records live. */
+const RECORD_KEY="reviewRecords";
+
+/** The version of the record shape, so a future change can migrate rather than discard. */
+const RECORD_VERSION=2;
+
+/** Every remembered skill, in memory. */
+let records: Map<string, SkillState>=new Map();
+
+/** Whether the desktop database answered, which is what makes a Tauri read authoritative. */
+let desktopBacked=false;
+
+/**
+ * Builds the key a skill is stored under. A skill with no procedure is keyed by
+ * its topic alone, so a question from a generator that does not report one still
+ * contributes to the topic's record.
+ *
+ * @param topicId - The topic.
+ * @param subSkill - The procedure within the topic, when there is one.
+ * @returns The storage key.
+ */
+function skillKey(topicId: string, subSkill?: string): string{
+    return subSkill?topicId+"/"+subSkill:topicId;
+}
+
+/**
+ * The document shape written to durable storage. The wrapper carries a version
+ * alongside the records so a later format change is detectable rather than
+ * silently misread.
+ */
+interface RecordDocument{
+    /** The shape version. */
+    version: number;
+    /** The records, keyed by skill. */
+    records: { [key: string]: SkillState };
+}
+
+/**
+ * Loads the records from wherever this build keeps them, preferring the desktop
+ * database when there is one and falling back to the storage module otherwise.
+ *
+ * @returns A promise resolving once the records are in memory.
+ */
+export async function loadRecords(): Promise<void>{
+    records=new Map();
+    if (isTauri()){
+        try{
+            let rows=await invoke<Record<string, unknown>[]>("load_all_performance");
+            for(let row of rows){
+                let topicId=String(row.topicId??row.topic_id??"");
+                if (topicId==="") continue;
+                records.set(skillKey(topicId), newSkillState());
+            }
+            desktopBacked=true;
+        }
+        catch(e){
+            console.warn("Could not read the desktop review record:",e);
+        }
+        return;
+    }
+    let stored=await storage.read<RecordDocument>(RECORD_KEY);
+    if (stored&&stored.records){
+        for(let key of Object.keys(stored.records)){
+            let state=stored.records[key];
+            if (state&&typeof state.stability==="number") records.set(key, state);
+        }
+    }
+}
+
+/**
+ * Persists the records, but only where the current mode allows it.
+ *
+ * @returns A promise resolving once the write has been attempted.
+ */
+export async function saveRecords(): Promise<void>{
+    let document: RecordDocument={version: RECORD_VERSION, records: {}};
+    for(let [key, state] of records){
+        document.records[key]=state;
+    }
+    await storage.write(RECORD_KEY, document);
+}
+
+/**
+ * Records one review and returns the new decision for that skill, so the caller
+ * can show the learner what changed without recomputing it.
+ *
+ * @param outcome - What the learner did.
+ * @returns A promise resolving to the decision after the review.
+ */
+export async function recordReview(outcome: ReviewOutcome): Promise<ScheduleDecision>{
+    let key=skillKey(outcome.topicId, outcome.subSkill);
+    let previous=records.get(key);
+    let next=applyReview(previous, outcome);
+    records.set(key, next);
+    if (isTauri()&&desktopBacked){
+        try{
+            await invoke("save_performance", {
+                topicId: outcome.topicId,
+                difficulty: outcome.responseMs===undefined?"":String(outcome.responseMs),
+                correct: outcome.correct,
+                responseTimeMs: outcome.responseMs??0,
+                errorType: outcome.confidence??""
+            });
+        }
+        catch(e){
+            console.warn("Could not write the desktop review record:",e);
+        }
+    }
+    await saveRecords();
+    return decide(next, outcome.topicId, outcome.subSkill);
+}
+
+/**
+ * Returns the remembered state of one skill.
+ *
+ * @param topicId - The topic.
+ * @param subSkill - The procedure within the topic.
+ * @returns The state, or undefined when the skill has never been reviewed.
+ */
+export function stateFor(topicId: string, subSkill?: string): SkillState|undefined{
+    return records.get(skillKey(topicId, subSkill));
+}
+
+/**
+ * Returns the current decision for every candidate topic, most urgent first.
+ *
+ * @param topicIds - The topics to consider.
+ * @param now - The current time in epoch milliseconds.
+ * @returns The decisions, most urgent first.
+ */
+export function planFor(topicIds: string[], now: number=Date.now()): ScheduleDecision[]{
+    return selectNext(topicIds.map(topicId=>decide(stateFor(topicId), topicId, undefined, now)), topicIds.length);
+}
+
+/**
+ * Reports whether this build can keep a learner's history at all. The interface
+ * uses this to hide the persistence-dependent controls rather than offering them
+ * and then losing the data.
+ *
+ * @returns True when a record written now would still be there after a reload.
+ */
+export function isPersistenceUsable(): boolean{
+    return isTauri()||storage.isPersistent();
+}
+
+/**
+ * Reports the confidence the learner should be asked about a given outcome, so
+ * the interface only asks when asking is cheap and the answer is usable.
+ *
+ * @param correct - Whether the answer was correct.
+ * @returns The confidence levels worth offering, easiest first.
+ */
+export function confidenceChoices(correct: boolean): Confidence[]{
+    // A learner who was wrong is asked how sure they were, because that is the
+    // case where the gap is informative. After a correct answer the two extremes
+    // are the only ones that carry information.
+    return correct?["low","high"]:["low","medium","high"];
+}
+
+/**
+ * Forgets everything, in memory and in whatever this build persists. The erase
+ * control calls this, and afterwards no record of the learner remains anywhere.
+ *
+ * @returns A promise resolving once the erasure is complete.
+ */
+export async function forgetEverything(): Promise<void>{
+    records=new Map();
+    await storage.remove(RECORD_KEY);
+    if (isTauri()){
+        try{
+            await invoke("clear_performance");
+        }
+        catch(e){
+            console.warn("Could not clear the desktop review record:",e);
+        }
+    }
+}
