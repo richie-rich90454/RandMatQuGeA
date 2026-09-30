@@ -120,6 +120,9 @@ export let topics: Topic[]=[
     {id: "infinite_series", name: "Infinite Series", icon: "∑∞", category: "Discrete Math"},
     {id: "induction", name: "Induction", icon: "n→n+1", category: "Discrete Math"},
     {id: "binomial", name: "Binomial Theorem", icon: "(a+b)ⁿ", category: "Discrete Math"},
+    {id: "divisibility", name: "Divisibility & Factors", icon: "a|b", category: "Discrete Math"},
+    {id: "gcd_lcm", name: "GCD & LCM", icon: "gcd", category: "Discrete Math"},
+    {id: "modular", name: "Modular Arithmetic", icon: "n mod m", category: "Discrete Math"},
     // Geometry
     {id: "area_circle", name: "Area of Circle", icon: "◯ A", category: "Geometry"},
     {id: "pythag", name: "Pythagorean Theorem", icon: "△", category: "Geometry"},
@@ -153,6 +156,7 @@ export let scopeTopics = {
         "line_plane_3d","arithmetic_sequence","geometric_sequence","sequence_limit",
         "infinite_series","induction","binomial","system3x3","row_echelon3x3",
         "partial_fractions","linear_programming","vector3d","line3d","plane3d",
+        "divisibility","gcd_lcm","modular",
         "deg_to_rad","rad_to_deg","arc_length","angular_speed",
         "right_triangle_defs","special_triangle","elev_dep","reference_angle",
         "astc_sign","sum_diff","double_angle","half_angle","polar_to_rect",
