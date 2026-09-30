@@ -73,18 +73,13 @@ export function generateTriangleClassification(_difficulty?: string, rng: RngFn=
     else if(a===b||b===c||a===c) type="isosceles";
     else type="scalene";
     const correct=type;
-    const mathExpression=`Classify the triangle with sides \\( ${a}, ${b}, ${c} \\).`;
-    const choices=[correct];
-    if(type==="equilateral"){
-        choices.push("isosceles","scalene","right");
-    }
-    else if(type==="isosceles"){
-        choices.push("equilateral","scalene","right");
-    }
-    else{
-        choices.push("equilateral","isosceles","right");
-    }
-    let uniqueChoices=[...new Set(choices)].slice(0,4);
+    // The question says by side lengths, and says what each word means.
+    // Without that, an equilateral triangle is also isosceles and a 3-4-5 is
+    // also right, so the offered options contained second and third correct
+    // answers drawn from a different classification axis.
+    const mathExpression=`Classify the triangle with sides \\( ${a}, ${b}, ${c} \\) by its side lengths, where equilateral means all three sides equal, isosceles means exactly two sides equal, and scalene means no two sides equal.`;
+    const choices=[correct, "equilateral", "isosceles", "scalene"].filter((label, i, all)=>all.indexOf(label)===i);
+    const uniqueChoices=[...new Set(choices)].slice(0,4);
     if(!uniqueChoices.includes(correct)){
         if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
         else uniqueChoices=[correct];
