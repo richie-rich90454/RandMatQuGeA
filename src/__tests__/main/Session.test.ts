@@ -240,6 +240,11 @@ describe("session",()=>{
         });
     });
     describe("endMentalSession",()=>{
+        beforeEach(()=>{
+            vi.clearAllMocks();
+            state.setSessionActive(true);
+            state.setSessionPaused(true);
+        });
         it("should be a function",()=>{
             expect(typeof endMentalSession).toBe("function");
         });
@@ -254,6 +259,13 @@ describe("session",()=>{
         it("should show final score",async()=>{
             await endMentalSession();
             expect(ui.showNotification).toHaveBeenCalled();
+        });
+        it("should no-op when no session is active",async()=>{
+            state.setSessionActive(false);
+            vi.clearAllMocks();
+            await endMentalSession();
+            expect(state.setSessionActive).not.toHaveBeenCalled();
+            expect(ui.showNotification).not.toHaveBeenCalled();
         });
     });
     describe("pauseMentalSession",()=>{
