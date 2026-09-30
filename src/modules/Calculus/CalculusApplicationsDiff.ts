@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
 /**
  * Generates and displays a random "applications of derivatives" question in the global `questionArea`.
@@ -58,18 +58,24 @@ export function generateApplicationsDiff(difficulty?: string, rng: RngFn=Math.ra
             let a=Math.floor(rng()*maxCoeff)+1;
             let b=Math.floor(rng()*maxCoeff)+1;
             let x0=Math.floor(rng()*5)+1;
-            let point=a*x0+b;
+            // The correction term is 0.1/(2*sqrt(point)), so it shrinks as the
+            // radicand grows. Past 25 it falls below 0.01 and the estimate
+            // prints identically to the true value at three decimals, which
+            // silently collapsed this option set to three options. Bounding the
+            // radicand keeps the estimate and the true value visibly apart.
+            let point=Math.min(a*x0+b, 25);
             let approx=Math.sqrt(point)+(0.1)/(2*Math.sqrt(point));
             mathExpression=`\\[ \\text{Use linear approximation to estimate } \\sqrt{${point+0.1}}. \\]`;
             plainCorrectAnswer=approx.toFixed(3);
             latexAnswer=plainCorrectAnswer;
             expectedFormat="Enter a decimal";
             let correctNum=parseFloat(plainCorrectAnswer);
+            let trueValue=Math.sqrt(point+0.1);
             choices=[plainCorrectAnswer];
             choices.push((correctNum+0.05).toFixed(3));
             choices.push((correctNum-0.05).toFixed(3));
-            choices.push((Math.sqrt(point+0.1)).toFixed(3));
-            choices.push((Math.sqrt(point+0.1)+0.05).toFixed(3));
+            choices.push(trueValue.toFixed(3));
+            choices.push((trueValue+0.05).toFixed(3));
             break;
         }
         case "lhopital":{
@@ -186,6 +192,11 @@ export function generateApplicationsDiff(difficulty?: string, rng: RngFn=Math.ra
             break;
         }
         case "secondDerivativeTest":{
+            // f(x)=x^3-ax has f''(0)=0 at every a, so the test is always
+            // inconclusive. The distractors therefore have to stay within what
+            // the test can actually conclude, and "inflection point" is a true
+            // description of x=0 for this function, so it cannot be a wrong
+            // option next to "inconclusive".
             let a=Math.floor(rng()*maxCoeff)+1;
             mathExpression=`\\[ f(x)=x^3-${a}x. \\text{ Use second derivative test at } x=0. \\]`;
             plainCorrectAnswer="inconclusive";
@@ -195,7 +206,7 @@ export function generateApplicationsDiff(difficulty?: string, rng: RngFn=Math.ra
             choices.push("local maximum");
             choices.push("local minimum");
             choices.push("saddle point");
-            choices.push("inflection point");
+            choices.push("concave up");
             break;
         }
         case "graphSketch":{
