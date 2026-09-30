@@ -160,6 +160,20 @@ export class DomRegistry{
             get confidenceButtons(){return self.queryElementAll<HTMLButtonElement>(".confidence-button");},
         };
     }
+    /** The daily challenge mode. */
+    get daily(){
+        let self=this;
+        return{
+            get modeDailyBtn(){return self.getElement<HTMLButtonElement>("mode-daily");},
+            get dailySummary(){return self.getElement("daily-summary");},
+            get dailyProgress(){return self.getElement("daily-progress");},
+            get dailyProgressFill(){return self.getElement("daily-progress-fill");},
+            get dailySummaryText(){return self.getElement("daily-summary-text");},
+            get dailyStartBtn(){return self.getElement<HTMLButtonElement>("daily-start");},
+            get dailyStreak(){return self.getElement("daily-streak");},
+            get dailyStreakCount(){return self.getElement("daily-streak-count");},
+        };
+    }
     get settings(){
         let self=this;
         return{
