@@ -37,8 +37,11 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        # The desktop and mobile-chrome projects use the bundled Chromium, and the
+        # mobile-safari project's iPhone descriptor runs on WebKit, so both
+        # engines are needed.
+        run: npx playwright install --with-deps chromium webkit
       - name: End-to-end tests
         run: npm run test:e2e
   oracle:
