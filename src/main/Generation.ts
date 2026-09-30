@@ -116,8 +116,14 @@ export async function generateQuestion(explicitTopicId?: string, rng?: RngFn): P
     try {
         // The source is threaded through rather than left to each generator's
         // default, so a caller that supplies a seed gets the same question, and
-        // the same option order, on every visit.
-        await callGenerator(appState.selectedTopic,appState.currentDifficulty,rng);
+        // the same option order, on every visit. It is only passed when there
+        // is one, so an unseeded caller keeps the generators' own default.
+        if (rng){
+            await callGenerator(appState.selectedTopic,appState.currentDifficulty,rng);
+        }
+        else{
+            await callGenerator(appState.selectedTopic,appState.currentDifficulty);
+        }
         hideQuestionSkeleton();
         if (!questionState.correctAnswer.correct){
             renderer.render(`<div class="empty-state"><p>Could not generate question. Please try another topic.</p></div>`);
