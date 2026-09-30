@@ -10,6 +10,9 @@ import * as session from"./Session";
 import{check}from"@tauri-apps/plugin-updater";
 import{relaunch}from"@tauri-apps/plugin-process";
 import{isTauri}from"../utils/envUtils";
+import * as storage from"./services/Storage";
+import * as reviewStore from"./services/ReviewStore";
+import type{PersistenceMode}from"./services/Storage";
 import packageJson from"../../package.json";
 export async function isVersionGreater(v1: string, v2: string): Promise<boolean>{
     let semver=(await import("semver")).default;
@@ -280,6 +283,29 @@ export async function setupEventListeners(): Promise<void>{
         dom.settings.settingsAdaptive.addEventListener("change",(e)=>{
             settings.previewSetting("adaptive",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err));
             settings.saveSettings();
+        });
+    }
+    if (dom.settings.settingsPersistence){
+        dom.settings.settingsPersistence.addEventListener("change",async (e)=>{
+            let chosen: PersistenceMode=(e.target as HTMLSelectElement).value==="indexed"?"indexed":"zdr";
+            await settings.applyPersistence(chosen);
+            settings.applyPersistenceVisibility();
+            // A private session keeps the record in memory only, so it has to be
+            // read again from the store the new choice uses rather than left as it
+            // was when the session began.
+            await reviewStore.loadRecords();
+            settings.saveSettings();
+            ui.showNotification(chosen==="zdr"
+                ? "Private session on. Nothing will be kept after you close this tab."
+                : "Your progress will be remembered in this browser.");
+        });
+    }
+    if (dom.settings.settingsEraseData){
+        dom.settings.settingsEraseData.addEventListener("click",async ()=>{
+            if (!confirm("Erase your learning record and streak from this device? This cannot be undone.")) return;
+            await reviewStore.forgetEverything();
+            await storage.clear();
+            ui.showNotification("Your learning record has been erased from this device.");
         });
     }
     if (dom.buttons.checkUpdatesBtn){
