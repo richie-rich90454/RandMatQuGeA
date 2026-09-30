@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
 function gcd(a: number, b: number): number{
     while(b){
@@ -296,8 +296,13 @@ export function generateIntegral(difficulty?: string, rng: RngFn=Math.random): Q
             const a=0;
             const b=Math.floor(rng()*4)+1;
             const area=chosen.antideriv(b)-chosen.antideriv(a);
+            // The prompt was never assigned in this branch, so the question
+            // rendered blank next to a graded number.
+            mathExpression=`\\[ \\text{Find the area under } y=${chosen.expr} \\text{ from } ${a} \\text{ to } ${b} \\]`;
             plainCorrectIntegral=formatNumber(area);
             latexAnswer=plainCorrectIntegral;
+            // The area is a number, not an expression, so the returned format
+            // hint has to say so rather than asking for an antiderivative.
             const correctNum=parseFloat(plainCorrectIntegral);
             choices=[plainCorrectIntegral];
             choices.push((correctNum+1).toFixed(2));
