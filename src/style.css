@@ -2232,3 +2232,84 @@ body,
 .footer-content{
     padding-bottom: calc(var(--spacing-sm) + var(--safe-bottom));
 }
+/* ========================================
+   HELP AND CONFIDENCE
+   ======================================== */
+.hint-panel{
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+.hint-row{
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: baseline;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.hint-label{
+    flex: 0 0 auto;
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.hint-text{
+    flex: 1 1 auto;
+}
+.help-footer{
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    align-items: flex-start;
+}
+.help-footer .hint-panel{
+    flex: 1 0 100%;
+}
+.confidence-row{
+    margin-top: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+.confidence-label{
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+.confidence-buttons{
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+.confidence-button{
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+.confidence-button.selected{
+    background: var(--primary);
+    color: var(--text-on-primary);
+    border-color: var(--primary);
+}
+.setting-help{
+    margin: var(--spacing-xs) 0 0;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+@media (max-width: 480px){
+    .confidence-row{
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .confidence-buttons{
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+}
