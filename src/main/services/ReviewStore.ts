@@ -15,7 +15,7 @@
  */
 
 import * as storage from"./Storage";
-import{applyReview, decide, newSkillState, selectNext}from"./Scheduler";
+import{applyReview, decide, selectNext}from"./Scheduler";
 import type{ReviewOutcome, ScheduleDecision, SkillState}from"./Scheduler";
 import{isTauri}from"../../utils/envUtils";
 import{invoke}from"@tauri-apps/api/core";
@@ -25,6 +25,9 @@ const RECORD_KEY="reviewRecords";
 
 /** The version of the record shape, so a future change can migrate rather than discard. */
 const RECORD_VERSION=2;
+
+/** The stability a skill nobody has reviewed starts with. */
+const INITIAL_STABILITY=1;
 
 /** Every remembered skill, in memory. */
 let records: Map<string, SkillState>=new Map();
@@ -58,6 +61,22 @@ interface RecordDocument{
 }
 
 /**
+ * A row as the desktop database returns it, which is snake_case and partial
+ * because an older database may predate any given column.
+ */
+interface DesktopSkillRow{
+    topic_id?: string;
+    sub_skill?: string;
+    stability?: number;
+    difficulty?: number;
+    last_review?: number|null;
+    due?: number|null;
+    reviews?: number;
+    correct_reviews?: number;
+    aoa?: number;
+}
+
+/**
  * Loads the records from wherever this build keeps them, preferring the desktop
  * database when there is one and falling back to the storage module otherwise.
  *
@@ -67,11 +86,20 @@ export async function loadRecords(): Promise<void>{
     records=new Map();
     if (isTauri()){
         try{
-            let rows=await invoke<Record<string, unknown>[]>("load_all_performance");
+            let rows=await invoke<DesktopSkillRow[]>("load_skill_schedule");
             for(let row of rows){
-                let topicId=String(row.topicId??row.topic_id??"");
-                if (topicId==="") continue;
-                records.set(skillKey(topicId), newSkillState());
+                let topicId=row.topic_id;
+                if (!topicId) continue;
+                let state: SkillState={
+                    stability: row.stability??INITIAL_STABILITY,
+                    difficulty: row.difficulty??5,
+                    reviews: row.reviews??0,
+                    correctReviews: row.correct_reviews??0,
+                    aoa: row.aoa??0
+                };
+                if (row.last_review!==null&&row.last_review!==undefined) state.lastReview=row.last_review;
+                if (row.due!==null&&row.due!==undefined) state.due=row.due;
+                records.set(skillKey(topicId, row.sub_skill||undefined), state);
             }
             desktopBacked=true;
         }
@@ -114,8 +142,11 @@ export async function recordReview(outcome: ReviewOutcome): Promise<ScheduleDeci
     let previous=records.get(key);
     let next=applyReview(previous, outcome);
     records.set(key, next);
+    let at=outcome.at??Date.now();
     if (isTauri()&&desktopBacked){
         try{
+            // Both writes happen: the aggregate the recommendations already read,
+            // and the full attempt that makes the history exportable.
             await invoke("save_performance", {
                 topicId: outcome.topicId,
                 difficulty: outcome.responseMs===undefined?"":String(outcome.responseMs),
@@ -125,8 +156,42 @@ export async function recordReview(outcome: ReviewOutcome): Promise<ScheduleDeci
             });
         }
         catch(e){
-            console.warn("Could not write the desktop review record:",e);
+            console.warn("Could not write the desktop aggregate:",e);
         }
+        try{
+            await invoke("save_attempt", {
+                topicId: outcome.topicId,
+                subSkill: outcome.subSkill??"",
+                difficulty: "",
+                correct: outcome.correct,
+                responseMs: outcome.responseMs??0,
+                confidence: outcome.confidence??null,
+                errorType: null,
+                answeredAt: at
+            });
+        }
+        catch(e){
+            console.warn("Could not write the recorded attempt:",e);
+        }
+        try{
+            await invoke("save_skill_schedule", {
+                skills: [{
+                    topicId: outcome.topicId,
+                    subSkill: outcome.subSkill??"",
+                    stability: next.stability,
+                    difficulty: next.difficulty,
+                    lastReview: next.lastReview??null,
+                    due: next.due??null,
+                    reviews: next.reviews,
+                    correctReviews: next.correctReviews,
+                    aoa: next.aoa
+                }]
+            });
+        }
+        catch(e){
+            console.warn("Could not write the desktop schedule:",e);
+        }
+        return decide(next, outcome.topicId, outcome.subSkill);
     }
     await saveRecords();
     return decide(next, outcome.topicId, outcome.subSkill);
