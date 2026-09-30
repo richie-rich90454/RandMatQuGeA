@@ -15,8 +15,8 @@
  */
 
 import * as storage from"./Storage";
-import {applyReview, decide, newSkillState, selectNext} from"./Scheduler";
-import type{Confidence, ReviewOutcome, ScheduleDecision, SkillState}from"./Scheduler";
+import{applyReview, decide, newSkillState, selectNext}from"./Scheduler";
+import type{ReviewOutcome, ScheduleDecision, SkillState}from"./Scheduler";
 import{isTauri}from"../../utils/envUtils";
 import{invoke}from"@tauri-apps/api/core";
 
@@ -152,31 +152,6 @@ export function stateFor(topicId: string, subSkill?: string): SkillState|undefin
  */
 export function planFor(topicIds: string[], now: number=Date.now()): ScheduleDecision[]{
     return selectNext(topicIds.map(topicId=>decide(stateFor(topicId), topicId, undefined, now)), topicIds.length);
-}
-
-/**
- * Reports whether this build can keep a learner's history at all. The interface
- * uses this to hide the persistence-dependent controls rather than offering them
- * and then losing the data.
- *
- * @returns True when a record written now would still be there after a reload.
- */
-export function isPersistenceUsable(): boolean{
-    return isTauri()||storage.isPersistent();
-}
-
-/**
- * Reports the confidence the learner should be asked about a given outcome, so
- * the interface only asks when asking is cheap and the answer is usable.
- *
- * @param correct - Whether the answer was correct.
- * @returns The confidence levels worth offering, easiest first.
- */
-export function confidenceChoices(correct: boolean): Confidence[]{
-    // A learner who was wrong is asked how sure they were, because that is the
-    // case where the gap is informative. After a correct answer the two extremes
-    // are the only ones that carry information.
-    return correct?["low","high"]:["low","medium","high"];
 }
 
 /**
