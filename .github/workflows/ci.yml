@@ -24,3 +24,32 @@ jobs:
         run: npm run build:web
       - name: Bundle budget check
         run: npm run bundle:check
+      - name: Rust tests
+        working-directory: src-tauri
+        run: cargo test
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: End-to-end tests
+        run: npm run test:e2e
+  oracle:
+    name: Symbolic generator oracle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+      - run: npm ci
+      - name: SymPy differential oracle
+        run: npm run test:oracle
