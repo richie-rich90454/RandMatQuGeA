@@ -1,4 +1,5 @@
 import type {RngFn, QuestionDto} from "../../../types/global";
+import{roundTo}from"../../shared/Numeric";
 /**
  * Generates a question about number sets (identify, classify, or compare numbers) with MCQ distractors.
  * @fileoverview Number sets identification. Sets window.correctAnswer with plain text description and plausible wrong answers.
@@ -16,27 +17,35 @@ export function generateNumberSets(_difficulty?: string, rng: RngFn=Math.random)
     let choices:string[]=[];
     switch(type){
         case "identify":{
-            let num=rng()*10;
-            let desc="";
+            // The value is rounded first and the rounded value is both printed
+            // and classified. Classifying the unrounded value labelled 3.001 as
+            // irrational while printing 3.00, which the same question defines as
+            // a natural number.
+            let num=roundTo(rng()*10, 2);
+            let shown=num.toFixed(2);
+            let desc;
             if(Number.isInteger(num)&&num>0) desc="natural, whole, integer, rational, real";
             else if(Number.isInteger(num)&&num<0) desc="integer, rational, real";
-            else if(num===Math.floor(num)) desc="rational, real";
-            else desc="irrational, real";
+            // Zero is a whole number and a rational number, but whether it is a
+            // natural number is a convention, so it is left out of the answer
+            // rather than guessed at.
+            else if(num===0) desc="whole, integer, rational, real";
+            else desc="rational, real";
             correct=desc;
             alternate=desc;
             display=desc;
-            mathExpression=`Identify all number sets for \\( ${num.toFixed(2)} \\) (natural, whole, integer, rational, irrational, real).`;
+            mathExpression=`Identify all number sets for \\( ${shown} \\) (natural, whole, integer, rational, irrational, real).`;
             if(desc.includes("natural")){
                 choices=[desc,"natural, whole, integer, real","integer, rational, real","rational, real","irrational, real"];
+            }
+            else if(desc.includes("whole")){
+                choices=[desc,"natural, whole, integer, rational, real","integer, rational, real","irrational, real","real"];
             }
             else if(desc.includes("integer")){
                 choices=[desc,"natural, whole, integer, rational, real","rational, real","irrational, real","whole, integer, rational, real"];
             }
-            else if(desc.includes("rational")){
-                choices=[desc,"natural, whole, integer, rational, real","integer, rational, real","irrational, real","real"];
-            }
             else{
-                choices=[desc,"natural, whole, integer, rational, real","integer, rational, real","rational, real","real"];
+                choices=[desc,"natural, whole, integer, rational, real","integer, rational, real","irrational, real","real"];
             }
             break;
         }
@@ -56,8 +65,11 @@ export function generateNumberSets(_difficulty?: string, rng: RngFn=Math.random)
             break;
         }
         case "compare":{
-            let a=rng()*10;
-            let b=rng()*10;
+            // Rounded before comparing for the same reason as the identify
+            // branch: 3.001 and 3.002 print as 3.00 and 3.00, so a question built
+            // on the unrounded values asked the learner to grade 3.00 < 3.00.
+            let a=roundTo(rng()*10, 2);
+            let b=roundTo(rng()*10, 2);
             let comp=a<b?"<":a>b?">":"=";
             correct=comp;
             alternate=comp;
