@@ -1,8 +1,11 @@
 import type{CorrectAnswer}from"../../types/global";
+import type{Confidence}from"../services/Scheduler";
 export class QuestionState{
     private _correctAnswer: CorrectAnswer;
     private _expectedFormat: string;
     private _hasQuestion: boolean;
+    private _subSkill: string|undefined;
+    private _confidence: Confidence|undefined;
     constructor(){
         this._correctAnswer={ correct: "", alternate: "", display: "" };
         this._expectedFormat="";
@@ -10,6 +13,27 @@ export class QuestionState{
         window.correctAnswer=this._correctAnswer;
         window.expectedFormat=this._expectedFormat;
         window.hasQuestion=this._hasQuestion;
+    }
+    /**
+     * The procedure within the topic that this question practised, when the
+     * generator named one. The scheduler needs it to record the review against
+     * the skill rather than against the topic as a whole.
+     */
+    get subSkill(): string|undefined{
+        return this._subSkill;
+    }
+    set subSkill(value: string|undefined){
+        this._subSkill=value;
+    }
+    /**
+     * The confidence the learner reported for the answer just given, which the
+     * overconfidence half of the schedule is built from.
+     */
+    get confidence(): Confidence|undefined{
+        return this._confidence;
+    }
+    set confidence(value: Confidence|undefined){
+        this._confidence=value;
     }
     get correctAnswer(): CorrectAnswer{
         return this._correctAnswer;
@@ -63,6 +87,8 @@ export class QuestionState{
         this._correctAnswer={ correct: "", alternate: "", display: "" };
         this._expectedFormat="";
         this._hasQuestion=false;
+        this._subSkill=undefined;
+        this._confidence=undefined;
         window.correctAnswer=this._correctAnswer;
         window.expectedFormat=this._expectedFormat;
         window.hasQuestion=this._hasQuestion;
