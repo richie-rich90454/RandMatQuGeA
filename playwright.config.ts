@@ -1,4 +1,4 @@
-import {defineConfig} from "@playwright/test";
+import {defineConfig, devices} from "@playwright/test";
 export default defineConfig({
 	testDir: "./e2e",
 	fullyParallel: true,
@@ -6,11 +6,24 @@ export default defineConfig({
 	retries: process.env.CI ? 1 : 0,
 	workers: process.env.CI ? 2 : 4,
 	reporter: [["list"]],
+	projects: [
+		{
+			name: "desktop",
+			channel: "chrome",
+			headless: true,
+			use: { viewport: { width: 1440, height: 900 } },
+		},
+		{
+			name: "mobile-chrome",
+			use: { ...devices["Pixel 7"] },
+		},
+		{
+			name: "mobile-safari",
+			use: { ...devices["iPhone 14"] },
+		},
+	],
 	use: {
 		baseURL: "http://localhost:1331",
-		channel: "chrome",
-		headless: true,
-		viewport: { width: 1440, height: 900 },
 		actionTimeout: 15000,
 		timeout: 45000,
 		trace: "retain-on-failure",
