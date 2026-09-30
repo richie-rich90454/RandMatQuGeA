@@ -163,31 +163,31 @@ The check runs automatically in CI after the build step. If your PR adds a new d
 
 ## Code Style and Conventions
 
+**Read [CODE_STYLE.md](CODE_STYLE.md) at the repository root before you write code.** It is the single authority on formatting, naming, the programming paradigm, the complexity budget, generator correctness, and documentation obligations. Where this file or `AGENTS.md` disagrees with it, `CODE_STYLE.md` wins.
+
+In summary:
+
+- **4-space indentation**, enforced by `.editorconfig` and `rustfmt.toml`. Never tabs.
+- **Dense style**: no blank lines inside function bodies, no spaces around operators, no space between a keyword and its opening paren, `let` for all bindings, semicolons on every statement.
+- **Named exports only**; no default exports; `import type` for type-only imports.
+- **No framework.** This is a vanilla-DOM application with module-level singletons, and the 35 kB gzipped initial-JS budget in `scripts/bundle-check.js` depends on that. Do not add React, Vue or Svelte.
+- **Two invariants CI enforces**: a generator's printed question and its claimed answer must be the same problem, and a multiple choice question must have four options of which exactly one is correct.
+- **JSDoc on exported functions and non-obvious logic**, with `@param` and `@returns`.
+
 ### Rust
 
-- Follow the [Rust style guide](https://doc.rust-lang.org/nightly/style-guide/).
-- Use **tabs** for indentation (as configured in `rustfmt.toml`).
-- Run `cargo fmt` before committing.
+- Run `cargo fmt` before committing. `rustfmt.toml` sets 4-space indentation.
+- `cargo clippy` warnings are errors.
 - Document public functions with `///` comments.
-
-### TypeScript/JavaScript
-
-- Use **tabs** for indentation (configured in `.editorconfig` and `AGENTS.md`).
-- Prefer `let`/`const` over `var`; follow the `AGENTS.md` formatting rules (tabs, no blank lines, braces on the same line).
-- Use **named exports** instead of default exports where possible.
-- Run `npm run typecheck` (TypeScript strict, `tsc --noEmit`) to type-check; there is no ESLint setup.
-
-### CSS
-
-- Use **tabs** for indentation (as configured in `.editorconfig`).
-- Follow BEM naming conventions for class names when appropriate.
-- Keep selectors specific enough to avoid collisions.
+- Commands return `Result<T, String>` with sentence-case messages. Never return `serde_json::Value`; define a struct so the TypeScript side is typed.
+- Database changes go in `src-tauri/migrations/`. Never edit a shipped migration.
 
 ### Documentation
 
-- Add JSDoc comments to all exported functions and complex logic.
-- Use `@fileoverview` at the top of modules to describe the file’s purpose.
-- Include `@param` and `@returns` descriptions for functions.
+Behavior changes update the docs in the same commit. `CODE_STYLE.md` has the table
+mapping each kind of change to the document it requires, and it names the current
+inaccuracies (`docs/api/index.md` documents snake_case arguments where the frontend
+sends camelCase; `docs/guide/architecture.md` omits three delete commands).
 
 ---
 
