@@ -261,6 +261,161 @@ async fn delete_all_performance_records(state: tauri::State<'_, DbState>) -> Res
         .map_err(|e| e.to_string())?;
     Ok(())
 }
+
+/// Records one answer in full, as well as in the aggregate. The aggregate is what
+/// the recommendations read; the row is what makes the learner's history theirs,
+/// exportable and rebuildable rather than only what the schema happens to
+/// summarise.
+#[tauri::command]
+async fn save_attempt(
+    state: tauri::State<'_, DbState>,
+    topic_id: String,
+    sub_skill: String,
+    difficulty: String,
+    correct: bool,
+    response_ms: i64,
+    confidence: Option<String>,
+    error_type: Option<String>,
+    answered_at: i64,
+) -> Result<i64, String> {
+    let pool = &state.pool;
+    let result = sqlx::query(
+        "INSERT INTO attempts (topic_id, sub_skill, difficulty, correct, response_ms, confidence, error_type, answered_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    )
+    .bind(&topic_id)
+    .bind(&sub_skill)
+    .bind(&difficulty)
+    .bind(if correct { 1 } else { 0 })
+    .bind(response_ms)
+    .bind(&confidence)
+    .bind(&error_type)
+    .bind(answered_at)
+    .execute(pool)
+    .await
+    .map_err(|e| e.to_string())?;
+    Ok(result.last_insert_rowid())
+}
+
+/// Returns every recorded answer, newest first, with an optional topic filter.
+#[tauri::command]
+async fn load_attempts(
+    state: tauri::State<'_, DbState>,
+    topic_id: Option<String>,
+    limit: Option<i64>,
+) -> Result<Vec<serde_json::Value>, String> {
+    let pool = &state.pool;
+    let take = limit.unwrap_or(500).clamp(1, 10_000);
+    let rows: Vec<serde_json::Value> = match topic_id {
+        Some(topic) => {
+            sqlx::query(
+                "SELECT id, topic_id, sub_skill, difficulty, correct, response_ms, confidence, error_type, answered_at
+				 FROM attempts WHERE topic_id = ? ORDER BY answered_at DESC, id DESC LIMIT ?",
+            )
+            .bind(topic)
+            .bind(take)
+            .fetch_all(pool)
+            .await
+            .map_err(|e| e.to_string())?
+        }
+        None => {
+            sqlx::query(
+                "SELECT id, topic_id, sub_skill, difficulty, correct, response_ms, confidence, error_type, answered_at
+				 FROM attempts ORDER BY answered_at DESC, id DESC LIMIT ?",
+            )
+            .bind(take)
+            .fetch_all(pool)
+            .await
+            .map_err(|e| e.to_string())?
+        }
+    };
+    Ok(rows)
+}
+
+/// Writes the computed schedule back, so the calendar survives a restart without
+/// the schedule being recomputed from an aggregate that lost the sub-skill detail.
+#[tauri::command]
+async fn save_skill_schedule(
+    state: tauri::State<'_, DbState>,
+    skills: Vec<serde_json::Value>,
+) -> Result<(), String> {
+    let pool = &state.pool;
+    for skill in skills {
+        let topic = skill.get("topicId").and_then(|v| v.as_str()).unwrap_or("");
+        if topic.is_empty() {
+            continue;
+        }
+        let sub = skill.get("subSkill").and_then(|v| v.as_str()).unwrap_or("");
+        let stability = skill.get("stability").and_then(|v| v.as_f64()).unwrap_or(1.0);
+        let difficulty = skill.get("difficulty").and_then(|v| v.as_f64()).unwrap_or(5.0);
+        let last = skill.get("lastReview").and_then(|v| v.as_i64());
+        let due = skill.get("due").and_then(|v| v.as_i64());
+        let reviews = skill.get("reviews").and_then(|v| v.as_i64()).unwrap_or(0);
+        let correct = skill.get("correctReviews").and_then(|v| v.as_i64()).unwrap_or(0);
+        let aoa = skill.get("aoa").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        sqlx::query(
+            "INSERT INTO review_skills
+				(topic_id, sub_skill, stability, difficulty, last_review, due, reviews, correct_reviews, aoa)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+			 ON CONFLICT (topic_id, sub_skill) DO UPDATE SET
+				stability = excluded.stability,
+				difficulty = excluded.difficulty,
+				last_review = excluded.last_review,
+				due = excluded.due,
+				reviews = excluded.reviews,
+				correct_reviews = excluded.correct_reviews,
+				aoa = excluded.aoa",
+        )
+        .bind(topic)
+        .bind(sub)
+        .bind(stability)
+        .bind(difficulty)
+        .bind(last)
+        .bind(due)
+        .bind(reviews)
+        .bind(correct)
+        .bind(aoa)
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+/// Returns every remembered skill, which is what the schedule is rebuilt from.
+#[tauri::command]
+async fn load_skill_schedule(state: tauri::State<'_, DbState>) -> Result<Vec<serde_json::Value>, String> {
+    let pool = &state.pool;
+    let rows: Vec<serde_json::Value> = sqlx::query(
+        "SELECT topic_id, sub_skill, stability, difficulty, last_review, due, reviews, correct_reviews, aoa
+		 FROM review_skills",
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|e| e.to_string())?;
+    Ok(rows)
+}
+
+/// Removes the learning record in full: the schedule, every recorded answer and
+/// the aggregates. This is what the erase control calls, and it leaves nothing
+/// behind in any of the three.
+#[tauri::command]
+async fn clear_performance(state: tauri::State<'_, DbState>) -> Result<(), String> {
+    let pool = &state.pool;
+    sqlx::query("DELETE FROM review_skills")
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    sqlx::query("DELETE FROM attempts")
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    sqlx::query("DELETE FROM user_topic_stats")
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
 #[tauri::command]
 fn generate_worksheet_seed() -> u64 {
     rand::random()
@@ -315,6 +470,11 @@ pub fn run() {
             get_performance_stats,
             delete_performance_record,
             delete_all_performance_records,
+            save_attempt,
+            load_attempts,
+            save_skill_schedule,
+            load_skill_schedule,
+            clear_performance,
             generate_worksheet_seed,
             export_worksheet_pdf,
             delete_score,
@@ -361,6 +521,54 @@ pub fn run() {
                 .execute(&pool)
                 .await
                 .map_err(|e| format!("DB init error for user_topic_stats: {}", e))?;
+                // The review schedule needs a place to keep memory strength and
+                // difficulty per skill, which the topic-level table cannot hold,
+                // and a place for the confidence the learner reported, which
+                // nothing stored before this.
+                sqlx::query(
+                    "CREATE TABLE IF NOT EXISTS review_skills (
+						topic_id TEXT NOT NULL,
+						sub_skill TEXT NOT NULL DEFAULT '',
+						stability REAL NOT NULL DEFAULT 1.0,
+						difficulty REAL NOT NULL DEFAULT 5.0,
+						last_review INTEGER,
+						due INTEGER,
+						reviews INTEGER NOT NULL DEFAULT 0,
+						correct_reviews INTEGER NOT NULL DEFAULT 0,
+						aoa REAL NOT NULL DEFAULT 0.0,
+						PRIMARY KEY (topic_id, sub_skill)
+					);",
+                )
+                .execute(&pool)
+                .await
+                .map_err(|e| format!("DB init error for review_skills: {}", e))?;
+                // Every answer is kept, not just the aggregate, so a learner's
+                // history can be exported, audited and rebuilt rather than being
+                // only what the current schema happens to summarise.
+                sqlx::query(
+                    "CREATE TABLE IF NOT EXISTS attempts (
+						id INTEGER PRIMARY KEY AUTOINCREMENT,
+						topic_id TEXT NOT NULL,
+						sub_skill TEXT NOT NULL DEFAULT '',
+						difficulty TEXT NOT NULL DEFAULT '',
+						correct INTEGER NOT NULL DEFAULT 0,
+						response_ms INTEGER NOT NULL DEFAULT 0,
+						confidence TEXT,
+						error_type TEXT,
+						answered_at INTEGER NOT NULL
+					);",
+                )
+                .execute(&pool)
+                .await
+                .map_err(|e| format!("DB init error for attempts: {}", e))?;
+                sqlx::query("CREATE INDEX IF NOT EXISTS attempts_topic_idx ON attempts (topic_id, answered_at);")
+                    .execute(&pool)
+                    .await
+                    .ok();
+                sqlx::query("CREATE INDEX IF NOT EXISTS review_due_idx ON review_skills (due);")
+                    .execute(&pool)
+                    .await
+                    .ok();
                 Ok::<SqlitePool, String>(pool)
             })
             .map_err(|e| {
