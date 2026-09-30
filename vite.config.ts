@@ -12,11 +12,13 @@ export default defineConfig({
         setupFiles:["./vitest.setup.ts"],
         environment:"jsdom",
         testTimeout:10000,
+        // Vitest 5 flipped clearMocks to true, which wipes mock history before
+        // every test. script.test.ts asserts on module-import side effects, so
+        // those assertions need the history intact. Individual suites that want
+        // isolation already call vi.clearAllMocks() in their own beforeEach.
+        clearMocks:false,
         pool:"forks",
-        maxConcurrency:16,
-        experimental: {
-            fsModuleCache: true
-        }
+        maxConcurrency:16
     },
     worker: {
         format: "es",
