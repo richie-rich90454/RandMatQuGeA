@@ -7,7 +7,9 @@
  * is never embedded inside a math-mode delimiter.
  */
 
-let USAGE_MARKERS: string[]=["x","y","z","w","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","X","Y","Z"];
+import{roundTo}from"./Numeric";
+
+let USAGE_MARKERS=new Set<string>(["x","y","z","w","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","X","Y","Z"]);
 
 /**
  * Joins a term list with the correct sign, rendering subtraction properly.
@@ -63,8 +65,9 @@ export function linearExpr(coeff: number, constant: number, variable: string="x"
  */
 export function trimNum(value: number, decimals: number=2): string{
     if (!Number.isFinite(value)) return "0";
-    let factor=Math.pow(10, decimals);
-    let rounded=Math.round(value*factor+Number.EPSILON*Math.sign(value)*factor)/factor;
+    // Rounding is delegated so that a printed coefficient and the value graded
+    // can never disagree, which is the whole point of the shared module.
+    let rounded=roundTo(value, decimals);
     if (Object.is(rounded, -0)) rounded=0;
     let s=rounded.toFixed(decimals);
     if (s.includes(".")){
@@ -206,5 +209,5 @@ export function hasDollarInMathMode(latex: string): boolean{
  * @returns True when the token is a known single-letter variable.
  */
 export function isVariableToken(token: string): boolean{
-    return USAGE_MARKERS.indexOf(token)>=0;
+    return USAGE_MARKERS.has(token);
 }
