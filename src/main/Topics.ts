@@ -179,3 +179,16 @@ export function isTopicInScope(topicId: string): boolean{
     buildIndexes();
     return inScope(currentScope(), topicId);
 }
+
+/**
+ * Returns the topic ids in a scope, in the order the constants declare them. The
+ * daily set needs a stable order so that the same date produces the same set on
+ * every device, and a set or a sorted copy would not be that order.
+ *
+ * @param scope - The scope name.
+ * @returns The topic ids, which may be empty for an unknown scope.
+ */
+export function scopeTopicIds(scope: string): string[]{
+    let ids=scopeTopics[scope as keyof typeof scopeTopics]||scopeTopics.simple;
+    return ids.slice();
+}
