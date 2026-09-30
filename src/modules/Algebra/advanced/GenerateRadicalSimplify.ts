@@ -7,6 +7,11 @@ function isSquareFree(n: number): boolean{
     }
     return true;
 }
+function isPerfectSquare(n: number): boolean{
+    if(n<1) return false;
+    let r=Math.round(Math.sqrt(n));
+    return r*r===n;
+}
 function simplifyRadical(radicand: number): string{
     if(radicand<0) return `\\sqrt{${radicand}}`;
     let s=1;
@@ -151,14 +156,20 @@ export function generateRadicalSimplify(difficulty?: string, rng: RngFn=Math.ran
             break;
         }
         case "rationalize":{
-            let a=Math.floor(rng()*maxVal)+1;
+            // a = 1 makes 1/sqrt(1) degenerate, and a perfect square makes the
+            // rationalized form reducible, so both are excluded.
+            let a=2;
+            while (isPerfectSquare(a)){
+                a++;
+            }
+            a=Math.min(a, Math.max(2, maxVal+1));
             correct=`\\frac{\\sqrt{${a}}}{${a}}`;
             alternate=`√${a}/${a}`;
             display=correct;
             mathExpression=`\\( \\frac{1}{\\sqrt{${a}}} \\)`;
             choices=[correct];
-            choices.push(`\\frac{${a}}{\\sqrt{${a}}}`);
-            choices.push(`\\frac{1}{${a}}`);
+            choices.push(`\\frac{${a+1}}{\\sqrt{${a}}}`);
+            choices.push(`\\frac{1}{${a+1}}`);
             choices.push(`\\sqrt{${a}}`);
             choices.push(`\\frac{1}{\\sqrt{${a+1}}}`);
             break;
