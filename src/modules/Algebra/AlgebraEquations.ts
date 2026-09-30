@@ -1,4 +1,4 @@
-﻿﻿/**
+﻿/**
  * Linear equations: one-step, two-step, both sides, parentheses, literal.
  * Quadratic equations: factoring, completing square, quadratic formula, discriminant.
  * Inequalities: linear, quadratic, rational, compound, absolute.
@@ -70,6 +70,12 @@ export function generateLinearEquation(difficulty?: string, rng: RngFn = Math.ra
         case "both_sides":{
             let coeff1=Math.max(1,a);
             let coeff2=Math.max(1,b);
+            // Equal coefficients make the equation an identity: every x satisfies
+            // it, so there is no single correct answer to grade, and computing one
+            // divides by zero and emits the literal string "NaN" as an option.
+            while(coeff2===coeff1){
+                coeff2=Math.max(1,Math.floor(rng()*range)+1);
+            }
             let constant=c;
             let rhsConst=coeff1*x+constant-coeff2*x;
             mathExpression=`Solve: \\( ${coeff1}x + ${constant}=${coeff2}x + ${rhsConst} \\)`;
@@ -79,8 +85,8 @@ export function generateLinearEquation(difficulty?: string, rng: RngFn = Math.ra
             choices=[correct];
             choices.push((x+1).toString());
             choices.push((x-1).toString());
-            choices.push(((constant-rhsConst)/(coeff2-coeff1)).toString());
-            choices.push((constant).toString());
+            choices.push((x+2).toString());
+            choices.push((x-2).toString());
             expectedFormat="Enter a number";
             break;
         }
@@ -146,21 +152,23 @@ export function generateQuadraticEquation(difficulty?: string, rng: RngFn = Math
     switch(type){
         case "factor":{
             let p=Math.floor(rng()*maxVal)+1;
-            let q=Math.floor(rng()*maxVal)+1;
+            let q=p===Math.floor(rng()*maxVal)+1?p+1:Math.floor(rng()*maxVal)+1;
             let b=-(p+q);
             let c=p*q;
             let signB=b>=0?`+ ${b}`:`- ${-b}`;
             mathExpression=`Solve by factoring: \\( x^2 ${signB}x + ${c}=0 \\)`;
-            let root1=-p;
-            let root2=-q;
+            // x^2 - (p+q)x + pq factors as (x-p)(x-q), so the roots are p and q.
+            // Negating them here produced a key the learner could not derive, and
+            // offered the true roots as a distractor.
+            let root1=p;
+            let root2=q;
             correct=`${root1}, ${root2}`;
             alternate=`x=${root1}, x=${root2}`;
             display=correct;
             choices=[correct];
-            choices.push(`${p}, ${q}`);
+            choices.push(`${-root1}, ${-root2}`);
             choices.push(`${root1+1}, ${root2}`);
             choices.push(`${root1}, ${root2+1}`);
-            choices.push(`${root1}, ${root2}`);
             expectedFormat="Enter two numbers separated by comma";
             break;
         }
@@ -186,21 +194,30 @@ export function generateQuadraticEquation(difficulty?: string, rng: RngFn = Math
             let b=Math.floor(rng()*(maxVal*2+1))-maxVal;
             let c=Math.floor(rng()*(maxVal*2+1))-maxVal;
             let disc=b*b-4*a*c;
+            // Reject a negative discriminant by redrawing, bounded so an
+            // unsatisfiable draw cannot spin. The previous code fell back to a
+            // hard-coded b=2, c=0, which silently discarded the drawn numbers.
             let attempts=0;
-            while(disc<0&&attempts<100){
+            while(disc<0&&attempts<64){
                 b=Math.floor(rng()*(maxVal*2+1))-maxVal;
                 c=Math.floor(rng()*(maxVal*2+1))-maxVal;
                 disc=b*b-4*a*c;
                 attempts++;
             }
             if(disc<0){
+                // maxVal is at least 1, so b=2, c=1 always gives disc=0 and a
+                // valid single real root.
                 b=2;
-                c=0;
-                disc=4;
+                c=1;
+                disc=0;
             }
+            mathExpression=`Solve using the quadratic formula: \\( x^2 ${b>=0?"+ "+b:"- "+(-b)}x ${c>=0?"+ "+c:"- "+(-c)}=0 \\)`;
             let sol1=(-b+Math.sqrt(disc))/(2*a);
             let sol2=(-b-Math.sqrt(disc))/(2*a);
-            if(sol1===sol2){
+            // Guard the repeated-root case with a tolerance: for small integer
+            // coefficients the two roots can differ by less than a rounding step,
+            // which would otherwise be graded as two distinct answers.
+            if(Math.abs(sol1-sol2)<1e-9){
                 correct=sol1.toFixed(2);
                 alternate=correct;
                 display=correct;
@@ -232,7 +249,7 @@ export function generateQuadraticEquation(difficulty?: string, rng: RngFn = Math
             correct=`${disc}, ${nature}`;
             alternate=`${disc}`;
             display=correct;
-            mathExpression=`Find the discriminant and nature of roots for \\( x^2 + ${b}x + ${c}=0 \\)`;
+            mathExpression=`Find the discriminant and nature of roots for \\( x^2 ${b>=0?"+ "+b:"- "+(-b)}x ${c>=0?"+ "+c:"- "+(-c)}=0 \\)`;
             choices=[correct];
             choices.push(`${disc+1}, ${nature}`);
             choices.push(`${disc-1}, ${nature}`);
