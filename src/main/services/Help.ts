@@ -17,7 +17,6 @@
  */
 import{dom}from"../core/DomRegistry";
 import{questionState}from"../core/QuestionState";
-import * as reviewStore from"./ReviewStore";
 import type{Confidence}from"./Scheduler";
 import{buildHintLadder, buildSolution}from"../../modules/shared/Hints";
 import type{QuestionDto}from"../../types/global";
@@ -38,12 +37,19 @@ let ladder: { rungs: string[]; concede: string }|null=null;
 let solution: string[]|null=null;
 
 /**
- * Prepares the help for a newly generated question, closing anything the previous
- * question had open.
+ * Reports the confidence levels worth offering for an outcome. A learner who was
+ * wrong is asked all three, because that is the case where the gap between
+ * confidence and outcome is informative. After a correct answer the two extremes
+ * are the only ones that carry information, and the middle one is removed rather
+ * than shown and ignored.
  *
- * @param dto - The generated question.
+ * @param correct - Whether the answer was correct.
+ * @returns The levels to offer, easiest first.
  */
-export function prepareHelp(dto: QuestionDto): void{
+export function confidenceChoices(correct: boolean): Confidence[]{
+    return correct?["low","high"]:["low","medium","high"];
+}
+export function prepare(dto: QuestionDto): void{
     revealed=0;
     ladder=buildHintLadder(dto);
     solution=buildSolution(dto);
@@ -59,13 +65,15 @@ export function prepareHelp(dto: QuestionDto): void{
     if (dom.help.showSolutionBtn){
         dom.help.showSolutionBtn.hidden=solution===null;
     }
-    hideConfidence();
+    let row=dom.help.confidenceRow;
+    if (row) row.hidden=true;
+    questionState.confidence=undefined;
 }
 
 /**
- * Reveals the next rung of the ladder, or the concession once the rungs are spent.
+ * Reveals one more rung, or the concession once the rungs are spent.
  */
-export function revealNextHint(): void{
+export function reveal(): void{
     if (!ladder) return;
     let panel=dom.help.hintPanel;
     if (!panel) return;
@@ -90,10 +98,9 @@ export function revealNextHint(): void{
 }
 
 /**
- * Shows the worked solution, or says plainly that this question does not have one
- * rather than showing an empty section.
+ * Shows the worked solution, or says plainly that a one-step question has none.
  */
-export function showSolution(): void{
+export function revealSolution(): void{
     let panel=dom.help.hintPanel;
     if (!panel) return;
     if (!solution){
@@ -105,6 +112,27 @@ export function showSolution(): void{
         appendPanelRow(panel, "Step", step);
     }
     panel.hidden=false;
+}
+
+/**
+ * Asks the learner how sure they were, but only when the answer is informative
+ * enough to be worth asking about.
+ *
+ * @param correct - Whether the answer just given was correct.
+ * @param responseMs - How long the question was on screen.
+ */
+export function ask(correct: boolean, responseMs: number): void{
+    if (responseMs<MIN_RESPONSE_MS) return;
+    let row=dom.help.confidenceRow;
+    if (!row) return;
+    for(let button of dom.help.confidenceButtons){
+        let value=button.dataset.confidence as Confidence|undefined;
+        // After a correct answer the two extremes are the informative ones, so the
+        // middle one is removed rather than shown and ignored.
+        button.hidden=value!==undefined&&confidenceChoices(correct).indexOf(value)<0;
+        button.classList.remove("selected");
+    }
+    row.hidden=false;
 }
 
 /**
@@ -127,29 +155,6 @@ function appendPanelRow(panel: HTMLElement, label: string, text: string): void{
     row.appendChild(body);
     panel.appendChild(row);
 }
-
-/**
- * Asks the learner how sure they were, but only when the answer was informative
- * enough to be worth asking about: long enough that they were not guessing, and on
- * a question where confidence actually changes the schedule.
- *
- * @param correct - Whether the answer just given was correct.
- * @param responseMs - How long the question was on screen.
- */
-export function offerConfidence(correct: boolean, responseMs: number): void{
-    if (responseMs<MIN_RESPONSE_MS) return;
-    let row=dom.help.confidenceRow;
-    if (!row) return;
-    for(let button of dom.help.confidenceButtons){
-        let value=button.dataset.confidence as Confidence|undefined;
-        // After a correct answer the two extremes are the informative ones, so the
-        // middle one is removed rather than shown and ignored.
-        button.hidden=value!==undefined&&reviewStore.confidenceChoices(correct).indexOf(value)<0;
-        button.classList.remove("selected");
-    }
-    row.hidden=false;
-}
-
 /**
  * Hides the confidence prompt, which is what happens on a new question.
  */
