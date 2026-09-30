@@ -88,6 +88,19 @@ function truncate(value: string, limit: number=48): string{
 }
 
 /**
+ * Reports whether an option is a mathematical expression rather than prose.
+ * The symbolic tier compares expressions, so applying it to a written
+ * description compares two sentences after the algebra has been stripped out of
+ * them, which reports every pair of descriptions as equal.
+ *
+ * @param option - The option string.
+ * @returns True when the option contains something algebraic to compare.
+ */
+function looksMathematical(option: string): boolean{
+    return /[0-9]|[+\-*/^_=<>(){}]|\\frac|\\sqrt|\\pi/.test(option);
+}
+
+/**
  * Validates a multiple-choice question and returns every defect found.
  *
  * The check is intentionally conservative about declaring a distractor also
@@ -136,6 +149,7 @@ export async function validateMcq(dto: QuestionDto): Promise<McqFinding[]>{
     }
     for(let i=1; i<choices.length; i++){
         if (sameOption(choices[i], dto.correct)) continue;
+        if (!looksMathematical(choices[i])||!looksMathematical(dto.correct)) continue;
         let verdict=await equivalentExpressions(choices[i], dto.correct);
         if (verdict==="equal"){
             findings.push({
