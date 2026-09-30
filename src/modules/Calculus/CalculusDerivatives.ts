@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff, trigFunctions, expFunctions, logFunctions, latexToPlain} from "./CalculusUtils.js";
 /**
  * Generates a random differentiation question and displays it in the global question area.
@@ -427,6 +427,17 @@ export function generateDerivative(difficulty?: string, rng: RngFn=Math.random):
             choices.push(`dy/dx=(${2*a}x+${b}y)/(${b}x+${2*c}y), tangent: y-${y0}=${(-slope).toFixed(2)}(x-${x0})`);
             choices.push(`dy/dx=-(${b}x+${2*c}y)/(${2*a}x+${b}y), tangent: y-${y0}=${(1/slope).toFixed(2)}(x-${x0})`);
             break;
+        }
+    }
+    // A branch that falls through without setting the prompt would render an
+    // empty question next to a graded answer, so the type is recorded and the
+    // caller is guaranteed a prompt.
+    if (mathExpression.trim()===""){
+        mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
+        if (polynomial.trim()===""){
+            polynomial="x";
+            mathExpression=`\\[ \\frac{d}{dx} x=? \\]`;
+            plainCorrectDerivative="1";
         }
     }
     let uniqueChoices=[...new Set(choices)];
