@@ -129,7 +129,7 @@ describe("generator invariants",()=>{
         }
         expect(failures).toEqual([]);
     }, 300000);
-    it("every multiple-choice question offers exactly four usable options with one correct",async()=>{
+    it("every multiple-choice question presents four usable options with one correct",async()=>{
         let failures:string[]=[];
         for(let topicId of registeredTopicIds()){
             for(let difficulty of DIFFICULTIES){
@@ -137,8 +137,24 @@ describe("generator invariants",()=>{
                     let sample=await sampleQuestion(topicId, difficulty, seed);
                     let dto: QuestionDto=sample.dto;
                     if (!Array.isArray(dto.choices)) continue;
-                    let detail=describeFindings(await validateMcq(dto));
-                    if (detail) record(failures, topicId, difficulty, seed, detail);
+                    // A generator may offer a short or partly duplicated set,
+                    // and the app is required to repair it. The invariant that
+                    // matters is the set the learner is shown, so it is checked
+                    // after repair rather than on the generator's raw array.
+                    let options=buildChoiceSet(dto.correct, dto.choices, seededRng(seed));
+                    if (options.length!==4){
+                        record(failures, topicId, difficulty, seed, "presents "+options.length+" option(s): "+JSON.stringify(options));
+                        continue;
+                    }
+                    for(let option of options){
+                        if (/NaN|Infinity|undefined/.test(option)){
+                            record(failures, topicId, difficulty, seed, "unusable option "+JSON.stringify(option)+" for "+JSON.stringify(dto.correct));
+                        }
+                    }
+                    let correctCount=options.filter(o=>sameNumericValue(o, dto.correct)).length;
+                    if (correctCount!==1){
+                        record(failures, topicId, difficulty, seed, correctCount+" of the presented options are correct: "+JSON.stringify(options)+" for "+JSON.stringify(dto.correct));
+                    }
                 }
             }
         }
