@@ -19,7 +19,18 @@
 export function roundTo(value: number, decimals: number=2): number{
     if (!Number.isFinite(value)) return value;
     let factor=Math.pow(10, decimals);
-    let rounded=Math.round((value*factor+Number.EPSILON*Math.sign(value))*factor)/factor;
+    let scaled=value*factor;
+    // The nudge is applied to the scaled value, not to the product of the
+    // scaled value and the factor. Multiplying by the factor a second time
+    // divided it straight back out, so roundTo(2.5, 2) returned 250.
+    //
+    // It is relative to the scaled magnitude and directed by the sign, because
+    // a fixed nudge cannot cover the representation error of a large scaled
+    // value, and only a sign-directed nudge rounds a negative half away from
+    // zero. That is what makes 1.005 render as 1.01 and -2.345 as -2.35 rather
+    // than as 1 and -2.34.
+    let nudge=Number.EPSILON*Math.max(Math.abs(scaled), 1)*Math.sign(value);
+    let rounded=Math.round(scaled+nudge)/factor;
     if (Object.is(rounded, -0)) return 0;
     return rounded;
 }
@@ -48,9 +59,7 @@ export function fmt(value: number, decimals: number=2): string{
  */
 export function fmtTrim(value: number, decimals: number=2): string{
     if (!Number.isFinite(value)) return "0";
-    let rounded=roundTo(value, decimals);
-    if (Number.isInteger(rounded)) return String(rounded);
-    return String(rounded);
+    return String(roundTo(value, decimals));
 }
 
 /**
