@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @vitest-environment jsdom
  */
 import {describe,it,expect,beforeEach,vi} from "vitest";
@@ -15,7 +15,7 @@ describe("generateAddition",()=>{
     it("generates correct addition question and answer",()=>{
         const rng=vi.fn().mockReturnValue(0.5);
         const dto=generateAddition("medium", rng);
-        expect(dto.latex).toBe("$5.5+5=$");
+        expect(dto.latex).toBe("\\( 5.5+5= \\)");
         expect(dto.correct).toBe("10.500");
         expect(dto.alternate).toBe("10.500");
         expect(dto.display).toBe("10.500");
@@ -85,7 +85,7 @@ describe("generateSubtraction",()=>{
     it("generates correct subtraction question",()=>{
         const rng=vi.fn().mockReturnValue(0.5);
         const dto=generateSubtraction("medium", rng);
-        expect(dto.latex).toBe("$5.5-5=$");
+        expect(dto.latex).toBe("\\( 5.5-5= \\)");
         expect(dto.correct).toBe("0.500");
         expect(dto.alternate).toBe("0.500");
         expect(dto.display).toBe("0.500");
@@ -132,7 +132,7 @@ describe("generateMultiplication",()=>{
     it("generates correct multiplication question",()=>{
         const rng=vi.fn().mockReturnValue(0.5);
         const dto=generateMultiplication("medium", rng);
-        expect(dto.latex).toBe("$5.5 \\times 5=$<br>Round your answer to two decimal places");
+        expect(dto.latex).toBe("\\( 5.5 \\times 5= \\)<br>Round your answer to two decimal places");
         expect(dto.correct).toBe("27.50");
         expect(dto.alternate).toBe("27.50000");
         expect(dto.display).toBe("27.50");
@@ -176,7 +176,7 @@ describe("generateDivision",()=>{
     it("generates correct division question",()=>{
         const rng=vi.fn().mockReturnValue(0.5);
         const dto=generateDivision("medium", rng);
-        expect(dto.latex).toBe("$5.5 \\div 5=$<br>Round your answer to two decimal places");
+        expect(dto.latex).toBe("\\( 5.5 \\div 5= \\)<br>Round your answer to two decimal places");
         expect(dto.correct).toBe("1.10");
         expect(dto.expectedFormat).toBe("Enter a number rounded to 2 decimal places");
     });
