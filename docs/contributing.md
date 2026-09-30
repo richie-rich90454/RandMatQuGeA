@@ -18,23 +18,32 @@ npm run test:e2e   # End-to-end tests (Playwright, system Chrome)
 
 ### Code Style
 
+The full house style lives in [CODE_STYLE.md](https://github.com/richie-rich90454/RandMatQuGeA/blob/main/CODE_STYLE.md) at the repository root and is the single authority. The short version:
+
 - TypeScript with strict mode enabled
 - Semicolons at the end of statements
 - 4-space indentation, no trailing whitespace
-- `let` over `const` throughout
+- `let` for all bindings
 - No blank lines between statements
 - Brace on same line (`if (x) {`), `else if` / `else` on their own lines
 - No space after function name before `(`
 - No spaces around operators (`a+b`, `let x=1;`)
+- Named exports only, no framework
 
 ### Adding a New Topic Generator
 
 1. Create a generator file in the appropriate `src/modules/<Subject>/` directory
-2. Export a function matching: `(difficulty: string, rng?: RngFn) => QuestionDto`
+2. Export a function matching: `(difficulty?: string, rng?: RngFn) => QuestionDto`
 3. Add `registerTopic(id, scope, fnName)` call in the subject's `RegisterTopics.ts`
 4. Export the function from the subject's `index.ts`
 5. Add the topic definition to `src/main/Constants.ts` (`topics` array + `scopeTopics` map)
-6. Write tests in `src/__tests__/modules/<Subject>/`
+6. Declare its sub-skills in the sub-skill table, so it can be scheduled independently
+7. Write tests in `src/__tests__/modules/<Subject>/`
+
+A generator is not finished until the correctness suite covers it. The gate rejects a
+topic whose printed question and graded answer disagree, whose Multiple Choice options
+are not exactly four with exactly one correct, whose LaTeX does not render, or whose
+easy/medium/hard output is indistinguishable.
 
 ### Generator Contract
 
@@ -42,12 +51,25 @@ Every generator must return a valid `QuestionDto`:
 
 ```typescript
 {
-    latex: string,       // Question HTML with $$...$$ delimiters
-    correct: string,     // Canonical correct answer
-    choices?: string[],  // MCQ distractors (4-6 recommended)
-    expectedFormat?: string, // Input format hint
+    latex: string,            // Question HTML with $$...$$ delimiters
+    correct: string,          // Canonical correct answer, exact unless the prompt says to round
+    alternate?: string,       // Second accepted form, when one exists
+    display?: string,         // KaTeX-rendered display form
+    choices?: string[],       // Exactly 4 options, choices[0] === correct, no distractor also correct
+    expectedFormat?: string,  // Input format hint, matching the actual answer shape
+    subskill?: string,        // Sub-skill within the topic, used for per-skill scheduling
+    visualization?: { shape: string; params?: Record<string, unknown> }
 }
 ```
+
+Two invariants are enforced in CI and are never traded away:
+
+1. **The printed question and the claimed answer must be the same problem.** Round once,
+   then use the rounded value in both the prompt and the key. Never interpolate a
+   computed value into the question text.
+2. **A Multiple Choice question must have four options, exactly one of which is
+   correct.** A generator that cannot produce four provably-distinct, provably-wrong
+   alternatives is a build failure, not a runtime degradation.
 
 ### Testing
 
@@ -66,11 +88,13 @@ Every generator must return a valid `QuestionDto`:
 ## Architecture Notes
 
 - The app is a **Tauri v2** app but works as a standalone web app — keep the web fallback path working
-- Rust backend is optional — guard Tauri-specific calls with `isTauri()` from `src/utils/envUtils.ts`
+- The app runs in three environments: Tauri desktop, a browser with persistence, and a browser in private mode. A feature either works in all three or is hidden where it cannot; one that is visible but silently does nothing is a bug
+- Rust backend is optional — all platform calls route through the `Backend` service, never called directly from a UI module
 - All DOM access goes through `DomRegistry` — no direct `document.getElementById()` outside it
 - State mutations flow through `AppState` getters/setters — avoid direct property access
-- Question generators are pure functions — no DOM side effects (return `QuestionDto` only)
-- Answer checking lives in `Answer.ts` (TypeScript) for web mode and `lib.rs` (Rust) for Tauri mode
+- Question generators are pure functions — no DOM side effects, no `Math.random`, all randomness from the injected `rng` (return `QuestionDto` only)
+- Answer checking lives in `Answer.ts` and is shared by both practice modes
+- Sheet layout, the offline shell and the installability surface are documented in [Usage](guide/usage.md)
 
 ## License
 
