@@ -20,7 +20,7 @@ export function generateFinance(difficulty?: string, rng: RngFn = Math.random): 
     const n=Math.floor(rng()*4)+1;
     switch(type){
         case "compound":{
-            mathExpression=`Find the amount after ${years} years if $${principal} is invested at ${(parseFloat(rate)*100).toFixed(1)}% compounded ${n} times per year.`;
+            mathExpression=`Find the amount after ${years} years if ${principal} dollars is invested at ${(parseFloat(rate)*100).toFixed(1)}% compounded ${n} times per year.`;
             const amount=principal*Math.pow(1+parseFloat(rate)/n,n*years);
             const ans=amount.toFixed(2);
             correct=ans;
@@ -36,7 +36,7 @@ export function generateFinance(difficulty?: string, rng: RngFn = Math.random): 
             break;
         }
         case "continuous":{
-            mathExpression=`Find the amount after ${years} years if $${principal} is invested at ${(parseFloat(rate)*100).toFixed(1)}% compounded continuously.`;
+            mathExpression=`Find the amount after ${years} years if ${principal} dollars is invested at ${(parseFloat(rate)*100).toFixed(1)}% compounded continuously.`;
             const amount=principal*Math.exp(parseFloat(rate)*years);
             const ans=amount.toFixed(2);
             correct=ans;
@@ -69,7 +69,7 @@ export function generateFinance(difficulty?: string, rng: RngFn = Math.random): 
         }
         case "annuity":{
             const payment=Math.floor(rng()*500)+100;
-            mathExpression=`You deposit $${payment} at the end of each year into an account earning ${(parseFloat(rate)*100).toFixed(1)}% compounded annually. Find the future value after ${years} years.`;
+            mathExpression=`You deposit ${payment} dollars at the end of each year into an account earning ${(parseFloat(rate)*100).toFixed(1)}% compounded annually. Find the future value after ${years} years.`;
             const fv=payment*((Math.pow(1+parseFloat(rate),years)-1)/parseFloat(rate));
             const ans=fv.toFixed(2);
             correct=ans;
