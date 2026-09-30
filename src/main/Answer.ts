@@ -7,6 +7,7 @@ import * as generation from"./Generation";
 import{invoke}from"@tauri-apps/api/core";
 import{isTauri}from"../utils/envUtils";
 import * as reviewStore from"./services/ReviewStore";
+import * as help from"./services/Help";
 let _audioCtx: AudioContext|null=null;
 export function getAudioContext(): AudioContext{
     if(!_audioCtx){
@@ -510,6 +511,13 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
         dom.inputs.userAnswer.value="";
         ui.updatePreview();
         dom.inputs.userAnswer.focus();
+    }
+    // Asked after the result is shown rather than before the answer is graded, so
+    // the learner is judging what they actually did rather than what they hoped.
+    // It is not offered when the next question is already on its way, because a
+    // prompt that is replaced before it can be answered is noise.
+    if (!appState.autocontinue||!appState.mcqMode){
+        help.offerConfidence(isCorrect, responseTime);
     }
     if (appState.currentMode==="single"&&appState.autocontinue){
         if (appState.autoTimeout) clearTimeout(appState.autoTimeout);
