@@ -34,11 +34,14 @@ export function generateRatioProportion(difficulty?: string, rng: RngFn=Math.ran
             break;
         }
         case "proportion":{
+            // Cross-multiplying a/b = c/x gives x = c*b/a, not c*a/b. The old
+            // formula was inverted, and Math.round then made the printed
+            // proportion itself false whenever c*a/b was not whole.
             let a=Math.floor(rng()*5)+2;
             let b=Math.floor(rng()*5)+2;
-            let c=Math.floor(rng()*10)+5;
-            let x=Math.round(c*a/b);
-            correct=x.toString();
+            let c=a*Math.floor(rng()*6)+1;
+            let x=c*b/a;
+            correct=String(x);
             alternate=correct;
             display=correct;
             mathExpression=`Solve for x: \\( \\frac{${a}}{${b}}=\\frac{${c}}{x} \\)`;
@@ -46,15 +49,17 @@ export function generateRatioProportion(difficulty?: string, rng: RngFn=Math.ran
             choices=[correct];
             choices.push((numRes+1).toString());
             choices.push((numRes-1).toString());
-            choices.push((c*a).toString());
-            choices.push((c*b).toString());
+            choices.push((numRes+2).toString());
+            choices.push((numRes-2).toString());
             break;
         }
         case "scale":{
+            // The drawn map distance must be the actual distance divided by the
+            // scale factor exactly, or the question contradicts itself.
             let map=Math.floor(rng()*10)+1;
-            let actual=Math.floor(rng()*50)+10;
-            let scaled=Math.round(actual/map);
-            correct=actual.toString();
+            let scaled=Math.floor(rng()*40)+2;
+            let actual=scaled*map;
+            correct=String(actual);
             alternate=correct;
             display=correct;
             mathExpression=`On a map with scale 1:${map}, a distance measures ${scaled} cm. What is the actual distance in cm?`;
@@ -74,7 +79,7 @@ export function generateRatioProportion(difficulty?: string, rng: RngFn=Math.ran
             correct=ans;
             alternate=rate.toString();
             display=ans;
-            mathExpression=`If ${quantity} items cost $${units}, what is the unit price? (nearest cent)`;
+            mathExpression=`If ${quantity} items cost ${units} dollars, what is the unit price? (nearest cent)`;
             let numRes=parseFloat(correct);
             choices=[correct];
             choices.push((numRes+0.1).toFixed(2));
