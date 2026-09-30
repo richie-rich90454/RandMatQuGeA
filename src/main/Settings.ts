@@ -4,6 +4,9 @@ import{questionState}from"./core/QuestionState";
 import{invoke}from"@tauri-apps/api/core";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
 import{isTauri}from"../utils/envUtils";
+import{migrateFromLocalStorage, read, setPersistenceMode, write}from"./services/Storage";
+import type{PersistenceMode}from"./services/Storage";
+import{isPersistenceUsable}from"./services/ReviewStore";
 let THEME_ICON_SYSTEM=`<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/></svg>`;
 let THEME_ICON_DARK=`<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4C12.92 3.04 12.46 3 12 3z"/></svg>`;
 let THEME_ICON_LIGHT=`<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>`;
@@ -47,27 +50,63 @@ export let settings={
     mcqMode:false,
     mcqChoicesCount:4,
     adaptive:true,
-    showWeakTopicsPopup:true
+    showWeakTopicsPopup:true,
+    /** Where the browser build keeps the learner's record. */
+    persistence:"zdr" as PersistenceMode
 };
+/** The keys this app has historically kept in localStorage. */
+const LEGACY_KEYS=["appSettings","sessionState","uiPreferences","theme"];
+/** Where the settings document is kept, which is whatever store the mode allows. */
+const SETTINGS_KEY="appSettings";
+/**
+ * Applies the persistence choice, moving anything this app previously wrote to
+ * localStorage into whichever store the new choice uses and removing it from
+ * there. Without the move, choosing a private session would leave the records
+ * the earlier build had already written sitting in localStorage, which is the one
+ * thing a private session must not do.
+ *
+ * @param chosen - The mode the learner selected.
+ */
+export async function applyPersistence(chosen: PersistenceMode): Promise<void>{
+    settings.persistence=chosen;
+    setPersistenceMode(isTauri()?"desktop":chosen);
+    if (chosen==="zdr"){
+        // The records a previous build wrote are read once so the session in
+        // progress is not lost, then everything that was on disk is removed.
+        await migrateFromLocalStorage(LEGACY_KEYS);
+        return;
+    }
+    await migrateFromLocalStorage(LEGACY_KEYS);
+    await saveSettings();
+}
+/**
+ * Hides or shows the controls that only work where something is kept, so a build
+ * or a mode that cannot remember does not offer a control that quietly discards
+ * what the learner did.
+ */
+export function applyPersistenceVisibility(): void{
+    let usable=isPersistenceUsable();
+    let eraseGroup=dom.settings.settingEraseData;
+    if (eraseGroup) eraseGroup.hidden=!usable;
+    let persistenceSelect=dom.settings.settingsPersistence;
+    if (persistenceSelect){
+        // The desktop build has a local database and no browser storage to choose
+        // between, so the choice is not offered there.
+        persistenceSelect.disabled=isTauri();
+    }
+}
 export function loadSettings():void{
-    let saved:string|null=null;
-    try{
-        saved=localStorage.getItem("appSettings");
-    }
-    catch(e){
-        console.warn("Failed to read settings from localStorage", e);
-    }
-    if (saved){
-        try{
-            let parsed=JSON.parse(saved);
-            settings={...settings, ...parsed};
-            if (parsed.adaptive === undefined) settings.adaptive = true;
-            if (parsed.showWeakTopicsPopup === undefined) settings.showWeakTopicsPopup = true;
-        }
-        catch(e){
-            console.warn("Failed to parse settings", e);
-        }
-    }
+    // The stored copy is read asynchronously, because IndexedDB cannot be read
+    // synchronously, and the controls are filled immediately from the defaults so
+    // the interface never waits on storage. The stored values replace the
+    // defaults as soon as they arrive.
+    read<typeof settings>(SETTINGS_KEY).then((stored)=>{
+        if (!stored) return;
+        settings={...settings, ...stored};
+        if (stored.adaptive===undefined) settings.adaptive=true;
+        if (stored.showWeakTopicsPopup===undefined) settings.showWeakTopicsPopup=true;
+        applySettingsToApp().catch((err:unknown)=>console.error("applySettingsToApp failed:",err));
+    }).catch((e:unknown)=>console.warn("Failed to read settings", e));
     if (dom.settings.settingsTheme) dom.settings.settingsTheme.value=settings.theme;
     if (dom.settings.settingsDefaultMode) dom.settings.settingsDefaultMode.value=settings.defaultMode;
     if (dom.settings.settingsAutoContinue) dom.settings.settingsAutoContinue.checked=settings.autoContinue;
@@ -131,12 +170,12 @@ export function saveSettings():void{
         }
     }
     if (dom.settings.settingsAdaptive) settings.adaptive=dom.settings.settingsAdaptive.checked;
-    try{
-        localStorage.setItem("appSettings",JSON.stringify(settings));
-    }
-    catch(e){
-        console.warn("Failed to persist settings to localStorage", e);
-    }
+    let persistenceSelect=dom.settings.settingsPersistence;
+    if (persistenceSelect) persistenceSelect.value=settings.persistence;
+    // Written through the storage module, so a private session writes nothing
+    // anywhere. Settings are the learner's own choices and belong in the same
+    // promise as their history.
+    write(SETTINGS_KEY, settings).catch((e:unknown)=>console.warn("Failed to persist settings", e));
     applySettingsToApp().catch((err: unknown)=>console.error("applySettingsToApp failed:",err));
 }
 export async function previewSetting(field:string,value:any):Promise<void>{
