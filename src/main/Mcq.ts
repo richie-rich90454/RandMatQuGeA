@@ -26,7 +26,13 @@ const OPTION_COUNT=4;
 
 /**
  * Reports whether an option is one a learner could never be expected to accept,
- * which includes a non-finite number and the string forms of a missing value.
+ * which includes a non-finite number and the string form of a missing value.
+ *
+ * "undefined" is deliberately allowed. It is a real answer for trigonometry, where
+ * tan(90 degrees) and the reciprocal functions are undefined, and it is one of the
+ * distractors this module itself offers for a sign or parity question. Rejecting
+ * it dropped the correct option from those questions and then failed to fill the
+ * set back up.
  *
  * @param option - The candidate option.
  * @returns True when the option is unusable.
@@ -34,7 +40,7 @@ const OPTION_COUNT=4;
 function isUnusable(option: string): boolean{
     if (typeof option!=="string"||option.trim()==="") return true;
     if (option==="NaN"||option==="Infinity"||option==="-Infinity") return true;
-    if (option==="undefined"||option==="null") return true;
+    if (option==="null") return true;
     if (option==="-0.00") return true;
     if (option.indexOf("NaN")>=0||option.indexOf("Infinity")>=0) return true;
     return false;
@@ -224,16 +230,6 @@ function tokenDistractors(answer: string, count: number): string[]{
     return out.slice(0, count);
 }
 
-/**
- * Builds a validated option set for a correct answer.
- *
- * @param correct - The correct answer.
- * @param supplied - Options the generator offered, if any. They are preferred
- *                   where they are valid, and repaired where they are not.
- * @param rng - The injected random source, used only to place the correct answer.
- * @returns Exactly four options with exactly one correct, or the fewest that can
- *          be built when the answer admits no distinct alternatives.
- */
 /**
  * Builds a validated option set for a correct answer, which is what
  * `generateChoicesForCurrentQuestion` uses and what a test can exercise directly.
