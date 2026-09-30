@@ -130,9 +130,16 @@ function restoreScroll(): void{
  * while a keyboard is open. Safe to call once at start-up; calling it again does
  * not register a second set of listeners.
  */
-export function watchVisualViewport(): void{
+export async function watchVisualViewport(): Promise<void>{
     if (document.documentElement.dataset.viewportWatched==="true") return;
     document.documentElement.dataset.viewportWatched="true";
+    // The watcher is only needed where a keyboard can cover the answer, so on a
+    // machine with a precise pointer the measurement is taken once and no
+    // listeners are installed at all.
+    if (window.matchMedia&&!window.matchMedia("(pointer: coarse)").matches){
+        applyViewport();
+        return;
+    }
     let viewport=window.visualViewport;
     if (viewport){
         viewport.addEventListener("resize", applyViewport);
