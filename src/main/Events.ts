@@ -1,4 +1,4 @@
-﻿import{dom}from"./core/DomRegistry";
+import{dom}from"./core/DomRegistry";
 import{appState}from"./core/StateStore";
 import{questionState}from"./core/QuestionState";
 import * as settings from"./Settings";
@@ -10,9 +10,6 @@ import * as session from"./Session";
 import{check}from"@tauri-apps/plugin-updater";
 import{relaunch}from"@tauri-apps/plugin-process";
 import{isTauri}from"../utils/envUtils";
-import * as storage from"./services/Storage";
-import * as reviewStore from"./services/ReviewStore";
-import * as help from"./services/Help";
 import type{PersistenceMode}from"./services/Storage";
 import type{Confidence}from"./services/Scheduler";
 import packageJson from"../../package.json";
@@ -295,7 +292,7 @@ export async function setupEventListeners(): Promise<void>{
             // A private session keeps the record in memory only, so it has to be
             // read again from the store the new choice uses rather than left as it
             // was when the session began.
-            await reviewStore.loadRecords();
+            (await import("./services/ReviewStore")).loadRecords();
             settings.saveSettings();
             ui.showNotification(chosen==="zdr"
                 ? "Private session on. Nothing will be kept after you close this tab."
@@ -305,26 +302,28 @@ export async function setupEventListeners(): Promise<void>{
     if (dom.settings.settingsEraseData){
         dom.settings.settingsEraseData.addEventListener("click",async ()=>{
             if (!confirm("Erase your learning record and streak from this device? This cannot be undone.")) return;
+            let reviewStore=await import("./services/ReviewStore");
             await reviewStore.forgetEverything();
-            await storage.clear();
+            let store=await import("./services/Storage");
+            await store.clear();
             ui.showNotification("Your learning record has been erased from this device.");
         });
     }
     if (dom.help.showHintBtn){
         dom.help.showHintBtn.addEventListener("click",()=>{
-            help.revealNextHint();
+            import("./services/Help").then(h=>h.reveal()).catch((err:unknown)=>console.error("hint failed:",err));
         });
     }
     if (dom.help.showSolutionBtn){
         dom.help.showSolutionBtn.addEventListener("click",()=>{
-            help.showSolution();
+            import("./services/Help").then(h=>h.revealSolution()).catch((err:unknown)=>console.error("solution failed:",err));
         });
     }
     for(let button of dom.help.confidenceButtons){
         button.addEventListener("click",()=>{
             let value=button.dataset.confidence as Confidence|undefined;
             if (!value) return;
-            help.recordConfidence(value);
+            import("./services/Help").then(h=>h.recordConfidence(value)).catch((err:unknown)=>console.error("confidence failed:",err));
         });
     }
     if (dom.buttons.checkUpdatesBtn){
