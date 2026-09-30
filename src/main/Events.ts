@@ -12,6 +12,7 @@ import{relaunch}from"@tauri-apps/plugin-process";
 import{isTauri}from"../utils/envUtils";
 import type{PersistenceMode}from"./services/Storage";
 import type{Confidence}from"./services/Scheduler";
+import * as dailyMode from"./services/DailyMode";
 import packageJson from"../../package.json";
 export async function isVersionGreater(v1: string, v2: string): Promise<boolean>{
     let semver=(await import("semver")).default;
@@ -22,8 +23,13 @@ export async function isVersionGreater(v1: string, v2: string): Promise<boolean>
 export function switchToSingle(): void{
     if (dom.buttons.modeSingleBtn?.classList.contains("disabled")) return;
     ui.clearAllTimeouts();
+    // Leaving a mode that is not the one being entered is what keeps the daily
+    // set's own progress from being reset by an incidental switch.
+    if (dom.daily.modeDailyBtn?.classList.contains("active")) dailyMode.leave();
     dom.buttons.modeSingleBtn?.classList.add("active");
     dom.buttons.modeMentalBtn?.classList.remove("active");
+    dom.daily.modeDailyBtn?.classList.remove("active");
+    dom.daily.modeDailyBtn?.setAttribute("aria-pressed","false");
     appState.currentMode="single";
     if (dom.session.mentalControls) dom.session.mentalControls.classList.add("hidden");
     if (dom.session.singleControls) dom.session.singleControls.classList.remove("hidden");
@@ -38,11 +44,33 @@ export function switchToSingle(): void{
     topics.renderTopicGrid();
     ui.updateUIState();
 }
+export function switchToDaily(): void{
+    if (dom.daily.modeDailyBtn?.classList.contains("disabled")) return;
+    dailyMode.rememberMode(appState.currentMode==="mental"?"mental":"single");
+    ui.clearAllTimeouts();
+    dom.daily.modeDailyBtn?.classList.add("active");
+    dom.buttons.modeSingleBtn?.classList.remove("active");
+    dom.buttons.modeMentalBtn?.classList.remove("active");
+    appState.currentMode="single";
+    if (dom.session.mentalControls) dom.session.mentalControls.classList.add("hidden");
+    if (dom.session.singleControls) dom.session.singleControls.classList.remove("hidden");
+    if (appState.sessionActive) session.endMentalSession().catch((err: unknown)=>console.error("endMentalSession failed:",err));
+    if (appState.autoTimeout){
+        clearTimeout(appState.autoTimeout);
+        appState.autoTimeout=null;
+    }
+    ui.updateAriaPressed();
+    topics.renderTopicGrid();
+    dailyMode.enter().catch((err: unknown)=>console.error("daily challenge failed:",err));
+    ui.updateUIState();
+}
 export function switchToMental(): void{
     if (dom.buttons.modeMentalBtn?.classList.contains("disabled")) return;
     ui.clearAllTimeouts();
     dom.buttons.modeMentalBtn?.classList.add("active");
     dom.buttons.modeSingleBtn?.classList.remove("active");
+    dom.daily.modeDailyBtn?.classList.remove("active");
+    dom.daily.modeDailyBtn?.setAttribute("aria-pressed","false");
     appState.currentMode="mental";
     if (dom.session.mentalControls) dom.session.mentalControls.classList.remove("hidden");
     if (dom.session.singleControls) dom.session.singleControls.classList.add("hidden");
@@ -401,6 +429,22 @@ export async function setupEventListeners(): Promise<void>{
     }
     else{
         console.warn("Missing element for listener: modeMentalBtn");
+    }
+    if (dom.daily.modeDailyBtn){
+        dom.daily.modeDailyBtn.addEventListener("click",switchToDaily);
+    }
+    else{
+        console.warn("Missing element for listener: modeDailyBtn");
+    }
+    if (dom.daily.dailyStartBtn){
+        dom.daily.dailyStartBtn.addEventListener("click",()=>{
+            dailyMode.next().catch((err: unknown)=>console.error("daily challenge failed:",err));
+        });
+    }
+    if (dom.daily.dailyStreak){
+        dom.daily.dailyStreak.addEventListener("click",()=>{
+            dailyMode.enter().catch((err: unknown)=>console.error("daily challenge failed:",err));
+        });
     }
     if (dom.inputs.difficultySelect){
         dom.inputs.difficultySelect.addEventListener("change",(e: Event)=>{
