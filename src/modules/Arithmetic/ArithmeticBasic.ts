@@ -27,26 +27,26 @@ import {getRangeForDifficulty} from "./ArithmeticUtils.js";
  * generateAddition("hard");
  */
 export function generateAddition(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
-	let range=getRangeForDifficulty(difficulty||"medium");
-	let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(3));
-	let num2: number=parseFloat((rng()*range.max).toFixed(3));
-	let latex=`\$${num1}+${num2}=\$`;
-	let result=(num1+num2).toFixed(3);
-	let correctNumber=parseFloat(result);
-	let choices=[result];
-	choices.push((correctNumber+1).toFixed(3));
-	choices.push((correctNumber-1).toFixed(3));
-	choices.push((correctNumber+0.1).toFixed(3));
-	choices.push((correctNumber*2).toFixed(3));
-	let uniqueChoices=[...new Set(choices)];
-	return {
-		latex,
-		correct: result,
-		alternate: result,
-		display: result,
-		choices: uniqueChoices.slice(0,4),
-		expectedFormat: "Enter a number (up to 3 decimals)"
-	};
+    let range=getRangeForDifficulty(difficulty||"medium");
+    let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(3));
+    let num2: number=parseFloat((rng()*range.max).toFixed(3));
+    let latex=`\$${num1}+${num2}=\$`;
+    let result=(num1+num2).toFixed(3);
+    let correctNumber=parseFloat(result);
+    let choices=[result];
+    choices.push((correctNumber+1).toFixed(3));
+    choices.push((correctNumber-1).toFixed(3));
+    choices.push((correctNumber+0.1).toFixed(3));
+    choices.push((correctNumber*2).toFixed(3));
+    let uniqueChoices=[...new Set(choices)];
+    return {
+        latex,
+        correct: result,
+        alternate: result,
+        display: result,
+        choices: uniqueChoices.slice(0,4),
+        expectedFormat: "Enter a number (up to 3 decimals)"
+    };
 }
 /**
  * Generates and displays a random subtraction question.
@@ -72,26 +72,26 @@ export function generateAddition(difficulty?: string, rng: RngFn = Math.random):
  * generateSubtraction("hard");
  */
 export function generateSubtraction(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
-	let range=getRangeForDifficulty(difficulty||"medium");
-	let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(3));
-	let num2: number=parseFloat((rng()*range.max).toFixed(3));
-	let latex=`\$${num1}-${num2}=\$`;
-	let result=(num1-num2).toFixed(3);
-	let correctNumber=parseFloat(result);
-	let choices=[result];
-	choices.push((correctNumber+1).toFixed(3));
-	choices.push((correctNumber-1).toFixed(3));
-	choices.push((correctNumber+0.1).toFixed(3));
-	choices.push((correctNumber*2).toFixed(3));
-	let uniqueChoices=[...new Set(choices)];
-	return {
-		latex,
-		correct: result,
-		alternate: result,
-		display: result,
-		choices: uniqueChoices.slice(0,4),
-		expectedFormat: "Enter a number (up to 3 decimals)"
-	};
+    let range=getRangeForDifficulty(difficulty||"medium");
+    let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(3));
+    let num2: number=parseFloat((rng()*range.max).toFixed(3));
+    let latex=`\$${num1}-${num2}=\$`;
+    let result=(num1-num2).toFixed(3);
+    let correctNumber=parseFloat(result);
+    let choices=[result];
+    choices.push((correctNumber+1).toFixed(3));
+    choices.push((correctNumber-1).toFixed(3));
+    choices.push((correctNumber+0.1).toFixed(3));
+    choices.push((correctNumber*2).toFixed(3));
+    let uniqueChoices=[...new Set(choices)];
+    return {
+        latex,
+        correct: result,
+        alternate: result,
+        display: result,
+        choices: uniqueChoices.slice(0,4),
+        expectedFormat: "Enter a number (up to 3 decimals)"
+    };
 }
 /**
  * Generates and displays a random multiplication question, rounding the answer to two decimal places.
@@ -118,27 +118,27 @@ export function generateSubtraction(difficulty?: string, rng: RngFn = Math.rando
  * generateMultiplication("hard");
  */
 export function generateMultiplication(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
-	let range=getRangeForDifficulty(difficulty||"medium");
-	let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(2));
-	let num2: number=parseFloat((rng()*range.max).toFixed(2));
-	let latex=`\$${num1} \\times ${num2}=\$<br>Round your answer to two decimal places`;
-	let actualAnswer: number=num1*num2;
-	let rounded=(Math.round(actualAnswer*100)/100).toFixed(2);
-	let correctNumber=parseFloat(rounded);
-	let choices=[rounded];
-	choices.push((correctNumber+1).toFixed(2));
-	choices.push((correctNumber-1).toFixed(2));
-	choices.push((correctNumber+0.1).toFixed(2));
-	choices.push((correctNumber*1.5).toFixed(2));
-	let uniqueChoices=[...new Set(choices)];
-	return {
-		latex,
-		correct: rounded,
-		alternate: actualAnswer.toFixed(5),
-		display: rounded,
-		choices: uniqueChoices.slice(0,4),
-		expectedFormat: "Enter a number rounded to 2 decimal places"
-	};
+    let range=getRangeForDifficulty(difficulty||"medium");
+    let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(2));
+    let num2: number=parseFloat((rng()*range.max).toFixed(2));
+    let latex=`\$${num1} \\times ${num2}=\$<br>Round your answer to two decimal places`;
+    let actualAnswer: number=num1*num2;
+    let rounded=(Math.round(actualAnswer*100)/100).toFixed(2);
+    let correctNumber=parseFloat(rounded);
+    let choices=[rounded];
+    choices.push((correctNumber+1).toFixed(2));
+    choices.push((correctNumber-1).toFixed(2));
+    choices.push((correctNumber+0.1).toFixed(2));
+    choices.push((correctNumber*1.5).toFixed(2));
+    let uniqueChoices=[...new Set(choices)];
+    return {
+        latex,
+        correct: rounded,
+        alternate: actualAnswer.toFixed(5),
+        display: rounded,
+        choices: uniqueChoices.slice(0,4),
+        expectedFormat: "Enter a number rounded to 2 decimal places"
+    };
 }
 /**
  * Generates and displays a random division question, rounding the answer to two decimal places.
@@ -165,26 +165,26 @@ export function generateMultiplication(difficulty?: string, rng: RngFn = Math.ra
  * generateDivision("hard");
  */
 export function generateDivision(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
-	let range=getRangeForDifficulty(difficulty||"medium");
-	let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(2));
-	let num2: number=parseFloat((rng()*range.max).toFixed(2));
-	if (num2===0) num2=1;
-	let latex=`\$${num1} \\div ${num2}=\$<br>Round your answer to two decimal places`;
-	let actualAnswer: number=num1/num2;
-	let rounded=(Math.round(actualAnswer*100)/100).toFixed(2);
-	let correctNumber=parseFloat(rounded);
-	let choices=[rounded];
-	choices.push((correctNumber+1).toFixed(2));
-	choices.push((correctNumber-1).toFixed(2));
-	choices.push((correctNumber+0.1).toFixed(2));
-	choices.push((correctNumber*1.5).toFixed(2));
-	let uniqueChoices=[...new Set(choices)];
-	return {
-		latex,
-		correct: rounded,
-		alternate: actualAnswer.toFixed(5),
-		display: rounded,
-		choices: uniqueChoices.slice(0,4),
-		expectedFormat: "Enter a number rounded to 2 decimal places"
-	};
+    let range=getRangeForDifficulty(difficulty||"medium");
+    let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(2));
+    let num2: number=parseFloat((rng()*range.max).toFixed(2));
+    if (num2===0) num2=1;
+    let latex=`\$${num1} \\div ${num2}=\$<br>Round your answer to two decimal places`;
+    let actualAnswer: number=num1/num2;
+    let rounded=(Math.round(actualAnswer*100)/100).toFixed(2);
+    let correctNumber=parseFloat(rounded);
+    let choices=[rounded];
+    choices.push((correctNumber+1).toFixed(2));
+    choices.push((correctNumber-1).toFixed(2));
+    choices.push((correctNumber+0.1).toFixed(2));
+    choices.push((correctNumber*1.5).toFixed(2));
+    let uniqueChoices=[...new Set(choices)];
+    return {
+        latex,
+        correct: rounded,
+        alternate: actualAnswer.toFixed(5),
+        display: rounded,
+        choices: uniqueChoices.slice(0,4),
+        expectedFormat: "Enter a number rounded to 2 decimal places"
+    };
 }

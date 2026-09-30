@@ -15,8 +15,8 @@ export function getAudioContext(): AudioContext{
 }
 let mathjs: any=null;
 async function ensureMathjs(): Promise<void>{
-	if(mathjs) return;
-	mathjs=await import("mathjs");
+    if(mathjs) return;
+    mathjs=await import("mathjs");
 }
 let questionStartTime: number = 0;
 export function startQuestionTimer(): void{

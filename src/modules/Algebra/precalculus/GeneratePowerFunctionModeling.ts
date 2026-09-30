@@ -6,84 +6,84 @@ import {getMaxForDifficulty} from "../AlgebraUtils.js";
  * @date 2026-04-18
  */
 export function generatePowerFunctionModeling(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
-	const types=["direct","inverse","power"];
-	const type=types[Math.floor(rng()*types.length)];
-	const max=getMaxForDifficulty(difficulty,10);
-	let expectedFormat="";
-	let correct="";
-	let alternate="";
-	let display="";
-	let mathExpression="";
-	let choices:string[]=[];
-	const k=Math.floor(rng()*max)+1;
-	const x1=Math.floor(rng()*max)+1;
-	const y1=k*x1;
-	const x2=Math.floor(rng()*max)+1;
-	switch(type){
-		case "direct":{
-			mathExpression=`If y varies directly with x, and y=${y1} when x=${x1}, find y when x=${x2}.`;
-			const y2=k*x2;
-			const ans=y2.toString();
-			correct=ans;
-			alternate=ans;
-			display=ans;
-			let numAns=parseInt(ans);
-			choices=[ans];
-			choices.push((numAns+1).toString());
-			choices.push((numAns-1).toString());
-			choices.push((k).toString());
-			choices.push((x2).toString());
-			expectedFormat="Enter a number";
-			break;
-		}
-		case "inverse":{
-			const kInv=x1*y1;
-			mathExpression=`If y varies inversely with x, and y=${y1} when x=${x1}, find y when x=${x2}.`;
-			const y2=kInv/x2;
-			const ans=y2.toFixed(2);
-			correct=ans;
-			alternate=y2.toString();
-			display=ans;
-			let numAns=parseFloat(ans);
-			choices=[ans];
-			choices.push((numAns+0.5).toFixed(2));
-			choices.push((numAns-0.5).toFixed(2));
-			choices.push((kInv).toString());
-			choices.push((kInv/(x2+1)).toFixed(2));
-			expectedFormat="Enter a number";
-			break;
-		}
-		case "power":{
-			const exp=Math.floor(rng()*2)+2;
-			const y1pow=k*Math.pow(x1,exp);
-			mathExpression=`If y varies as the ${exp}rd power of x, and y=${y1pow} when x=${x1}, find y when x=${x2}.`;
-			const y2=k*Math.pow(x2,exp);
-			const ans=y2.toString();
-			correct=ans;
-			alternate=ans;
-			display=ans;
-			let numAns=parseInt(ans);
-			choices=[ans];
-			choices.push((numAns+1).toString());
-			choices.push((numAns-1).toString());
-			choices.push((k*Math.pow(x2,exp+1)).toString());
-			choices.push((k*Math.pow(x2,exp-1)).toString());
-			expectedFormat="Enter a number";
-			break;
-		}
-	}
-	let uniqueChoices=[...new Set(choices)];
-	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if(!uniqueChoices.includes(correct)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-		else uniqueChoices=[correct];
-	}
-	return {
-		latex: mathExpression,
-		correct: correct,
-		alternate: alternate,
-		display: display,
-		choices: uniqueChoices,
-		expectedFormat: expectedFormat
-	};
+    const types=["direct","inverse","power"];
+    const type=types[Math.floor(rng()*types.length)];
+    const max=getMaxForDifficulty(difficulty,10);
+    let expectedFormat="";
+    let correct="";
+    let alternate="";
+    let display="";
+    let mathExpression="";
+    let choices:string[]=[];
+    const k=Math.floor(rng()*max)+1;
+    const x1=Math.floor(rng()*max)+1;
+    const y1=k*x1;
+    const x2=Math.floor(rng()*max)+1;
+    switch(type){
+        case "direct":{
+            mathExpression=`If y varies directly with x, and y=${y1} when x=${x1}, find y when x=${x2}.`;
+            const y2=k*x2;
+            const ans=y2.toString();
+            correct=ans;
+            alternate=ans;
+            display=ans;
+            let numAns=parseInt(ans);
+            choices=[ans];
+            choices.push((numAns+1).toString());
+            choices.push((numAns-1).toString());
+            choices.push((k).toString());
+            choices.push((x2).toString());
+            expectedFormat="Enter a number";
+            break;
+        }
+        case "inverse":{
+            const kInv=x1*y1;
+            mathExpression=`If y varies inversely with x, and y=${y1} when x=${x1}, find y when x=${x2}.`;
+            const y2=kInv/x2;
+            const ans=y2.toFixed(2);
+            correct=ans;
+            alternate=y2.toString();
+            display=ans;
+            let numAns=parseFloat(ans);
+            choices=[ans];
+            choices.push((numAns+0.5).toFixed(2));
+            choices.push((numAns-0.5).toFixed(2));
+            choices.push((kInv).toString());
+            choices.push((kInv/(x2+1)).toFixed(2));
+            expectedFormat="Enter a number";
+            break;
+        }
+        case "power":{
+            const exp=Math.floor(rng()*2)+2;
+            const y1pow=k*Math.pow(x1,exp);
+            mathExpression=`If y varies as the ${exp}rd power of x, and y=${y1pow} when x=${x1}, find y when x=${x2}.`;
+            const y2=k*Math.pow(x2,exp);
+            const ans=y2.toString();
+            correct=ans;
+            alternate=ans;
+            display=ans;
+            let numAns=parseInt(ans);
+            choices=[ans];
+            choices.push((numAns+1).toString());
+            choices.push((numAns-1).toString());
+            choices.push((k*Math.pow(x2,exp+1)).toString());
+            choices.push((k*Math.pow(x2,exp-1)).toString());
+            expectedFormat="Enter a number";
+            break;
+        }
+    }
+    let uniqueChoices=[...new Set(choices)];
+    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+    if(!uniqueChoices.includes(correct)){
+        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
+        else uniqueChoices=[correct];
+    }
+    return {
+        latex: mathExpression,
+        correct: correct,
+        alternate: alternate,
+        display: display,
+        choices: uniqueChoices,
+        expectedFormat: expectedFormat
+    };
 }

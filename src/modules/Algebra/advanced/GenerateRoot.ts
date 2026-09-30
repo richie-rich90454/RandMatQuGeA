@@ -7,37 +7,37 @@ import {getMaxForDifficulty} from "../AlgebraUtils.js";
  * @returns QuestionDto
  */
 export function generateRoot(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
-	let maxRoot=getMaxForDifficulty(difficulty,4);
-	let maxBase=getMaxForDifficulty(difficulty,10);
-	let root=Math.floor((rng()*maxRoot))+2;
-	let base=Math.floor((rng()*maxBase))+1;
-	let radicand=Math.pow(base,root);
-	let rootExpression="";
-	if(root===2){
-		rootExpression=`\\[ \\sqrt{${radicand}}=? \\]`;
-	}
-	else{
-		rootExpression=`\\[ \\sqrt[${root}]{${radicand}}=? \\]`;
-	}
-	let correctRoot=base.toString();
-	let choices=[correctRoot];
-	choices.push((base+1).toString());
-	choices.push((base-1).toString());
-	choices.push((base*2).toString());
-	choices.push((Math.pow(radicand,1/root+0.1)).toFixed(2));
-	let uniqueChoices=[...new Set(choices)];
-	if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-	if(!uniqueChoices.includes(correctRoot)){
-		if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctRoot;
-		else uniqueChoices=[correctRoot];
-	}
-	let latex=rootExpression;
-	return {
-		latex,
-		correct: correctRoot,
-		alternate: correctRoot,
-		display: correctRoot,
-		choices: uniqueChoices,
-		expectedFormat: "Enter a whole number"
-	};
+    let maxRoot=getMaxForDifficulty(difficulty,4);
+    let maxBase=getMaxForDifficulty(difficulty,10);
+    let root=Math.floor((rng()*maxRoot))+2;
+    let base=Math.floor((rng()*maxBase))+1;
+    let radicand=Math.pow(base,root);
+    let rootExpression="";
+    if(root===2){
+        rootExpression=`\\[ \\sqrt{${radicand}}=? \\]`;
+    }
+    else{
+        rootExpression=`\\[ \\sqrt[${root}]{${radicand}}=? \\]`;
+    }
+    let correctRoot=base.toString();
+    let choices=[correctRoot];
+    choices.push((base+1).toString());
+    choices.push((base-1).toString());
+    choices.push((base*2).toString());
+    choices.push((Math.pow(radicand,1/root+0.1)).toFixed(2));
+    let uniqueChoices=[...new Set(choices)];
+    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+    if(!uniqueChoices.includes(correctRoot)){
+        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctRoot;
+        else uniqueChoices=[correctRoot];
+    }
+    let latex=rootExpression;
+    return {
+        latex,
+        correct: correctRoot,
+        alternate: correctRoot,
+        display: correctRoot,
+        choices: uniqueChoices,
+        expectedFormat: "Enter a whole number"
+    };
 }
