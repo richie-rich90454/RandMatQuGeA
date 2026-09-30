@@ -47,8 +47,10 @@ function isUnusableOption(option: string): boolean{
     if (option==="NaN"||option==="Infinity"||option==="-Infinity") return true;
     if (option==="undefined"||option==="null") return true;
     if (option==="-0.00"||option==="NaN rad"||option==="Infinity rad") return true;
-    if (/^-?\d*\.?0*e\+?\d*$/i.test(option.trim())) return true;
-    if (option.indexOf("e+")>=0||option.indexOf("E+")>=0) return true;
+    // toExponential emits "1.0e+2", which contradicts a declared format of
+    // "like 1.2e3" and is not a spelling any learner would write. A leading sign
+    // is the only place it appears, so matching it does not reject "2e5".
+    if (/^-?\d*\.?\d+[eE]\+\d+$/.test(option.trim())) return true;
     return false;
 }
 
@@ -69,6 +71,20 @@ function sameOption(a: string, b: string): boolean{
     if (ca===cb) return true;
     if (isPlainNumber(a)&&isPlainNumber(b)&&equalNumeric(a, b, 0)) return true;
     return false;
+}
+
+/**
+ * Shortens a value for a failure message, so a LaTeX option does not swamp the
+ * report and hide the topic that produced it.
+ *
+ * @param value - The value to shorten.
+ * @param limit - The longest representation to keep. Defaults to 48 characters.
+ * @returns A quoted, possibly truncated string.
+ */
+function truncate(value: string, limit: number=48): string{
+    let text=JSON.stringify(value);
+    if (text.length<=limit+2) return text;
+    return JSON.stringify(value.slice(0, limit))+"...";
 }
 
 /**
@@ -98,7 +114,7 @@ export async function validateMcq(dto: QuestionDto): Promise<McqFinding[]>{
         if (isUnusableOption(choices[i])){
             findings.push({
                 code:MCQ_CODES.nonFinite,
-                message:"Option "+i+" is not a usable value: "+JSON.stringify(choices[i])+"."
+                message:"Option "+i+" is not a usable value: "+truncate(choices[i])+"."
             });
         }
     }

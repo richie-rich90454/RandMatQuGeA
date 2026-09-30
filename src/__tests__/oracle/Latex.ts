@@ -35,10 +35,57 @@ export function validateLatex(latex: string): LatexFinding[]{
     if (typeof latex!=="string"||latex.trim()===""){
         return [{code:"empty", message:"The prompt is empty."}];
     }
+    // Generators emit math-mode fragments and wrap them themselves, so each
+    // delimiter group is validated on its own. Validating the whole string would
+    // ask KaTeX to parse "\( ... \)" as if the delimiters were still active,
+    // which it rejects as a function call in math mode.
+    let bodies=mathModeBodies(latex);
+    for(let body of bodies){
+        findings=findings.concat(validateFragment(body));
+    }
+    if (bodies.length===0){
+        // A prompt with no math group is prose. A bare percent sign there means
+        // "per cent", not a LaTeX comment, so the comment-at-end check does not
+        // apply to it.
+        findings=findings.concat(validateFragment(latex, true));
+    }
+    return findings;
+}
+
+/**
+ * Extracts the bodies of every inline and display math group, so each can be
+ * validated independently of its delimiters.
+ *
+ * @param latex - The rendered prompt.
+ * @returns The math-mode bodies, in order.
+ */
+function mathModeBodies(latex: string): string[]{
+    let bodies:string[]=[];
+    let re=/\\\(([\s\S]*?)\\\)|\\\[([\s\S]*?)\\\]/g;
+    let match=re.exec(latex);
+    while (match!==null){
+        bodies.push(match[1]!==undefined?match[1]:match[2]);
+        match=re.exec(latex);
+    }
+    return bodies;
+}
+
+/**
+ * Validates a single LaTeX fragment in isolation.
+ *
+ * @param fragment - The fragment to validate.
+ * @returns Every finding.
+ */
+function validateFragment(fragment: string, isProse: boolean=false): LatexFinding[]{
+    let findings: LatexFinding[]=[];
+    if (fragment.trim()===""){
+        return [{code:"empty", message:"The prompt contains an empty math group."}];
+    }
     try{
-        katex.renderToString(latex, {
+        katex.renderToString(fragment, {
             throwOnError:true,
             strict(code: string, message: string){
+                if (isProse&&code==="commentAtEnd") return "ignore";
                 findings.push({code, message});
                 return "ignore";
             },
@@ -65,22 +112,26 @@ export function isValidLatex(latex: string): boolean{
 }
 
 /**
- * Reports whether a string contains a Unicode character that belongs in text
- * mode rather than math mode. Generators that interpolate a raw degree sign, a
- * Unicode minus or a multiplication sign produce output that renders as
- * plausible but is not the intended expression.
+ * Reports whether a prompt places a Unicode character inside a math delimiter
+ * that belongs in text mode. A degree sign in prose is correct and common, so
+ * the check is scoped to math-mode regions only: a raw U+2212 minus, U+00D7
+ * times or U+00B0 degree inside math mode renders as plausible but is not the
+ * intended expression, and silently differs from the `-` and `^\circ` the rest
+ * of the codebase uses.
  *
- * @param latex - The fragment to inspect.
+ * @param latex - The rendered prompt.
  * @returns The offending characters, or an empty array.
  */
 export function findUnicodeInMathMode(latex: string): string[]{
-    let offenders:string[]=[];
+    let offenders=new Set<string>();
     // U+2212 minus, U+00D7 times, U+00F7 divide, U+00B0 degree.
     let suspicious=["\u2212","\u00d7","\u00f7","\u00b0"];
-    for(let ch of suspicious){
-        if (latex.indexOf(ch)>=0) offenders.push(ch);
+    for(let body of mathModeBodies(latex)){
+        for(let ch of suspicious){
+            if (body.indexOf(ch)>=0) offenders.add(ch);
+        }
     }
-    return offenders;
+    return Array.from(offenders);
 }
 
 /**
