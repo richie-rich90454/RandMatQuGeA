@@ -1,8 +1,13 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
+import {fmt} from "../../shared/Numeric";
 /**
- * Generates a percentage question (percent of, increase, decrease, simple interest, or markup) with MCQ distractors.
- * @fileoverview Percentage calculations. Sets window.correctAnswer with numeric result and plausible wrong answers.
+ * Generates a percentage question: percent of a number, an increase, a decrease,
+ * simple interest, or a markup.
+ * @fileoverview Percentage calculations. Every question is generated so that the
+ * arithmetic is exact: the percentages divide the quantities they are applied to,
+ * so no answer ever requires an unstated rounding instruction. Prompts state the
+ * result to the precision the answer is given at, or ask the learner to round.
  * @date 2026-04-18
  * @returns QuestionDto
  */
@@ -16,100 +21,95 @@ export function generatePercent(difficulty?: string, rng: RngFn=Math.random): Qu
     let display="";
     let mathExpression="";
     let choices:string[]=[];
-    let percent=Math.floor(rng()*50)+10;
-    let whole=Math.floor(rng()*maxVal)+10;
-    let part=Math.round(whole*percent/100);
+    let percent=Math.floor(rng()*9)*10+10;
+    // Choosing a whole that the percentage divides exactly keeps every answer
+    // exact, so no question needs "round to the nearest whole number" in it.
+    let whole=percent;
+    let multiplier=Math.floor(rng()*Math.max(1, Math.floor(maxVal/percent)))+1;
+    whole=percent*multiplier;
     switch(type){
         case "percent_of":{
-            correct=part.toString();
+            let part=whole*percent/100;
+            correct=fmt(part, 2);
             alternate=correct;
             display=correct;
             mathExpression=`What is \\( ${percent}\\% \\) of \\( ${whole} \\)?`;
-            let numRes=parseInt(correct);
+            let numRes=Number(correct);
             choices=[correct];
-            choices.push((numRes+1).toString());
-            choices.push((numRes-1).toString());
-            choices.push((whole*percent/100+1).toString());
-            choices.push((whole).toString());
+            choices.push(fmt(numRes+percent/100, 2));
+            choices.push(fmt(numRes-percent/100, 2));
+            choices.push(fmt(whole-percent, 2));
+            choices.push(fmt(whole, 2));
             break;
         }
         case "increase":{
-            let increase=Math.floor(rng()*50)+5;
-            let newVal=whole+Math.round(whole*increase/100);
-            correct=newVal.toString();
+            let newVal=whole*(100+percent)/100;
+            correct=fmt(newVal, 2);
             alternate=correct;
             display=correct;
-            mathExpression=`If \\( ${whole} \\) increases by \\( ${increase}\\% \\), what is the new value?`;
-            let numRes=parseInt(correct);
+            mathExpression=`If \\( ${whole} \\) increases by \\( ${percent}\\% \\), what is the new value?`;
+            let numRes=Number(correct);
             choices=[correct];
-            choices.push((numRes+1).toString());
-            choices.push((numRes-1).toString());
-            choices.push((whole+increase).toString());
-            choices.push((whole).toString());
+            choices.push(fmt(numRes+whole, 2));
+            choices.push(fmt(numRes-whole, 2));
+            choices.push(fmt(whole+percent, 2));
+            choices.push(fmt(whole, 2));
             break;
         }
         case "decrease":{
-            let decrease=Math.floor(rng()*30)+5;
-            let newVal=whole-Math.round(whole*decrease/100);
-            correct=newVal.toString();
+            let newVal=whole*(100-percent)/100;
+            correct=fmt(newVal, 2);
             alternate=correct;
             display=correct;
-            mathExpression=`If \\( ${whole} \\) decreases by \\( ${decrease}\\% \\), what is the new value?`;
-            let numRes=parseInt(correct);
+            mathExpression=`If \\( ${whole} \\) decreases by \\( ${percent}\\% \\), what is the new value?`;
+            let numRes=Number(correct);
             choices=[correct];
-            choices.push((numRes+1).toString());
-            choices.push((numRes-1).toString());
-            choices.push((whole-decrease).toString());
-            choices.push((whole).toString());
+            choices.push(fmt(numRes+whole, 2));
+            choices.push(fmt(numRes-whole, 2));
+            choices.push(fmt(whole-percent, 2));
+            choices.push(fmt(whole, 2));
             break;
         }
         case "interest":{
-            let principal=Math.floor(rng()*1000)+500;
-            let rate=(rng()*5+2).toFixed(1);
-            let time=Math.floor(rng()*3)+1;
-            let interest=Math.round(principal*parseFloat(rate)/100*time);
-            correct=interest.toString();
+            let principal=percent*multiplier*10;
+            let rate=Math.floor(rng()*9)+1;
+            let years=Math.floor(rng()*4)+1;
+            let interest=principal*rate*years/100;
+            correct=fmt(interest, 2);
             alternate=correct;
             display=correct;
-            mathExpression=`Simple interest on \\( $${principal} \\) at \\( ${rate}\\% \\) for \\( ${time} \\) years?`;
-            let numRes=parseInt(correct);
+            mathExpression=`Find the simple interest on a principal of ${principal} dollars at ${rate}% per year for ${years} years.`;
+            let numRes=Number(correct);
             choices=[correct];
-            choices.push((numRes+1).toString());
-            choices.push((numRes-1).toString());
-            choices.push((principal*parseFloat(rate)/100).toFixed(0));
-            choices.push((principal*time).toString());
+            choices.push(fmt(numRes+principal, 2));
+            choices.push(fmt(numRes-principal, 2));
+            choices.push(fmt(principal*rate/100, 2));
+            choices.push(fmt(principal*years, 2));
             break;
         }
         case "markup":{
-            let cost=Math.floor(rng()*50)+10;
-            let markup=Math.floor(rng()*40)+20;
-            let price=cost+Math.round(cost*markup/100);
-            correct=price.toString();
+            let markup=Math.floor(rng()*4)*10+10;
+            let cost=percent*multiplier*10;
+            let price=cost*(100+markup)/100;
+            correct=fmt(price, 2);
             alternate=correct;
             display=correct;
-            mathExpression=`A store buys an item for \\( $${cost} \\) and marks it up \\( ${markup}\\% \\). What is the selling price?`;
-            let numRes=parseInt(correct);
+            mathExpression=`A store buys an item for ${cost} dollars and marks it up by ${markup}%. What is the selling price?`;
+            let numRes=Number(correct);
             choices=[correct];
-            choices.push((numRes+1).toString());
-            choices.push((numRes-1).toString());
-            choices.push((cost+markup).toString());
-            choices.push((cost).toString());
+            choices.push(fmt(cost+markup, 2));
+            choices.push(fmt(numRes-cost, 2));
+            choices.push(fmt(cost*(100-markup)/100, 2));
+            choices.push(fmt(cost*2, 2));
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
-    let latex=mathExpression;
     return {
-        latex,
-        correct,
-        alternate,
-        display,
-        choices: uniqueChoices,
-        expectedFormat
+        latex: mathExpression,
+        correct: correct,
+        alternate: alternate,
+        display: display,
+        choices: choices,
+        expectedFormat: expectedFormat
     };
 }
