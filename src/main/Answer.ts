@@ -514,13 +514,20 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
         ui.updatePreview();
         dom.inputs.userAnswer.focus();
     }
-    // Asked after the result is shown rather than before the answer is graded, so
+// Asked after the result is shown rather than before the answer is graded, so
     // the learner is judging what they actually did rather than what they hoped.
     // It is not offered when the next question is already on its way, because a
     // prompt that is replaced before it can be answered is noise.
+    let daily=await import("./services/DailyMode");
+    let dailyActive=daily.isActive();
     if (!appState.autocontinue||!appState.mcqMode){
         let help=await import("./services/Help");
-		help.ask(isCorrect, responseTime);
+        help.ask(isCorrect, responseTime);
+    }
+    if (dailyActive){
+        // The set advances itself, because a daily set that waits to be told to
+        // continue is a session with a daily label on it.
+        await daily.completeCurrent();
     }
     if (appState.currentMode==="single"&&appState.autocontinue){
         if (appState.autoTimeout) clearTimeout(appState.autoTimeout);
