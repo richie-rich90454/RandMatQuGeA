@@ -497,6 +497,19 @@
                                     </div>
                                     <div id="preview" class="math-preview"></div>
                                     <div id="expected-format" class="expected-format"></div>
+                                    <div id="confidence-row" class="confidence-row" hidden>
+                                        <span class="confidence-label" id="confidence-label">How sure were you?</span>
+                                        <div class="confidence-buttons" role="group" aria-labelledby="confidence-label">
+                                            <button type="button" class="secondary-button confidence-button" data-confidence="low">Guessing</button>
+                                            <button type="button" class="secondary-button confidence-button" data-confidence="medium">Fairly sure</button>
+                                            <button type="button" class="secondary-button confidence-button" data-confidence="high">Certain</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer help-footer">
+                                    <button type="button" class="secondary-button" id="show-hint">Hint</button>
+                                    <button type="button" class="secondary-button" id="show-solution" hidden>Show solution</button>
+                                    <div id="hint-panel" class="hint-panel" hidden aria-live="polite"></div>
                                 </div>
                             </div>
                             <div class="results-card card">
