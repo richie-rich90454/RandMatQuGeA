@@ -4,8 +4,6 @@ import * as ui from"./main/Ui";
 import * as session from"./main/Session";
 import * as events from"./main/Events";
 import * as theme from"./main/Theme";
-import * as storage from"./main/services/Storage";
-import * as reviewStore from"./main/services/ReviewStore";
 import{watchVisualViewport}from"./main/services/Viewport";
 import{questionState}from"./main/core/QuestionState";
 import{offlineIndicator}from"./main/ui/OfflineIndicator";
@@ -20,6 +18,10 @@ async function initApp(): Promise<void>{
     await settings.applyPersistence(settings.settings.persistence);
     settings.applyPersistenceVisibility();
     try{
+        // Loaded on demand: the schedule and its storage are only needed once
+        // there is a record to restore, and keeping them out of the initial
+        // payload is what leaves room for the first paint.
+        let reviewStore=await import("./main/services/ReviewStore");
         await reviewStore.loadRecords();
     }
     catch(err){
@@ -27,7 +29,8 @@ async function initApp(): Promise<void>{
     }
     // A browser that cannot actually write must fall back to a private session
     // rather than leaving the interface promising a record it cannot keep.
-    if (!storage.isPersistent()&&settings.settings.persistence==="indexed"){
+    let store=await import("./main/services/Storage");
+    if (!store.isPersistent()&&settings.settings.persistence==="indexed"){
         await settings.applyPersistence("zdr");
         settings.applyPersistenceVisibility();
     }
@@ -50,7 +53,7 @@ async function initApp(): Promise<void>{
     catch(err){
         console.error("initializeTheme failed:",err);
     }
-    watchVisualViewport();
+    watchVisualViewport().catch((err:unknown)=>console.warn("viewport watcher unavailable:",err));
     ui.updateUIState();
     try{
         await session.restoreSessionSnapshot();
