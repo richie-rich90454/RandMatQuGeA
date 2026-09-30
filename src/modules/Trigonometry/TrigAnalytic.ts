@@ -476,10 +476,10 @@ export function generateSumDifference(difficulty?: string, rng: RngFn = Math.ran
     }
     let expr="";
     if(op==="sum"){
-        expr=`${func}(${a}° + ${b}°)`;
+        expr=`${func}(${a}^{\\circ} + ${b}^{\\circ})`;
     }
     else{
-        expr=`${func}(${a}° - ${b}°)`;
+        expr=`${func}(${a}^{\\circ} - ${b}^{\\circ})`;
     }
     let latex=`Use the sum/difference formula to find the exact value of \\( ${expr} \\).`;
     const radA=a*Math.PI/180;
