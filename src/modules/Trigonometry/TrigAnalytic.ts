@@ -528,7 +528,7 @@ export function generateDoubleAngle(difficulty?: string, rng: RngFn = Math.rando
             guard++;
         }
     }
-    let latex=`Use the double-angle formula to find \\( ${func}(2 \\cdot ${angle}°) \\).`;
+    let latex=`Use the double-angle formula to find \\( ${func}(2 \\cdot ${angle}^{\circ}) \\).`;
     const rad=angle*Math.PI/180;
     let value: number;
     if(func==="sin") value=Math.sin(2*rad);
@@ -566,7 +566,7 @@ export function generateHalfAngle(difficulty?: string, rng: RngFn = Math.random)
     else{
         angle=Math.floor(rng()*90)+1;
     }
-    let latex=`Use the half-angle formula to find \\( ${func}(${angle}°/2) \\).`;
+    let latex=`Use the half-angle formula to find \\( ${func}(${angle}^{\circ}/2) \\).`;
     const rad=angle*Math.PI/180/2;
     let value: number;
     if(func==="sin") value=Math.sin(rad);
@@ -612,7 +612,7 @@ export function generatePolarToRectangular(difficulty?: string, rng: RngFn = Mat
     const x=(r*Math.cos(thetaRad)).toFixed(2);
     const y=(r*Math.sin(thetaRad)).toFixed(2);
     const displayAnswer=`(${x}, ${y})`;
-    let latex=`Convert the polar coordinate \\( (${r}, ${thetaDeg}°) \\) to rectangular coordinates.`;
+    let latex=`Convert the polar coordinate \\( (${r}, ${thetaDeg}^{\circ}) \\) to rectangular coordinates.`;
     let correct=displayAnswer;
     let choices=[correct];
     choices.push(`(${(parseFloat(x)+1).toFixed(2)}, ${y})`);
@@ -653,7 +653,7 @@ export function generateRectangularToPolar(difficulty?: string, rng: RngFn = Mat
     const r=Math.sqrt(x*x+y*y).toFixed(2);
     const thetaRad=Math.atan2(y,x);
     const thetaDeg=(thetaRad*180/Math.PI).toFixed(2);
-    const displayAnswer=`(${r}, ${thetaDeg}°)`;
+    const displayAnswer=`(${r}, ${thetaDeg}^{\circ})`;
     let latex=`Convert the rectangular coordinate \\( (${x}, ${y}) \\) to polar coordinates (give angle in degrees).`;
     let correct=displayAnswer;
     let choices=[correct];
@@ -685,7 +685,7 @@ export function generatePolarDistance(difficulty?: string, rng: RngFn = Math.ran
     const theta1=theta1Deg*Math.PI/180;
     const theta2=theta2Deg*Math.PI/180;
     const dist=Math.sqrt(Math.max(0, r1*r1+r2*r2-2*r1*r2*Math.cos(theta1-theta2))).toFixed(2);
-    let latex=`Find the distance between the polar points \\( (${r1}, ${theta1Deg}°) \\) and \\( (${r2}, ${theta2Deg}°) \\).`;
+    let latex=`Find the distance between the polar points \\( (${r1}, ${theta1Deg}^{\circ}) \\) and \\( (${r2}, ${theta2Deg}^{\circ}) \\).`;
     let correct=dist;
     let choices=[correct];
     choices.push((parseFloat(dist)+0.5).toFixed(2));
@@ -891,14 +891,14 @@ export function generateComplexPolarForm(difficulty?: string, rng: RngFn = Math.
     const r=Math.sqrt(a*a+b*b).toFixed(2);
     const thetaRad=Math.atan2(b,a);
     const thetaDeg=(thetaRad*180/Math.PI).toFixed(2);
-    const displayAnswer=`${r} \\operatorname{cis} ${thetaDeg}°`;
+    const displayAnswer=`${r} \\operatorname{cis} ${thetaDeg}^{\circ}`;
     let latex=`Write the complex number \\( ${a} + ${b}i \\) in polar form (angle in degrees).`;
     let correct=displayAnswer;
     let choices=[correct];
-    choices.push(`${(parseFloat(r)+1).toFixed(2)} \\operatorname{cis} ${thetaDeg}°`);
-    choices.push(`${(parseFloat(r)-1).toFixed(2)} \\operatorname{cis} ${thetaDeg}°`);
-    choices.push(`${r} \\operatorname{cis} ${(parseFloat(thetaDeg)+10).toFixed(2)}°`);
-    choices.push(`${r} \\operatorname{cis} ${(parseFloat(thetaDeg)-10).toFixed(2)}°`);
+    choices.push(`${(parseFloat(r)+1).toFixed(2)} \\operatorname{cis} ${thetaDeg}^{\circ}`);
+    choices.push(`${(parseFloat(r)-1).toFixed(2)} \\operatorname{cis} ${thetaDeg}^{\circ}`);
+    choices.push(`${r} \\operatorname{cis} ${(parseFloat(thetaDeg)+10).toFixed(2)}^{\circ}`);
+    choices.push(`${r} \\operatorname{cis} ${(parseFloat(thetaDeg)-10).toFixed(2)}^{\circ}`);
     let uniqueChoices=[...new Set(choices)];
     if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
     if(!uniqueChoices.includes(correct)){
@@ -930,14 +930,14 @@ export function generateComplexMultiplyDivide(difficulty?: string, rng: RngFn = 
         resultR=(r1/r2).toFixed(2);
         resultThetaDeg=(theta1Deg-theta2Deg+360)%360;
     }
-    const displayAnswer=`${resultR} \\operatorname{cis} ${resultThetaDeg}°`;
-    let latex=`Given \\( z_1 = ${r1} \\text{ cis } ${theta1Deg}° \\) and \\( z_2 = ${r2} \\text{ cis } ${theta2Deg}° \\), find \\( z_1 ${op==='multiply'?'\\cdot':'/'} z_2 \\) in polar form.`;
+    const displayAnswer=`${resultR} \\operatorname{cis} ${resultThetaDeg}^{\circ}`;
+    let latex=`Given \\( z_1 = ${r1} \\text{ cis } ${theta1Deg}^{\circ} \\) and \\( z_2 = ${r2} \\text{ cis } ${theta2Deg}^{\circ} \\), find \\( z_1 ${op==='multiply'?'\\cdot':'/'} z_2 \\) in polar form.`;
     let correct=displayAnswer;
     let choices=[correct];
-    choices.push(`${(parseFloat(resultR)+1).toFixed(2)} \\operatorname{cis} ${resultThetaDeg}°`);
-    choices.push(`${(parseFloat(resultR)-1).toFixed(2)} \\operatorname{cis} ${resultThetaDeg}°`);
-    choices.push(`${resultR} \\operatorname{cis} ${(resultThetaDeg+10).toFixed(2)}°`);
-    choices.push(`${resultR} \\operatorname{cis} ${(resultThetaDeg-10).toFixed(2)}°`);
+    choices.push(`${(parseFloat(resultR)+1).toFixed(2)} \\operatorname{cis} ${resultThetaDeg}^{\circ}`);
+    choices.push(`${(parseFloat(resultR)-1).toFixed(2)} \\operatorname{cis} ${resultThetaDeg}^{\circ}`);
+    choices.push(`${resultR} \\operatorname{cis} ${(resultThetaDeg+10).toFixed(2)}^{\circ}`);
+    choices.push(`${resultR} \\operatorname{cis} ${(resultThetaDeg-10).toFixed(2)}^{\circ}`);
     let uniqueChoices=[...new Set(choices)];
     if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
     if(!uniqueChoices.includes(correct)){
@@ -960,14 +960,14 @@ export function generateDeMoivre(difficulty?: string, rng: RngFn = Math.random):
     const n=Math.floor(rng()*4)+2;
     const newR=Math.pow(r,n).toFixed(2);
     const newThetaDeg=(thetaDeg*n)%360;
-    const displayAnswer=`${newR} \\operatorname{cis} ${newThetaDeg}°`;
-    let latex=`Use De Moivre's theorem to compute \\( (${r} \\text{ cis } ${thetaDeg}°)^{${n}} \\).`;
+    const displayAnswer=`${newR} \\operatorname{cis} ${newThetaDeg}^{\circ}`;
+    let latex=`Use De Moivre's theorem to compute \\( (${r} \\text{ cis } ${thetaDeg}^{\circ})^{${n}} \\).`;
     let correct=displayAnswer;
     let choices=[correct];
-    choices.push(`${(parseFloat(newR)+1).toFixed(2)} \\operatorname{cis} ${newThetaDeg}°`);
-    choices.push(`${(parseFloat(newR)-1).toFixed(2)} \\operatorname{cis} ${newThetaDeg}°`);
-    choices.push(`${newR} \\operatorname{cis} ${(newThetaDeg+10).toFixed(2)}°`);
-    choices.push(`${newR} \\operatorname{cis} ${(newThetaDeg-10).toFixed(2)}°`);
+    choices.push(`${(parseFloat(newR)+1).toFixed(2)} \\operatorname{cis} ${newThetaDeg}^{\circ}`);
+    choices.push(`${(parseFloat(newR)-1).toFixed(2)} \\operatorname{cis} ${newThetaDeg}^{\circ}`);
+    choices.push(`${newR} \\operatorname{cis} ${(newThetaDeg+10).toFixed(2)}^{\circ}`);
+    choices.push(`${newR} \\operatorname{cis} ${(newThetaDeg-10).toFixed(2)}^{\circ}`);
     let uniqueChoices=[...new Set(choices)];
     if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
     if(!uniqueChoices.includes(correct)){
@@ -994,24 +994,24 @@ export function generateComplexRoots(difficulty?: string, rng: RngFn = Math.rand
     for(let k=0;k<n;k++){
         let angle=(thetaDeg+360*k)/n;
         angles.push(`${rootR} cis ${angle.toFixed(2)}°`);
-        displayAngles.push(`${rootR} \\operatorname{cis} ${angle.toFixed(2)}°`);
+        displayAngles.push(`${rootR} \\operatorname{cis} ${angle.toFixed(2)}^{\circ}`);
     }
-    let latex=`Find all ${n}th roots of \\( ${r} \\text{ cis } ${thetaDeg}° \\).`;
+    let latex=`Find all ${n}th roots of \\( ${r} \\text{ cis } ${thetaDeg}^{\circ} \\).`;
     let correct=displayAngles.join("; ");
     let choices=[correct];
     let wrongRoots:string[]=[];
     for(let k=0;k<n;k++){
         let wrongAngle=(thetaDeg+360*k+10)/n;
-        wrongRoots.push(`${rootR} \\operatorname{cis} ${wrongAngle.toFixed(2)}°`);
+        wrongRoots.push(`${rootR} \\operatorname{cis} ${wrongAngle.toFixed(2)}^{\circ}`);
     }
     choices.push(wrongRoots.join("; "));
     wrongRoots=[];
     for(let k=0;k<n;k++){
         let wrongAngle=(thetaDeg+360*k-10)/n;
-        wrongRoots.push(`${rootR} \\operatorname{cis} ${wrongAngle.toFixed(2)}°`);
+        wrongRoots.push(`${rootR} \\operatorname{cis} ${wrongAngle.toFixed(2)}^{\circ}`);
     }
     choices.push(wrongRoots.join("; "));
-    choices.push(`${rootR} \\operatorname{cis} ${(thetaDeg/n).toFixed(2)}° only`);
+    choices.push(`${rootR} \\operatorname{cis} ${(thetaDeg/n).toFixed(2)}^{\circ} only`);
     choices.push("No real roots");
     let uniqueChoices=[...new Set(choices)];
     if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
