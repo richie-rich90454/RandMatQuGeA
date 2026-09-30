@@ -1,4 +1,4 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+﻿import type {RngFn, QuestionDto} from "../../types/global";
 import {getRangeForDifficulty} from "./ArithmeticUtils.js";
 /**
  * Generates and displays a random addition question.
@@ -30,7 +30,7 @@ export function generateAddition(difficulty?: string, rng: RngFn = Math.random):
     let range=getRangeForDifficulty(difficulty||"medium");
     let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(3));
     let num2: number=parseFloat((rng()*range.max).toFixed(3));
-    let latex=`\$${num1}+${num2}=\$`;
+    let latex=`\\( ${num1}+${num2}= \\)`;
     let result=(num1+num2).toFixed(3);
     let correctNumber=parseFloat(result);
     let choices=[result];
@@ -75,7 +75,7 @@ export function generateSubtraction(difficulty?: string, rng: RngFn = Math.rando
     let range=getRangeForDifficulty(difficulty||"medium");
     let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(3));
     let num2: number=parseFloat((rng()*range.max).toFixed(3));
-    let latex=`\$${num1}-${num2}=\$`;
+    let latex=`\\( ${num1}-${num2}= \\)`;
     let result=(num1-num2).toFixed(3);
     let correctNumber=parseFloat(result);
     let choices=[result];
@@ -121,7 +121,7 @@ export function generateMultiplication(difficulty?: string, rng: RngFn = Math.ra
     let range=getRangeForDifficulty(difficulty||"medium");
     let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(2));
     let num2: number=parseFloat((rng()*range.max).toFixed(2));
-    let latex=`\$${num1} \\times ${num2}=\$<br>Round your answer to two decimal places`;
+    let latex=`\\( ${num1} \\times ${num2}= \\)<br>Round your answer to two decimal places`;
     let actualAnswer: number=num1*num2;
     let rounded=(Math.round(actualAnswer*100)/100).toFixed(2);
     let correctNumber=parseFloat(rounded);
@@ -169,7 +169,7 @@ export function generateDivision(difficulty?: string, rng: RngFn = Math.random):
     let num1: number=parseFloat(((rng()*(range.max-range.min))+range.min).toFixed(2));
     let num2: number=parseFloat((rng()*range.max).toFixed(2));
     if (num2===0) num2=1;
-    let latex=`\$${num1} \\div ${num2}=\$<br>Round your answer to two decimal places`;
+    let latex=`\\( ${num1} \\div ${num2}= \\)<br>Round your answer to two decimal places`;
     let actualAnswer: number=num1/num2;
     let rounded=(Math.round(actualAnswer*100)/100).toFixed(2);
     let correctNumber=parseFloat(rounded);
