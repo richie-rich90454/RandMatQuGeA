@@ -14,6 +14,49 @@ Timed session mode. Answer as many questions as possible before the timer runs o
 
 Toggle MCQ mode in the toolbar (or Settings). Each question gets a set of generated choices (2–6, default 4). Clicking a choice checks the answer immediately; the correct answer is exactly one of the choices.
 
+An option set is only ever shown with four options and exactly one correct. If a
+generator offers a short set, or one with a duplicate or a second correct answer,
+the builder repairs it — dropping the collision and filling from the answer's own
+structure — rather than showing a question with two right answers. When no honest
+alternative exists it returns fewer than four rather than padding with a
+placeholder, because a filler option teaches you to find the one that looks like
+an answer instead of reading the question.
+
+### Hints and solutions
+
+Every question has help. **Hint** reveals the next rung, one at a time:
+
+1. what shape of answer is wanted, from the question's own declared format
+2. what the answer looks like — a number, a fraction, an equation, a phrase
+3. the misconception this question is designed to catch, where one applies
+4. what to do next, without doing it
+
+Once the rungs are spent the button becomes **Show the answer**, which gives the
+answer and tells you to work backwards from it to find the step you missed. That
+is deliberate: the last rung decides *which* step was missed rather than handing
+over a number with no way to learn from it.
+
+**Show solution** is separate from the hints, so you can work through a question
+fully and then see the whole derivation rather than only the last nudge.
+
+### Your data
+
+Two choices, under Settings → General → **Data on this device**:
+
+- **Private session (nothing is stored)** — nothing is written anywhere. Closing
+  the tab erases every trace: your progress, your streak and your preferences.
+- **Remember me (stored in this browser)** — your progress and streak survive a
+  reload, stored only in this browser and never sent anywhere.
+
+If the browser cannot actually store anything, the app falls back to a private
+session rather than pretending to keep a record it cannot. The **Erase my
+learning record** control is only shown when something is actually being kept,
+and it removes the schedule, every recorded answer and your streak together.
+
+If you were using an earlier build that stored preferences in `localStorage`,
+choosing either option moves them: into the browser store, or out of it entirely.
+A private session never leaves anything behind.
+
 ## Settings
 
 ### Basic
@@ -80,8 +123,24 @@ The Rust backend tracks per-topic and per-difficulty accuracy. When enabled:
 - **Difficulty auto-adjusts**: accuracy < 40% → Easy, 40–80% → Medium, > 80% → Hard
 - **Weak topic detection**: topics with < 70% accuracy after ≥ 3 attempts are flagged
 - **Recommendations**: a popup suggests reviewing weak topics after sessions
+- **Spaced repetition**: each topic and each procedure within it is scheduled by
+  memory strength, so something you keep getting right comes back later and
+  something you keep forgetting comes back soon
+- **Overconfidence adjustment**: every answer is recorded with the confidence you
+  reported. If you are consistently more certain than your results warrant, the
+  interval shortens; if you consistently doubt answers you get right, it lengthens.
+  The correction is bounded, so a run of luck cannot freeze a topic
 
-Reset adaptive data via Settings → Advanced → Reset All Data.
+The confidence question appears only on answers where it is informative and where
+you took long enough to have thought about it, because asked every time it becomes
+a habit rather than a judgement.
+
+Each scheduled item carries the reason it is being asked, shown next to the
+question: *"Correct 60% of the time, but often more certain than the result
+warrants, so this comes back sooner"*.
+
+Erase the record at any time with Settings → General → **Erase my learning
+record**, or reset everything with Settings → Advanced → Reset All Data.
 
 ## PDF Worksheets
 
