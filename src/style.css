@@ -2115,3 +2115,120 @@ hr.context-menu-divider{
 .error-retry-btn:hover{
     background: var(--primary-dark);
 }
+/* ========================================
+   COARSE POINTER
+   ========================================
+   Width alone does not describe a touch device: a tablet in landscape is wide
+   but has no hover and no precise pointer, and a narrow window on a desktop has
+   both. These rules therefore key off the pointer, and they hold the floor the
+   platform guidelines set rather than shrinking further, which is what the width
+   rules above did on a phone. */
+@media (pointer: coarse){
+    /* A hover style that never fires leaves a control looking inert, and on
+       touch the pressed state is the only feedback a tap produces. */
+    .primary-button,
+    .secondary-button,
+    .icon-button,
+    .topic-pill,
+    .choice-button,
+    .math-toolbar-btn{
+        -webkit-tap-highlight-color: rgba(79, 155, 255, 0.25);
+    }
+    .primary-button:active:not(:disabled),
+    .secondary-button:active:not(:disabled),
+    .icon-button:active:not(:disabled),
+    .topic-pill:active,
+    .choice-button:active,
+    .math-toolbar-btn:active{
+        transform: scale(0.98);
+    }
+    /* Every interactive control is at least 44 by 44 CSS pixels, which is the
+       smallest target reliably hittable with a thumb. */
+    .primary-button,
+    .secondary-button,
+    .icon-button,
+    .topic-pill,
+    .choice-button,
+    .math-toolbar-btn,
+    .error-retry-btn{
+        min-height: 44px;
+    }
+    .icon-button,
+    .math-toolbar-btn{
+        min-width: 44px;
+    }
+    .topic-pill{
+        padding: 10px 12px;
+    }
+    .answer-input{
+        min-height: 48px;
+        font-size: 1rem;
+    }
+    .question-display{
+        min-height: 72px;
+        font-size: 1.05rem;
+    }
+    .results-display{
+        min-height: 56px;
+        font-size: 0.95rem;
+    }
+    /* A hovered element on a touch screen stays hovered after the finger lifts,
+       so hover colour is neutralised and the pressed state carries the signal. */
+    .primary-button:hover:not(:disabled){
+        background: var(--primary);
+    }
+    .secondary-button:hover:not(:disabled){
+        background: var(--secondary);
+    }
+    .icon-button:hover,
+    .topic-pill:hover,
+    .math-toolbar-btn:hover{
+        background: var(--surface);
+        border-color: var(--border);
+    }
+}
+@media (hover: none){
+    .primary-button:hover:not(:disabled){
+        background: var(--primary);
+    }
+    .secondary-button:hover:not(:disabled){
+        background: var(--secondary);
+    }
+    .icon-button:hover,
+    .topic-pill:hover,
+    .math-toolbar-btn:hover{
+        background: var(--surface);
+        border-color: var(--border);
+    }
+}
+/* ========================================
+   SAFE AREAS AND DYNAMIC VIEWPORT
+   ========================================
+   100vh is the viewport with the mobile browser chrome expanded, so the bottom of
+   the app sat under the collapsed address bar. The dynamic unit tracks the
+   visible area, and the safe-area insets keep the toolbar and footer clear of a
+   notch, a rounded corner, or a home indicator. */
+:root{
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+}
+body,
+.app-container{
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+.control-toolbar{
+    padding-top: calc(var(--spacing-sm) + var(--safe-top));
+    padding-left: max(var(--spacing-sm), var(--safe-left));
+    padding-right: max(var(--spacing-sm), var(--safe-right));
+}
+.app-content{
+    padding-left: max(var(--spacing-lg), var(--safe-left));
+    padding-right: max(var(--spacing-lg), var(--safe-right));
+    padding-bottom: calc(var(--spacing-md) + var(--safe-bottom));
+}
+.footer-content{
+    padding-bottom: calc(var(--spacing-sm) + var(--safe-bottom));
+}
