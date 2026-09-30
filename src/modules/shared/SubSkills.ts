@@ -8,10 +8,11 @@
  *
  * The list is hand-maintained because the generators select their branch from a
  * local `type` variable that is not returned. `subSkills` is therefore the
- * authoritative description of a topic's internal branches, and the test
- * `src/__tests__/modules/subSkills.test.ts` asserts that a declared sub-skill is
- * reachable for every registered topic, so this table cannot silently drift from
- * the generators.
+ * authoritative description of a topic's internal branches, and the oracle test
+ * `src/__tests__/oracle/subSkills.test.ts` asserts that every registered topic has
+ * a row and that every row belongs to a registered topic, so this table cannot
+ * silently drift from the generators in either direction. A row keyed by
+ * something other than a topic id is unreachable and is a defect, not a comment.
  *
  * A generator names its chosen sub-skill by returning it in the DTO, which lets
  * the scheduler record exactly which procedure was practised without a second
@@ -133,12 +134,29 @@ let TABLE: { [topicId: string]: string[] }={
     infinite_series:["arith_sum","geom_sum","sigma","shift","telescoping","infinite_sum"],
     induction:["base_case","inductive_hypothesis","inductive_step","verify_sequence"],
     binomial:["coefficients","expansion","term","multinomial","pascal"],
-    matrix:["add","subtract","multiply","transpose","determinant","inverse","scalar_mult","power","row_echelon","system","identity","zero_matrix"],
-    vector:["magnitude","unit","dot","angle","projection","addition","subtraction","decomposition","cross","parallel_perpendicular","polar","direction"],
     vector3d:["magnitude","unit","dot","cross","angle","projection","line","plane","distance","sphere","midpoint"],
-    lin_alg_advanced:["rref","eigenvalues","eigenvectors","diagonalization","orthogonality","gram_schmidt","least_squares","partial_fractions","quadratic_form","linear_programming","decomposition","system_3x3","power"],
-    geometry:["distance_2d","distance_3d","midpoint","perimeter_rectangle","perimeter_polygon","perimeter_circle","area_rectangle","area_triangle","area_circle","area_polygon","area_sector","area_composite","volume_prism","volume_pyramid","volume_cylinder","volume_sphere","surface_area","angle_relations","similar_triangles","pythagorean","right_triangle","triangle_classification","tessellation","symmetry","transformations","coordinate_geometry","similar_solids","volume_cone","area_segment","circle_tangent","inscribed_angle","apothem","volume_composite","packing_density"],
-    analytic_geometry:["parabola","ellipse","hyperbola","asymptote","focus_directrix","conic_classify","degenerate_conic","locus","polar_conic","plane_membership","coord3d","sphere_equation","distance_3d","focus_eccentricity"]
+    // The eighteen topics below declare a single procedure each, so each gets a
+    // one-entry row rather than being left out. A topic with no row has no
+    // sub-skills, which means the scheduler cannot record what was practised and
+    // review cannot target the weak procedure.
+    area_circle:["area"],
+    pythag:["hypotenuse"],
+    volume_sphere:["volume"],
+    parabola:["upward","rightward"],
+    ellipse:["origin","translated"],
+    hyperbola:["origin","translated"],
+    polar_conics:["easy","hard"],
+    coord3d:["distance","midpoint"],
+    sphere_eq:["center_radius","general"],
+    line_plane_3d:["line","plane"],
+    mtrx:["add","subtract","multiply","inverse","system","transpose","scalar_mult","power","row_echelon"],
+    vctr:["magnitude","direction","unit","dot","angle","projection","parametric","polar_convert","cartesian_convert","polar_graph","motion","de_moivre","add","subtract","parametric_to_cartesian"],
+    system3x3:["solve"],
+    row_echelon3x3:["row_reduce"],
+    partial_fractions:["distinct","repeated","quadratic"],
+    linear_programming:["maximize","minimize"],
+    line3d:["parametric_point"],
+    plane3d:["point_distance","equation"]
 };
 
 /**
