@@ -73,9 +73,14 @@ export function generateLinearEquation(difficulty?: string, rng: RngFn = Math.ra
             // Equal coefficients make the equation an identity: every x satisfies
             // it, so there is no single correct answer to grade, and computing one
             // divides by zero and emits the literal string "NaN" as an option.
-            while(coeff2===coeff1){
+            // The redraw is bounded, because a source that keeps returning the
+            // same value would otherwise spin here forever.
+            let attempts=0;
+            while(coeff2===coeff1&&attempts<10){
                 coeff2=Math.max(1,Math.floor(rng()*range)+1);
+                attempts++;
             }
+            if(coeff2===coeff1) coeff2=coeff1+1;
             let constant=c;
             let rhsConst=coeff1*x+constant-coeff2*x;
             mathExpression=`Solve: \\( ${coeff1}x + ${constant}=${coeff2}x + ${rhsConst} \\)`;
