@@ -6,6 +6,7 @@ import * as ui from"./Ui";
 import * as generation from"./Generation";
 import{invoke}from"@tauri-apps/api/core";
 import{isTauri}from"../utils/envUtils";
+import * as reviewStore from"./services/ReviewStore";
 let _audioCtx: AudioContext|null=null;
 export function getAudioContext(): AudioContext{
     if(!_audioCtx){
@@ -407,6 +408,23 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
     }
     let responseTime=getResponseTime();
     let errorType=!isCorrect ? detectErrorType(answer, correct, appState.selectedTopic || '') : null;
+    // A review is recorded for every answer, correct or not, because the schedule
+    // is built from the pattern and a run of correct answers that were never
+    // recorded is indistinguishable from a run that never happened.
+    if (appState.selectedTopic){
+        try{
+            await reviewStore.recordReview({
+                topicId: appState.selectedTopic,
+                subSkill: questionState.subSkill,
+                correct: isCorrect,
+                responseMs: responseTime,
+                confidence: questionState.confidence
+            });
+        }
+        catch(err){
+            console.warn("Could not record the review:",err);
+        }
+    }
     console.log("[Adaptive] Saving performance:", {
         topicId: appState.selectedTopic,
         difficulty: appState.currentDifficulty,
