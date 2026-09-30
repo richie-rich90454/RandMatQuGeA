@@ -9,3 +9,6 @@ registerTopic("sequence_limit","discrete","generateSequenceLimit");
 registerTopic("infinite_series","discrete","generateInfiniteGeometricSeries");
 registerTopic("induction","discrete","generateMathematicalInduction");
 registerTopic("binomial","discrete","generateBinomialTheorem");
+registerTopic("divisibility","discrete","generateDivisibility");
+registerTopic("gcd_lcm","discrete","generateGcdLcm");
+registerTopic("modular","discrete","generateModular");
