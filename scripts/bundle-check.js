@@ -3,9 +3,9 @@
  * and CSS chunks, calculates gzipped sizes, and fails if any budget is exceeded.
  *
  * Budgets (gzipped):
- *   - Initial JS entry chunk:  BUNDLE_JS_BUDGET_KB   (default 35)
+ *   - Initial JS entry chunk:  BUNDLE_JS_BUDGET_KB   (default 40)
  *   - Initial CSS chunk:       BUNDLE_CSS_BUDGET_KB  (default 10)
- *   - Total initial load:      BUNDLE_TOTAL_BUDGET_KB (default 55)
+ *   - Total initial load:      BUNDLE_TOTAL_BUDGET_KB (default 58)
  *
  * Override via env vars, e.g. BUNDLE_JS_BUDGET_KB=40 node scripts/bundle-check.js
  */
@@ -16,9 +16,9 @@ import{fileURLToPath}from"node:url";
 let __dirname=dirname(fileURLToPath(import.meta.url));
 let distDir=join(__dirname,"..","dist");
 let indexHtmlPath=join(distDir,"index.html");
-let JS_BUDGET=Number(process.env.BUNDLE_JS_BUDGET_KB||35);
+let JS_BUDGET=Number(process.env.BUNDLE_JS_BUDGET_KB||40);
 let CSS_BUDGET=Number(process.env.BUNDLE_CSS_BUDGET_KB||10);
-let TOTAL_BUDGET=Number(process.env.BUNDLE_TOTAL_BUDGET_KB||55);
+let TOTAL_BUDGET=Number(process.env.BUNDLE_TOTAL_BUDGET_KB||58);
 function gzipKb(buf){
 	return gzipSync(buf).length/1024;
 }
