@@ -51,5 +51,5 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - name: SymPy differential oracle
+      - name: Generator correctness oracle
         run: npm run test:oracle
