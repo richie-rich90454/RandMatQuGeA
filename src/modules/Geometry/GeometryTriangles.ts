@@ -80,16 +80,17 @@ export function generateTriangleClassification(_difficulty?: string, rng: RngFn=
     const mathExpression=`Classify the triangle with sides \\( ${a}, ${b}, ${c} \\) by its side lengths, where equilateral means all three sides equal, isosceles means exactly two sides equal, and scalene means no two sides equal.`;
     const choices=[correct, "equilateral", "isosceles", "scalene"].filter((label, i, all)=>all.indexOf(label)===i);
     const uniqueChoices=[...new Set(choices)].slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
+    const options=[...uniqueChoices];
+    if(!options.includes(correct)){
+        if(options.length>0) options[Math.floor(rng()*options.length)]=correct;
+        else options.push(correct);
     }
     return {
         latex: mathExpression,
         correct: correct,
         alternate: correct,
         display: correct,
-        choices: uniqueChoices,
+        choices: options,
         expectedFormat: "Enter \"equilateral\", \"isosceles\", or \"scalene\""
     };
 }
