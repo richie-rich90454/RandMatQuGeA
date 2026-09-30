@@ -149,6 +149,17 @@ export class DomRegistry{
             get answerCard(){return self.queryElement(".answer-card");},
         };
     }
+    /** The help a learner can ask for after a question is on screen. */
+    get help(){
+        let self=this;
+        return{
+            get showHintBtn(){return self.getElement<HTMLButtonElement>("show-hint");},
+            get showSolutionBtn(){return self.getElement<HTMLButtonElement>("show-solution");},
+            get hintPanel(){return self.getElement("hint-panel");},
+            get confidenceRow(){return self.getElement("confidence-row");},
+            get confidenceButtons(){return self.queryElementAll<HTMLButtonElement>(".confidence-button");},
+        };
+    }
     get settings(){
         let self=this;
         return{
@@ -178,11 +189,6 @@ export class DomRegistry{
             get settingsPersistenceHelp(){return self.getElement("settings-persistence-help");},
             get settingEraseData(){return self.getElement("setting-erase-data");},
             get settingsEraseData(){return self.getElement<HTMLButtonElement>("settings-erase-data");},
-            get showHintBtn(){return self.getElement<HTMLButtonElement>("show-hint");},
-            get showSolutionBtn(){return self.getElement<HTMLButtonElement>("show-solution");},
-            get hintPanel(){return self.getElement("hint-panel");},
-            get confidenceRow(){return self.getElement("confidence-row");},
-            get confidenceButtons(){return self.queryElementAll<HTMLButtonElement>(".confidence-button");},
         };
     }
     get session(){
