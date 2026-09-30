@@ -243,41 +243,37 @@ function tokenDistractors(answer: string, count: number): string[]{
  *          can be built when the answer admits no distinct alternatives.
  */
 export function buildChoiceSet(correct: string, supplied: string[]|undefined, rng: RngFn, count: number=OPTION_COUNT): string[]{
+    if (count<1) return [];
     let fromGenerator=dedupe(supplied??[], correct);
     let numericValue=Number(correct);
     let decimals=2;
     let decimalMatch=correct.match(/\.(\d+)$/);
     if (decimalMatch) decimals=Math.min(6, decimalMatch[1].length);
+    // Generator options come first. A curated set is the better alternative
+    // because it was chosen for this question, and filling the set from the
+    // mechanical sources first discarded every curated option whenever a
+    // mechanical source could produce enough candidates.
     let distractors:string[]=[];
-    if (Number.isFinite(numericValue)&&isFiniteNumberText(correct)){
-        distractors=numericDistractors(numericValue, count-1, decimals);
-    }
-    if (distractors.length<count-1){
-        for(let candidate of structuredDistractors(correct, count*2)){
-            if (distractors.length>=count-1) break;
-            if (isUnusable(candidate)) continue;
-            if (sameOption(candidate, correct)) continue;
-            if (distractors.some(d=>sameOption(d, candidate))) continue;
-            distractors.push(candidate);
-        }
-    }
-    if (distractors.length<count-1){
-        for(let candidate of tokenDistractors(correct, count*2)){
-            if (distractors.length>=count-1) break;
-            if (isUnusable(candidate)) continue;
-            if (sameOption(candidate, correct)) continue;
-            if (distractors.some(d=>sameOption(d, candidate))) continue;
-            distractors.push(candidate);
-        }
-    }
-    // Generator options that survived validation are better alternatives than a
-    // mechanical perturbation, so prefer them once the answer is present.
+    let add=(candidate: string): void=>{
+        if (distractors.length>=count-1) return;
+        if (isUnusable(candidate)) return;
+        if (sameOption(candidate, correct)) return;
+        if (distractors.some(d=>sameOption(d, candidate))) return;
+        distractors.push(candidate);
+    };
     for(let candidate of fromGenerator){
-        if (distractors.length>=count-1) break;
-        if (isUnusable(candidate)) continue;
-        if (sameOption(candidate, correct)) continue;
-        if (distractors.some(d=>sameOption(d, candidate))) continue;
-        distractors.unshift(candidate);
+        add(candidate);
+    }
+    if (Number.isFinite(numericValue)&&isFiniteNumberText(correct)){
+        for(let candidate of numericDistractors(numericValue, count-1, decimals)){
+            add(candidate);
+        }
+    }
+    for(let candidate of structuredDistractors(correct, count*2)){
+        add(candidate);
+    }
+    for(let candidate of tokenDistractors(correct, count*2)){
+        add(candidate);
     }
     let options=distractors.slice(0, count-1);
     let position=Math.floor(rng()*(options.length+1));
@@ -307,13 +303,10 @@ export async function generateChoicesForCurrentQuestion(rng?: RngFn): Promise<vo
         return;
     }
     let count=settings.settings.mcqChoicesCount;
-    let choices=buildChoiceSet(correctObj.correct, correctObj.choices, r);
-    if (choices.length>count){
-        let withoutCorrect=choices.filter(c=>!sameOption(c, correctObj.correct));
-        let kept=withoutCorrect.slice(0, count-1);
-        kept.push(correctObj.correct);
-        choices=kept;
-    }
+    // The count reaches the builder rather than trimming a four-option set
+    // afterwards, so a larger configured count produces more real alternatives
+    // instead of the same four.
+    let choices=buildChoiceSet(correctObj.correct, correctObj.choices, r, count);
     appState.mcqChoices=choices;
     ui.renderMcqChoices(choices);
 }
