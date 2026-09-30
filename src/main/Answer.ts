@@ -116,6 +116,24 @@ function tryEvaluate(expr: string): any{
     }
 }
 /**
+ * Collects the distinct free symbols of an expression, so that a comparison can
+ * confirm both sides range over the same variables before it samples them.
+ *
+ * @param expr The expression to inspect.
+ * @returns The distinct symbol names, or an empty array when the expression
+ *          cannot be parsed or contains no symbols.
+ */
+function freeSymbols(expr: string): string[]{
+    try{
+        let names:string[]=mathjs.parse(expr)
+            .filter((node:any)=>node.isSymbolNode)
+            .map((node:any)=>node.name);
+        return [...new Set(names)];
+    }catch{
+        return [];
+    }
+}
+/**
  * Validates the user's answer against the expected correct answer.
  * This function performs a comprehensive, multi‑stage equivalence check between the user input
  * and the pre‑computed correct answer (and its alternate form) for the currently displayed
@@ -170,7 +188,7 @@ function tryEvaluate(expr: string): any{
  * 8. **Numeric Evaluation** – Try to evaluate both expressions as constants (including vectors). If both evaluate to numbers or arrays,
  *    compare with tolerance. This handles vector answers like `<−0.72,0.77>`.
  * 9. **Math.js Structural Simplification** – Use math.js to parse and simplify both expressions to a canonical form.
- * 10. **Numerical Sampling** – If both expressions contain a variable, evaluate at multiple points to check for constant difference or numeric equality.
+ * 10. **Numerical Sampling** – If both expressions contain the same single free variable, evaluate at multiple points and require the values to agree. A constant but non-zero difference is a different expression and is rejected.
  * 11. **Equation Splitting** – If the expression contains `=`, split into left and right; compare sides separately using the above steps.
  * 12. **Ultimate Fallback** – Use `settings.isAnswerCorrect` (simple evaluation).
  *
@@ -220,7 +238,7 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
         }
     }
     let correct=questionState.correctAnswer.correct;
-    let alternate=questionState.correctAnswer.alternate;
+    let alternate=questionState.correctAnswer.alternate||"";
     // --- Helper to convert LaTeX to math.js syntax ---
     let convertLatex=(s: string): string=>{
         // Replace fancy minus with hyphen
@@ -295,41 +313,42 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
         // Math.js if available
         if (useFullPipeline){
             try{
-let simpA=mathjs.simplify(funcA).toString().replace(/\s+/g,'');
-let simpB=mathjs.simplify(funcB).toString().replace(/\s+/g,'');
+                let simpA=mathjs.simplify(funcA).toString().replace(/\s+/g,'');
+                let simpB=mathjs.simplify(funcB).toString().replace(/\s+/g,'');
                 if (simpA===simpB) return true;
-                let vars=mathjs.parse(funcA).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
-                if (vars.length===1){
-                    let varName=vars[0];
+                // The free symbols are taken from both sides and must match as
+                // sets. Sampling a variable that appears on only one side leaves
+                // the other expression undefined at every point, so the
+                // comparison silently decided nothing.
+                let varsA=freeSymbols(funcA);
+                let varsB=freeSymbols(funcB);
+                if (varsA.length!==varsB.length||!varsA.every(v=>varsB.indexOf(v)>=0)){
+                    return false;
+                }
+                if (varsA.length===1){
+                    let varName=varsA[0];
                     let points=[0.5,1,2,3,Math.PI/4,Math.E];
-                    let valuesA:number[]=[];
-                    let valuesB:number[]=[];
-                    let success=true;
+                    let match=true;
                     for (let x of points){
                         try{
                             let scope={[varName]:x};
-let valA=mathjs.evaluate(funcA,scope);
-let valB=mathjs.evaluate(funcB,scope);
-                            valuesA.push(valA);
-                            valuesB.push(valB);
+                            let lv=mathjs.evaluate(funcA,scope);
+                            let rv=mathjs.evaluate(funcB,scope);
+                            if (!Number.isFinite(lv)||!Number.isFinite(rv)||Math.abs(lv-rv)>=1e-8){
+                                match=false;
+                                break;
+                            }
                         }catch(e){
-                            success=false;
+                            match=false;
                             break;
                         }
                     }
-                    if (success){
-                        let diffs=valuesA.map((v,i)=>v-valuesB[i]);
-                        let firstDiff=diffs[0];
-                        let constantDiff=diffs.every(d=>Math.abs(d-firstDiff)<1e-8);
-                        if (constantDiff) return true;
-                        let numericMatch=valuesA.every((v,i)=>Math.abs(v-valuesB[i])<1e-8);
-                        if (numericMatch) return true;
-                    }
+                    if (match) return true;
                 }
-                else if (vars.length===0){
+                else if (varsA.length===0){
                     try{
-let numA=mathjs.evaluate(funcA);
-let numB=mathjs.evaluate(funcB);
+                        let numA=mathjs.evaluate(funcA);
+                        let numB=mathjs.evaluate(funcB);
                         if (Math.abs(numA-numB)<1e-8) return true;
                     }catch(e){}
                 }
@@ -352,11 +371,11 @@ let numB=mathjs.evaluate(funcB);
         if (leftOk){
             // Try numeric evaluation first
             try{
-let varsRightUser=mathjs.parse(userRight).filter((node:any)=>node.isSymbolNode).length;
-let varsRightCorrect=mathjs.parse(correctRight).filter((node:any)=>node.isSymbolNode).length;
+                let varsRightUser=mathjs.parse(userRight).filter((node:any)=>node.isSymbolNode).length;
+                let varsRightCorrect=mathjs.parse(correctRight).filter((node:any)=>node.isSymbolNode).length;
                 if (varsRightUser===0 && varsRightCorrect===0){
-let valUser=mathjs.evaluate(userRight);
-let valCorrect=mathjs.evaluate(correctRight);
+                    let valUser=mathjs.evaluate(userRight);
+                    let valCorrect=mathjs.evaluate(correctRight);
                     if (Math.abs(valUser-valCorrect)<1e-8){
                         rightOk=true;
                     }
@@ -375,125 +394,15 @@ let valCorrect=mathjs.evaluate(correctRight);
         // One is equation, other is not -> incorrect
         isCorrect=false;
     }
-    else{
-        // No equals sign: treat as single expression (original logic)
-        // Convert LaTeX in userInput and correct/alternate
-        let convertedUser=convertLatex(answer);
-        let convertedCorrect=convertLatex(correct);
-        let convertedAlternate=alternate?convertLatex(alternate):'';
-        let sanUser=sanitize(convertedUser);
-        let sanCorrect=sanitize(convertedCorrect);
-        let sanAlternate=alternate?sanitize(convertedAlternate):'';
-        // Modified removeConstants to preserve purely numeric expressions
-        let funcUser=removeConstants(sanUser);
-        let funcCorrect=removeConstants(sanCorrect);
-        let funcAlternate=alternate?removeConstants(sanAlternate):'';
-        if (funcUser===funcCorrect||funcUser===funcAlternate){
-            isCorrect=true;
-        }
-        else if (sanUser===sanCorrect||sanUser===sanAlternate){
-            isCorrect=true;
-        }
-        else{
-            let decUser=toDecimal(funcUser);
-            let decCorrect=toDecimal(funcCorrect);
-            let decAlternate=alternate?toDecimal(funcAlternate):'';
-            if (decUser===decCorrect||decUser===decAlternate){
-                isCorrect=true;
-            }
-            else{
-                let termsUser=toTerms(funcUser);
-                let termsCorrect=toTerms(funcCorrect);
-                let termsAlternate=alternate?toTerms(funcAlternate):[];
-                if (termsUser.join('+')===termsCorrect.join('+')||(termsAlternate.length&&termsUser.join('+')===termsAlternate.join('+'))){
-                    isCorrect=true;
-                }
-                else{
-                    // Try numeric evaluation for constants (including vectors)
-                    let valUser=tryEvaluate(convertedUser);
-                    let valCorrect=tryEvaluate(convertedCorrect);
-                    if (valUser!==null && valCorrect!==null){
-                        if (Array.isArray(valUser) && Array.isArray(valCorrect)){
-                            if (valUser.length===valCorrect.length){
-                                let allMatch=true;
-                                for (let i=0;i<valUser.length;i++){
-                                    if (Math.abs(valUser[i]-valCorrect[i])>=1e-8){
-                                        allMatch=false;
-                                        break;
-                                    }
-                                }
-                                if (allMatch){
-                                    isCorrect=true;
-                                }
-                            }
-                        }
-                        else if (typeof valUser==='number' && typeof valCorrect==='number'){
-                            if (Math.abs(valUser-valCorrect)<1e-8){
-                                isCorrect=true;
-                            }
-                        }
-                    }
-                    if (!isCorrect){
-                        try{
-let simpUser=mathjs.simplify(funcUser).toString().replace(/\s+/g,'');
-let simpCorrect=mathjs.simplify(funcCorrect).toString().replace(/\s+/g,'');
-                            if (simpUser===simpCorrect){
-                                isCorrect=true;
-                            }
-                            else{
-                                let vars=mathjs.parse(funcCorrect).filter((node:any)=>node.isSymbolNode).map((node:any)=>node.name);
-                                if (vars.length===1){
-                                    let varName=vars[0];
-                                    let points=[0.5,1,2,3,Math.PI/4,Math.E];
-                                    let valuesUser:number[]=[];
-                                    let valuesCorrect:number[]=[];
-                                    let success=true;
-                                    for (let x of points){
-                                        try{
-                                            let scope={[varName]:x};
-let valUser=mathjs.evaluate(funcUser,scope);
-let valCorrect=mathjs.evaluate(funcCorrect,scope);
-                                            valuesUser.push(valUser);
-                                            valuesCorrect.push(valCorrect);
-                                        }catch(e){
-                                            success=false;
-                                            break;
-                                        }
-                                    }
-                                    if (success){
-                                        let diffs=valuesUser.map((v,i)=>v-valuesCorrect[i]);
-                                        let firstDiff=diffs[0];
-                                        let constantDiff=diffs.every(d=>Math.abs(d-firstDiff)<1e-8);
-                                        if (constantDiff){
-                                            isCorrect=true;
-                                        }
-                                        else{
-                                            let numericMatch=valuesUser.every((v,i)=>Math.abs(v-valuesCorrect[i])<1e-8);
-                                            if (numericMatch){
-                                                isCorrect=true;
-                                            }
-                                        }
-                                    }
-                                }
-                                else if (vars.length===0){
-                                    try{
-let numUser=mathjs.evaluate(funcUser);
-let numCorrect=mathjs.evaluate(funcCorrect);
-                                        if (Math.abs(numUser-numCorrect)<1e-8){
-                                            isCorrect=true;
-                                        }
-                                    }catch(e){}
-                                }
-                            }
-                        }catch(e){
-                            console.warn("Math.js evaluation failed, falling back",e);
-                        }
-                    }
-                    if (!isCorrect){
-                        isCorrect=await settings.isAnswerCorrect(answer,sanCorrect,alternate);
-                    }
-                }
-            }
+    else {
+        // A single expression is compared by the same routine an equation side
+        // uses, against the key and then against the alternate spelling. The
+        // two had drifted apart, and the copy left behind accepted an answer
+        // that differed from the key by a constant.
+        isCorrect=compareExpressions(answer, correct, true)
+            || (alternate!==''&&compareExpressions(answer, alternate, true));
+        if (!isCorrect){
+            isCorrect=await settings.isAnswerCorrect(answer, sanitize(convertLatex(correct)), alternate);
         }
     }
     let responseTime=getResponseTime();
