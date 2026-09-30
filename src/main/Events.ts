@@ -285,42 +285,64 @@ export async function setupEventListeners(): Promise<void>{
     if (dom.buttons.checkUpdatesBtn){
         dom.buttons.checkUpdatesBtn.addEventListener("click", async ()=>{
             if (!isTauri()){
-                alert("Updates are only available in the desktop app.");
+                ui.showNotification("Updates are only available in the desktop app.","warning");
                 return;
             }
-            dom.buttons.checkUpdatesBtn!.disabled=true;
-            let originalText=dom.buttons.checkUpdatesBtn!.textContent;
-            dom.buttons.checkUpdatesBtn!.textContent="Checking...";
+            let button=dom.buttons.checkUpdatesBtn!;
+            button.disabled=true;
+            let originalText=button.textContent;
+            button.textContent="Checking...";
             try{
                 let update=await check();
-                if (update){
-                    let currentVer=packageJson.version;
-                    let updateVer=update.version.replace(/^v/, "");
-                    if (!(await isVersionGreater(updateVer, currentVer))) {
-                        alert("You are already using the latest version.");
+                if (!update){
+                    ui.showNotification("You are already using the latest version.");
+                    return;
+                }
+                let currentVer=packageJson.version;
+                let updateVer=update.version.replace(/^v/, "");
+                if (!(await isVersionGreater(updateVer, currentVer))) {
+                    ui.showNotification("You are already using the latest version.");
+                    return;
+                }
+                if (!confirm(`Version ${update.version} is available!\n\nRelease notes:\n${update.body || "No release notes available"}\n\nDownload and install now?`)) {
+                    return;
+                }
+                button.textContent="Downloading 0%";
+                // The progress event reports the size of the chunk that just
+                // arrived, not a running total, so dividing one chunk by the
+                // content length restarts the percentage on every chunk and
+                // never reflects the download. The total is accumulated here and
+                // the content length is taken from the started event.
+                let downloaded=0;
+                let contentLength=0;
+                await update.downloadAndInstall((progress)=>{
+                    if (progress.event==="Started"){
+                        contentLength=progress.data.contentLength??0;
                         return;
                     }
-                    if (confirm(`Version ${update.version} is available!\n\nRelease notes:\n${update.body || "No release notes available"}\n\nDownload and install now?`)) {
-                        dom.buttons.checkUpdatesBtn!.textContent="Downloading...";
-                        await update.downloadAndInstall((progress)=>{
-                            if (progress.event==="Progress") {
-                                let data=progress.data as { chunkLength: number; contentLength: number };
-                                let percent=Math.round((data.chunkLength / data.contentLength) * 100);
-                                console.log(`Download progress: ${percent}%`);
-                            }
-                        });
-                        alert("Update installed. The app will now restart.");
-                        await relaunch();
+                    if (progress.event==="Progress"){
+                        downloaded+=progress.data.chunkLength??0;
+                        if (contentLength>0){
+                            let percent=Math.min(100, Math.round((downloaded/contentLength)*100));
+                            button.textContent="Downloading "+percent+"%";
+                        }
+                        return;
                     }
-                } else {
-                    alert("You are already using the latest version.");
-                }
+                    if (progress.event==="Finished"){
+                        button.textContent="Installing...";
+                    }
+                });
+                ui.showNotification("Update installed. The app will now restart.");
+                await relaunch();
             } catch (err) {
-                // Silently ignore network errors - app works fully offline
-                return;
+                // A failed update must be visible. Silently returning here left
+                // a user whose install failed with no indication of why, and the
+                // comment claimed these were all offline network errors.
+                console.error("Update check or install failed:",err);
+                ui.showNotification("The update could not be installed. You are still on version "+packageJson.version+".","warning");
             } finally {
-                dom.buttons.checkUpdatesBtn!.disabled=false;
-                dom.buttons.checkUpdatesBtn!.textContent=originalText;
+                button.disabled=false;
+                button.textContent=originalText;
             }
         });
     }
