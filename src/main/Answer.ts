@@ -1,4 +1,4 @@
-﻿import{dom}from"./core/DomRegistry";
+import{dom}from"./core/DomRegistry";
 import{appState}from"./core/StateStore";
 import{questionState}from"./core/QuestionState";
 import * as settings from"./Settings";
@@ -6,8 +6,6 @@ import * as ui from"./Ui";
 import * as generation from"./Generation";
 import{invoke}from"@tauri-apps/api/core";
 import{isTauri}from"../utils/envUtils";
-import * as reviewStore from"./services/ReviewStore";
-import * as help from"./services/Help";
 let _audioCtx: AudioContext|null=null;
 export function getAudioContext(): AudioContext{
     if(!_audioCtx){
@@ -414,6 +412,10 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
     // recorded is indistinguishable from a run that never happened.
     if (appState.selectedTopic){
         try{
+            // The review store is loaded on demand rather than statically, because
+            // the schedule is only needed once someone has actually answered
+            // something and it is a substantial part of the initial payload.
+            let reviewStore=await import("./services/ReviewStore");
             await reviewStore.recordReview({
                 topicId: appState.selectedTopic,
                 subSkill: questionState.subSkill,
@@ -517,7 +519,8 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
     // It is not offered when the next question is already on its way, because a
     // prompt that is replaced before it can be answered is noise.
     if (!appState.autocontinue||!appState.mcqMode){
-        help.offerConfidence(isCorrect, responseTime);
+        let help=await import("./services/Help");
+		help.ask(isCorrect, responseTime);
     }
     if (appState.currentMode==="single"&&appState.autocontinue){
         if (appState.autoTimeout) clearTimeout(appState.autoTimeout);
