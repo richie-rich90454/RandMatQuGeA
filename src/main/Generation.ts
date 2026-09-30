@@ -11,7 +11,6 @@ import type{RngFn}from"../types/global";
 import{invoke}from"@tauri-apps/api/core";
 import * as settings from "./Settings";
 import{startQuestionTimer}from"./Answer";
-import * as help from"./services/Help";
 import type{QuestionDto}from"../types/global";
 /** The question most recently generated, kept so its help can be prepared. */
 let lastDto: QuestionDto|undefined;
@@ -141,7 +140,8 @@ export async function generateQuestion(explicitTopicId?: string, rng?: RngFn): P
         // The help for this question is prepared before it is asked rather than
         // after, so the hint button is never briefly enabled against the previous
         // question's ladder.
-        help.prepareHelp(lastDto??{latex:"", correct:questionState.correctAnswer.correct});
+        let help=await import("./services/Help");
+        help.prepare(lastDto??{latex:"", correct:questionState.correctAnswer.correct});
         if (appState.mcqMode){
             await generateChoicesForCurrentQuestion(rng);
         }
