@@ -33,15 +33,15 @@ export function generateCosecant(_difficulty?: string, rng: RngFn = Math.random)
         }
         case "relationship":{
             let angleNum=Math.floor(rng()*360);
-            correct=`\\frac{1}{\\sin(${angleNum}°)}`;
+            correct=`\\frac{1}{\\sin(${angleNum}^{\\circ})}`;
             alternate=`1/sin(${angleNum}°)`;
-            display=`\\frac{1}{\\sin(${angleNum}°)}`;
-            latex=`Express \\( \\csc(${angleNum}°) \\) in terms of sine.`;
+            display=`\\frac{1}{\\sin(${angleNum}^{\\circ})}`;
+            latex=`Express \\( \\csc(${angleNum}^{\\circ}) \\) in terms of sine.`;
             choices=[correct];
-            choices.push(`\\frac{1}{\\cos(${angleNum}°)}`);
-            choices.push(`\\frac{1}{\\tan(${angleNum}°)}`);
-            choices.push(`\\sin(${angleNum}°)`);
-            choices.push(`\\cos(${angleNum}°)`);
+            choices.push(`\\frac{1}{\\cos(${angleNum}^{\\circ})}`);
+            choices.push(`\\frac{1}{\\tan(${angleNum}^{\\circ})}`);
+            choices.push(`\\sin(${angleNum}^{\\circ})`);
+            choices.push(`\\cos(${angleNum}^{\\circ})`);
             break;
         }
         case "asymptote":{
