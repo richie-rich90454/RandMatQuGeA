@@ -131,8 +131,19 @@ export function generateRadicalSimplify(difficulty?: string, rng: RngFn=Math.ran
             break;
         }
         case "divide":{
+            // A perfect-square radicand makes the integer form and the
+            // two-decimal form the same value, so the offered decimal option
+            // was a second correct answer. Both radicands are non-squares.
             let a=Math.floor(rng()*maxVal)+1;
             let b=Math.floor(rng()*maxVal)+2;
+            let guard=0;
+            while((isPerfectSquare(a)||isPerfectSquare(b))&&guard<100){
+                a=Math.floor(rng()*maxVal)+1;
+                b=Math.floor(rng()*maxVal)+2;
+                guard++;
+            }
+            if(isPerfectSquare(a)) a+=1;
+            if(isPerfectSquare(b)) b+=1;
             let num=Math.sqrt(a);
             let den=Math.sqrt(b);
             let ans: string;
@@ -157,12 +168,12 @@ export function generateRadicalSimplify(difficulty?: string, rng: RngFn=Math.ran
         }
         case "rationalize":{
             // a = 1 makes 1/sqrt(1) degenerate, and a perfect square makes the
-            // rationalized form reducible, so both are excluded.
+            // rationalized form reducible, so the key sqrt(a)/a would equal the
+            // offered distractor 1/a. The radicand is a fixed non-square.
             let a=2;
             while (isPerfectSquare(a)){
                 a++;
             }
-            a=Math.min(a, Math.max(2, maxVal+1));
             correct=`\\frac{\\sqrt{${a}}}{${a}}`;
             alternate=`√${a}/${a}`;
             display=correct;
