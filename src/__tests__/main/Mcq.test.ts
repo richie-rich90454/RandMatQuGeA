@@ -143,19 +143,22 @@ describe("generateDistractors - text fallback",()=>{
         const result=await generateDistractors("world",3);
         expect(result).toContain("world");
     });
-    it("should fill remaining slots with ?? if needed",async()=>{
+    it("should never pad an option set with filler",async()=>{
+        // A placeholder option teaches a learner to find the one option that
+        // looks like an answer rather than to read the question, so a set that
+        // cannot be filled with real alternatives is returned short.
         const result=await generateDistractors("a",4);
-        expect(result.length).toBe(4);
         expect(result).toContain("a");
-        const qCount=result.filter((v:string)=>v==="??").length;
-        expect(qCount).toBeGreaterThan(0);
+        expect(result).not.toContain("??");
+        expect(new Set(result).size).toBe(result.length);
     });
     it("should terminate for text answers with count exceeding unique variations (E001 regression)",async()=>{
         const start=Date.now();
         const result=await generateDistractors("hello",10);
         const elapsed=Date.now()-start;
         expect(elapsed).toBeLessThan(2000);
-        expect(result.length).toBe(10);
+        expect(result.length).toBeGreaterThan(0);
+        expect(result.length).toBeLessThanOrEqual(10);
         expect(result).toContain("hello");
         const unique=new Set(result);
         expect(unique.size).toBe(result.length);
@@ -165,12 +168,13 @@ describe("generateDistractors - text fallback",()=>{
         expect(result.length).toBe(4);
         expect(result).toContain("x");
     });
-    it("should work with uppercase/lowercase variations",async()=>{
-        const result=await generateDistractors("Hello",4);
-        expect(result.length).toBe(4);
+    it("should not offer a case variant of the answer as a distractor",async()=>{
+        // HELLO and hello are the same answer, so a case variant is a second
+        // correct option rather than a wrong one.
+        const result=await generateDistractors("Hello",6);
         expect(result).toContain("Hello");
-        const hasCaseVariant=result.some((v:string)=>v==="HELLO"||v==="hello");
-        expect(hasCaseVariant).toBe(true);
+        const caseVariants=result.filter((v:string)=>v!=="Hello"&&v.toLowerCase()==="hello");
+        expect(caseVariants).toHaveLength(0);
     });
 });
 describe("generateChoicesForCurrentQuestion - integration",()=>{
@@ -289,10 +293,14 @@ describe("generateDistractors - boundary conditions",()=>{
         const result=await generateDistractors("42",-1);
         expect(result.length).toBe(0);
     });
-    it("should handle very large count",async()=>{
+    it("should return real options up to a very large count",async()=>{
+        // There is no honest way to build a hundred wrong alternatives for a
+        // single number, so the set comes back short rather than padded.
         const result=await generateDistractors("42",100);
-        expect(result.length).toBe(100);
+        expect(result.length).toBeGreaterThan(0);
+        expect(result.length).toBeLessThan(100);
         expect(result).toContain("42");
+        expect(new Set(result).size).toBe(result.length);
     });
     it("should handle answer of \"0\"",async()=>{
         const result=await generateDistractors("0",4);
