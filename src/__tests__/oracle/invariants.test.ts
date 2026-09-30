@@ -13,6 +13,14 @@ import type{QuestionDto}from"../../types/global";
 const DIFFICULTIES=["easy", "medium", "hard"];
 
 /**
+ * The option values a learner must never be shown. "undefined" is not on this
+ * list: it is the correct answer wherever a trigonometric ratio is undefined,
+ * and generators offer it as a distractor for an exponent rule. A non-finite
+ * number and a placeholder are the values that are never an answer.
+ */
+const UNUSABLE_OPTION=/NaN|Infinity|null|\?\?/;
+
+/**
  * Records a failure against the topic, difficulty and seed that produced it, so a
  * report names the exact case to reproduce rather than a topic in the abstract.
  *
@@ -54,7 +62,7 @@ describe("multiple choice option sets",()=>{
                 let correctCount=options.filter(o=>sameNumericValue(o, answer)).length;
                 expect(correctCount).toBe(1);
                 for(let option of options){
-                    expect(option).not.toMatch(/NaN|Infinity|undefined|\?\?/);
+                    expect(option).not.toMatch(UNUSABLE_OPTION);
                 }
             }
         }
@@ -90,7 +98,7 @@ describe("multiple choice option sets",()=>{
                         record(failures, topicId, difficulty, seed, "built "+options.length+" option(s) for "+JSON.stringify(correct));
                     }
                     for(let option of options){
-                        if (/NaN|Infinity|undefined/.test(option)){
+                        if (UNUSABLE_OPTION.test(option)){
                             record(failures, topicId, difficulty, seed, "unusable option "+JSON.stringify(option)+" for "+JSON.stringify(correct));
                         }
                     }
@@ -147,7 +155,7 @@ describe("generator invariants",()=>{
                         continue;
                     }
                     for(let option of options){
-                        if (/NaN|Infinity|undefined/.test(option)){
+                        if (UNUSABLE_OPTION.test(option)){
                             record(failures, topicId, difficulty, seed, "unusable option "+JSON.stringify(option)+" for "+JSON.stringify(dto.correct));
                         }
                     }
