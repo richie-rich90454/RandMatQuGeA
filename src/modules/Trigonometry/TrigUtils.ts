@@ -41,14 +41,25 @@ export function getTrigFunction(func: string): string {
         default: return "unknown";
     }
 }
-export function getAngle(difficulty: string): number {
+/**
+ * Picks an angle appropriate to the difficulty, from the injected random source
+ * rather than the global one. A caller that seeded the generator to produce a
+ * daily challenge was getting a different angle on every visit, because the
+ * draw here ignored the seed.
+ *
+ * @param difficulty - The difficulty level.
+ * @param rng - The injected random source.
+ * @returns The angle, in radians for easy and hard and in radians for medium as
+ *          well, since the special angles are stored in radians.
+ */
+export function getAngle(difficulty: string, rng: () => number=Math.random): number {
     if (difficulty==="easy") {
-        return Math.floor(Math.random()*360);
+        return Math.floor(rng()*360);
     } else if (difficulty==="hard") {
-        return Math.random()*2*Math.PI;
+        return rng()*2*Math.PI;
     } else if (difficulty==="medium") {
         let specialAngles=[0, Math.PI/6, Math.PI/4, Math.PI/3, Math.PI/2, 2*Math.PI/3, 3*Math.PI/4, 5*Math.PI/6, Math.PI, 7*Math.PI/6, 5*Math.PI/4, 4*Math.PI/3, 3*Math.PI/2, 5*Math.PI/3, 7*Math.PI/4, 11*Math.PI/6];
-        return specialAngles[Math.floor(Math.random()*specialAngles.length)];
+        return specialAngles[Math.floor(rng()*specialAngles.length)];
     } else {
         return -1;
     }
