@@ -1,4 +1,4 @@
-﻿import{dom}from"./core/DomRegistry";
+import{dom}from"./core/DomRegistry";
 import{appState}from"./core/StateStore";
 import{questionState}from"./core/QuestionState";
 import{renderer}from"./core/QuestionRenderer";
@@ -11,6 +11,10 @@ import type{RngFn}from"../types/global";
 import{invoke}from"@tauri-apps/api/core";
 import * as settings from "./Settings";
 import{startQuestionTimer}from"./Answer";
+import * as help from"./services/Help";
+import type{QuestionDto}from"../types/global";
+/** The question most recently generated, kept so its help can be prepared. */
+let lastDto: QuestionDto|undefined;
 import{isTauri}from"../utils/envUtils";
 async function applyAdaptiveRecommendation(): Promise<boolean>{
     console.log("[Adaptive] Called, adaptive setting =", settings.settings.adaptive);
@@ -119,10 +123,10 @@ export async function generateQuestion(explicitTopicId?: string, rng?: RngFn): P
         // the same option order, on every visit. It is only passed when there
         // is one, so an unseeded caller keeps the generators' own default.
         if (rng){
-            await callGenerator(appState.selectedTopic,appState.currentDifficulty,rng);
+            lastDto=(await callGenerator(appState.selectedTopic,appState.currentDifficulty,rng))||undefined;
         }
         else{
-            await callGenerator(appState.selectedTopic,appState.currentDifficulty);
+            lastDto=(await callGenerator(appState.selectedTopic,appState.currentDifficulty))||undefined;
         }
         hideQuestionSkeleton();
         if (!questionState.correctAnswer.correct){
@@ -134,6 +138,10 @@ export async function generateQuestion(explicitTopicId?: string, rng?: RngFn): P
             return;
         }
         questionState.hasQuestion=true;
+        // The help for this question is prepared before it is asked rather than
+        // after, so the hint button is never briefly enabled against the previous
+        // question's ladder.
+        help.prepareHelp(lastDto??{latex:"", correct:questionState.correctAnswer.correct});
         if (appState.mcqMode){
             await generateChoicesForCurrentQuestion(rng);
         }
