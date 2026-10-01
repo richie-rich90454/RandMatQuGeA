@@ -31,8 +31,14 @@ export function syncSettingsToState(): void{
     if(dom.inputs.mcqToggle)dom.inputs.mcqToggle.checked=appState.mcqMode;
 }
 export function updateAriaPressed(): void{
-    if(dom.buttons.modeSingleBtn)dom.buttons.modeSingleBtn.setAttribute("aria-pressed",String(appState.currentMode==="single"));
-    if(dom.buttons.modeMentalBtn)dom.buttons.modeMentalBtn.setAttribute("aria-pressed",String(appState.currentMode==="mental"));
+    // The daily mode reports itself as single for the rest of the app, so the
+    // pressed state is taken from whether the daily button is active rather than
+    // from currentMode, which would mark two buttons pressed at once.
+    let daily=dom.daily.modeDailyBtn;
+    let dailyActive=Boolean(daily?.classList.contains("active"));
+    if(dom.buttons.modeSingleBtn)dom.buttons.modeSingleBtn.setAttribute("aria-pressed",String(appState.currentMode==="single"&&!dailyActive));
+    if(dom.buttons.modeMentalBtn)dom.buttons.modeMentalBtn.setAttribute("aria-pressed",String(appState.currentMode==="mental"&&!dailyActive));
+    if(daily)daily.setAttribute("aria-pressed",String(dailyActive));
 }
 export function updateCheckboxAria(checkbox: HTMLInputElement|null): void{
     if(checkbox)checkbox.setAttribute("aria-checked",String(checkbox.checked));
