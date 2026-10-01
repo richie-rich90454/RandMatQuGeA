@@ -1,4 +1,4 @@
-﻿﻿import{invoke}from"@tauri-apps/api/core";
+﻿import{invoke}from"@tauri-apps/api/core";
 import{topics}from"./Constants";
 import * as ui from"./Ui";
 import{updateLeaderboard}from"./Session";
@@ -46,7 +46,13 @@ async function loadData(){
             deleteAllBtn.onclick=async()=>{
                 if(confirm("Delete ALL performance data? This cannot be undone.")){
                     try{
-                        await invoke("delete_all_performance_records");
+                        // The full record, not only the aggregate the table shows:
+                        // leaving the schedule or the recorded answers behind would
+                        // mean the list a learner is shown is not the whole of
+                        // what is being kept.
+                        await invoke("clear_performance");
+                        let reviewStore=await import("./services/ReviewStore");
+                        await reviewStore.loadRecords();
                         ui.showNotification("All performance data deleted.","info");
                         await loadData();
                         updateLeaderboard();
