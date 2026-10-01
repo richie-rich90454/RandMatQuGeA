@@ -119,7 +119,7 @@ export function generateModular(difficulty?: string, rng: RngFn=Math.random): Qu
             correct=String(answer);
             alternate=correct;
             display=`${value} = ${Math.floor((value-answer)/modulus)} \\times ${modulus} + ${answer}`;
-            latex=`Find the least non-negative residue of $${value}$ modulo $${modulus}$.`;
+            latex=`Find the least non-negative residue of \\( ${value} \\) modulo \\( ${modulus} \\).`;
             choices=[correct, ...residueDistractors(answer, modulus, rng)];
             break;
         }
@@ -141,7 +141,7 @@ export function generateModular(difficulty?: string, rng: RngFn=Math.random): Qu
             correct=String(answer);
             alternate=correct;
             display=correct;
-            latex=`Solve for the least non-negative value of $x$: $${coefficient}x \\equiv ${target} \\pmod{${modulus}}$.`;
+            latex=`Solve for the least non-negative value of \\( x \\): \\( ${coefficient}x \\equiv ${target} \\pmod{${modulus}} \\).`;
             choices=[correct, ...residueDistractors(answer, modulus, rng)];
             break;
         }
@@ -152,7 +152,7 @@ export function generateModular(difficulty?: string, rng: RngFn=Math.random): Qu
             correct=String(answer);
             alternate=correct;
             display=correct;
-            latex=`What is the last digit of $${base}^{${exponent}}$?`;
+            latex=`What is the last digit of \\( ${base}^{${exponent}} \\)?`;
             expectedFormat="Enter a digit from 0 to 9";
             choices=shuffle(rng, [answer, (answer+1)%10, (answer+5)%10, (answer+9)%10].map(String));
             break;
@@ -168,7 +168,7 @@ export function generateModular(difficulty?: string, rng: RngFn=Math.random): Qu
             correct=String(answer);
             alternate=correct;
             display=correct;
-            latex=`Which of these is congruent to $${a}$ modulo $${modulus}$?`;
+            latex=`Which of these is congruent to \\( ${a} \\) modulo \\( ${modulus} \\)?`;
             let options=new Set<string>([correct]);
             options.add(String(residue(answer+modulus, modulus)));
             options.add(String(residue(answer-modulus, modulus)));
@@ -187,7 +187,7 @@ export function generateModular(difficulty?: string, rng: RngFn=Math.random): Qu
             correct=String(k);
             alternate=correct;
             display=`${value} = ${k} \\times ${divisor}`;
-            latex=`What is the largest whole number $k$ for which $${divisor}k = ${value}$?`;
+            latex=`What is the largest whole number \\( k \\) for which \\( ${divisor}k = ${value} \\)?`;
             choices=shuffle(rng, [k, divisor*k, k+divisor, k-1].map(String).filter((v, i, a)=>v!==String(k)&&a.indexOf(v)===i));
             break;
         }
