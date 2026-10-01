@@ -111,7 +111,7 @@ export function generateDataAnalysis(difficulty?: string, rng: RngFn=Math.random
             correct=fmt(z, decimals);
             alternate=correct;
             display=correct;
-            latex=`A data set has mean $${fmt(m, 2)}$ and standard deviation $${fmt(sd, 2)}$. What is the z-score of the value $${value}$?`;
+            latex=`A data set has mean \\( ${fmt(m, 2)} \\) and standard deviation \\( ${fmt(sd, 2)} \\). What is the z-score of the value \\( ${value} \\)?`;
             expectedFormat="Enter a decimal to "+decimals+" places";
             choices=[correct, ...valueDistractors(z, decimals, rng)];
             break;
@@ -161,7 +161,7 @@ export function generateDataAnalysis(difficulty?: string, rng: RngFn=Math.random
             correct=fmt(value, 2);
             alternate=correct;
             display=correct;
-            latex=`A line of best fit through the points ${formatPoints(points)} is used to predict $y$ when $x=${probe}$. What is the prediction?`;
+            latex=`A line of best fit through the points ${formatPoints(points)} is used to predict \\( y \\) when \\( x=${probe} \\). What is the prediction?`;
             expectedFormat="Enter a decimal to 2 places";
             choices=[correct, ...valueDistractors(value, 2, rng)];
             break;
@@ -172,7 +172,7 @@ export function generateDataAnalysis(difficulty?: string, rng: RngFn=Math.random
             correct=fmt(sd, 2);
             alternate=correct;
             display=correct;
-            latex=`Find the sample standard deviation of ${values.join(", ")}. Divide by $n-1$, since the mean came from the data.`;
+            latex=`Find the sample standard deviation of ${values.join(", ")}. Divide by \\( n-1 \\), since the mean came from the data.`;
             expectedFormat="Enter a decimal to 2 places";
             choices=[correct, ...valueDistractors(sd, 2, rng)];
             break;
