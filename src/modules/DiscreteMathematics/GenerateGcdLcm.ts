@@ -110,7 +110,7 @@ export function generateGcdLcm(difficulty?: string, rng: RngFn=Math.random): Que
             correct=String(b);
             alternate=correct;
             display=correct;
-            latex=`The greatest common divisor of $${a}$ and $x$ is $${gcd(a, b)}$, and $${a}$ is a multiple of $${common}$. What is $x$?`;
+            latex=`The greatest common divisor of \\( ${a} \\) and \\( x \\) is \\( ${gcd(a, b)} \\), and \\( ${a} \\) is a multiple of \\( ${common} \\). What is \\( x \\)?`;
             expectedFormat="Enter a whole number";
             choices=[correct, ...wrongAround(b, rng)];
             break;
@@ -143,7 +143,7 @@ export function generateGcdLcm(difficulty?: string, rng: RngFn=Math.random): Que
             correct=String(value);
             alternate=correct;
             display=correct;
-            latex=`The greatest common divisor of ${a} and ${b} is $${gcd(a, b)}$. What is their least common multiple?`;
+            latex=`The greatest common divisor of \\( ${a} \\) and \\( ${b} \\) is \\( ${gcd(a, b)} \\). What is their least common multiple?`;
             choices=[correct, ...wrongAround(value, rng)];
             break;
         }
