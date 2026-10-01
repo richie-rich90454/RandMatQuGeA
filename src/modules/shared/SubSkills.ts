@@ -137,6 +137,7 @@ let TABLE: { [topicId: string]: string[] }={
     divisibility:["is_divisible","which_divisible","how_many_divisible","divisor_count","remainder"],
     gcd_lcm:["gcd","lcm","find_other","euclid_step","gcd_lcm_identity"],
     modular:["remainder","solve_congruence","last_digit","congruence_class","divisible_by"],
+    data_analysis:["z_score","percentile","regression_slope","regression_predict","deviation","quartile"],
     vector3d:["magnitude","unit","dot","cross","angle","projection","line","plane","distance","sphere","midpoint"],
     // The eighteen topics below declare a single procedure each, so each gets a
     // one-entry row rather than being left out. A topic with no row has no
