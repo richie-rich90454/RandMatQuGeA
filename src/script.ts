@@ -78,8 +78,15 @@ async function initApp(): Promise<void>{
     }
 }
 function startApp(): void{
-    initApp().catch((err: unknown)=>console.error("initApp failed:",err));
+    ready=initApp().catch((err: unknown)=>console.error("initApp failed:",err));
 }
+/**
+ * Resolves once start-up has finished. Start-up is asynchronous because the privacy
+ * decision is settled before anything is written, so this exists so a test can wait
+ * for the app to be up rather than asserting against whatever happened to have run
+ * by the time the assertion executed.
+ */
+export let ready: Promise<void>=Promise.resolve();
 if (document.readyState==="loading"){
     document.addEventListener("DOMContentLoaded",startApp);
 }
