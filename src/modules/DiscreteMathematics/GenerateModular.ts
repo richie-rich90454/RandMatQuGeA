@@ -159,7 +159,10 @@ export function generateModular(difficulty?: string, rng: RngFn=Math.random): Qu
         }
         case "congruence_class":{
             // Which single value satisfies a stated congruence. Every option is a
-            // different residue class, so exactly one can be right.
+            // different residue class, so exactly one can be right. The redraw is
+            // bounded because a small modulus has fewer distinct residue classes
+            // than the four options asked for, and a set that cannot grow must not
+            // be asked to.
             let a=Math.floor(rng()*modulus*8);
             let answer=residue(a, modulus);
             correct=String(answer);
@@ -167,11 +170,12 @@ export function generateModular(difficulty?: string, rng: RngFn=Math.random): Qu
             display=correct;
             latex=`Which of these is congruent to $${a}$ modulo $${modulus}$?`;
             let options=new Set<string>([correct]);
-            let step=modulus;
-            options.add(String(residue(answer+step, modulus)));
-            options.add(String(residue(answer-step, modulus)));
-            while (options.size<4){
+            options.add(String(residue(answer+modulus, modulus)));
+            options.add(String(residue(answer-modulus, modulus)));
+            let attempts=0;
+            while (options.size<4&&attempts<40){
                 options.add(String(Math.floor(rng()*modulus)));
+                attempts++;
             }
             choices=shuffle(rng, [...options]);
             break;
