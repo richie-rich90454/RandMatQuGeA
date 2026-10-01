@@ -10,7 +10,7 @@ Read CODE_STYLE.md before writing code. It covers:
 4. **Types** — strict mode, unions over `any`, and the `QuestionDto` contract.
 5. **Programming paradigm** — vanilla DOM with module-level singletons, no framework, the four-layer architecture, and the invariants: DOM access through `DomRegistry`, mutable state through `AppState`, pure generators, platform features behind the backend seam, and features that either work in every environment or are hidden where they cannot.
 6. **Complexity budget** — `Map`/`Set` over `Array.includes`/`find` in loops, no `querySelectorAll` on interaction paths, no `innerHTML` rebuilds to change one string, no `sort` inside a loop.
-7. **Generator correctness** — the two invariants CI enforces, plus the rounding, domain, determinism and difficulty rules.
+7. **Generator correctness** — the two invariants CI enforces, plus the round-once-at-the-draw rule, the bounded-rejection-loop rule, the domain, determinism and difficulty rules.
 8. **CSS, Rust, tests and documentation obligations.**
 
 ### The two rules that are never traded away
@@ -19,6 +19,25 @@ Breaking either of these silently produces wrong answers rather than a build err
 
 - **A generator's printed question and its claimed answer must be the same problem.**
 - **A Multiple Choice question must have four options, exactly one of which is correct.**
+
+### Where the app's promises live
+
+Three things are stated once and must not be re-decided at a call site:
+
+- **Where data goes** is `src/main/services/Storage.ts`. Nothing else writes to
+  `localStorage`, and nothing else decides whether a write is durable. A new
+  persisted value goes through that module or the privacy promise is already false.
+- **When a skill comes back** is `src/main/services/Scheduler.ts`. Do not hand-roll
+  an interval, a due date or a priority anywhere else.
+- **What a question may show** is `src/main/Mcq.ts`. Do not build an option set in a
+  generator and hand it straight to the renderer.
+
+### What "fully complete" means here
+
+A generator is not finished when it returns a `QuestionDto`. It is finished when the
+printed prompt and the graded answer are the same problem, the option set has four
+options with one correct, the help can be built, and the answer is reproducible from
+the seed.
 
 ### Existing formatting, for quick reference
 
