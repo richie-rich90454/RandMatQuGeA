@@ -27,7 +27,7 @@ A comprehensive, free online math question generator built with TypeScript that 
 
 ## ✨ Key Features
 
-- **📚 125 Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus, discrete math, linear algebra, trigonometry, and geometry (7 subject areas)
+- **📚 129 Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus, discrete math, number theory, linear algebra, trigonometry, and geometry (7 subject areas)
 - **⚡ Instant Feedback**: Real-time answer checking with detailed explanations and LaTeX rendering
 - **🧠 Mental Math Mode**: Timed sessions with score tracking, pause/skip, unlimited practice, and configurable difficulty
 - **✅ Multiple‑Choice Mode**: Intelligent distractor generation (numeric, pattern-based, and text fallback) with 2–6 choices
@@ -76,7 +76,7 @@ Download the latest installer from **GitHub Releases**:
 
 ➡️ [https://github.com/richie-rich90454/random-math-question-generator-app/releases](https://github.com/richie-rich90454/random-math-question-generator-app/releases)
 
-### Supported Math Topics (125 Topics)
+### Supported Math Topics (129 Topics)
 
 | Category | Topics |
 |----------|--------|
@@ -134,7 +134,7 @@ npm run tauri build
 
 ## 🎯 How to Use
 
-1. **Select a Topic**: Choose from 125 math categories organized by subject (filter by search or scope)
+1. **Select a Topic**: Choose from 129 math categories organized by subject (filter by search or scope)
 2. **Generate Question**: Click "Generate Question" (or press `Ctrl+G`) to get a new problem
 3. **Enter Answer**: Type your solution in the answer box (use the math toolbar for symbols)
 4. **Check Answer**: Click "Check Answer" or press `Shift+Enter` for instant feedback
@@ -144,7 +144,10 @@ npm run tauri build
 
 - **Single Practice**: Focused study on one topic at a time (with optional shuffle across a scope)
 - **Mental Math**: Timed sessions with a question limit or unlimited mode, plus pause, skip, and per-session statistics (accuracy, average time)
-- **Multiple-Choice (MCQ)**: Toggle in the toolbar or settings; correct and plausible distractors are generated for each question
+- **Daily Challenge**: Ten questions, the same for everyone on the same day, with a progress track and a streak. Refreshing part way through resumes rather than restarting
+- **Multiple-Choice (MCQ)**: Toggle in the toolbar or settings. Every question presents four options with exactly one correct; a set a generator cannot fill honestly comes back short rather than padded with a placeholder
+- **Hints and solutions**: Every question has a hint ladder revealed one rung at a time, plus a worked solution, with the answer as a separate step you have to choose to take
+- **Adaptive schedule**: Spaced repetition per topic and per procedure, adjusted for how confident you actually were, with the reason shown beside each question
 - **Print Worksheet**: Generate a printable worksheet (5–30 questions) with answer-key options and a reproducible seed
 - **Theme**: System / Light / Dark, toggleable from the toolbar or `Ctrl+Shift+T`
 - **Settings**: 50+ options across Basic and Advanced tabs — theme, font (incl. OpenDyslexic), default mode, scopes, difficulty, timer, performance toggles, sound/vibration, and more
@@ -379,7 +382,7 @@ We take security seriously. Please see our [SECURITY.md](SECURITY.md) for report
 
 ## 📊 Project Stats
 
-- **125** Math topics supported
+- **129** Math topics supported
 - **7** Major math categories (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry)
 - **7,000+** Vitest unit tests (118 files)
 - **85+** Playwright end-to-end tests (including a full matrix — every topic × easy/medium/hard)
