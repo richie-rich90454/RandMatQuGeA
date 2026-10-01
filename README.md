@@ -245,7 +245,7 @@ random_math_question_generator/
 - Provides detailed feedback with TypeScript‑safe structures
 - Includes a `display` field for rendering answers in KaTeX, separate from the `alternate` plain‑text representation
 - Vector and matrix notation support (angle brackets) with numeric fallback evaluation
-- Desktop (Tauri) mode uses the Rust `check_math` fast path with a JS equivalence fallback for symbolic answers
+- One checker for every build, in both single and mental-math mode, so the same question is never graded two different ways
 
 ### Educational Design
 - Progressive difficulty levels (easy, medium, hard)
