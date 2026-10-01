@@ -128,8 +128,8 @@ export async function saveSettings(page: Page): Promise<void>{
     await expect(page.locator("#settings-modal")).not.toBeVisible();
 }
 
-export async function switchMode(page: Page, mode: "single" | "mental"): Promise<void>{
-    const btn = mode === "single" ? "#mode-single" : "#mode-mental";
+export async function switchMode(page: Page, mode: "single" | "mental" | "daily"): Promise<void>{
+    const btn = mode === "single" ? "#mode-single" : mode === "mental" ? "#mode-mental" : "#mode-daily";
     await page.locator(btn).click();
     await expect(page.locator(btn)).toHaveAttribute("aria-pressed", "true");
 }
