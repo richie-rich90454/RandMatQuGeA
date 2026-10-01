@@ -16,7 +16,27 @@ vi.mock("../../main/core/DomRegistry",()=>{
         expectedFormatDiv,
         inputs:{difficultySelect,userAnswer},
         displays:{answerResults,questionArea,expectedFormatDiv},
-        buttons:{checkAnswerButton}
+        buttons:{checkAnswerButton},
+        // The registry grew a help group and a daily group. They are present here
+        // as absent controls rather than omitted, which is not a shape the
+        // registry can take.
+        help:{
+            showHintBtn:null,
+            showSolutionBtn:null,
+            hintPanel:null,
+            confidenceRow:null,
+            confidenceButtons:[]
+        },
+        daily:{
+            modeDailyBtn:null,
+            dailySummary:null,
+            dailyProgress:null,
+            dailyProgressFill:null,
+            dailySummaryText:null,
+            dailyStartBtn:null,
+            dailyStreak:null,
+            dailyStreakCount:null
+        }
     };
     return{dom};
 });
