@@ -100,9 +100,17 @@ export function applyPersistenceVisibility(): void{
     if (eraseGroup) eraseGroup.hidden=!usable;
     let persistenceSelect=dom.settings.settingsPersistence;
     if (persistenceSelect){
-        // The desktop build has a local database and no browser storage to choose
-        // between, so the choice is not offered there.
+        // The select reflects the mode in force, which is not always the mode that
+        // was chosen: a browser that cannot write falls back to a private session,
+        // and the control has to say so rather than claiming a record is kept.
+        persistenceSelect.value=settings.persistence;
         persistenceSelect.disabled=isTauri();
+    }
+    let help=dom.settings.settingsPersistenceHelp;
+    if (help){
+        help.textContent=settings.persistence==="zdr"
+            ? "A private session keeps nothing after you close the tab."
+            : "Your review schedule and streak are stored in this browser only, and never sent anywhere.";
     }
 }
 export function loadSettings():void{
@@ -180,8 +188,9 @@ export function saveSettings():void{
         }
     }
     if (dom.settings.settingsAdaptive) settings.adaptive=dom.settings.settingsAdaptive.checked;
-    let persistenceSelect=dom.settings.settingsPersistence;
-    if (persistenceSelect) persistenceSelect.value=settings.persistence;
+    // The select is left as the learner set it: saving the form must not quietly
+    // rewrite the privacy decision back to a stored default.
+    applyPersistenceVisibility();
     // Written through the storage module, so a private session writes nothing
     // anywhere. Settings are the learner's own choices and belong in the same
     // promise as their history.
