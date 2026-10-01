@@ -5,6 +5,7 @@ import{invoke}from"@tauri-apps/api/core";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
 import{isTauri}from"../utils/envUtils";
 import type{PersistenceMode}from"./services/Storage";
+import{canonicalNumeric}from"./AnswerFormat";
 /**
  * The storage module, loaded on demand. Nothing is written before the privacy
  * decision is settled, and that decision is settled before the first render is
@@ -474,6 +475,12 @@ export async function isAnswerCorrect(userInput:string,correct:string,alternate?
     }
     let trimmedInput=userInput.trim();
     if (!trimmedInput) return false;
+    // Exact rational comparison runs before evaluation, because "14/3" evaluates
+    // to nothing while "28/6" evaluates to a float, and a learner who writes the
+    // fraction they were asked for must not be marked wrong for writing a fraction.
+    let userExact=canonicalNumeric(trimmedInput);
+    if (userExact===canonicalNumeric(correct)) return true;
+    if (alternate&&userExact===canonicalNumeric(alternate)) return true;
     let userNum=await evaluateExpression(trimmedInput);
     if (userNum!==null){
         let correctNum=await evaluateExpression(correct);
