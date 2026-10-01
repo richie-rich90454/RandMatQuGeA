@@ -162,9 +162,9 @@ import type{RngFn,QuestionDto}from"../types/global";
 
 This is a **vanilla DOM application with module-level singletons**. There is no
 framework, no virtual DOM and no build-time component system. That is deliberate:
-the bundle budget in `scripts/bundle-check.js` caps the initial JS payload at 35 kB
-gzipped, and the entire question-generation engine, all 125 topics, the stylesheet
-and the HTML shell contain zero framework references.
+the bundle budget in `scripts/bundle-check.js` caps the initial JS payload, and the
+entire question-generation engine, every topic, the stylesheet and the HTML shell
+contain zero framework references.
 
 **Do not introduce React, Vue, Svelte or any other UI framework.**
 
@@ -306,15 +306,30 @@ docblocks accurate; they are the only description a topic has.
 
 ## Tests
 
-Three layers, all of which gate merges.
+Four layers, all of which gate merges.
 
-**Unit tests** (`src/__tests__/`, Vitest). Mirror the `src/` structure exactly:
-`src/main/Answer.ts` is tested by `src/__tests__/main/Answer.test.ts`. Every test file
-that needs a DOM declares `/** @vitest-environment jsdom */` at the top.
+**Unit tests** (`src/__tests__/`, Vitest, the `unit` project). Mirror the `src/`
+structure exactly: `src/main/Answer.ts` is tested by `src/__tests__/main/Answer.test.ts`.
+Every test file that needs a DOM declares `/** @vitest-environment jsdom */` at the
+top.
+
+**The generator oracle** (`src/__tests__/oracle/`, Vitest, the `oracle` project). A
+separate project on purpose: it is slow, and a red correctness gate must not take the
+unit suite down with it. It samples every registered topic across difficulties and
+seeds and asserts four things: every topic produces a well-formed question, every
+prompt renders as valid LaTeX, every multiple-choice question presents four usable
+options with exactly one correct, and no distractor is also correct.
+
+It also asserts things about the tables the app depends on. The sub-skill table is
+checked in both directions — a registered topic with no row, and a row whose key is
+not a registered topic, are both failures — because a topic count written down in a
+document is already wrong the moment a topic is added.
 
 **End-to-end tests** (`e2e/`, Playwright). Drive the real app. Shared flows live in
 `e2e/helpers.ts`. Every spec runs on all three configured projects: desktop, Pixel 7
-and iPhone 14.
+and iPhone 14. The iPhone descriptor runs on WebKit, so continuous integration
+installs both browser engines; pinning a Chrome channel instead makes the desktop
+project depend on a separately installed browser that CI does not provide.
 
 **Rust tests** (inline `#[cfg(test)] mod tests` in `src-tauri/src/`). Cover the SQL
 logic and the pure functions, not the Tauri plumbing.
@@ -326,6 +341,10 @@ logic and the pure functions, not the Tauri plumbing.
 - One behaviour per test.
 - `vi.clearAllMocks()` in `beforeEach` where a suite needs isolation.
 - Mock the platform seam, never `localStorage` or `document` directly.
+- A test that pins behaviour the product has deliberately rejected is wrong and gets
+  rewritten, not the behaviour. Padding an option set with a placeholder is such a
+  case: the test asserting the padding is what has to change, and the commit message
+  must say so.
 - No snapshot tests for values a human should read. Snapshots are for the rendered
   artifact only, and every numeric value must be canonicalised to a string first so
   that float formatting cannot make them flaky across engines.
@@ -404,6 +423,34 @@ distinct questions per level.
 Generators never call `Math.random`. They take an `rng` parameter. A given seed must
 reproduce a given question exactly, which is what makes worksheets and the daily
 challenge work.
+
+A helper that a generator calls must take the `rng` it was given. A utility that
+draws from the global source looks harmless and silently makes a seeded caller
+non-reproducible.
+
+### Round once, where the value is drawn
+
+A value is rounded **when it is drawn**, and every later step — the prompt, the
+key, the distractors, the worked solution — uses that rounded value. Rounding only
+the print is the single most common correctness defect in a generator: the learner
+sees `(2.5, 1.7)` and is graded on the magnitude of `(2.53, 1.74)`.
+
+This is why the shared rounding helper exists, and why the generators route through
+it rather than calling `toFixed` on a value that was never rounded.
+
+### No unbounded rejection loops
+
+A generator may reject a drawn value and try again. It must bound the number of
+attempts and must have a deterministic fallback, because a random source that
+keeps returning the same value — which a test will do, and a seeded caller can —
+will otherwise spin until the process runs out of memory.
+
+### Exact where the topic allows it
+
+Number theory, combinatorics and algebra have exact answers. Compute them in integer
+arithmetic and never introduce a float on the way to a printed value. The closed
+form for a divisor sum divides, and a power of three over two is not an integer, so
+that sum is accumulated by repeated addition.
 
 ---
 
