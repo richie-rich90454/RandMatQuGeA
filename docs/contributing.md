@@ -45,22 +45,50 @@ topic whose printed question and graded answer disagree, whose Multiple Choice o
 are not exactly four with exactly one correct, whose LaTeX does not render, or whose
 easy/medium/hard output is indistinguishable.
 
+The oracle asserts that every registered topic has a sub-skill row **and** that every
+row is keyed by a registered topic, so a missing row and an unreachable row are both
+build failures. It also proves, for the generators where it can be recomputed, that the
+answer follows from the numbers the prompt actually prints.
+
+Two rules that are easier to follow than to rediscover:
+
+- **Round once, at the draw.** Round the value where it is generated, and use that
+  rounded value for the prompt, the key, the distractors and the solution. Rounding
+  only the print leaves the learner with a question whose answer is not derivable from
+  what they were shown.
+- **Bound every rejection loop.** If you redraw until a condition holds, count the
+  attempts and give a deterministic fallback. A seeded source can return the same value
+  forever, and an unbounded loop takes the worker out with an out-of-memory kill rather
+  than a test failure.
+
 ### Generator Contract
 
 Every generator must return a valid `QuestionDto`:
 
 ```typescript
 {
-    latex: string,            // Question HTML with $$...$$ delimiters
+    latex: string,            // Question HTML with \[...\] or \(...\) delimiters
     correct: string,          // Canonical correct answer, exact unless the prompt says to round
     alternate?: string,       // Second accepted form, when one exists
     display?: string,         // KaTeX-rendered display form
     choices?: string[],       // Exactly 4 options, choices[0] === correct, no distractor also correct
     expectedFormat?: string,  // Input format hint, matching the actual answer shape
     subskill?: string,        // Sub-skill within the topic, used for per-skill scheduling
+    misconception?: string,   // The wrong turn this question is designed to catch
+    hints?: HintLadder,       // Overrides the derived ladder when you can do better
+    solution?: string[],      // Worked steps; the derived scaffold is used when absent
     visualization?: { shape: string; params?: Record<string, unknown> }
 }
 ```
+
+Bare dollar signs are not a math delimiter in either renderer. Use `\(...\)` for inline
+and `\[...\]` for display, and put nothing but mathematics inside them — a currency
+symbol, a degree sign or a unit in a math group is a hard parse error that falls back
+to showing raw markup.
+
+The help fields are optional because a ladder is derived from what the question already
+declares. A generator that can supply a better one should, and a supplied ladder is
+always used in preference to the derived one.
 
 Two invariants are enforced in CI and are never traded away:
 
