@@ -262,6 +262,36 @@ async fn delete_all_performance_records(state: tauri::State<'_, DbState>) -> Res
     Ok(())
 }
 
+/// One recorded answer, as a typed row. A struct rather than a JSON value
+/// because the row has several columns, and a typed row also means the column
+/// names are checked at compile time instead of at the call site.
+#[derive(sqlx::FromRow, serde::Serialize)]
+struct AttemptRow {
+    id: i64,
+    topic_id: String,
+    sub_skill: String,
+    difficulty: String,
+    correct: i64,
+    response_ms: i64,
+    confidence: Option<String>,
+    error_type: Option<String>,
+    answered_at: i64,
+}
+
+/// One remembered skill, as a typed row.
+#[derive(sqlx::FromRow, serde::Serialize)]
+struct SkillRow {
+    topic_id: String,
+    sub_skill: String,
+    stability: f64,
+    difficulty: f64,
+    last_review: Option<i64>,
+    due: Option<i64>,
+    reviews: i64,
+    correct_reviews: i64,
+    aoa: f64,
+}
+
 /// Records one answer in full, as well as in the aggregate. The aggregate is what
 /// the recommendations read; the row is what makes the learner's history theirs,
 /// exportable and rebuildable rather than only what the schema happens to
@@ -303,12 +333,12 @@ async fn load_attempts(
     state: tauri::State<'_, DbState>,
     topic_id: Option<String>,
     limit: Option<i64>,
-) -> Result<Vec<serde_json::Value>, String> {
+) -> Result<Vec<AttemptRow>, String> {
     let pool = &state.pool;
     let take = limit.unwrap_or(500).clamp(1, 10_000);
-    let rows: Vec<serde_json::Value> = match topic_id {
+    let rows: Vec<AttemptRow> = match topic_id {
         Some(topic) => {
-            sqlx::query(
+            sqlx::query_as::<_, AttemptRow>(
                 "SELECT id, topic_id, sub_skill, difficulty, correct, response_ms, confidence, error_type, answered_at
 				 FROM attempts WHERE topic_id = ? ORDER BY answered_at DESC, id DESC LIMIT ?",
             )
@@ -319,7 +349,7 @@ async fn load_attempts(
             .map_err(|e| e.to_string())?
         }
         None => {
-            sqlx::query(
+            sqlx::query_as::<_, AttemptRow>(
                 "SELECT id, topic_id, sub_skill, difficulty, correct, response_ms, confidence, error_type, answered_at
 				 FROM attempts ORDER BY answered_at DESC, id DESC LIMIT ?",
             )
@@ -384,9 +414,9 @@ async fn save_skill_schedule(
 
 /// Returns every remembered skill, which is what the schedule is rebuilt from.
 #[tauri::command]
-async fn load_skill_schedule(state: tauri::State<'_, DbState>) -> Result<Vec<serde_json::Value>, String> {
+async fn load_skill_schedule(state: tauri::State<'_, DbState>) -> Result<Vec<SkillRow>, String> {
     let pool = &state.pool;
-    let rows: Vec<serde_json::Value> = sqlx::query(
+    let rows: Vec<SkillRow> = sqlx::query_as::<_, SkillRow>(
         "SELECT topic_id, sub_skill, stability, difficulty, last_review, due, reviews, correct_reviews, aoa
 		 FROM review_skills",
     )
