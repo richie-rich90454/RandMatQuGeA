@@ -5,7 +5,7 @@ import{invoke}from"@tauri-apps/api/core";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
 import{isTauri}from"../utils/envUtils";
 import type{PersistenceMode}from"./services/Storage";
-import{canonicalNumeric}from"./AnswerFormat";
+import{canonicalNumeric,latexToPlain}from"./AnswerFormat";
 /**
  * The storage module, loaded on demand. Nothing is written before the privacy
  * decision is settled, and that decision is settled before the first render is
@@ -528,23 +528,31 @@ export async function isAnswerCorrect(userInput:string,correct:string,alternate?
     }
     let trimmedInput=userInput.trim();
     if (!trimmedInput) return false;
+    // The key and the alternate are rewritten out of LaTeX before anything
+    // compares them, because a fraction, its LaTeX spelling and the decimal it
+    // denotes are one answer and a generator is free to print whichever of them
+    // it likes. The learner's own text goes through the same rewrite so that a
+    // pasted expression is read the same way as the key it is compared to.
+    let answerText=latexToPlain(trimmedInput);
+    let key=latexToPlain(correct);
+    let alt=alternate===undefined?undefined:latexToPlain(alternate);
     // Exact rational comparison runs before evaluation, because "14/3" evaluates
     // to nothing while "28/6" evaluates to a float, and a learner who writes the
     // fraction they were asked for must not be marked wrong for writing a fraction.
-    let userExact=canonicalNumeric(trimmedInput);
-    if (userExact===canonicalNumeric(correct)) return true;
-    if (alternate&&userExact===canonicalNumeric(alternate)) return true;
-    let userNum=await evaluateExpression(trimmedInput);
+    let userExact=canonicalNumeric(answerText);
+    if (userExact===canonicalNumeric(key)) return true;
+    if (alt&&userExact===canonicalNumeric(alt)) return true;
+    let userNum=await evaluateExpression(answerText);
     if (userNum!==null){
-        let correctNum=await evaluateExpression(correct);
+        let correctNum=await evaluateExpression(key);
         if (correctNum!==null){
-                let tol=getTolerance();
+            let tol=getTolerance();
             if (Math.abs(userNum-correctNum)<tol) return true;
         }
-        if (alternate){
-            let altNum=await evaluateExpression(alternate);
+        if (alt){
+            let altNum=await evaluateExpression(alt);
             if (altNum!==null){
-            let tol=getTolerance();
+                let tol=getTolerance();
                 if (Math.abs(userNum-altNum)<tol) return true;
             }
         }
@@ -555,18 +563,18 @@ export async function isAnswerCorrect(userInput:string,correct:string,alternate?
             .replace(/[°˚]|deg(rees?)?/g,"")
             .replace(/rad(ians?)?/g,"");
     }
-    let userSym=normalizeSymbolic(trimmedInput);
-    let correctSym=normalizeSymbolic(correct);
+    let userSym=normalizeSymbolic(answerText);
+    let correctSym=normalizeSymbolic(key);
     if (userSym===correctSym) return true;
-    if (alternate){
-        let altSym=normalizeSymbolic(alternate);
+    if (alt){
+        let altSym=normalizeSymbolic(alt);
         if (userSym===altSym) return true;
     }
-    let userSimple=trimmedInput.replace(/\s+/g,"").toLowerCase();
-    let correctSimple=correct.replace(/\s+/g,"").toLowerCase();
+    let userSimple=answerText.replace(/\s+/g,"").toLowerCase();
+    let correctSimple=key.replace(/\s+/g,"").toLowerCase();
     if (userSimple===correctSimple) return true;
-    if (alternate){
-        let altSimple=alternate.replace(/\s+/g,"").toLowerCase();
+    if (alt){
+        let altSimple=alt.replace(/\s+/g,"").toLowerCase();
         if (userSimple===altSimple) return true;
     }
     return false;
