@@ -1,5 +1,5 @@
 import {test, expect} from "@playwright/test";
-import {gotoApp, waitForAppReady, dismissOnboarding, switchMode, setScope, selectTopic, generateQuestion, getCorrectAnswer, submitAnswer, expectResult} from "./helpers";
+import {gotoApp, waitForAppReady, dismissOnboarding, switchMode, setScope, selectTopic, generateQuestion, getCorrectAnswer, submitAnswer, expectResult, openSettings, saveSettings} from "./helpers";
 
 /**
  * The daily set, the help ladder and the data choice are the three features a
@@ -100,8 +100,9 @@ test.describe("the data choice",()=>{
         await dismissOnboarding(page);
     });
     test("defaults to a private session on the web build",async({page})=>{
-        const select=page.locator("#settings-persistence");
-        await expect(select).toBeVisible();
+        await openSettings(page);
+        await expect(page.locator("#settings-persistence")).toBeVisible();
+        await expect(page.locator("#settings-persistence")).toHaveValue("zdr");
     });
     test("a private session writes nothing to local storage",async({page})=>{
         await selectTopic(page, "add");
@@ -113,11 +114,9 @@ test.describe("the data choice",()=>{
         expect(keys).toEqual([]);
     });
     test("remembering a session stores the record",async({page})=>{
-        await page.evaluate(()=>{
-            let el=document.getElementById("settings-persistence") as HTMLSelectElement;
-            el.value="indexed";
-            el.dispatchEvent(new Event("change", {bubbles:true}));
-        });
+        await openSettings(page);
+        await page.selectOption("#settings-persistence", "indexed");
+        await saveSettings(page);
         await selectTopic(page, "add");
         await generateQuestion(page);
         let answer=await getCorrectAnswer(page);
@@ -139,7 +138,15 @@ test.describe("the data choice",()=>{
         expect(stored).toContain("reviewRecords");
     });
     test("the erase control is hidden when nothing is being kept",async({page})=>{
+        await openSettings(page);
         await expect(page.locator("#setting-erase-data")).toBeHidden();
+    });
+    test("the erase control appears once something is being kept",async({page})=>{
+        await openSettings(page);
+        await page.selectOption("#settings-persistence", "indexed");
+        await saveSettings(page);
+        await openSettings(page);
+        await expect(page.locator("#setting-erase-data")).toBeVisible();
     });
 });
 
