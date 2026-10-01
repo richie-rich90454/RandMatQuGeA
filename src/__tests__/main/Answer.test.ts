@@ -12,7 +12,27 @@ vi.mock('../../main/core/DomRegistry',()=>{
         answerResults,
         inputs: {userAnswer},
         displays: {answerResults},
-        buttons: {copyAnswerBtn: null}
+        buttons: {copyAnswerBtn: null},
+        // The registry grew a help group and a daily group. Both are present here
+        // as absent controls, which is what a page without them looks like, rather
+        // than left off entirely, which is not a shape the registry can take.
+        help: {
+            showHintBtn: null,
+            showSolutionBtn: null,
+            hintPanel: null,
+            confidenceRow: null,
+            confidenceButtons: []
+        },
+        daily: {
+            modeDailyBtn: null,
+            dailySummary: null,
+            dailyProgress: null,
+            dailyProgressFill: null,
+            dailySummaryText: null,
+            dailyStartBtn: null,
+            dailyStreak: null,
+            dailyStreakCount: null
+        }
     };
     return {dom};
 });
