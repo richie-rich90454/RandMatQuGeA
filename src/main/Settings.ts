@@ -113,18 +113,62 @@ export function applyPersistenceVisibility(): void{
             : "Your review schedule and streak are stored in this browser only, and never sent anywhere.";
     }
 }
-export function loadSettings():void{
-    // The stored copy is read asynchronously, because IndexedDB cannot be read
-    // synchronously, and the controls are filled immediately from the defaults so
-    // the interface never waits on storage. The stored values replace the
-    // defaults as soon as they arrive.
-    useStorage().then(store=>store.read<typeof settings>(SETTINGS_KEY)).then((stored)=>{
+export function loadSettings(): Promise<void>{
+    // The controls are filled from the defaults immediately so the interface never
+    // waits on storage, and the stored copy replaces them as soon as it arrives,
+    // because IndexedDB cannot be read synchronously. The promise is returned so a
+    // caller that needs the stored values in place can wait for them rather than
+    // assuming they are already there.
+    fillControls();
+    return useStorage().then(async store=>{
+        let stored: typeof settings|undefined=await store.read<typeof settings>(SETTINGS_KEY);
+        if (!stored){
+            // An earlier build kept these in localStorage. Reading them here is
+            // what makes the upgrade real: a learner who has never opened the data
+            // setting would otherwise silently lose their preferences, because the
+            // migration only runs when that setting is touched.
+            stored=readLegacy()??undefined;
+        }
         if (!stored) return;
         settings={...settings, ...stored};
         if (stored.adaptive===undefined) settings.adaptive=true;
         if (stored.showWeakTopicsPopup===undefined) settings.showWeakTopicsPopup=true;
+        fillControls();
         applySettingsToApp().catch((err:unknown)=>console.error("applySettingsToApp failed:",err));
-    }).catch((e:unknown)=>console.warn("Failed to read settings", e));
+    }).catch((e:unknown)=>{
+        console.warn("Failed to read settings", e);
+    });
+}
+/**
+ * Reads the settings an earlier build left in local storage, if any. This is the
+ * upgrade path, not a second source of truth: the value is carried into the store
+ * the current mode allows and the old copy is removed, so there is never a second
+ * place the learner's preferences live.
+ *
+ * @returns The stored settings, or null when there are none or they are unreadable.
+ */
+function readLegacy(): typeof settings|null{
+    let raw:string|null=null;
+    try{
+        raw=localStorage.getItem(SETTINGS_KEY);
+    }
+    catch{
+        return null;
+    }
+    if (raw===null) return null;
+    try{
+        return JSON.parse(raw) as typeof settings;
+    }
+    catch(e){
+        console.warn("Failed to parse settings", e);
+        return null;
+    }
+}
+/**
+ * Writes the current settings into the controls, so what the learner sees matches
+ * what the module holds.
+ */
+function fillControls(): void{
     if (dom.settings.settingsTheme) dom.settings.settingsTheme.value=settings.theme;
     if (dom.settings.settingsDefaultMode) dom.settings.settingsDefaultMode.value=settings.defaultMode;
     if (dom.settings.settingsAutoContinue) dom.settings.settingsAutoContinue.checked=settings.autoContinue;
@@ -151,7 +195,7 @@ export function loadSettings():void{
     if (dom.inputs.mentalShuffleToggle) dom.inputs.mentalShuffleToggle.checked=settings.mentalShuffle;
     if (dom.settings.settingsMcqChoices) dom.settings.settingsMcqChoices.value=settings.mcqChoicesCount.toString();
     if (dom.settings.settingsAdaptive) dom.settings.settingsAdaptive.checked=settings.adaptive;
-    applySettingsToApp().catch((err:unknown)=>console.error("applySettingsToApp failed:",err));
+    if (dom.settings.settingsPersistence) dom.settings.settingsPersistence.value=settings.persistence;
 }
 export function saveSettings():void{
     if (dom.settings.settingsTheme) settings.theme=dom.settings.settingsTheme.value as "system"|"light"|"dark";
