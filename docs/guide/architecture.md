@@ -158,7 +158,7 @@ cannot disagree with the answers that earned it.
 ## Help
 
 `src/modules/shared/Hints.ts` derives a hint ladder from what a question already
-knows about itself, so all 125 topics have help rather than only those whose
+knows about itself, so every topic has help rather than only those whose
 author had time to write some. A generator that supplies its own ladder or
 solution wins, because a specific ladder beats a general one.
 
@@ -188,6 +188,27 @@ Built with Tauri v2, the backend provides:
 
 ## Module Structure
 
+### Number theory
+
+`DiscreteMathematics/` holds four topics that were absent from the curriculum and
+that a learner can check their own work on, which is what makes them the natural
+place to learn divisibility:
+
+| Topic | Covers |
+|---|---|
+| `divisibility` | Divisibility rules as recognition, counting multiples in a range, divisor counts from the prime factorisation, remainders |
+| `gcd_lcm` | The Euclidean algorithm, the identity `gcd(a,b) · lcm(a,b) = ab`, recovering one value from the other |
+| `modular` | Residues, solving a linear congruence, last digits of powers, congruence classes, divisibility as a congruence |
+| `data_analysis` | z-scores, percentile ranks, least-squares slope and prediction, sample standard deviation, quartiles |
+
+Two rules are enforced by construction in these files rather than by convention:
+
+- Every drawn value is rounded **when it is drawn**, and everything downstream
+  uses that rounded value. A slope computed from unrounded coordinates and then
+  printed rounded is an answer the learner cannot reproduce.
+- Divisor sums accumulate by repeated addition. The closed form divides, and a
+  power of three over two is not an integer.
+
 ```
 src/modules/
 ├── Arithmetic/        (add, subtract, multiply, divide)
@@ -201,14 +222,15 @@ src/modules/
 
 All generators follow the same signature: `(difficulty: string, rng?: RngFn) => QuestionDto`.
 
-There are **125 topics** across 7 subject modules (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry).
+There are **129 topics** across 7 subject modules (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry). The count is asserted rather than written down: the oracle test compares the registered topic ids against the sub-skill table in both directions, so a topic that is registered without a row, or a row whose key is not a registered topic, is a build failure rather than a note.
 
 ## Testing
 
 The project uses a three-layer test strategy:
 
-1. **Unit tests (Vitest + jsdom)** — `src/__tests__/` mirrors the `src/` structure. 7,000+ cases cover generator integrity (every topic × difficulty × seeds), math regression values, answer-checking edge cases, settings persistence, and session logic. `src/vitest.setup.ts` mocks the Tauri API, three.js, and canvas.
-2. **End-to-end tests (Playwright)** — `e2e/` drives the real app in headless system Chrome against the Vite dev server (`:1331`). The `all-topics-*.spec.ts` files run a full matrix (every topic × easy/medium/hard) and assert each generator accepts its own correct answer; other specs cover Single/Mental modes, MCQ, settings, print worksheets, keyboard shortcuts, and graceful desktop-only fallbacks. A console-error sweep asserts zero runtime errors across the whole app.
+1. **Unit tests (Vitest + jsdom)** — `src/__tests__/` mirrors the `src/` structure. 7,000+ cases cover generator integrity (every topic × difficulty × seeds), math regression values, answer-checking edge cases, settings persistence, and session logic. `src/vitest.setup.ts` mocks the Tauri API, three.js, and canvas. These run in the `unit` Vitest project.
+2. **The generator oracle** — a separate Vitest project, because a red correctness gate should not take the unit suite down with it and because it is slow enough to deserve its own timeout. It samples every registered topic across difficulties and seeds and asserts four invariants: every topic produces a well-formed question, every prompt renders as valid LaTeX, every multiple-choice question presents four usable options with exactly one correct, and no distractor is also correct. `src/__tests__/oracle/vectorPrompts.test.ts` additionally proves a question is answerable from the numbers it prints.
+2. **End-to-end tests (Playwright)** — `e2e/` drives the real app against the Vite dev server (`:1331`) in three projects: desktop, mobile Chrome and mobile Safari. The mobile Safari project runs on WebKit, so continuous integration installs both engines. The `all-topics-*.spec.ts` files run a full matrix (every topic × easy/medium/hard) and assert each generator accepts its own correct answer; other specs cover Single/Mental/Daily modes, MCQ, settings, print worksheets, keyboard shortcuts, and graceful desktop-only fallbacks. A console-error sweep asserts zero runtime errors across the whole app.
 3. **Rust tests (`cargo test`)** — 200+ tests in `src-tauri/src` cover the score/perf/adaptive SQL logic, `check_math`, models, and PDF export.
 
 `npm run check` runs the TypeScript type-check plus the Vitest suite; `npm run test:e2e` runs Playwright.
