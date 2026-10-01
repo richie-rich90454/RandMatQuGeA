@@ -13,6 +13,25 @@
 import Fraction from "fraction.js";
 
 /**
+ * Rewrites LaTeX into the plain expression a checker can evaluate, so that a key
+ * written as a fraction is comparable with the decimal a learner typed. Only the
+ * constructs the app actually prints as an answer are handled; anything else
+ * keeps its backslash stripped and is left to the caller's comparison.
+ *
+ * @param value - The LaTeX or plain text.
+ * @returns The plain equivalent.
+ */
+export function latexToPlain(value: string): string{
+    if (typeof value!=="string") return "";
+    return value
+        .replace(/\\(?:left|right|displaystyle|,|;|!)/g,"")
+        .replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,"($1)/($2)")
+        .replace(/\\sqrt\{([^{}]*)\}/g,"sqrt($1)")
+        .replace(/\\([a-zA-Z]+)/g,"$1")
+        .replace(/[{}]/g,"");
+}
+
+/**
  * Reports whether a string is a plain finite number.
  *
  * @param value - The string to test.
