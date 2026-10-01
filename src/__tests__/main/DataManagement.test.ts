@@ -158,16 +158,19 @@ describe("initDataModal",()=>{
         expect(confirmSpy).toHaveBeenCalledWith("HARD RESET: This will delete ALL scores and performance data. This cannot be undone. Are you sure?");
         confirmSpy.mockRestore();
     });
-    it("should invoke delete_all_performance_records command",async()=>{
+    it("should erase the whole record, not only the aggregate the list shows",async()=>{
         vi.mocked(invoke).mockResolvedValue([{topic_id:"add",difficulty:"easy",accuracy:0.8,attempts:5,avg_time_ms:1200}]);
         const confirmSpy=vi.spyOn(window,"confirm").mockReturnValue(true);
         await openDataModal();
-        const btn=document.getElementById("delete-all-btn")as HTMLButtonElement;
+        const btn=document.getElementById("delete-all-btn") as HTMLButtonElement;
         expect(btn).not.toBeNull();
         if(btn&&btn.onclick){
             await (btn.onclick as unknown as EventListener)(new MouseEvent("click"));
         }
-        expect(invoke).toHaveBeenCalledWith("delete_all_performance_records");
+        // The command removes the schedule and every recorded answer alongside the
+        // aggregate, because the list a learner is shown is only part of what is
+        // kept and an erase that leaves the rest behind is not an erase.
+        expect(invoke).toHaveBeenCalledWith("clear_performance");
         confirmSpy.mockRestore();
     });
     it("should invoke reset_all_data command",async()=>{
