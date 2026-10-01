@@ -108,6 +108,26 @@ vi.mock("../../main/core/DomRegistry",()=>{
         modals,
         session,
         settings,
+        // The registry grew a help group and a daily group. They are present here
+        // as absent controls, which is what a page without them looks like, rather
+        // than omitted, which is not a shape the registry can take.
+        help:{
+            showHintBtn:null,
+            showSolutionBtn:null,
+            hintPanel:null,
+            confidenceRow:null,
+            confidenceButtons:[]
+        },
+        daily:{
+            modeDailyBtn:null,
+            dailySummary:null,
+            dailyProgress:null,
+            dailyProgressFill:null,
+            dailySummaryText:null,
+            dailyStartBtn:null,
+            dailyStreak:null,
+            dailyStreakCount:null
+        },
         appWindow:null
     };
     return{dom};
