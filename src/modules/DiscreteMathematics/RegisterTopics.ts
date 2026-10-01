@@ -1,4 +1,4 @@
-﻿import{registerTopic}from"../../main/services/TopicRegistry";
+import{registerTopic}from"../../main/services/TopicRegistry";
 registerTopic("perm","discrete","generatePermutation");
 registerTopic("comb","discrete","generateCombination");
 registerTopic("prob","discrete","generateProbability");
@@ -12,3 +12,4 @@ registerTopic("binomial","discrete","generateBinomialTheorem");
 registerTopic("divisibility","discrete","generateDivisibility");
 registerTopic("gcd_lcm","discrete","generateGcdLcm");
 registerTopic("modular","discrete","generateModular");
+registerTopic("data_analysis","discrete","generateDataAnalysis");
