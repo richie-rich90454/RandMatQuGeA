@@ -269,7 +269,7 @@ Exported from `Answer.ts`. Multi-stage equivalence checking pipeline:
 3. Constant removal (+C for integrals)
 4. String equality → symbolic comparison → numeric evaluation → equation splitting
 
-In Tauri mode, `settings.checkAnswerFast` first invokes the Rust `check_math` command and falls back to the JS pipeline for symbolic answers the Rust fast path can't verify.
+Both modes and both builds grade with the same checker. `settings.checkAnswerFast`, which the mental-math session calls, is `settings.isAnswerCorrect`, and so is the last step of the pipeline above; the Rust `check_math` command is not consulted, because a second implementation could only ever disagree with this one about whether a correct answer was correct.
 
 ## MCQ
 
@@ -400,7 +400,7 @@ Invoked via `@tauri-apps/api/core` `invoke()`:
 
 | Command | Parameters | Returns |
 |---|---|---|
-| `check_math` | `{ user_expr, correct_expr, alternate? }` | `bool` |
+| `check_math` | `{ user_expr, correct_expr, alternate? }` | `bool` | (not used to grade; see Answer Checking) |
 | `save_score` | `{ entry: { topic, score, total, difficulty, date } }` | `void` |
 | `load_scores` | — | `ScoreEntry[]` |
 | `delete_score` | `{ id }` | `void` |
