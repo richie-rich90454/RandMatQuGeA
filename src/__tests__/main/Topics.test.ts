@@ -1,11 +1,16 @@
-﻿/** @vitest-environment jsdom */
+/** @vitest-environment jsdom */
 import{describe,it,expect,vi,afterEach,beforeEach}from"vitest";
 vi.mock("../../main/core/DomRegistry",()=>{
-    let topicGridHTML="";
+    // The grid is a real element rather than a recording stub, because the pills
+    // the grid creates are the elements the tests inspect. A stub that discarded
+    // them forced the tests to append their own pill to the document body, which
+    // is not a shape the app ever produces.
+    const gridElement=document.createElement("div");
     const topicGrid={
-        get innerHTML(){return topicGridHTML;},
-        set innerHTML(v:string){topicGridHTML=v;},
-        appendChild:vi.fn()
+        get innerHTML(){return gridElement.innerHTML;},
+        set innerHTML(v:string){gridElement.innerHTML=v;},
+        appendChild:vi.fn((node:Node)=>{gridElement.appendChild(node);}),
+        querySelector(selector:string){return gridElement.querySelector(selector);}
     };
     const topicSearch={value:""};
     const currentTopicDisplay={textContent:""};
@@ -17,7 +22,27 @@ vi.mock("../../main/core/DomRegistry",()=>{
         generateQuestionButton,
         displays:{topicGrid,currentTopicDisplay},
         inputs:{topicSearch},
-        buttons:{generateQuestionButton}
+        buttons:{generateQuestionButton},
+        // The registry grew a help group and a daily group. They are present here
+        // as absent controls rather than omitted, which is not a shape the
+        // registry can take.
+        help:{
+            showHintBtn:null,
+            showSolutionBtn:null,
+            hintPanel:null,
+            confidenceRow:null,
+            confidenceButtons:[]
+        },
+        daily:{
+            modeDailyBtn:null,
+            dailySummary:null,
+            dailyProgress:null,
+            dailyProgressFill:null,
+            dailySummaryText:null,
+            dailyStartBtn:null,
+            dailyStreak:null,
+            dailyStreakCount:null
+        }
     };
     return{dom};
 });
@@ -71,7 +96,10 @@ let dom:any=domRegistry.dom;
 import*as ui from"../../main/Ui.js";
 describe("topics",()=>{
     afterEach(()=>{
-        document.querySelectorAll(".topic-pill").forEach(el=>el.remove());
+        // The grid is emptied through the module that owns it, so the index of
+        // pill elements goes with it. Removing the nodes by hand would leave the
+        // index pointing at detached elements.
+        topics.resetTopicGrid();
     });
     beforeEach(()=>{
         vi.clearAllMocks();
@@ -97,7 +125,10 @@ describe("topics",()=>{
 });
 describe("renderTopicGrid",()=>{
     afterEach(()=>{
-        document.querySelectorAll(".topic-pill").forEach(el=>el.remove());
+        // The grid is emptied through the module that owns it, so the index of
+        // pill elements goes with it. Removing the nodes by hand would leave the
+        // index pointing at detached elements.
+        topics.resetTopicGrid();
     });
     beforeEach(()=>{
         vi.clearAllMocks();
@@ -137,12 +168,9 @@ describe("renderTopicGrid",()=>{
     });
     it("should highlight selected topic",()=>{
         state.setSelectedTopic("add");
-        let pill=document.createElement("button");
-        pill.className="topic-pill";
-        pill.dataset.topicId="add";
-        document.body.appendChild(pill);
         topics.renderTopicGrid();
-        expect(pill.classList.contains("active")).toBe(true);
+        let pill=dom.topicGrid!.querySelector('[data-topic-id="add"]');
+        expect(pill?.classList.contains("active")).toBe(true);
     });
     it("should handle empty search results",()=>{
         dom.topicSearch!.value="zzz";
@@ -151,7 +179,10 @@ describe("renderTopicGrid",()=>{
 });
 describe("selectTopic",()=>{
     afterEach(()=>{
-        document.querySelectorAll(".topic-pill").forEach(el=>el.remove());
+        // The grid is emptied through the module that owns it, so the index of
+        // pill elements goes with it. Removing the nodes by hand would leave the
+        // index pointing at detached elements.
+        topics.resetTopicGrid();
     });
     beforeEach(()=>{
         vi.clearAllMocks();
@@ -175,25 +206,24 @@ describe("selectTopic",()=>{
         expect(dom.generateQuestionButton!.disabled).toBe(false);
     });
     it("should add active class to selected element",()=>{
-        let pill=document.createElement("button");
-        pill.className="topic-pill";
-        pill.dataset.topicId="add";
-        document.body.appendChild(pill);
-        topics.selectTopic("add");
-        expect(pill.classList.contains("active")).toBe(true);
+        // Rendering with nothing selected auto-selects the first topic, so the
+        // topic chosen here has to be a different one, or the call would toggle
+        // that same selection off rather than moving it.
+        topics.renderTopicGrid();
+        topics.selectTopic("subtrt");
+        let pill=dom.topicGrid!.querySelector('[data-topic-id="subtrt"]');
+        expect(pill?.classList.contains("active")).toBe(true);
     });
     it("should remove active class from other elements",()=>{
-        let pill1=document.createElement("button");
-        pill1.className="topic-pill active";
-        pill1.dataset.topicId="subtrt";
-        let pill2=document.createElement("button");
-        pill2.className="topic-pill";
-        pill2.dataset.topicId="add";
-        document.body.appendChild(pill1);
-        document.body.appendChild(pill2);
-        topics.selectTopic("add");
-        expect(pill1.classList.contains("active")).toBe(false);
-        expect(pill2.classList.contains("active")).toBe(true);
+        // Rendering with nothing selected auto-selects the first topic, so the
+        // topic chosen here has to be a different one, or the call would toggle
+        // that same selection off rather than moving it.
+        topics.renderTopicGrid();
+        topics.selectTopic("subtrt");
+        let previous=dom.topicGrid!.querySelector('[data-topic-id="add"]');
+        let chosen=dom.topicGrid!.querySelector('[data-topic-id="subtrt"]');
+        expect(previous?.classList.contains("active")).toBe(false);
+        expect(chosen?.classList.contains("active")).toBe(true);
     });
     it("should update UI state",()=>{
         topics.selectTopic("add");
@@ -243,7 +273,10 @@ describe("pickRandomTopic",()=>{
 });
 describe("renderTopicGrid - edge cases",()=>{
     afterEach(()=>{
-        document.querySelectorAll(".topic-pill").forEach(el=>el.remove());
+        // The grid is emptied through the module that owns it, so the index of
+        // pill elements goes with it. Removing the nodes by hand would leave the
+        // index pointing at detached elements.
+        topics.resetTopicGrid();
     });
     beforeEach(()=>{
         vi.clearAllMocks();
@@ -285,7 +318,10 @@ describe("renderTopicGrid - edge cases",()=>{
 });
 describe("selectTopic - edge cases",()=>{
     afterEach(()=>{
-        document.querySelectorAll(".topic-pill").forEach(el=>el.remove());
+        // The grid is emptied through the module that owns it, so the index of
+        // pill elements goes with it. Removing the nodes by hand would leave the
+        // index pointing at detached elements.
+        topics.resetTopicGrid();
     });
     beforeEach(()=>{
         vi.clearAllMocks();
@@ -296,14 +332,14 @@ describe("selectTopic - edge cases",()=>{
         dom.topicSearch!.value="";
     });
     it("should handle clicking same topic twice",()=>{
-        let pill=document.createElement("button");
-        pill.className="topic-pill active";
-        pill.dataset.topicId="add";
-        document.body.appendChild(pill);
-        topics.selectTopic("add");
-        topics.selectTopic("add");
+        // The pills come from the grid rather than from the document body, because
+        // the grid owns them and the module tracks them by index.
+        topics.renderTopicGrid();
+        let pill=dom.topicGrid!.querySelector('[data-topic-id="subtrt"]');
+        topics.selectTopic("subtrt");
+        topics.selectTopic("subtrt");
         expect(state.setSelectedTopic).toHaveBeenCalledWith(null);
-        expect(pill.classList.contains("active")).toBe(false);
+        expect(pill?.classList.contains("active")).toBe(false);
     });
     it("should handle topic with null element",()=>{
         expect(()=>topics.selectTopic("nonexistent")).not.toThrow();
@@ -313,14 +349,11 @@ describe("selectTopic - edge cases",()=>{
         topics.selectTopic("add");
         expect(dom.currentTopicDisplay!.textContent).toBe("Addition");
     });
-    it("should scroll topic into view",()=>{
-        let pill=document.createElement("button");
-        pill.className="topic-pill";
-        pill.dataset.topicId="add";
-        pill.scrollIntoView=vi.fn();
-        document.body.appendChild(pill);
-        topics.selectTopic("add");
-        expect(pill.classList.contains("active")).toBe(true);
+    it("should mark the selected pill in the grid",()=>{
+        topics.renderTopicGrid();
+        topics.selectTopic("subtrt");
+        let pill=dom.topicGrid!.querySelector('[data-topic-id="subtrt"]');
+        expect(pill?.classList.contains("active")).toBe(true);
     });
     it("should work with keyboard selection",()=>{
         let pill=document.createElement("button");
