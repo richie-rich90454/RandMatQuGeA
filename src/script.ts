@@ -23,6 +23,8 @@ async function initApp(): Promise<void>{
         // payload is what leaves room for the first paint.
         let reviewStore=await import("./main/services/ReviewStore");
         await reviewStore.loadRecords();
+        let dailyMode=await import("./main/services/DailyMode");
+        await dailyMode.loadCompleted();
     }
     catch(err){
         console.error("loadRecords failed:",err);
