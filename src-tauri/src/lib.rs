@@ -41,30 +41,118 @@ struct DbState {
 }
 #[cfg(desktop)]
 static ALLOW_CLOSE: AtomicBool = AtomicBool::new(false);
-#[tauri::command]
-fn check_math(user_expr: String, correct_expr: String, alternate: Option<String>) -> bool {
-    let user_num = user_expr.trim().parse::<f64>();
-    let correct_num = correct_expr.trim().parse::<f64>();
-    if let (Ok(u), Ok(c)) = (&user_num, &correct_num) {
-        return (u - c).abs() < 1e-6;
+/// Parses a plain number into its mantissa and the denominator it is scaled by,
+/// so `2.5` becomes (25, 10) and the digits stay exact all the way through.
+/// Returns None for anything that is not a plain number, which is how a
+/// symbolic answer such as `x^2+1` is left to the spelling comparison.
+fn parse_scaled(text: &str) -> Option<(i64, i64)> {
+    let trimmed = text.trim();
+    let (negative, unsigned) = match trimmed.strip_prefix('-') {
+        Some(rest) => (true, rest.trim()),
+        None => (
+            false,
+            trimmed.strip_prefix('+').map(str::trim).unwrap_or(trimmed),
+        ),
+    };
+    let (whole, decimals) = match unsigned.split_once('.') {
+        Some(split) => split,
+        None => (unsigned, ""),
+    };
+    if whole.is_empty() && decimals.is_empty() {
+        return None;
     }
-    if user_expr.replace(' ', "").to_lowercase() == correct_expr.replace(' ', "").to_lowercase() {
-        return true;
+    let digits = format!("{}{}", if whole.is_empty() { "0" } else { whole }, decimals);
+    if !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
     }
-    if let Some(alt) = alternate {
-        let user_norm = user_expr.trim().to_lowercase();
-        let alt_norm = alt.trim().to_lowercase();
-        if user_norm == alt_norm {
+    let mut denominator: i64 = 1;
+    for _ in 0..decimals.len() {
+        denominator = denominator.checked_mul(10)?;
+    }
+    let magnitude: i64 = digits.parse().ok()?;
+    Some((if negative { -magnitude } else { magnitude }, denominator))
+}
+
+/// Removes the LaTeX grouping braces from a fraction numerator or denominator,
+/// so that both sides of `frac{3}{4}` reach the number parser as digits.
+fn strip_braces(text: &str) -> &str {
+    text.trim_matches(|c| c == '{' || c == '}').trim()
+}
+
+/// Reduces an answer to an exact fraction, accepting the three spellings an
+/// answer is actually written in: a plain number, `3/4`, and the LaTeX
+/// `-frac{3}{4}`. The comparison has to be between values rather than between
+/// strings, because a question keyed on one spelling is answered correctly by
+/// another and marking it wrong tells the learner something false.
+fn exact_value(text: &str) -> Option<(i64, i64)> {
+    let trimmed = text.trim();
+    let (negative, body) = match trimmed.strip_prefix('-') {
+        Some(rest) => (true, rest.trim()),
+        None => (
+            false,
+            trimmed.strip_prefix('+').map(str::trim).unwrap_or(trimmed),
+        ),
+    };
+    let (numerator, denominator) = match body.strip_prefix("\\frac") {
+        Some(rest) => {
+            let inner = strip_braces(rest);
+            let split = inner.find('}')?;
+            (strip_braces(&inner[..split]), strip_braces(&inner[split + 1..]))
+        }
+        None => match body.split_once('/') {
+            Some((n, d)) => (n, d),
+            None => (body, "1"),
+        },
+    };
+    let (mantissa, mantissa_scale) = parse_scaled(numerator)?;
+    let (divisor, divisor_scale) = parse_scaled(denominator)?;
+    let top = mantissa.checked_mul(divisor_scale)?;
+    let bottom = divisor.checked_mul(mantissa_scale)?;
+    if bottom == 0 {
+        return None;
+    }
+    let divisor = greatest_common_divisor(top.abs(), bottom);
+    let sign = if negative { -1 } else { 1 };
+    Some((sign * (top / divisor), bottom / divisor))
+}
+
+fn greatest_common_divisor(a: i64, b: i64) -> i64 {
+    if b == 0 {
+        a.max(1)
+    } else {
+        greatest_common_divisor(b, a % b)
+    }
+}
+
+/// Compares one answer with one key. The exact comparison is what makes `3/4`,
+/// `\frac{3}{4}` and `0.75` one answer; the float tolerance that follows keeps
+/// the rounding a learner sees at two decimal places from being read as a
+/// difference; and the spelling comparison is what still accepts `X^2` for
+/// `x^2`, which has no value to compare.
+fn matches_answer(user: &str, key: &str) -> bool {
+    if let (Some(u), Some(k)) = (exact_value(user), exact_value(key)) {
+        if u == k {
             return true;
         }
-        let alt_num = alt.trim().parse::<f64>();
-        if let (Ok(u), Ok(a)) = (user_num, alt_num) {
-            if (u - a).abs() < 1e-6 {
-                return true;
-            }
+    }
+    if let (Ok(u), Ok(k)) = (user.trim().parse::<f64>(), key.trim().parse::<f64>()) {
+        if (u - k).abs() < 1e-6 {
+            return true;
         }
     }
-    false
+    let spelling = |s: &str| s.replace(' ', "").to_lowercase();
+    spelling(user) == spelling(key)
+}
+
+#[tauri::command]
+fn check_math(user_expr: String, correct_expr: String, alternate: Option<String>) -> bool {
+    if matches_answer(&user_expr, &correct_expr) {
+        return true;
+    }
+    match &alternate {
+        Some(alt) => matches_answer(&user_expr, alt),
+        None => false,
+    }
 }
 #[tauri::command]
 async fn save_score(
@@ -873,6 +961,52 @@ mod tests {
     #[test]
     fn should_handle_check_math_with_non_matching_alternate() {
         assert!(!check_math("x+1".to_string(), "x+2".to_string(), Some("y+1".to_string())));
+    }
+    #[test]
+    fn should_accept_a_fraction_written_as_a_decimal() {
+        // The desktop and the browser used to disagree here: the browser reduced
+        // the answer to an exact rational and the desktop could not parse a
+        // fraction at all, so the same learner typing 3/4 was graded twice.
+        assert!(check_math("0.75".to_string(), "3/4".to_string(), None));
+        assert!(check_math("1/2".to_string(), "0.5".to_string(), None));
+        assert!(check_math("28/6".to_string(), "14/3".to_string(), None));
+    }
+    #[test]
+    fn should_accept_the_latex_form_of_a_fraction() {
+        assert!(check_math("0.75".to_string(), "\\frac{3}{4}".to_string(), None));
+        assert!(check_math(
+            "-0.75".to_string(),
+            "-\\frac{3}{4}".to_string(),
+            None
+        ));
+        assert!(check_math(
+            "\\frac{3}{4}".to_string(),
+            "\\frac{6}{8}".to_string(),
+            None
+        ));
+    }
+    #[test]
+    fn should_reject_a_fraction_that_denotes_a_different_value() {
+        assert!(!check_math("0.75".to_string(), "3/5".to_string(), None));
+        assert!(!check_math("2/3".to_string(), "0.66".to_string(), None));
+    }
+    #[test]
+    fn should_reject_a_zero_denominator_rather_than_dividing_by_it() {
+        assert!(!check_math("0.75".to_string(), "3/0".to_string(), None));
+        assert!(!check_math("0".to_string(), "0/0".to_string(), None));
+    }
+    #[test]
+    fn should_accept_the_alternate_spelling_of_a_fraction() {
+        assert!(check_math(
+            "0.25".to_string(),
+            "\\frac{1}{2}".to_string(),
+            Some("1/4".to_string())
+        ));
+    }
+    #[test]
+    fn should_leave_a_symbolic_answer_to_the_spelling_comparison() {
+        assert!(check_math("x^2+1".to_string(), "x^2+1".to_string(), None));
+        assert!(!check_math("x^2+1".to_string(), "x^2-1".to_string(), None));
     }
     #[tokio::test]
     async fn should_handle_save_score_entry_creation() {
