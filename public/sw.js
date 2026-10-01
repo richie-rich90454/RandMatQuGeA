@@ -1,8 +1,9 @@
-const PRECACHE="precache-v3.0.1";
-const RUNTIME="runtime-v3.0.1";
+const PRECACHE="precache-v3.1.0";
+const RUNTIME="runtime-v3.1.0";
 const PRECACHE_URLS=[
 	".",
 	"index.html",
+	"manifest.webmanifest",
 	"katex.min.css",
 	"katex.min.js",
 	"mathjax/tex-chtml.js",
@@ -154,9 +155,17 @@ self.addEventListener("fetch",(event)=>{
 					}).catch(()=>{});
 				}
 				return r;
-			}).catch(()=>{
-				return caches.match(new URL("index.html", self.registration.scope)).then((r)=>r||Response.error());
-			});
-		})
+		}).catch(()=>{
+			return caches.match(new URL("index.html", self.registration.scope)).then((r)=>r||Response.error());
+		});
+	})
 	);
+});
+// A request the cache cannot satisfy falls back to the shell, which is what makes
+// an installed app open when the network is gone rather than showing the browser's
+// own error page inside a window that looks like the app.
+self.addEventListener("message",(event)=>{
+	if (event.data==="skip-waiting"){
+		self.skipWaiting();
+	}
 });
