@@ -1,7 +1,6 @@
 import{dom}from"./core/DomRegistry";
 import{appState}from"./core/StateStore";
 import{questionState}from"./core/QuestionState";
-import{invoke}from"@tauri-apps/api/core";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
 import{isTauri}from"../utils/envUtils";
 import type{PersistenceMode}from"./services/Storage";
@@ -579,16 +578,22 @@ export async function isAnswerCorrect(userInput:string,correct:string,alternate?
     }
     return false;
 }
+/**
+ * Grades a typed answer, in every build.
+ *
+ * The desktop build used to ask the Rust `check_math` command first and fall
+ * back to isAnswerCorrect only when Rust said no. Two checkers meant the same
+ * question could be graded differently depending on which build asked, and the
+ * Rust one could not read a fraction, a LaTeX fraction or an expression at all.
+ * Grading runs once per answer, so nothing was ever bought by the second
+ * checker, and the JavaScript one already reads every form the app can print.
+ * It is therefore the only one that decides.
+ *
+ * @param userInput - What the learner typed.
+ * @param correct - The answer key.
+ * @param alternate - An equivalent spelling of the key, if the topic has one.
+ * @returns True when the answer is right.
+ */
 export async function checkAnswerFast(userInput:string,correct:string,alternate?:string):Promise<boolean>{
-    if (isTauri()){
-        try{
-            if (await invoke("check_math",{userExpr:userInput,correctExpr:correct,alternate:alternate??null})){
-                return true;
-            }
-        }
-        catch(e){
-            console.warn("Rust check failed, falling back to JS",e);
-        }
-    }
     return await isAnswerCorrect(userInput,correct,alternate);
 }
