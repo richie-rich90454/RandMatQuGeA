@@ -1,8 +1,13 @@
-﻿/** @vitest-environment jsdom */
-import{describe,it,expect,vi}from"vitest";
+/** @vitest-environment jsdom */
+import{describe,it,expect,vi,beforeAll}from"vitest";
 vi.mock("../main/Settings.js",()=>({
     loadSettings:vi.fn(),
-    settings:{defaultMode:"single",adaptive:true},
+    // Start-up settles the privacy decision before anything is written, so these
+    // two are part of the initialisation this file is asserting on. Without them
+    // the first await rejects and nothing after it ever runs.
+    applyPersistence:vi.fn(async()=>{}),
+    applyPersistenceVisibility:vi.fn(),
+    settings:{defaultMode:"single",adaptive:true,persistence:"zdr"},
 }));
 vi.mock("../main/Ui.js",()=>({
     syncSettingsToState:vi.fn(),
@@ -30,6 +35,14 @@ import*as themeMod from"../main/Theme.js";
 import*as eventsMod from"../main/Events.js";
 import*as sessionMod from"../main/Session.js";
 import*as _uiMod from"../main/Ui.js";
+import{ready}from"../script.js";
+beforeAll(async()=>{
+    // Start-up settles the privacy decision before anything is written, so it is
+    // asynchronous. Waiting for the promise the entry point exposes is what makes
+    // these assertions about a finished start-up rather than about whichever
+    // microtask happened to have run.
+    await ready;
+});
 describe("script",()=>{
     it("should set window globals on load",()=>{
         expect(window.correctAnswer).toEqual({correct:"", alternate:"", display:""});
