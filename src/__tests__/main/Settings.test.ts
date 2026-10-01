@@ -1,4 +1,4 @@
-﻿/** @vitest-environment jsdom */
+/** @vitest-environment jsdom */
 import{describe,it,expect,vi,afterEach,beforeEach}from"vitest";
 let mockAppWindow:any=null;
 vi.mock("../../main/core/DomRegistry",()=>{
@@ -74,8 +74,15 @@ describe("settings",()=>{
     beforeEach(()=>{
         mockAppWindow=null;
     });
-    afterEach(()=>{
+    afterEach(async()=>{
         localStorage.clear();
+        // The storage module keeps an in-memory map for the lifetime of the tab,
+        // which is the behaviour the privacy promise depends on and also the
+        // reason clearing local storage alone is not enough between cases: a value
+        // read by an earlier test would otherwise still be there and the read would
+        // never fall through to the legacy copy.
+        const storage=await import("../../main/services/Storage.js");
+        await storage.clear();
     });
     it("should export settings object with defaults",()=>{
         expect(settings.settings).toBeDefined();
@@ -87,12 +94,16 @@ describe("settings",()=>{
     it("loadSettings should set DOM values",()=>{
         settings.loadSettings();
     });
-    it("saveSettings should persist to localStorage",()=>{
+    it("saveSettings should keep the settings out of local storage",async()=>{
+        // Settings are the learner's own choices and belong in the same promise as
+        // their history, so they go through the storage module. A private session
+        // leaves no copy in local storage, and the value is still readable for the
+        // session through the store.
         settings.saveSettings();
-        const saved=localStorage.getItem("appSettings");
-        expect(saved).toBeTruthy();
-        const parsed=JSON.parse(saved!);
-        expect(parsed.theme).toBe("system");
+        const storage=await import("../../main/services/Storage.js");
+        let stored=await storage.read<{theme:string}>("appSettings");
+        expect(stored?.theme).toBe("system");
+        expect(localStorage.getItem("appSettings")).toBeNull();
     });
     it("resetSettings should restore defaults",()=>{
         settings.resetSettings();
@@ -290,74 +301,74 @@ describe("settings",()=>{
         });
     });
     describe("settings persistence",()=>{
-        it("should persist theme to localStorage",()=>{
+        it("should persist theme to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({theme:"dark"}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.theme).toBe("dark");
         });
-        it("should persist font to localStorage",()=>{
+        it("should persist font to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({font:"opendyslexic"}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.font).toBe("opendyslexic");
         });
-        it("should persist difficulty to localStorage",()=>{
+        it("should persist difficulty to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({difficulty:"hard"}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.difficulty).toBe("hard");
         });
-        it("should persist scope to localStorage",()=>{
+        it("should persist scope to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({scope:"compound"}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.scope).toBe("compound");
         });
-        it("should persist shuffle to localStorage",()=>{
+        it("should persist shuffle to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({shuffle:true}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.shuffle).toBe(true);
         });
-        it("should persist mcqMode to localStorage",()=>{
+        it("should persist mcqMode to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({mcqMode:true}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.mcqMode).toBe(true);
         });
-        it("should persist mcqChoicesCount to localStorage",()=>{
+        it("should persist mcqChoicesCount to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({mcqChoicesCount:6}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.mcqChoicesCount).toBe(6);
         });
-        it("should persist perfMaster to localStorage",()=>{
+        it("should persist perfMaster to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({perfMaster:true}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.perfMaster).toBe(true);
         });
-        it("should persist perfWave to localStorage",()=>{
+        it("should persist perfWave to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({perfWave:false}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.perfWave).toBe(false);
         });
-        it("should persist perfBlur to localStorage",()=>{
+        it("should persist perfBlur to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({perfBlur:false}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.perfBlur).toBe(false);
         });
-        it("should persist perfPreview to localStorage",()=>{
+        it("should persist perfPreview to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({perfPreview:false}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.perfPreview).toBe(false);
         });
-        it("should persist perfAnimations to localStorage",()=>{
+        it("should persist perfAnimations to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({perfAnimations:false}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.perfAnimations).toBe(false);
         });
-        it("should persist fpsCap to localStorage",()=>{
+        it("should persist fpsCap to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({fpsCap:30}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.fpsCap).toBe(30);
         });
-        it("should persist notifications to localStorage",()=>{
+        it("should persist notifications to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({notifications:false}));
-            settings.loadSettings();
+            await settings.loadSettings();
             expect(settings.settings.notifications).toBe(false);
         });
     });
@@ -370,24 +381,24 @@ describe("settings",()=>{
             localStorage.removeItem("appSettings");
             expect(()=>settings.loadSettings()).not.toThrow();
         });
-        it("should handle invalid theme value",()=>{
+        it("should handle invalid theme value",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({theme:"invalid"}));
-            expect(()=>settings.loadSettings()).not.toThrow();
+            await expect(settings.loadSettings()).resolves.toBeUndefined();
             expect(settings.settings.theme).toBe("invalid");
         });
-        it("should handle invalid difficulty value",()=>{
+        it("should handle invalid difficulty value",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({difficulty:"extreme"}));
-            expect(()=>settings.loadSettings()).not.toThrow();
+            await expect(settings.loadSettings()).resolves.toBeUndefined();
             expect(settings.settings.difficulty).toBe("extreme");
         });
-        it("should handle invalid scope value",()=>{
+        it("should handle invalid scope value",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({scope:"unknown"}));
-            expect(()=>settings.loadSettings()).not.toThrow();
+            await expect(settings.loadSettings()).resolves.toBeUndefined();
             expect(settings.settings.scope).toBe("unknown");
         });
-        it("should handle invalid font value",()=>{
+        it("should handle invalid font value",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({font:"nonexistent"}));
-            expect(()=>settings.loadSettings()).not.toThrow();
+            await expect(settings.loadSettings()).resolves.toBeUndefined();
             expect(settings.settings.font).toBe("nonexistent");
         });
     });
