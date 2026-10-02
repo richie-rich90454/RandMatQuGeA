@@ -151,8 +151,9 @@ vi.mock('../../main/Settings', () => ({
         decimalPlaces: 2,
         perfPreview: true,
     },
+    // The grader finishes here, so this is the one setting a test has to stub
+    // deliberately rather than leave answering everything.
     isAnswerCorrect: vi.fn(),
-    checkAnswerFast: vi.fn(),
 }));
 vi.mock('../../main/Ui', () => ({
     showNotification: vi.fn(),
@@ -613,6 +614,25 @@ describe('checkAnswer', () => {
             window.correctAnswer.correct='sqrt(2)/2';
             await checkAnswer();
             expect(dom.answerResults!.className).toContain('correct');
+        });
+    });
+    describe('checkAnswer - notation the generators print', () => {
+        beforeEach(async () => {
+            // The grader ends at Settings.isAnswerCorrect, which is where
+            // latexToPlain rewrites the key, so these cases need the real one
+            // rather than the stub that answers everything.
+            const actual = await vi.importActual<any>('../../main/Settings');
+            (settings.isAnswerCorrect as any).mockImplementation(actual.isAnswerCorrect);
+        });
+        it('accepts a degree-marked key and a \\cdot key', async () => {
+            dom.userAnswer!.value='45';
+            window.correctAnswer.correct='45^{\\circ}';
+            await checkAnswer();
+            expect(dom.answerResults!.className).toBe('results-display correct');
+            dom.userAnswer!.value='6';
+            window.correctAnswer.correct='2\\cdot3';
+            await checkAnswer();
+            expect(dom.answerResults!.className).toBe('results-display correct');
         });
     });
     describe('checkAnswer - timer and performance', () => {
