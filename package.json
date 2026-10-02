@@ -16,6 +16,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run --project unit",
     "test:oracle": "vitest run --project oracle",
     "test:e2e": "playwright test",
     "bundle:check": "node scripts/bundle-check.js",
