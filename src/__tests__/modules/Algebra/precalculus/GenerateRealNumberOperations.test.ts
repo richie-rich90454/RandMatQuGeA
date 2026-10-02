@@ -34,15 +34,14 @@ describe("generateRealNumberOperations", ()=>{
         const rng=vi.fn()
             .mockReturnValueOnce(0.5)
             .mockReturnValueOnce(0.3)
-            .mockReturnValueOnce(0.6)
-            .mockReturnValueOnce(0.1);
+            .mockReturnValueOnce(0.6);
         const dto=generateRealNumberOperations("medium", rng);
-        expect(dto.latex).toBe("Is the statement \\( 3 < 6 \\) true or false?");
-        expect(dto.correct).toBe("true");
-        expect(dto.alternate).toBe("true");
-        expect(dto.display).toBe("true");
-        expect(dto.expectedFormat).toBe("Enter 'true' or 'false'");
-        expect(dto.choices).toContain("true");
+        expect(dto.latex).toBe("Which of the following is true for \\( 3 \\) and \\( 6 \\)?");
+        expect(dto.correct).toBe("3 < 6");
+        expect(dto.alternate).toBe("3 < 6");
+        expect(dto.display).toBe("3 < 6");
+        expect(dto.expectedFormat).toBe("Enter the true relation");
+        expect(dto.choices).toContain("3 < 6");
     });
     it("generates interval question correctly", ()=>{
         const rng=vi.fn()
@@ -83,5 +82,29 @@ describe("generateRealNumberOperations", ()=>{
         const dto1=generateRealNumberOperations("medium", seededRng(42));
         const dto2=generateRealNumberOperations("medium", seededRng(42));
         expect(dto1).toEqual(dto2);
+    });
+    it("offers four distinct options for the absolute value branch, where the signed input used to be the answer itself", ()=>{
+        for(let seed=1; seed<=60; seed++){
+            const dto=generateRealNumberOperations("easy", seededRng(seed));
+            if (dto.latex.indexOf("Evaluate")!==0) continue;
+            expect(dto.choices).toHaveLength(4);
+            expect(new Set(dto.choices).size).toBe(4);
+            expect(dto.choices).toContain(dto.correct);
+        }
+    });
+    it("offers four relations for the ordering branch rather than padding a true/false answer with two non-answers", ()=>{
+        let seen=0;
+        for(let seed=1; seed<=60; seed++){
+            const dto=generateRealNumberOperations("easy", seededRng(seed));
+            if (dto.latex.indexOf("Which of the following is true")!==0) continue;
+            seen++;
+            expect(dto.choices).toHaveLength(4);
+            expect(new Set(dto.choices).size).toBe(4);
+            expect(dto.choices).toContain(dto.correct);
+            for(let option of dto.choices??[]){
+                expect(["maybe","cannot determine","true","false"]).not.toContain(option);
+            }
+        }
+        expect(seen).toBeGreaterThan(0);
     });
 });
