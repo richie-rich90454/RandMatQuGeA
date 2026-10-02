@@ -138,7 +138,12 @@ let TABLE: { [topicId: string]: string[] }={
     gcd_lcm:["gcd","lcm","find_other","euclid_step","gcd_lcm_identity"],
     modular:["remainder","solve_congruence","last_digit","congruence_class","divisible_by"],
     data_analysis:["z_score","percentile","regression_slope","regression_predict","deviation","quartile"],
+    counting_principles:["multiplication_rule","addition_rule","permutation_restriction","combination_restriction","arrangement_repeats","shared_property"],
+    probability_rules:["conditional_table","total_probability","bayes","independence_statement","expected_value"],
     vector3d:["magnitude","unit","dot","cross","angle","projection","line","plane","distance","sphere","midpoint"],
+    eigenvalues:["eigenvalues_2x2","eigenvalues_3x3","eigenvector","characteristic_polynomial","diagonalise","defective"],
+    orthogonality:["dot_product","norm","projection","gram_schmidt","orthogonal_complement"],
+    vectors_3d:["cross_product","triple_product","angle_3d","point_line_distance","point_plane_distance"],
     // The eighteen topics below declare a single procedure each, so each gets a
     // one-entry row rather than being left out. A topic with no row has no
     // sub-skills, which means the scheduler cannot record what was practised and
@@ -153,6 +158,9 @@ let TABLE: { [topicId: string]: string[] }={
     coord3d:["distance","midpoint"],
     sphere_eq:["center_radius","general"],
     line_plane_3d:["line","plane"],
+    similarity:["proportional_sides","scale_factor","area_ratio","perimeter_ratio","scale_from_area","converse_proportionality"],
+    rigid_transformations:["translate_point","rotate_point","reflect_point","dilate_point","compose_transformations"],
+    circle_geometry:["inscribed_central","arc_sector","tangent_right_angle","chord_length","chords_inside","secants_external"],
     mtrx:["add","subtract","multiply","inverse","system","transpose","scalar_mult","power","row_echelon"],
     vctr:["magnitude","direction","unit","dot","angle","projection","parametric","polar_convert","cartesian_convert","polar_graph","motion","de_moivre","add","subtract","parametric_to_cartesian"],
     system3x3:["solve"],
