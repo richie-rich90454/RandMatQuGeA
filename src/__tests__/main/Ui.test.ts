@@ -35,7 +35,7 @@ vi.mock("../../main/core/DomRegistry",()=>{
     const answerCard={classList:{add:vi.fn(),remove:vi.fn()}};
     const buttons={modeSingleBtn,modeMentalBtn,generateQuestionButton,checkAnswerButton,startSessionBtn,pauseSessionBtn,skipQuestionBtn,copyAnswerBtn};
     const inputs={userAnswer,difficultySelect,scopeSelect,mentalScopeSelect,shuffleToggle,mentalShuffleToggle,autocontinueToggle,mcqToggle};
-    const displays={mentalProgressBar,timerDisplay,scoreDisplay,previewDiv,answerResults,questionArea,mathToolbar,mcqChoicesContainer,expectedFormatDiv,leaderboardContent,accuracyStat,avgTimeStat};
+    const displays={mentalProgressBar,timerDisplay,scoreDisplay,previewDiv,answerResults,questionArea,mathToolbar,mcqChoicesContainer,expectedFormatDiv,leaderboardContent,accuracyStat,avgTimeStat,topicPills:[]};
     const modals={shortcutsModal,onboardingOverlay,answerCard};
     const session={leaderboardCard};
     const dom={buttons,inputs,displays,modals,session,appWindow:null};
@@ -176,6 +176,8 @@ vi.mock("../../main/Answer.js",()=>({
 }));
 import*as stateStore from"../../main/core/StateStore";
 let state:any=stateStore.appState;
+import*as domRegistry from"../../main/core/DomRegistry";
+let dom:any=domRegistry.dom;
 import*as ui from"../../main/Ui.js";
 describe("ui",()=>{
     it("should export clearAllTimeouts",()=>{
@@ -493,6 +495,23 @@ describe("ui",()=>{
         });
         it("should not throw when called",()=>{
             expect(()=>ui.updateStatistics()).not.toThrow();
+        });
+    });
+    describe("disableTopicSelection",()=>{
+        it("disables every pill the registry reports, without searching the document",()=>{
+            let first={disabled:false,setAttribute:vi.fn()};
+            let second={disabled:false,setAttribute:vi.fn()};
+            dom.displays.topicPills=[first,second];
+            let scan=vi.spyOn(document,"querySelectorAll");
+            ui.disableTopicSelection(true);
+            expect(first.disabled).toBe(true);
+            expect(first.setAttribute).toHaveBeenCalledWith("aria-disabled","true");
+            expect(second.disabled).toBe(true);
+            expect(scan).not.toHaveBeenCalled();
+            scan.mockRestore();
+            ui.disableTopicSelection(false);
+            expect(first.disabled).toBe(false);
+            dom.displays.topicPills=[];
         });
     });
 });
