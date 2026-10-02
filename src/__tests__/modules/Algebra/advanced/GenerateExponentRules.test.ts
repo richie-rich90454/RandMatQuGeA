@@ -47,4 +47,26 @@ describe("generateExponentRules",()=>{
         const dto2=generateExponentRules("medium", seededRng(99));
         expect(dto1).not.toEqual(dto2);
     });
+    it("offers four options for every exponent rule, where equal exponents collapsed the set to three",()=>{
+        for(let difficulty of ["easy","medium","hard"]){
+            for(let seed=1; seed<=60; seed++){
+                const dto=generateExponentRules(difficulty, seededRng(seed));
+                expect(dto.choices).toHaveLength(4);
+                expect(new Set(dto.choices).size).toBe(4);
+                expect(dto.choices).toContain(dto.correct);
+            }
+        }
+    });
+    it("never offers a negative exponent as a distractor for the positive exponent that is the same value",()=>{
+        let seen=0;
+        for(let seed=1; seed<=60; seed++){
+            const dto=generateExponentRules("easy", seededRng(seed));
+            if (dto.latex.indexOf("positive exponent")===-1) continue;
+            seen++;
+            for(let option of dto.choices??[]){
+                expect(option).not.toMatch(/^-?\d+\^-\d+$/);
+            }
+        }
+        expect(seen).toBeGreaterThan(0);
+    });
 });
