@@ -153,6 +153,34 @@ async function start(shape: string, params: any = {}): Promise<void>{
     await pending;
 }
 
+describe("shape routing",()=>{
+    beforeAll(()=>{
+        questionArea=document.createElement("div");
+        questionArea.id="question-area";
+        document.body.replaceChildren(questionArea);
+    });
+    it("draws a trigonometric graph on the canvas instead of loading WebGL",async()=>{
+        // "graph" has always had a canvas implementation. The router did not list
+        // it among the 2D shapes, so a trigonometric graph question loaded a WebGL
+        // renderer, found no case for the shape, warned, and removed the whole
+        // visualisation again: the learner saw no graph at all.
+        const warn=vi.spyOn(console,"warn").mockImplementation(()=>{});
+        const constructed=vi.mocked(WebGLRenderer).mock.calls.length;
+        try{
+            await createVisualization("graph",{fn:"sin", a:2, b:3, c:1});
+            expect(warn).not.toHaveBeenCalledWith("Unknown 3D shape:","graph");
+            // The canvas exists, so the 2D path drew it, and no WebGL renderer was
+            // constructed, so the 3D path was never entered.
+            expect(document.querySelector("#geometry-canvas")).not.toBeNull();
+            expect(vi.mocked(WebGLRenderer).mock.calls.length).toBe(constructed);
+        }
+        finally{
+            warn.mockRestore();
+            cleanupVisualization();
+        }
+    });
+});
+
 describe("3D render loop on a phone",()=>{
     beforeAll(()=>{
         questionArea=document.createElement("div");
