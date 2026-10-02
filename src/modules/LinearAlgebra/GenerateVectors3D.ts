@@ -13,7 +13,7 @@
  */
 import type{RngFn, QuestionDto}from"../../types/global";
 import{randInt, randNonZero, pick}from"../shared/Random";
-import{roundTo}from"../shared/Numeric";
+import{roundTo, fmt}from"../shared/Numeric";
 import{trimNum}from"../shared/Latex";
 
 /** Three-dimensional vectors whose length is a whole number. */
@@ -281,6 +281,8 @@ export function generateVectors3D(difficulty?: string, rng: RngFn=Math.random): 
     let latex="";
     let expectedFormat="Enter a whole number";
     let choices:string[]=[];
+    let rungs:string[]=[];
+    let steps:string[]=[];
     switch(type){
         case "cross_product":{
             let u=drawVector(rng, spread);
@@ -305,6 +307,15 @@ export function generateVectors3D(difficulty?: string, rng: RngFn=Math.random): 
                 nudged.push(vectorText(copy));
             }
             choices=fourOptions(correct, [vectorText(cross3(w, u)), vectorText(componentwise), vectorText(pairwise), ...nudged]);
+            rungs=[
+                "The cross product's three components are differences of products taken in a fixed order, and the order of the two factors decides the sign, so swapping them negates the answer rather than rewriting it.",
+                "Form each component as one product minus another, moving down the components of the first factor while moving across the second."
+            ];
+            steps=[
+                `The vectors are ${vectorLatex(u)} and ${vectorLatex(w)}.`,
+                `First component: ${u[1]} x ${w[2]} - ${u[2]} x ${w[1]} = ${answer[0]}; second: ${u[2]} x ${w[0]} - ${u[0]} x ${w[2]} = ${answer[1]}; third: ${u[0]} x ${w[1]} - ${u[1]} x ${w[0]} = ${answer[2]}.`,
+                `So the cross product is ${correct}.`
+            ];
             break;
         }
         case "triple_product":{
@@ -312,12 +323,22 @@ export function generateVectors3D(difficulty?: string, rng: RngFn=Math.random): 
             let w=drawVector(rng, spread, u);
             let across=cross3(u, w);
             let t=drawOffPlane(rng, across, spread);
+            let side=cross3(w, t);
             let answer=dot(u, cross3(w, t));
             correct=String(answer);
             alternate=correct;
             display=correct;
             latex=`Find the scalar triple product \\( ${vectorLatex(u)} \\cdot (${vectorLatex(w)} \\times ${vectorLatex(t)}) \\).`;
             choices=fourOptions(correct, integerDistractors(answer, [dot(u, w), dot(u, t), -answer]));
+            rungs=[
+                "The scalar triple product is a dot product of one vector with the cross product of the other two, and it is zero exactly when the three lie in a plane, which is why the sign and the order both matter.",
+                "Form the cross product of the two vectors written inside the brackets, then take its dot product with the vector outside them."
+            ];
+            steps=[
+                `The outer vector is ${vectorLatex(u)}; the inner cross product is ${vectorLatex(w)} x ${vectorLatex(t)}.`,
+                `That cross product is ${vectorLatex(side)}.`,
+                `Its dot product with ${vectorLatex(u)} is ${u[0]} x ${side[0]} + ${u[1]} x ${side[1]} + ${u[2]} x ${side[2]} = ${answer}, so the scalar triple product is ${correct}.`
+            ];
             break;
         }
         case "angle_3d":{
@@ -337,6 +358,15 @@ export function generateVectors3D(difficulty?: string, rng: RngFn=Math.random): 
             latex=`Find the angle in degrees between \\( ${vectorLatex(u)} \\) and \\( ${vectorLatex(w)} \\).`;
             expectedFormat="Enter a whole number of degrees";
             choices=fourOptions(correct, ANGLES.map(String).filter(v=>v!==answer));
+            rungs=[
+                "The angle between two vectors comes from their dot product divided by the product of their lengths, which gives the cosine of the angle, and the answer is in degrees rather than radians.",
+                "Compute the dot product and the two lengths, form the cosine, and read the angle off it in degrees."
+            ];
+            steps=[
+                `The vectors are ${vectorLatex(u)} and ${vectorLatex(w)}.`,
+                `Their dot product is ${dot(u, w)} and their lengths are ${fmt(lengthOf(u), 4)} and ${fmt(lengthOf(w), 4)}.`,
+                `Their ratio is the cosine of ${degrees} degrees, so the angle in whole degrees is ${correct}`
+            ];
             break;
         }
         case "point_line_distance":{
@@ -358,6 +388,15 @@ export function generateVectors3D(difficulty?: string, rng: RngFn=Math.random): 
             latex=`Find the distance from the point \\( ${pointLatex(point)} \\) to the line \\( ${pointLatex(anchor)} + t ${
                 vectorLatex(along)} \\), where \\( t \\) runs over the real numbers.`;
             choices=fourOptions(correct, integerDistractors(answer, [0, answer*2, -answer]));
+            rungs=[
+                "The distance from a point to a line is the length of the part of the point-to-anchor vector that is perpendicular to the line, so the component along the line's direction contributes nothing.",
+                "Take the vector from the anchor to the point, split it into a part along the line's direction and a part across it, and keep the across part."
+            ];
+            steps=[
+                `The line runs through ${pointLatex(anchor)} with direction ${vectorLatex(along)}, and the point is ${pointLatex(point)}.`,
+                `The vector from the anchor to the point is ${shift} times the direction vector plus ${vectorLatex(away)}, and ${vectorLatex(away)} is perpendicular to it.`,
+                `The length of the perpendicular part is ${answer}, so the distance is ${correct}.`
+            ];
             break;
         }
         case "point_plane_distance":{
@@ -373,8 +412,17 @@ export function generateVectors3D(difficulty?: string, rng: RngFn=Math.random): 
             latex=`Find the distance from the point \\( ${pointLatex(point)} \\) to the plane through \\( ${
                 pointLatex(anchor)} \\) with normal vector \\( ${vectorLatex(normal)} \\).`;
             choices=fourOptions(correct, integerDistractors(answer, [0, answer*2, -answer]));
+            rungs=[
+                "The distance from a point to a plane is the length of the part of the point-to-anchor vector that runs along the plane's normal, since the part lying in the plane contributes nothing.",
+                "Split the vector from the anchor to the point into a part along the normal and a part inside the plane, and keep the part along the normal."
+            ];
+            steps=[
+                `The plane passes through ${pointLatex(anchor)} with normal ${vectorLatex(normal)}, and the point is ${pointLatex(point)}.`,
+                `The vector from the anchor to the point is ${shift} times the normal, ${vectorLatex(normal.map(v=>v*shift))}, plus a part inside the plane.`,
+                `The length of the normal part is ${answer}, so the distance is ${correct}.`
+            ];
             break;
         }
     }
-    return {latex, correct, alternate, display, choices, expectedFormat, subskill: type};
+    return {latex, correct, alternate, display, choices, expectedFormat, subskill: type, hints:{rungs, concede:"The answer is "+correct+"."}, solution: steps};
 }
