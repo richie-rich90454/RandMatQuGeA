@@ -28,11 +28,32 @@ async function ensureThree(): Promise<void>{
 let currentRenderer: any=null;
 let currentLabelRenderer: any=null;
 let currentScene: any=null;
+let currentCamera: any=null;
 let currentControls: any=null;
-let currentAnimationFrame: number=0;
 let canvasObserver: ResizeObserver|null=null;
 let threeObserver: ResizeObserver|null=null;
+let offscreenObserver: IntersectionObserver|null=null;
 let animFrameId: number|null=null;
+let motionQuery: any=null;
+let resolutionQuery: any=null;
+let onScreen: boolean=true;
+let reducedMotion: boolean=false;
+let lastFrameAt: number=0;
+let lastCamX: number=0;
+let lastCamY: number=0;
+let lastCamZ: number=0;
+let lastQuatW: number=0;
+let lastQuatX: number=0;
+let lastQuatY: number=0;
+let lastQuatZ: number=0;
+// A phone reports 3 or 4, and the graph is a 180px strip, so an uncapped
+// drawing buffer costs 9 to 16 times the fragments for no visible gain.
+let maxPixelRatio: number=2;
+// 32ms rather than 33.3: the vsync grid is 16ms, so 32 draws on every other
+// tick deterministically, where 33.3 lets the cadence alternate between two
+// and three ticks and reads as stutter. The scene is static, so the budget
+// only has to cover the damping tail of a drag.
+let frameBudgetMs: number=32;
 
 /**
  * Computes a nice step size for axis ticks based on range.
@@ -73,7 +94,7 @@ function createCanvas2DVisualization(shape: string, params: any, container: HTML
             setTimeout(draw,50);
             return;
         }
-        const dpr=window.devicePixelRatio||1;
+        const dpr=Math.min(window.devicePixelRatio||1,maxPixelRatio);
         canvas.width=width*dpr;
         canvas.height=height*dpr;
         ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -428,6 +449,147 @@ function createCanvas2DVisualization(shape: string, params: any, container: HTML
 }
 
 /**
+ * Draws one frame and reports whether the camera is still moving, which is the
+ * only thing that can make this otherwise static scene need another frame.
+ * Nothing is allocated here: the previous camera state lives in module scalars
+ * so a frame costs one render pass and seven comparisons.
+ * @returns true while the camera is still moving
+ */
+function drawFrame(): boolean{
+    if(!currentRenderer||!currentScene||!currentCamera||!currentControls) return false;
+    currentControls.update();
+    const p=currentCamera.position;
+    const q=currentCamera.quaternion;
+    const moving=p.x!==lastCamX||p.y!==lastCamY||p.z!==lastCamZ||q.w!==lastQuatW||q.x!==lastQuatX||q.y!==lastQuatY||q.z!==lastQuatZ;
+    lastCamX=p.x;
+    lastCamY=p.y;
+    lastCamZ=p.z;
+    lastQuatW=q.w;
+    lastQuatX=q.x;
+    lastQuatY=q.y;
+    lastQuatZ=q.z;
+    currentRenderer.render(currentScene,currentCamera);
+    if(currentLabelRenderer) currentLabelRenderer.render(currentScene,currentCamera);
+    return moving;
+}
+
+/**
+ * Ends the loop by cancelling the frame it has just asked for. Every exit from
+ * the loop goes through here, so there is exactly one live chain at a time.
+ */
+function stopLoop(): void{
+    if(animFrameId===null) return;
+    cancelAnimationFrame(animFrameId);
+    animFrameId=null;
+}
+
+/**
+ * One turn of the frame budget. The frame is armed before the body runs, so a
+ * change event that OrbitControls fires from inside update() finds the loop
+ * already alive and cannot start a second one.
+ * @param now - the rAF timestamp
+ */
+function renderLoop(now: number): void{
+    animFrameId=requestAnimationFrame(renderLoop);
+    if(document.hidden||!onScreen){
+        stopLoop();
+        return;
+    }
+    if(now-lastFrameAt<frameBudgetMs) return;
+    lastFrameAt=now;
+    // Motion reduced means no animation at all: draw the one frame the
+    // learner needs and let the loop die, whatever the camera is doing.
+    if(reducedMotion){
+        drawFrame();
+        stopLoop();
+        return;
+    }
+    if(!drawFrame()) stopLoop();
+}
+
+/**
+ * Asks for a draw. Refused while the view is offscreen or the tab is hidden,
+ * because the next visibility signal re-requests it.
+ */
+function requestRender(): void{
+    if(animFrameId!==null) return;
+    if(document.hidden||!onScreen) return;
+    lastFrameAt=-frameBudgetMs;
+    animFrameId=requestAnimationFrame(renderLoop);
+}
+
+function onMotionChange(event: any): void{
+    reducedMotion=event.matches===true;
+    if(currentControls) currentControls.enableDamping=!reducedMotion;
+    requestRender();
+}
+
+function onResolutionChange(): void{
+    if(currentRenderer) currentRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,maxPixelRatio));
+    watchResolution();
+    requestRender();
+}
+
+function onVisibilityChange(): void{
+    requestRender();
+}
+
+function onIntersection(entries: any[]): void{
+    for (let entry of entries) onScreen=entry.isIntersecting!==false;
+    requestRender();
+}
+
+/**
+ * Re-arms the resolution query, because a device-pixel-ratio change invalidates
+ * the query that was watching for it.
+ */
+function watchResolution(): void{
+    if(typeof window.matchMedia!=="function") return;
+    if(resolutionQuery) resolutionQuery.removeEventListener("change",onResolutionChange);
+    resolutionQuery=window.matchMedia(`(resolution: ${window.devicePixelRatio||1}dppx)`);
+    resolutionQuery.addEventListener("change",onResolutionChange);
+}
+
+/**
+ * Reads the motion preference and keeps watching it, so toggling the OS
+ * setting takes effect without a reload.
+ */
+function watchMotion(): void{
+    if(typeof window.matchMedia!=="function") return;
+    if(motionQuery) motionQuery.removeEventListener("change",onMotionChange);
+    motionQuery=window.matchMedia("(prefers-reduced-motion: reduce)");
+    reducedMotion=motionQuery.matches===true;
+    motionQuery.addEventListener("change",onMotionChange);
+}
+
+/**
+ * Wires the render loop to the signals that mean it should stop: the motion
+ * preference, the device-pixel ratio, the tab, and the viewport.
+ * @param container - the element holding the canvas
+ */
+function startRenderLoop(container: HTMLElement): void{
+    if(currentControls) currentControls.addEventListener("change",requestRender);
+    document.addEventListener("visibilitychange",onVisibilityChange);
+    watchResolution();
+    // No IntersectionObserver means no offscreen signal, which is the previous
+    // behaviour: keep drawing at the budget.
+    if(typeof IntersectionObserver!=="undefined"){
+        offscreenObserver=new IntersectionObserver(onIntersection);
+        offscreenObserver.observe(container);
+    }
+    const p=currentCamera.position;
+    const q=currentCamera.quaternion;
+    lastCamX=p.x;
+    lastCamY=p.y;
+    lastCamZ=p.z;
+    lastQuatW=q.w;
+    lastQuatX=q.x;
+    lastQuatY=q.y;
+    lastQuatZ=q.z;
+    requestRender();
+}
+
+/**
  * Creates a visualization (2D canvas or 3D Three.js) for a given shape.
  * @param shape - shape type (parabola, ellipse, hyperbola, polarConic, circle, triangle, sphere, cube, cylinder, cone, pyramid, torus, points3D, line3D, plane3D)
  * @param params - parameters for the shape
@@ -488,15 +650,19 @@ export async function createVisualization(shape: string, params: any): Promise<v
     }
     renderer.setSize(width,height);
     renderer.setClearColor(0x1a1a2e);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,maxPixelRatio));
     currentRenderer=renderer;
     const scene=new THREE.Scene();
     currentScene=scene;
     const camera=new THREE.PerspectiveCamera(45,width/height,0.1,1000);
     camera.position.set(8,8,15);
     camera.lookAt(0,0,0);
+    currentCamera=camera;
+    watchMotion();
     const controls=new OrbitControls(camera,renderer.domElement);
-    controls.enableDamping=true;
+    // Damping is a motion effect, so it is the first thing motion reduction
+    // turns off; a drag then redraws per input event instead of easing.
+    controls.enableDamping=!reducedMotion;
     controls.dampingFactor=0.05;
     controls.screenSpacePanning=true;
     controls.maxPolarAngle=Math.PI/2;
@@ -603,10 +769,12 @@ export async function createVisualization(shape: string, params: any): Promise<v
         case "points3D":{
             const points=params.points||[];
             const group=new THREE.Group();
+            // One geometry and one material for the whole cloud. A pair per
+            // point means a pair per upload, per draw call, per teardown.
+            const pointGeo=new THREE.SphereGeometry(0.3,16);
+            const pointMat=new THREE.MeshStandardMaterial({color:0xff3333});
             points.forEach((p: any)=>{
-                const sphereGeo=new THREE.SphereGeometry(0.3,16);
-                const sphereMat=new THREE.MeshStandardMaterial({color:0xff3333});
-                const sphere=new THREE.Mesh(sphereGeo,sphereMat);
+                const sphere=new THREE.Mesh(pointGeo,pointMat);
                 sphere.position.set(p.x,p.y,p.z);
                 group.add(sphere);
                 const div=document.createElement("div");
@@ -681,6 +849,7 @@ export async function createVisualization(shape: string, params: any): Promise<v
         }
         default:
             console.warn("Unknown 3D shape:",shape);
+            cleanupVisualization();
             return;
     }
     if (infoText) info.textContent=infoText;
@@ -694,13 +863,7 @@ export async function createVisualization(shape: string, params: any): Promise<v
             controls.update();
         }
     }
-    function animate(){
-        animFrameId=requestAnimationFrame(animate);
-        controls.update();
-        renderer.render(scene,camera);
-        labelRenderer.render(scene,camera);
-    }
-    animate();
+    startRenderLoop(container);
     threeObserver=new ResizeObserver(entries=>{
         for (let entry of entries){
             const{width,height}=entry.contentRect;
@@ -710,6 +873,7 @@ export async function createVisualization(shape: string, params: any): Promise<v
             camera.aspect=width/height;
             camera.updateProjectionMatrix();
         }
+        requestRender();
     });
     threeObserver.observe(container);
 }
@@ -718,10 +882,7 @@ export async function createVisualization(shape: string, params: any): Promise<v
  * Cleans up all visualization resources: stops animation, disposes renderers, removes DOM elements.
  */
 export function cleanupVisualization(): void{
-    if (animFrameId!==null){
-        cancelAnimationFrame(animFrameId);
-        animFrameId=null;
-    }
+    stopLoop();
     if (canvasObserver){
         canvasObserver.disconnect();
         canvasObserver=null;
@@ -730,10 +891,21 @@ export function cleanupVisualization(): void{
         threeObserver.disconnect();
         threeObserver=null;
     }
-    if (currentAnimationFrame){
-        cancelAnimationFrame(currentAnimationFrame);
-        currentAnimationFrame=0;
+    if (offscreenObserver){
+        offscreenObserver.disconnect();
+        offscreenObserver=null;
     }
+    if (motionQuery){
+        motionQuery.removeEventListener("change",onMotionChange);
+        motionQuery=null;
+    }
+    if (resolutionQuery){
+        resolutionQuery.removeEventListener("change",onResolutionChange);
+        resolutionQuery=null;
+    }
+    document.removeEventListener("visibilitychange",onVisibilityChange);
+    onScreen=true;
+    reducedMotion=false;
     if (currentRenderer){
         currentRenderer.dispose();
         currentRenderer=null;
@@ -743,19 +915,22 @@ export function cleanupVisualization(): void{
         currentLabelRenderer=null;
     }
     if (currentControls){
+        currentControls.removeEventListener("change",requestRender);
         currentControls.dispose();
         currentControls=null;
     }
+    currentCamera=null;
     if (currentScene){
+        // Duck-typed rather than `instanceof Mesh`, because the grid, the axes
+        // and the line shapes are LineSegments and Line, and their buffers leak
+        // just as surely as a mesh's do.
         currentScene.traverse((obj: any)=>{
-            if (THREE&&obj instanceof THREE.Mesh){
-                if (obj.geometry) obj.geometry.dispose();
-                if (obj.material){
-                    if (Array.isArray(obj.material)){
-                        obj.material.forEach((m: any)=>m.dispose());
-                    }else{
-                        obj.material.dispose();
-                    }
+            if (obj.geometry&&typeof obj.geometry.dispose==="function") obj.geometry.dispose();
+            if (obj.material){
+                if (Array.isArray(obj.material)){
+                    obj.material.forEach((m: any)=>m.dispose());
+                }else{
+                    obj.material.dispose();
                 }
             }
         });
