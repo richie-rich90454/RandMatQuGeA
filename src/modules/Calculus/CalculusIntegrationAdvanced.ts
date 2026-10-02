@@ -1,5 +1,6 @@
-﻿import type {RngFn, QuestionDto} from "../../types/global";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
+import {fourOptions} from "../shared/Options.js";
 /**
  * Generates a random advanced integration or differential equations question.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -41,6 +42,11 @@ export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math
             let a=Math.floor(rng()*maxCoeff)+1;
             let b=Math.floor(rng()*maxCoeff)+1;
             if(a<b){ let t=a; a=b; b=t; }
+            // The average value of f over [a, a] divides by a difference of zero,
+            // which is not a question a learner can answer and not a number a
+            // generator may print. The interval is made non-degenerate here rather
+            // than after the fact, so the prompt and the answer are the same problem.
+            if(a===b) b=a>1?a-1:a+1;
             mathExpression=`\\[ \\text{Average value of } f(x)=x^2 \\text{ on } [${b},${a}]. \\]`;
             let val=(((a*a*a - b*b*b)/3) / (a - b));
             plainCorrectAnswer=val.toFixed(2);
@@ -214,12 +220,11 @@ export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math
             plainCorrectAnswer=`(1/${a})x e^(${a}x) - (1/${a*a}) e^(${a}x) + C`;
             latexAnswer=`\\frac{1}{${a}}x e^{${a}x} - \\frac{1}{${a*a}} e^{${a}x} + C`;
             expectedFormat="Enter expression";
-            let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[normalizedCorrect];
-            choices.push(`(1/${a})x e^(${a}x) + C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`(1/${a}) e^(${a}x) + C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`(1/${a})x e^(${a}x) - (1/${a}) e^(${a}x) + C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`(1/${a})x^2 e^(${a}x) + C`.replace(/\s/g,"").toLowerCase());
+            choices=[plainCorrectAnswer];
+            choices.push(`(1/${a})x e^(${a}x) + C`);
+            choices.push(`(1/${a}) e^(${a}x) + C`);
+            choices.push(`(1/${a})x e^(${a}x) - (1/${a}) e^(${a}x) + C`);
+            choices.push(`(1/${a})x^2 e^(${a}x) + C`);
             break;
         }
         case "partialFractions":{
@@ -229,12 +234,11 @@ export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math
             plainCorrectAnswer=`(1/(2*${sqrtA})) ln| (x-${sqrtA})/(x+${sqrtA}) | + C`;
             latexAnswer=`\\frac{1}{2\\sqrt{${a}}} \\ln\\left|\\frac{x-\\sqrt{${a}}}{x+\\sqrt{${a}}}\\right| + C`;
             expectedFormat="Enter expression";
-            let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[normalizedCorrect];
-            choices.push(`(1/(2*${sqrtA})) ln| (x-${sqrtA})/(x-${sqrtA}) | + C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`(1/(2*${sqrtA})) ln| (x+${sqrtA})/(x-${sqrtA}) | + C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`(1/(2*${sqrtA})) ln| x^2-${a} | + C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`(1/(2*${a})) ln| (x-${sqrtA})/(x+${sqrtA}) | + C`.replace(/\s/g,"").toLowerCase());
+            choices=[plainCorrectAnswer];
+            choices.push(`(1/(2*${sqrtA})) ln| (x-${sqrtA})/(x-${sqrtA}) | + C`);
+            choices.push(`(1/(2*${sqrtA})) ln| (x+${sqrtA})/(x-${sqrtA}) | + C`);
+            choices.push(`(1/(2*${sqrtA})) ln| x^2-${a} | + C`);
+            choices.push(`(1/(2*${a})) ln| (x-${sqrtA})/(x+${sqrtA}) | + C`);
             break;
         }
         case "improper":{
@@ -254,7 +258,10 @@ export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math
             else{
                 plainCorrectAnswer="diverges";
                 latexAnswer="\\text{diverges}";
-                choices=["diverges","converges to 1","converges to 0","diverges to infinity"];
+                // "diverges to infinity" is not offered, because it is also a true
+                // description of this integral and a question with two true answers
+                // is the defect this branch is being fixed for.
+                choices=["diverges","converges to 1","converges to 0","converges to infinity"];
             }
             expectedFormat="Enter number or 'diverges'";
             break;
@@ -276,12 +283,11 @@ export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math
             plainCorrectAnswer=`dP/dt=${a}P`;
             latexAnswer=`\\frac{dP}{dt}=${a}P`;
             expectedFormat="Enter equation";
-            let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[normalizedCorrect];
-            choices.push(`dP/dt=${a}`.replace(/\s/g,"").toLowerCase());
-            choices.push(`dP/dt=P+${a}`.replace(/\s/g,"").toLowerCase());
-            choices.push(`dP/dt=${a}/P`.replace(/\s/g,"").toLowerCase());
-            choices.push(`dP/dt=${a}t`.replace(/\s/g,"").toLowerCase());
+            choices=[plainCorrectAnswer];
+            choices.push(`dP/dt=${a}`);
+            choices.push(`dP/dt=P+${a}`);
+            choices.push(`dP/dt=${a}/P`);
+            choices.push(`dP/dt=${a}t`);
             break;
         }
         case "verifySolution":{
@@ -328,12 +334,11 @@ export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math
             plainCorrectAnswer=`y=C e^(${halfA}x^2)`;
             latexAnswer=`y=Ce^{\\frac{${a}}{2}x^{2}}`;
             expectedFormat="Enter expression";
-            let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[normalizedCorrect];
-            choices.push(`y=C e^(${halfA}x)`.replace(/\s/g,"").toLowerCase());
-            choices.push(`y=C e^(${a}x^2)`.replace(/\s/g,"").toLowerCase());
-            choices.push(`y=C x^${halfA}`.replace(/\s/g,"").toLowerCase());
-            choices.push(`y=C e^(${halfA}x^2)+1`.replace(/\s/g,"").toLowerCase());
+            choices=[plainCorrectAnswer];
+            choices.push(`y=C e^(${halfA}x)`);
+            choices.push(`y=C e^(${a}x^2)`);
+            choices.push(`y=C x^${halfA}`);
+            choices.push(`y=C e^(${halfA}x^2)+1`);
             break;
         }
         case "separationParticular":{
@@ -343,12 +348,11 @@ export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math
             plainCorrectAnswer=`y=e^(${halfA}x^2)`;
             latexAnswer=`y=e^{\\frac{${a}}{2}x^{2}}`;
             expectedFormat="Enter expression";
-            let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[normalizedCorrect];
-            choices.push(`y=e^(${halfA}x)`.replace(/\s/g,"").toLowerCase());
-            choices.push(`y=e^(${a}x^2)`.replace(/\s/g,"").toLowerCase());
-            choices.push(`y=x^${halfA}`.replace(/\s/g,"").toLowerCase());
-            choices.push(`y=e^(${halfA}x^2)+1`.replace(/\s/g,"").toLowerCase());
+            choices=[plainCorrectAnswer];
+            choices.push(`y=e^(${halfA}x)`);
+            choices.push(`y=e^(${a}x^2)`);
+            choices.push(`y=x^${halfA}`);
+            choices.push(`y=e^(${halfA}x^2)+1`);
             break;
         }
         case "exponentialModel":{
@@ -372,12 +376,11 @@ export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math
             plainCorrectAnswer=`dP/dt=0.5P(1 - P/${a}0)`;
             latexAnswer=`\\frac{dP}{dt}=0.5P\\left(1-\\frac{P}{${a}0}\\right)`;
             expectedFormat="Enter equation";
-            let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[normalizedCorrect];
-            choices.push(`dP/dt=0.5P`.replace(/\s/g,"").toLowerCase());
-            choices.push(`dP/dt=0.5P(1 - P/${a}0)`.replace(/\s/g,"").toLowerCase());
-            choices.push(`dP/dt=0.5P(1 - ${a}0/P)`.replace(/\s/g,"").toLowerCase());
-            choices.push(`dP/dt=0.5P(1 - P)`.replace(/\s/g,"").toLowerCase());
+            choices=[plainCorrectAnswer];
+            choices.push(`dP/dt=0.5P`);
+            choices.push(`dP/dt=0.5P(1 - P/${a}0)`);
+            choices.push(`dP/dt=0.5P(1 - ${a}0/P)`);
+            choices.push(`dP/dt=0.5P(1 - P)`);
             break;
         }
         case "logisticFullAnalysis":{
@@ -436,21 +439,20 @@ export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math
             plainCorrectAnswer=`arcsin((x-${a})/${a})+C`;
             latexAnswer=`\\arcsin\\left(\\frac{x-${a}}{${a}}\\right)+C`;
             expectedFormat="Enter expression";
-            let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[normalizedCorrect];
-            choices.push(`arcsin(x/${a})+C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`arcsin((x-${a})/${2*a})+C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`arctan((x-${a})/${a})+C`.replace(/\s/g,"").toLowerCase());
+            choices=[plainCorrectAnswer];
+            choices.push(`arcsin(x/${a})+C`);
+            choices.push(`arcsin((x-${a})/${2*a})+C`);
+            choices.push(`arctan((x-${a})/${a})+C`);
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices.map(c=>c.toLowerCase()))];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    let correctLower=plainCorrectAnswer.toLowerCase();
-    if(!uniqueChoices.includes(correctLower)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctLower;
-        else uniqueChoices=[correctLower];
-    }
+    // The option set is built from the answer, not from a lower-cased copy of it.
+    // Normalising the options used to strip the case off every expression, so the
+    // answer "y=C e^(1.50x^2)" was offered as "y=c e^(1.50x^2)" and none of the
+    // four options was the answer the DTO claimed. The builder repaired that by
+    // inserting the answer, which meant the learner was shown a distractor that
+    // differed from the answer only in the case of one letter.
+    let uniqueChoices=fourOptions(plainCorrectAnswer, choices);
     return {
         latex: mathExpression,
         correct: plainCorrectAnswer,
