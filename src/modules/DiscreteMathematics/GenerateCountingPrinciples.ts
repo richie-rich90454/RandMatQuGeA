@@ -81,6 +81,8 @@ export function generateCountingPrinciples(difficulty?: string, rng: RngFn=Math.
     let latex="";
     let expectedFormat="Enter a whole number";
     let choices:string[]=[];
+    let rungs:string[]=[];
+    let steps:string[]=[];
     switch(type){
         case "multiplication_rule":{
             // A choice made independently at each of several stages multiplies,
@@ -103,6 +105,15 @@ export function generateCountingPrinciples(difficulty?: string, rng: RngFn=Math.
                 Math.pow(options, questions+1)*trueFalseWays,
                 multipleChoiceWays
             ]))];
+            rungs=[
+                "The multiplication principle: choices made independently at each stage multiply, so count the stages separately and then multiply the counts.",
+                `Count the two parts on their own. There are ${options} answers at each of the ${questions} multiple-choice questions, and 2 answers at each of the ${trueFalse} true-or-false questions.`
+            ];
+            steps=[
+                `Multiple-choice part: ${options} choices at each of ${questions} questions gives ${multipleChoiceWays} answer sheets.`,
+                `True-or-false part: 2 choices at each of ${trueFalse} questions gives ${trueFalseWays} answer sheets.`,
+                `The two parts are chosen independently, so ${multipleChoiceWays} x ${trueFalseWays} = ${value} sheets, and the count is ${value}.`
+            ];
             break;
         }
         case "addition_rule":{
@@ -126,6 +137,15 @@ export function generateCountingPrinciples(difficulty?: string, rng: RngFn=Math.
                 Math.max(first, second),
                 first*second*2
             ]))];
+            rungs=[
+                "The addition principle, and it needs the two cases to be disjoint: the two families have different code lengths, so no code can belong to both and there is nothing to subtract back out.",
+                `Count each family on its own: ${firstLength} digits each drawn from 1 to ${firstBase}, and ${secondLength} digits each drawn from 1 to ${secondBase}, then add the two counts.`
+            ];
+            steps=[
+                `First family: ${firstBase} choices at each of ${firstLength} digits gives ${first} codes.`,
+                `Second family: ${secondBase} choices at each of ${secondLength} digits gives ${second} codes.`,
+                `A code is one or the other, never both, so ${first} + ${second} = ${value} codes, and the count is ${value}.`
+            ];
             break;
         }
         case "permutation_restriction":{
@@ -138,22 +158,53 @@ export function generateCountingPrinciples(difficulty?: string, rng: RngFn=Math.
             let value=0;
             let candidates:number[]=[];
             if (flavour===0){
-                value=factorial(n-1);
-                display=`${n-1}! = ${value}`;
+                // Binding the pair into one block leaves n-1 objects to arrange,
+                // and the two books can sit in either order inside the block, so
+                // the block itself counts twice. Leaving that factor of two out
+                // is the mistake the "not next to each other" branch subtracts.
+                value=2*factorial(n-1);
+                display=`2 \\times ${n-1}! = ${value}`;
                 latex=`In how many ways can ${n} distinct books stand on a shelf if two particular books must stand next to each other?`;
-                candidates=[factorial(n), 2*factorial(n-1), factorial(n-2), factorial(n)/2];
+                candidates=[factorial(n), factorial(n-1), factorial(n-2), factorial(n)/2];
+                rungs=[
+                    "Two particular books that must be adjacent are one object, not two: bind them into a single block, arrange the reduced set, and then count the orders the pair can take inside the block.",
+                    `Binding the pair leaves ${n-1} objects to arrange, and the two books themselves can be in either order, so the block counts twice.`
+                ];
+                steps=[
+                    `Bind the two particular books into one block, so there are ${n} - 1 = ${n-1} objects on the shelf.`,
+                    `Arrange those ${n-1} objects: ${n-1}! = ${factorial(n-1)} orders.`,
+                    `The bound pair can read either way, so 2 x ${factorial(n-1)} = ${value} orders, and the count is ${value}.`
+                ];
             }
             else if (flavour===1){
                 value=factorial(n)-2*factorial(n-1);
                 display=`${n}! - 2 \\times ${n-1}! = ${value}`;
                 latex=`In how many ways can ${n} distinct books stand on a shelf if two particular books must not stand next to each other?`;
                 candidates=[factorial(n), factorial(n-1), 2*factorial(n-1), factorial(n-2), (n-2)*factorial(n-1)];
+                rungs=[
+                    "\"Must not stand next to each other\" is the complement of \"must stand next to each other\", so subtract the adjacent count from the total rather than counting the separated case directly.",
+                    `Find the adjacent count first: ${n-1} objects once the pair is bound, each in 2 orders, so 2 x ${n-1}! arrangements are adjacent and the rest are not.`
+                ];
+                steps=[
+                    `Every arrangement at all: ${n}! = ${factorial(n)}.`,
+                    `Arrangements with the two books adjacent: bind them, arrange ${n-1} objects in ${n-1}! = ${factorial(n-1)} ways, and read the pair either way, so 2 x ${factorial(n-1)} = ${2*factorial(n-1)}.`,
+                    `Subtracting: ${factorial(n)} - ${2*factorial(n-1)} = ${value} arrangements, and the count is ${value}.`
+                ];
             }
             else{
                 value=factorial(n)/2;
                 display=`\\frac{${n}!}{2} = ${value}`;
                 latex=`In how many ways can ${n} distinct runners be ranked from first place to last, given that Alice finished ahead of Ben?`;
                 candidates=[factorial(n), factorial(n-1), 2*factorial(n-1), factorial(n-2), (n-2)*factorial(n-1)];
+                rungs=[
+                    "A stated order between two of the runners cuts the total in half: pair each ranking with the ranking that swaps those two runners, and each pair has exactly one arrangement with Alice ahead.",
+                    `Every ranking of ${n} runners is ${n}! = ${factorial(n)}, and the swap pairs them off, so the count is half of that.`
+                ];
+                steps=[
+                    `Rankings of ${n} distinct runners: ${n}! = ${factorial(n)}.`,
+                    `Swapping Alice and Ben pairs every ranking with one in which Alice is behind, and one of each pair is allowed.`,
+                    `${factorial(n)} / 2 = ${value} rankings, and the count is ${value}.`
+                ];
             }
             correct=String(value);
             alternate=correct;
@@ -176,6 +227,17 @@ export function generateCountingPrinciples(difficulty?: string, rng: RngFn=Math.
                 [nCr(n, r), nCr(n-1, r), nCr(n-2, r-1), nCr(n, r-1), nCr(n-2, r-2)]:
                 [nCr(n, r), nCr(n-1, r-1), nCr(n-2, r), nCr(n, r-1), nCr(n-2, r+1)];
             choices=[correct, ...shuffle(rng, wrongIntegers(value, candidates))];
+            rungs=[
+                "A restriction on one named person leaves you choosing from the rest: the committee is not drawn from all of them any more.",
+                included?
+                    `Alice takes one of the ${r} places, so choose the other ${r-1} members from the ${n-1} people who are left.`
+                    : `Leave Alice out, so choose all ${r} members from the ${n-1} people who are not her.`
+            ];
+            steps=[
+                included?`There are ${n} people, and Alice is on the committee.`:`There are ${n} people, and Alice is not on the committee.`,
+                included?`Alice fills one of the ${r} places, leaving ${r-1} to choose from the ${n-1} others.`:`All ${r} members come from the ${n-1} people other than Alice.`,
+                `The count is ${included?`C(${n-1}, ${r-1})`:`C(${n-1}, ${r})`} = ${value}, so the answer is ${value}.`
+            ];
             break;
         }
         case "arrangement_repeats":{
@@ -202,6 +264,15 @@ export function generateCountingPrinciples(difficulty?: string, rng: RngFn=Math.
                 factorial(word.length)/(firstShare*secondShare),
                 factorial(word.length-1)
             ]))];
+            rungs=[
+                "Arranging every letter as if the copies were distinct over-counts: a permutation that only swaps two copies of the same letter is the same arrangement, so divide by the factorial of each repeat.",
+                `Count the repeats in ${word} first: ${counts.join(", ")}, so the divisor is ${counts.map(c=>c+"!").join(" x ")}.`
+            ];
+            steps=[
+                `Letters: ${word.length}, so ${word.length}! = ${factorial(word.length)} arrangements if every copy were distinct.`,
+                `The repeated letters appear ${counts.join(", ")} times, which over-counts by ${counts.map(c=>c+"!").join(" x ")} = ${denominator}.`,
+                `${factorial(word.length)} / ${denominator} = ${value} distinct arrangements, so the answer is ${value}.`
+            ];
             break;
         }
         case "shared_property":{
@@ -226,6 +297,15 @@ export function generateCountingPrinciples(difficulty?: string, rng: RngFn=Math.
                 nCr(k, 2)*Math.pow(2, n-2),
                 nCr(n, 2)*Math.pow(k, n-2)
             ]))];
+            rungs=[
+                "\"At least two share\" is the complement of \"all distinct\", so count the unrestricted assignments and subtract the all-distinct ones rather than counting the shared case directly.",
+                `The all-distinct count is a falling product, not a power: once a date is taken there is one fewer date left for each person after the first.`
+            ];
+            steps=[
+                `Unrestricted: ${k} choices for each of ${n} people, so ${k} x ${k} x ... = ${k}^{${n}} = ${all}.`,
+                `All distinct: ${k} choices for the first person, ${k-1} for the second, and so on, which is ${distinct}.`,
+                `Subtracting: ${all} - ${distinct} = ${value} assignments with a shared date, so the answer is ${value}.`
+            ];
             break;
         }
     }
@@ -235,5 +315,5 @@ export function generateCountingPrinciples(difficulty?: string, rng: RngFn=Math.
         if (unique.length>0) unique[Math.floor(rng()*unique.length)]=correct;
         else unique=[correct];
     }
-    return {latex, correct, alternate, display, choices: unique, expectedFormat};
+    return {latex, correct, alternate, display, choices: unique, expectedFormat, subskill: type, hints: {rungs, concede: "The answer is "+correct+"."}, solution: steps};
 }
