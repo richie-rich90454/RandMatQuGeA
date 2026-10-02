@@ -5,7 +5,7 @@ import{topics as topicList,scopeTopics,SESSION_STORAGE_KEY}from"./Constants";
 import{generateQuestion as callGenerator}from"./QuestionGenerator";
 import{invoke}from"@tauri-apps/api/core";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
-import{getAudioContext}from"./Answer";
+import{getAudioContext,gradeAnswer}from"./Answer";
 import{appState}from"./core/StateStore";
 import{dom}from"./core/DomRegistry";
 import{questionState}from"./core/QuestionState";
@@ -146,11 +146,9 @@ export async function generateNextMentalQuestion(): Promise<void>{
         let randomTopic=topicsModule.pickRandomTopic();
         if(randomTopic){
             appState.selectedTopic=randomTopic;
-            document.querySelectorAll(".topic-pill").forEach(item=>{
-                item.classList.remove("active");
-            });
-            let selectedElement=document.querySelector('[data-topic-id="' + appState.selectedTopic + '"]');
-            if(selectedElement)selectedElement.classList.add("active");
+            for(let pill of dom.displays.topicPills){
+                pill.classList.toggle("active",pill.dataset.topicId===appState.selectedTopic);
+            }
             let topic=topicList.find(t=>t.id===appState.selectedTopic);
             if(dom.displays.currentTopicDisplay){
                 dom.displays.currentTopicDisplay.textContent=topic?topic.name:"Topic";
@@ -245,7 +243,11 @@ export async function handleMentalAnswer(answer?: string): Promise<void>{
     }
     let correct=questionState.correctAnswer.correct;
     let alternate=questionState.correctAnswer.alternate;
-    let isCorrect=await settings.checkAnswerFast(userInput,correct,alternate);
+    // The grader is the one in Answer.ts, which the single-question flow grades
+    // with as well. A session used to grade through Settings.isAnswerCorrect
+    // alone, so an answer the learner had given correctly was marked wrong here
+    // and right in single mode.
+    let isCorrect=await gradeAnswer(userInput,correct,alternate);
     if(!appState.sessionActive)return;
     if(settings.settings.sound){
         let audioCtx=getAudioContext();
