@@ -13,3 +13,5 @@ registerTopic("divisibility","discrete","generateDivisibility");
 registerTopic("gcd_lcm","discrete","generateGcdLcm");
 registerTopic("modular","discrete","generateModular");
 registerTopic("data_analysis","discrete","generateDataAnalysis");
+registerTopic("counting_principles","discrete","generateCountingPrinciples");
+registerTopic("probability_rules","discrete","generateProbabilityRules");
