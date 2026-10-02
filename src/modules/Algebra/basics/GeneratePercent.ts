@@ -1,6 +1,7 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../AlgebraUtils.js";
-import {fmt} from "../../shared/Numeric";
+import type{RngFn, QuestionDto}from"../../../types/global";
+import{getMaxForDifficulty}from"../AlgebraUtils.js";
+import{fmt}from"../../shared/Numeric";
+import{fourOptions}from"../../shared/Options.js";
 /**
  * Generates a percentage question: percent of a number, an increase, a decrease,
  * simple interest, or a markup.
@@ -8,7 +9,12 @@ import {fmt} from "../../shared/Numeric";
  * arithmetic is exact: the percentages divide the quantities they are applied to,
  * so no answer ever requires an unstated rounding instruction. Prompts state the
  * result to the precision the answer is given at, or ask the learner to round.
+ * The wrong answers are the mistakes each form invites, and the option filter
+ * drops any of them that happens to equal the key: on a one-year loan the
+ * interest for a single year is the key, so that candidate is not offered twice.
  * @date 2026-04-18
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
  * @returns QuestionDto
  */
 export function generatePercent(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -34,12 +40,14 @@ export function generatePercent(difficulty?: string, rng: RngFn=Math.random): Qu
             alternate=correct;
             display=correct;
             mathExpression=`What is \\( ${percent}\\% \\) of \\( ${whole} \\)?`;
-            let numRes=Number(correct);
-            choices=[correct];
-            choices.push(fmt(numRes+percent/100, 2));
-            choices.push(fmt(numRes-percent/100, 2));
-            choices.push(fmt(whole-percent, 2));
-            choices.push(fmt(whole, 2));
+            // Taking the percent off instead of off the base, and moving the
+            // decimal one place, are the two slips this form is testing.
+            choices=[
+                fmt(whole-percent, 2),
+                fmt(whole+percent, 2),
+                fmt(part+percent/100, 2),
+                fmt(part-percent/100, 2)
+            ];
             break;
         }
         case "increase":{
@@ -48,12 +56,14 @@ export function generatePercent(difficulty?: string, rng: RngFn=Math.random): Qu
             alternate=correct;
             display=correct;
             mathExpression=`If \\( ${whole} \\) increases by \\( ${percent}\\% \\), what is the new value?`;
-            let numRes=Number(correct);
-            choices=[correct];
-            choices.push(fmt(numRes+whole, 2));
-            choices.push(fmt(numRes-whole, 2));
-            choices.push(fmt(whole+percent, 2));
-            choices.push(fmt(whole, 2));
+            // Adding the percent as if it were a whole number, and leaving the
+            // number unchanged, are the two slips this form is testing.
+            choices=[
+                fmt(whole+percent, 2),
+                fmt(whole, 2),
+                fmt(whole-percent, 2),
+                fmt(whole*2, 2)
+            ];
             break;
         }
         case "decrease":{
@@ -62,12 +72,12 @@ export function generatePercent(difficulty?: string, rng: RngFn=Math.random): Qu
             alternate=correct;
             display=correct;
             mathExpression=`If \\( ${whole} \\) decreases by \\( ${percent}\\% \\), what is the new value?`;
-            let numRes=Number(correct);
-            choices=[correct];
-            choices.push(fmt(numRes+whole, 2));
-            choices.push(fmt(numRes-whole, 2));
-            choices.push(fmt(whole-percent, 2));
-            choices.push(fmt(whole, 2));
+            choices=[
+                fmt(whole-percent, 2),
+                fmt(whole+percent, 2),
+                fmt(whole, 2),
+                fmt(whole*2, 2)
+            ];
             break;
         }
         case "interest":{
@@ -79,12 +89,15 @@ export function generatePercent(difficulty?: string, rng: RngFn=Math.random): Qu
             alternate=correct;
             display=correct;
             mathExpression=`Find the simple interest on a principal of ${principal} dollars at ${rate}% per year for ${years} years.`;
-            let numRes=Number(correct);
-            choices=[correct];
-            choices.push(fmt(numRes+principal, 2));
-            choices.push(fmt(numRes-principal, 2));
-            choices.push(fmt(principal*rate/100, 2));
-            choices.push(fmt(principal*years, 2));
+            // Reporting the amount repaid rather than the interest, and forgetting
+            // to divide by a hundred, are the two slips this form is testing. The
+            // interest for a single year is the key, so that candidate is dropped.
+            choices=[
+                fmt(interest+principal, 2),
+                fmt(principal*rate*years, 2),
+                fmt(principal*rate/100, 2),
+                fmt(principal*years, 2)
+            ];
             break;
         }
         case "markup":{
@@ -95,12 +108,14 @@ export function generatePercent(difficulty?: string, rng: RngFn=Math.random): Qu
             alternate=correct;
             display=correct;
             mathExpression=`A store buys an item for ${cost} dollars and marks it up by ${markup}%. What is the selling price?`;
-            let numRes=Number(correct);
-            choices=[correct];
-            choices.push(fmt(cost+markup, 2));
-            choices.push(fmt(numRes-cost, 2));
-            choices.push(fmt(cost*(100-markup)/100, 2));
-            choices.push(fmt(cost*2, 2));
+            // The markup on its own, and the discounted price, are the two slips
+            // this form is testing.
+            choices=[
+                fmt(cost+markup, 2),
+                fmt(price-cost, 2),
+                fmt(cost*(100-markup)/100, 2),
+                fmt(cost*2, 2)
+            ];
             break;
         }
     }
@@ -109,7 +124,7 @@ export function generatePercent(difficulty?: string, rng: RngFn=Math.random): Qu
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: choices,
+        choices: fourOptions(correct, choices),
         expectedFormat: expectedFormat
     };
 }
