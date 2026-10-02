@@ -1,10 +1,12 @@
-﻿/**
+/**
  * Advanced trigonometry: inverse trig functions, equations, graphs.
  * @fileoverview Generates questions on inverse trigonometric functions, solving trigonometric equations, and interpreting trig graphs. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers for MCQ mode.
  * @date 2026-04-18
  */
-import type {RngFn, QuestionDto} from "../../types/global";
-import {formatPiFraction} from "./TrigUtils.js";
+import type{RngFn, QuestionDto}from "../../types/global";
+import{randInt}from"../shared/Random";
+import{fourOptions}from"../shared/Options.js";
+import{formatPiFraction}from"./TrigUtils.js";
 export function generateInverseTrig(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["arcsin","arccos","arctan"];
     let type=types[Math.floor(rng()*types.length)];
@@ -76,12 +78,7 @@ export function generateInverseTrig(difficulty?: string, rng: RngFn = Math.rando
     choices.push(`${principal.toFixed(2)} rad`);
     choices.push(`${deg}°`);
     choices.push(`undefined`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correctAnswerStr)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAnswerStr;
-        else uniqueChoices=[correctAnswerStr];
-    }
+    let uniqueChoices=fourOptions(correctAnswerStr, choices);
     return {
         latex: questionText,
         correct: correctAnswerStr,
@@ -325,12 +322,7 @@ export function generateTrigEquations(difficulty?: string, rng: RngFn = Math.ran
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correctAnswerStr)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAnswerStr;
-        else uniqueChoices=[correctAnswerStr];
-    }
+    let uniqueChoices=fourOptions(correctAnswerStr, choices);
     return {
         latex: questionText,
         correct: correctAnswerStr,
@@ -340,177 +332,156 @@ export function generateTrigEquations(difficulty?: string, rng: RngFn = Math.ran
         expectedFormat: hint
     };
 }
-export function generateTrigGraphs(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
-    const types=["sine","cosine","tangent"];
-    const type=types[Math.floor(rng()*types.length)];
-    let maxA=(difficulty==="easy")?2:(difficulty==="hard"?5:3);
-    let maxB=(difficulty==="easy")?2:(difficulty==="hard"?4:3);
-    const A=Math.floor(rng()*maxA)+1;
-    const B=Math.floor(rng()*maxB)+1;
-    const C=Math.floor(rng()*2);
+export function generateTrigGraphs(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
+    let types=["sine","cosine","tangent"];
+    let type=types[Math.floor(rng()*types.length)];
+    let maxA=difficulty==="easy"?2:(difficulty==="hard"?5:3);
+    let maxB=difficulty==="easy"?2:(difficulty==="hard"?4:3);
+    let A=0;
+    let B=0;
+    // The four numbers a learner can read off a y = a·sin(bx + c) graph are the amplitude
+    // a, the frequency b, the peak-to-peak distance 2a and the half-amplitude a/2, and an
+    // amplitude question draws its three wrong options from the last three. Those four
+    // numbers are only distinct when none of them equals another, which small integers
+    // frequently violate, so the pair is redrawn until the four readings are distinct.
+    // The loop is bounded and its last pair is used regardless, because a graph with a
+    // colliding reading is still a graph, and a bounded fallback is required rather than
+    // a spin.
+    for(let attempt=0; attempt<20; attempt++){
+        A=randInt(rng, 2, maxA+3);
+        B=randInt(rng, 1, maxB);
+        let readings=[A, 2*A, A/2, B];
+        if (new Set(readings).size===readings.length) break;
+    }
+    // The vertical shift is a quarter or a half turn, so the phase shift it produces is
+    // itself a fraction of pi and the exact value the graph shows is exact.
+    let quarterTurns=randInt(rng, 0, 2);
+    let C=quarterTurns*Math.PI/4;
     let questionText="", correctAnswerStr="", alternateAnswerStr="", displayAnswerStr="", hint="";
-    let choices: string[]=[];
+    let choices:string[]=[];
+    // A period and a phase shift are both angles, so both are printed and offered as exact
+    // fractions of pi. A branch that offered the same period as a fraction in one option and
+    // as a rounded decimal in the next put two spellings of one value in a single set.
+    let angleText=(radians: number): string=>formatPiFraction(radians);
     switch(type){
         case "sine":
         case "cosine":{
-            const askType=Math.floor(rng()*3);
+            let askType=Math.floor(rng()*3);
             if(askType===0){
                 questionText=`What is the amplitude of the graphed ${type} function?`;
                 correctAnswerStr=A.toString();
-                alternateAnswerStr=A.toString();
-                displayAnswerStr=A.toString();
+                alternateAnswerStr=correctAnswerStr;
+                displayAnswerStr=correctAnswerStr;
                 hint="Enter a number";
-                choices=[correctAnswerStr];
-                choices.push((A+1).toString());
-                choices.push((A-1).toString());
-                choices.push((A*2).toString());
-                choices.push((A/2).toFixed(2));
+                // The three ways a learner misreads an amplitude are to report the frequency,
+                // to report the peak-to-peak distance, and to report half the amplitude. Each
+                // is a number that can be measured off the graph they are looking at, and the
+                // draw above guarantees all four are distinct.
+                choices=fourOptions(correctAnswerStr, [(2*A).toString(), (A/2).toString(), B.toString()]);
             }
             else if(askType===1){
-                const period=2*Math.PI/B;
-                const exactPeriod=formatPiFraction(period);
+                let period=2*Math.PI/B;
                 questionText=`What is the period of the graphed ${type} function? (in radians)`;
-                if(exactPeriod.includes("π")){
-                    correctAnswerStr=exactPeriod;
-                    alternateAnswerStr=period.toFixed(2);
-                    displayAnswerStr=`\\${exactPeriod}`;
+                correctAnswerStr=angleText(period);
+                alternateAnswerStr=period.toFixed(2);
+                displayAnswerStr=`\\${correctAnswerStr}`;
+                hint="Enter an exact value like 2π/3";
+                // A period question goes wrong by reading a different frequency off the graph,
+                // by halving the period, or by using the tangent period. Each is the period of
+                // a real graph, so each is a value a learner writes after real work. The
+                // frequency table never contains zero, which is what stops a frequency of one
+                // from producing a period of 2π/0.
+                let wrongPeriods: number[]=[];
+                for(let other=1; other<=6; other++){
+                    if(other===B) continue;
+                    wrongPeriods.push(2*Math.PI/other);
                 }
-                else{
-                    correctAnswerStr=period.toFixed(2);
-                    alternateAnswerStr=period.toFixed(2);
-                    displayAnswerStr=period.toFixed(2);
-                }
-                hint="Enter a number or expression like 2π/3";
-                choices=[correctAnswerStr];
-                let wrongPeriod1=2*Math.PI/(B+1);
-                let wrongPeriod2=2*Math.PI/(B-1);
-                if(exactPeriod.includes("π")){
-                    choices.push(formatPiFraction(wrongPeriod1));
-                    choices.push(formatPiFraction(wrongPeriod2));
-                }
-                else{
-                    choices.push(wrongPeriod1.toFixed(2));
-                    choices.push(wrongPeriod2.toFixed(2));
-                }
-                choices.push((period/2).toFixed(2));
-                choices.push((period*2).toFixed(2));
+                wrongPeriods.push(period/2);
+                wrongPeriods.push(Math.PI/B);
+                wrongPeriods.push(2*Math.PI);
+                choices=fourOptions(correctAnswerStr, wrongPeriods.map(value=>angleText(value)));
             }
             else{
-                const phaseShift=-C/B;
-                const exactPhase=formatPiFraction(phaseShift);
+                let phaseShift=-C/B;
                 questionText=`What is the phase shift of the graphed ${type} function? (in radians)`;
-                if(phaseShift===0){
-                    correctAnswerStr="0";
-                    alternateAnswerStr="0";
-                    displayAnswerStr="0";
-                    choices=["0","π/2","π","-π/2"];
+                correctAnswerStr=angleText(phaseShift);
+                alternateAnswerStr=phaseShift.toFixed(2);
+                displayAnswerStr=`\\${correctAnswerStr}`;
+                hint="Enter an exact value like π/6";
+                // A phase shift goes wrong by dropping the vertical shift, by forgetting to
+                // divide by the frequency, by reading the shift in the other direction, and
+                // by reading the shift of a graph with no frequency at all. Each is a phase
+                // shift a real graph has. The pool spans a whole turn and a half in each
+                // direction because a graph whose shift is a whole quarter turn has only
+                // three distinct relatives inside one turn, and a four-option question
+                // needs a fourth.
+                let wrongShifts: number[]=[];
+                for(let turn=-6; turn<=6; turn++){
+                    wrongShifts.push(phaseShift+turn*Math.PI/2);
                 }
-                else{
-                    if(exactPhase.includes("π")){
-                        correctAnswerStr=exactPhase;
-                        alternateAnswerStr=phaseShift.toFixed(2);
-                        displayAnswerStr=`\\${exactPhase}`;
-                        choices=[correctAnswerStr];
-                        let wrongPhase1=(-C+1)/B;
-                        let wrongPhase2=(-C-1)/B;
-                        choices.push(formatPiFraction(wrongPhase1));
-                        choices.push(formatPiFraction(wrongPhase2));
-                        choices.push(phaseShift.toFixed(2));
-                        choices.push((phaseShift+0.5).toFixed(2));
-                    }
-                    else{
-                        correctAnswerStr=phaseShift.toFixed(2);
-                        alternateAnswerStr=phaseShift.toFixed(2);
-                        displayAnswerStr=phaseShift.toFixed(2);
-                        choices=[correctAnswerStr];
-                        choices.push((phaseShift+0.5).toFixed(2));
-                        choices.push((phaseShift-0.5).toFixed(2));
-                        choices.push((phaseShift*2).toFixed(2));
-                        choices.push((phaseShift/2).toFixed(2));
-                    }
-                }
-                hint="Enter a number or expression like π/6";
+                wrongShifts.push(-C, C/B, -C/B, phaseShift*2, phaseShift/2, phaseShift*3, -phaseShift);
+                choices=fourOptions(correctAnswerStr, wrongShifts.map(value=>angleText(value)));
             }
             break;
         }
         case "tangent":{
-            const askType=Math.floor(rng()*2);
+            let askType=Math.floor(rng()*2);
             if(askType===0){
-                const period=Math.PI/B;
-                const exactPeriod=formatPiFraction(period);
+                let period=Math.PI/B;
                 questionText=`What is the period of the graphed tangent function? (in radians)`;
-                if(exactPeriod.includes("π")){
-                    correctAnswerStr=exactPeriod;
-                    alternateAnswerStr=period.toFixed(2);
-                    displayAnswerStr=`\\${exactPeriod}`;
+                correctAnswerStr=angleText(period);
+                alternateAnswerStr=period.toFixed(2);
+                displayAnswerStr=`\\${correctAnswerStr}`;
+                hint="Enter an exact value like π/2";
+                // As above: a neighbouring frequency, the halved period, and the sine period the
+                // learner reaches for when they forget that tangent repeats twice as fast.
+                let wrongPeriods: number[]=[];
+                for(let other=1; other<=6; other++){
+                    if(other===B) continue;
+                    wrongPeriods.push(Math.PI/other);
                 }
-                else{
-                    correctAnswerStr=period.toFixed(2);
-                    alternateAnswerStr=period.toFixed(2);
-                    displayAnswerStr=period.toFixed(2);
-                }
-                hint="Enter a number or expression like π/2";
-                choices=[correctAnswerStr];
-                let wrongPeriod1=Math.PI/(B+1);
-                let wrongPeriod2=Math.PI/(B-1);
-                if(exactPeriod.includes("π")){
-                    choices.push(formatPiFraction(wrongPeriod1));
-                    choices.push(formatPiFraction(wrongPeriod2));
-                }
-                else{
-                    choices.push(wrongPeriod1.toFixed(2));
-                    choices.push(wrongPeriod2.toFixed(2));
-                }
-                choices.push((period/2).toFixed(2));
-                choices.push((period*2).toFixed(2));
+                wrongPeriods.push(period/2);
+                wrongPeriods.push(2*Math.PI/B);
+                wrongPeriods.push(2*Math.PI);
+                choices=fourOptions(correctAnswerStr, wrongPeriods.map(value=>angleText(value)));
             }
             else{
-                const period=Math.PI/B;
-                let firstAsymp=(Math.PI/2 + C)/B;
-                if(firstAsymp<0) firstAsymp+=period;
-                const exactAsymp=formatPiFraction(firstAsymp);
-                questionText=`Give the equation of the vertical asymptote that lies between 0 and π/${B.toFixed(2)}.`;
-                if(exactAsymp.includes("π")){
-                    correctAnswerStr=`x=${exactAsymp}`;
-                    alternateAnswerStr=`x=${firstAsymp.toFixed(2)}`;
-                    displayAnswerStr=`x=\\${exactAsymp}`;
-                    choices=[correctAnswerStr];
-                    let wrongAsymp1=(Math.PI/2 - C + Math.PI)/B;
-                    if(wrongAsymp1<0) wrongAsymp1+=period;
-                    choices.push(`x=${formatPiFraction(wrongAsymp1)}`);
-                    let wrongAsymp2=(Math.PI/2 - C - Math.PI)/B;
-                    if(wrongAsymp2<0) wrongAsymp2+=period;
-                    choices.push(`x=${formatPiFraction(wrongAsymp2)}`);
-                    choices.push(`x=${firstAsymp.toFixed(2)}`);
-                    choices.push(`x=${(firstAsymp+0.5).toFixed(2)}`);
+                let period=Math.PI/B;
+                // The vertical asymptotes of y = A·tan(Bx + C) are a quarter turn apart, so
+                // the first one to the right of the origin sits at (π/2 - C)/B. The pool is
+                // the rest of that family, plus the two asymptotes a learner reaches for by
+                // dropping the vertical shift and by dropping the frequency. Building it
+                // from the family rather than from two or three hand-named candidates is
+                // what keeps the question at four options: with a small frequency the
+                // hand-named list is almost entirely the key repeated.
+                let firstAsymptote=(Math.PI/2-C)/B;
+                while(firstAsymptote<=0) firstAsymptote+=period;
+                questionText=`Give the equation of the first vertical asymptote of the graphed tangent function to the right of the origin (in radians).`;
+                correctAnswerStr=`x=${angleText(firstAsymptote)}`;
+                alternateAnswerStr=`x=${firstAsymptote.toFixed(2)}`;
+                displayAnswerStr=`x=\\${angleText(firstAsymptote)}`;
+                let candidates: number[]=[Math.PI/2, Math.PI/(2*B), -firstAsymptote];
+                for(let k=-3; k<=6; k++){
+                    candidates.push((Math.PI/2+k*Math.PI-C)/B);
+                    candidates.push((Math.PI/2+k*Math.PI)/B);
                 }
-                else{
-                    correctAnswerStr=`x=${firstAsymp.toFixed(2)}`;
-                    alternateAnswerStr=`x=${firstAsymp.toFixed(2)}`;
-                    displayAnswerStr=`x=${firstAsymp.toFixed(2)}`;
-                    choices=[correctAnswerStr];
-                    choices.push(`x=${(firstAsymp+0.5).toFixed(2)}`);
-                    choices.push(`x=${(firstAsymp-0.5).toFixed(2)}`);
-                    choices.push(`x=${(firstAsymp+1).toFixed(2)}`);
-                    choices.push(`x=${(firstAsymp-1).toFixed(2)}`);
+                let kept: string[]=[];
+                for(let candidate of candidates){
+                    if(candidate<=0) continue;
+                    kept.push(`x=${angleText(candidate)}`);
                 }
+                choices=fourOptions(correctAnswerStr, kept);
                 hint="Enter as 'x = ...'";
             }
             break;
         }
-    }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correctAnswerStr)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAnswerStr;
-        else uniqueChoices=[correctAnswerStr];
     }
     return {
         latex: questionText,
         correct: correctAnswerStr,
         alternate: alternateAnswerStr,
         display: displayAnswerStr,
-        choices: uniqueChoices,
+        choices: choices,
         expectedFormat: hint,
         visualization: {shape:"graph", params:{fn: type, a: A, b: B, c: C}}
     };
