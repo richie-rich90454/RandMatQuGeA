@@ -142,7 +142,11 @@ export async function setupEventListeners(): Promise<void>{
         if (e.ctrlKey||e.metaKey){
             let ae=document.activeElement;
             let isTyping=ae instanceof HTMLInputElement||ae instanceof HTMLTextAreaElement||ae instanceof HTMLSelectElement;
-            if (document.querySelector(".modal.show")) return;
+            // These six are every element carrying the modal class, so asking
+            // them is the same question as searching the document for one that
+            // is shown, without a scan on a keystroke.
+            let modals=[dom.modals.settingsModal,dom.modals.shortcutsModal,dom.modals.onboardingOverlay,dom.modals.printModal,dom.modals.weakTopicsModal,dom.modals.dataModal];
+            if (modals.some(modal=>modal?.classList.contains("show"))) return;
             switch (e.key){
                 case "g": case "G":
                     if (isTyping) break;
@@ -537,14 +541,14 @@ export async function setupEventListeners(): Promise<void>{
         dom.buttons.clearAnswerBtn.addEventListener("click",ui.clearAnswer);
     }
     if (dom.displays.mathToolbar){
-        dom.displays.mathToolbar.querySelectorAll(".math-toolbar-btn").forEach(btn=>{
-            btn.addEventListener("click",(e)=>{
-                if ((btn as HTMLElement).id==="math-dropdown-btn") return;
+        for(let button of dom.displays.mathToolbarButtons){
+            button.addEventListener("click",(e)=>{
+                if (button.id==="math-dropdown-btn") return;
                 let target=e.target as HTMLElement;
                 let symbol=target.dataset.symbol||target.dataset.template||"";
                 ui.insertSymbol(symbol);
             });
-        });
+        }
         dom.inputs.userAnswer?.addEventListener("focus",()=>{
             if (dom.modals.answerCard) dom.modals.answerCard.classList.add("focused");
         });
