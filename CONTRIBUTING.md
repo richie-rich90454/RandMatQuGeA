@@ -77,7 +77,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 │   │   ├── services/       # TopicRegistry, EventBinder, MathWorkerClient
 │   │   ├── ui/             # Skeleton, OfflineIndicator, VirtualTopicGrid
 │   │   └── ...             # Settings, Generation, Answer, Session, Mcq, PrintWorksheet, ...
-│   ├── modules/            # Question generation modules (7 subjects, 125 topics)
+│   ├── modules/            # Question generation modules (7 subjects, 137 topics)
 │   │   ├── Algebra/
 │   │   ├── Arithmetic/
 │   │   ├── Calculus/
