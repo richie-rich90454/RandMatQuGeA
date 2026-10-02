@@ -624,7 +624,11 @@ export async function createVisualization(shape: string, params: any): Promise<v
         return;
     }
     getQuestionArea()!.appendChild(container);
-    const twoDShapes=["parabola","ellipse","hyperbola","polarConic","circle","triangle"];
+    // "graph" is a canvas shape here, not a 3D one: the trigonometric graph
+    // generator asks for it, and leaving it out of this list sent that request to
+    // the WebGL path, which loaded a renderer, found no case for it, and tore the
+    // whole visualisation down again.
+    const twoDShapes=["parabola","ellipse","hyperbola","polarConic","circle","triangle","graph"];
     if (twoDShapes.includes(shape)){
         createCanvas2DVisualization(shape,params,container);
         return;
