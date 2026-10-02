@@ -1,10 +1,11 @@
-﻿/**
+/**
  * Probability questions generator with MCQ distractors
  * @fileoverview Generates various probability questions (basic, conditional, independent, mutually exclusive, Bayes, binomial, expected value, complement, permutation/combination, geometric). Returns a QuestionDto with correct value, alternate representation, display LaTeX, and plausible wrong answers for MCQ mode.
  * @date 2026-03-29
  */
 import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxN, nPr, nCr, getOrdinal, factorial} from "./DiscreteUtils.js";
+import {fourOptions} from "../shared/Options.js";
 export function generateProbability(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
     let questionTypes=["basic","conditional","independent","mutually_exclusive","bayes","binomial","expected_value","complement","permutation_combination","geometric"];
     let questionType=questionTypes[Math.floor(rng()*questionTypes.length)];
@@ -123,8 +124,12 @@ export function generateProbability(difficulty?: string, rng: RngFn=Math.random)
         }
         case "binomial":{
             let n=Math.floor(rng()*5)+5;
-            let k=Math.floor(rng()*(n-1))+1;
-            let p=rng()*0.7+0.1;
+            let p=0.3+rng()*0.5;
+            // The count of successes is drawn near the mode rather than anywhere in
+            // the range. A binomial probability out at the tail rounds to 0.00 at
+            // two places, and then the answer and three of the four mistakes print
+            // as "0.00" too, which is a two-option question about nothing.
+            let k=Math.max(1, Math.min(n-1, Math.round(n*p)+Math.floor(rng()*5)-2));
             let q=1-p;
             let prob=nCr(n, k)*Math.pow(p, k)*Math.pow(q, n-k);
             let pStr=p.toFixed(2);
@@ -135,17 +140,19 @@ export function generateProbability(difficulty?: string, rng: RngFn=Math.random)
             answerAlternate=`C(${n},${k}) \\cdot ${pStr}^{${k}} \\cdot ${qStr}^{${n-k}}`;
             answerDisplay=`\\binom{${n}}{${k}} \\cdot ${pStr}^{${k}} \\cdot ${qStr}^{${n-k}}`;
             hint="Enter a decimal";
-            let wrong1=nCr(n, k)*Math.pow(p, k)*Math.pow(p, n-k);
-            let wrong2=nCr(n, k)*Math.pow(p, n-k)*Math.pow(q, k);
-            let wrong3=nCr(n, k)*Math.pow(p, k);
-            let wrong4=Math.pow(p, k);
-            choices=[
-                plainCorrectAnswer,
-                wrong1.toFixed(2),
-                wrong2.toFixed(2),
-                wrong3.toFixed(2),
-                wrong4.toFixed(2)
-            ];
+            // The candidates are the neighbouring probabilities, the count with the
+            // exponents swapped, and the same probability with the combination
+            // factor dropped. The candidate that leaves out the (1-p) factor is no
+            // longer offered: for a count near the top of the range it comes out
+            // above one, and an option a learner could never write is not a
+            // distractor, it is a bug in the question.
+            let at=(j: number): string=>(nCr(n, j)*Math.pow(p, j)*Math.pow(q, n-j)).toFixed(2);
+            choices=fourOptions(plainCorrectAnswer, [
+                at(k+1),
+                at(k-1),
+                (nCr(n, k)*Math.pow(p, n-k)*Math.pow(q, k)).toFixed(2),
+                (Math.pow(p, k)*Math.pow(q, n-k)).toFixed(2)
+            ]);
             break;
         }
         case "expected_value":{
@@ -195,7 +202,9 @@ export function generateProbability(difficulty?: string, rng: RngFn=Math.random)
         }
         case "permutation_combination":{
             let n=Math.floor(rng()*8)+5;
-            let r=Math.floor(rng()*(n-1))+1;
+            // Two or more are chosen: P(n,1), C(n,1) and n^1 are all n, so every
+            // candidate this branch offers collapses onto the answer.
+            let r=Math.floor(rng()*(n-2))+2;
             let isPerm=rng()<0.5;
             let answer=isPerm?nPr(n, r):nCr(n, r);
             let answerStr=answer.toString();
@@ -210,17 +219,14 @@ export function generateProbability(difficulty?: string, rng: RngFn=Math.random)
             let wrong2=Math.pow(n, r);
             let wrong3=factorial(n);
             let wrong4=n*r;
-            choices=[
-                plainCorrectAnswer,
-                wrong1.toString(),
-                wrong2.toString(),
-                wrong3.toString(),
-                wrong4.toString()
-            ];
+            choices=fourOptions(plainCorrectAnswer, [wrong1.toString(), wrong2.toString(), wrong3.toString(), wrong4.toString()]);
             break;
         }
         case "geometric":{
-            let p=rng()*0.7+0.2;
+            // The success probability is bounded away from one so that the first
+            // success on the k-th trial keeps a two-decimal probability. At p above
+            // 0.6 the answer rounds to 0.00 and the branch collapses to two options.
+            let p=0.2+rng()*0.4;
             let k=Math.floor(rng()*5)+1;
             let prob=Math.pow(1-p, k-1)*p;
             let pStr=p.toFixed(2);
@@ -235,22 +241,17 @@ export function generateProbability(difficulty?: string, rng: RngFn=Math.random)
             let wrong2=Math.pow(1-p, k-1);
             let wrong3=p;
             let wrong4=Math.pow(p, k);
-            choices=[
-                plainCorrectAnswer,
+            choices=fourOptions(plainCorrectAnswer, [
                 wrong1.toFixed(2),
                 wrong2.toFixed(2),
                 wrong3.toFixed(2),
-                wrong4.toFixed(2)
-            ];
+                wrong4.toFixed(2),
+                (1-prob).toFixed(2)
+            ]);
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if (!uniqueChoices.includes(plainCorrectAnswer)){
-        if (uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
-        else uniqueChoices=[plainCorrectAnswer];
-    }
+    let uniqueChoices=fourOptions(plainCorrectAnswer, choices);
     return {
         latex: content.join("<br>"),
         correct: plainCorrectAnswer,
