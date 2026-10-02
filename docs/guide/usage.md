@@ -142,6 +142,21 @@ warrants, so this comes back sooner"*.
 Erase the record at any time with Settings → General → **Erase my learning
 record**, or reset everything with Settings → Advanced → Reset All Data.
 
+## Moving Your Record
+
+Use the toolbar's **Manage performance data** dialog to take your record off a
+device or put one back:
+
+- **Export Data** writes a single JSON file holding the review history, every
+  recorded answer, and the schedule.
+- **Import Data** reads such a file. Choose **Merge** to add it to what is here,
+  which is what you want when the file came from a session that practised a few
+  more topics, or **Replace** to make the file the whole record.
+
+A file this build cannot read is refused, and an import either lands completely
+or not at all, so a partly-applied file cannot leave your history in a state you
+did not ask for. Both work in the browser as well as the desktop app.
+
 ## PDF Worksheets
 
 Generate printable worksheets with answer keys:
