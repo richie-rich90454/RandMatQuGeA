@@ -79,6 +79,9 @@ export let topics: Topic[]=[
     {id: "vector3d", name: "3D Vectors", icon: "⟨x,y,z⟩", category: "Linear Algebra"},
     {id: "line3d", name: "3D Lines", icon: "L3", category: "Linear Algebra"},
     {id: "plane3d", name: "3D Planes", icon: "⌂", category: "Linear Algebra"},
+    {id: "eigenvalues", name: "Eigenvalues", icon: "λ", category: "Linear Algebra"},
+    {id: "orthogonality", name: "Orthogonality", icon: "⟂", category: "Linear Algebra"},
+    {id: "vectors_3d", name: "Cross Product & 3D", icon: "u×v", category: "Linear Algebra"},
     // Trigonometry
     {id: "sin", name: "Sine", icon: "sin", category: "Trigonometry"},
     {id: "cos", name: "Cosine", icon: "cos", category: "Trigonometry"},
@@ -124,6 +127,8 @@ export let topics: Topic[]=[
     {id: "gcd_lcm", name: "GCD & LCM", icon: "gcd", category: "Discrete Math"},
     {id: "modular", name: "Modular Arithmetic", icon: "n mod m", category: "Discrete Math"},
     {id: "data_analysis", name: "Data Analysis", icon: "z, r²", category: "Discrete Math"},
+    {id: "counting_principles", name: "Counting Principles", icon: "nPk", category: "Discrete Math"},
+    {id: "probability_rules", name: "Probability Rules", icon: "P(A|B)", category: "Discrete Math"},
     // Geometry
     {id: "area_circle", name: "Area of Circle", icon: "◯ A", category: "Geometry"},
     {id: "pythag", name: "Pythagorean Theorem", icon: "△", category: "Geometry"},
@@ -135,7 +140,11 @@ export let topics: Topic[]=[
     {id: "coord3d", name: "3D Coordinates", icon: "(x,y,z)", category: "Geometry"},
     {id: "sphere_eq", name: "Sphere Equation", icon: "○ E", category: "Geometry"},
     {id: "line_plane_3d", name: "Lines & Planes 3D", icon: "L+P", category: "Geometry"},
+    {id: "similarity", name: "Similarity", icon: "△∽△", category: "Geometry"},
+    {id: "rigid_transformations", name: "Rigid Motions", icon: "↻", category: "Geometry"},
+    {id: "circle_geometry", name: "Circle Geometry", icon: "◯ ∠", category: "Geometry"},
 ];
+
 export let scopeTopics = {
     simple: ["add","subtrt","mult","divid"],
     algebra: [
@@ -143,7 +152,9 @@ export let scopeTopics = {
         "fraction","percent","ratio","unit_conv","expr_eval","number_sets","properties","order_ops",
         "linear_word","radical_simplify","radical_eq","rational_exp","exp_rules","sci_notation","complex_basic","variation",
         // New algebra topics
-        "linear_eq","quadratic_eq","linear_ineq","quadratic_ineq","rational_ineq","system2x2","poly_ops","poly_div","factoring","func_concepts","linear_graph","nonlinear_graph"
+        "linear_eq","quadratic_eq","linear_ineq","quadratic_ineq","rational_ineq","system2x2","poly_ops","poly_div","factoring","func_concepts","linear_graph","nonlinear_graph",
+        // Counting, similarity, circle geometry and rigid motions
+        "counting_principles","probability_rules","similarity","rigid_transformations","circle_geometry"
     ],
     precalc: [
         "add","subtrt","mult","divid","root","log","exp","fact","ser",
@@ -167,7 +178,10 @@ export let scopeTopics = {
         "fraction","percent","ratio","unit_conv","expr_eval","number_sets","properties","order_ops",
         "linear_word","radical_simplify","radical_eq","rational_exp","exp_rules","sci_notation","complex_basic","variation",
         // New precalc topics
-        "linear_eq","quadratic_eq","linear_ineq","quadratic_ineq","rational_ineq","system2x2","poly_ops","poly_div","factoring","func_concepts","linear_graph","nonlinear_graph"
+        "linear_eq","quadratic_eq","linear_ineq","quadratic_ineq","rational_ineq","system2x2","poly_ops","poly_div","factoring","func_concepts","linear_graph","nonlinear_graph",
+        // Counting, similarity, circle geometry, rigid motions and linear algebra
+        "counting_principles","probability_rules","similarity","rigid_transformations","circle_geometry",
+        "eigenvalues","orthogonality","vectors_3d"
     ],
     calc: [
         "add","subtrt","mult","divid","root","log","exp","fact","ser",
