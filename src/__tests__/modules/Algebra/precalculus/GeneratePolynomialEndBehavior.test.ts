@@ -37,8 +37,8 @@ describe("generatePolynomialEndBehavior", ()=>{
             .mockReturnValueOnce(0.6);
         const dto=generatePolynomialEndBehavior("medium", rng);
         expect(dto.latex).toContain("Intermediate Value Theorem");
-        expect(dto.correct).toBe("no");
-        expect(dto.expectedFormat).toBe("Enter 'yes' or 'no'");
+        expect(dto.correct).toBe("both positive");
+        expect(dto.expectedFormat).toBe("Enter a description of the two signs");
     });
     it("should handle easy difficulty", ()=>{
         const rng=vi.fn()
@@ -74,5 +74,31 @@ describe("generatePolynomialEndBehavior", ()=>{
         const dto1=generatePolynomialEndBehavior("medium", seededRng(42));
         const dto2=generatePolynomialEndBehavior("medium", seededRng(42));
         expect(dto1).toEqual(dto2);
+    });
+    it("offers four options for the multiplicity branch, where a multiplicity of one collapsed the set to three", ()=>{
+        let seen=0;
+        for(let seed=1; seed<=60; seed++){
+            const dto=generatePolynomialEndBehavior("easy", seededRng(seed));
+            if (dto.latex.indexOf("multiplicity")===-1) continue;
+            seen++;
+            expect(dto.choices).toHaveLength(4);
+            expect(new Set(dto.choices).size).toBe(4);
+            expect(dto.choices).toContain(dto.correct);
+        }
+        expect(seen).toBeGreaterThan(0);
+    });
+    it("offers only sign descriptions for the intermediate value branch, not filler verdicts", ()=>{
+        let seen=0;
+        for(let seed=1; seed<=60; seed++){
+            const dto=generatePolynomialEndBehavior("easy", seededRng(seed));
+            if (dto.latex.indexOf("Intermediate Value Theorem")===-1) continue;
+            seen++;
+            expect(dto.choices).toHaveLength(4);
+            expect(dto.choices).toContain(dto.correct);
+            for(let option of dto.choices??[]){
+                expect(["yes","no","maybe","cannot determine"]).not.toContain(option);
+            }
+        }
+        expect(seen).toBeGreaterThan(0);
     });
 });
