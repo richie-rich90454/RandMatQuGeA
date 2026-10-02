@@ -3,8 +3,12 @@
  * @fileoverview Generates questions on reciprocal trig functions with MCQ distractors. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-04-18
  */
-import type {RngFn, QuestionDto} from "../../types/global";
-export function generateCosecant(_difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+import type{RngFn, QuestionDto}from "../../types/global";
+import{roundTo}from"../shared/Numeric";
+import{angleValuePool, definedDegrees, piLabel}from"./TrigUtils.js";
+import{fourOptions}from"../shared/Options.js";
+
+export function generateCosecant(_difficulty?: string, rng: RngFn=Math.random): QuestionDto{
     let types=["evaluate","relationship","asymptote"];
     let type=types[Math.floor(rng()*types.length)];
     let correct="";
@@ -12,92 +16,89 @@ export function generateCosecant(_difficulty?: string, rng: RngFn = Math.random)
     let display="";
     let choices:string[]=[];
     let latex="";
+    let ratio=(radians: number) => 1/Math.sin(radians);
     switch(type){
         case "evaluate":{
-            let angles=[Math.PI/6,5*Math.PI/6,7*Math.PI/6,11*Math.PI/6];
-            let labels=["\\frac{\\pi}{6}","\\frac{5\\pi}{6}","\\frac{7\\pi}{6}","\\frac{11\\pi}{6}"];
-            let idx=Math.floor(rng()*angles.length);
-            let angle=angles[idx];
-            let value=(1/Math.sin(angle)).toFixed(2);
-            correct=value;
-            alternate=value;
-            display=value;
-            latex=`Evaluate \\( \\csc(${labels[idx]}) \\)`;
-            choices=[correct];
-            let wrong1=(1/Math.sin(angle+0.1)).toFixed(2);
-            let wrong2=(1/Math.sin(angle-0.1)).toFixed(2);
-            let wrong3=(1/Math.cos(angle)).toFixed(2);
-            let wrong4=(-1/Math.sin(angle)).toFixed(2);
-            choices.push(wrong1,wrong2,wrong3,wrong4);
+            // The angle is drawn from the special angles at which cosecant is defined. At
+            // the others it has no value at all, and a question asking for it would have
+            // no answer, while offering one as a distractor for another ratio produced the
+            // literal text "Infinity" in an option list.
+            let defined=definedDegrees(ratio);
+            let angle=defined[Math.floor(rng()*defined.length)];
+            let radians=angle*Math.PI/180;
+            correct=roundTo(ratio(radians), 2).toFixed(2);
+            alternate=correct;
+            display=correct;
+            latex=`Evaluate \\( \\csc(${piLabel(angle)}) \\)`;
+            choices=fourOptions(correct, angleValuePool([ratio, Math.sin, Math.cos], angle, 2));
             break;
         }
         case "relationship":{
             let angleNum=Math.floor(rng()*360);
             correct=`\\frac{1}{\\sin(${angleNum}^{\\circ})}`;
             alternate=`1/sin(${angleNum}°)`;
-            display=`\\frac{1}{\\sin(${angleNum}^{\\circ})}`;
+            display=correct;
             latex=`Express \\( \\csc(${angleNum}^{\\circ}) \\) in terms of sine.`;
-            choices=[correct];
-            choices.push(`\\frac{1}{\\cos(${angleNum}^{\\circ})}`);
-            choices.push(`\\frac{1}{\\tan(${angleNum}^{\\circ})}`);
-            choices.push(`\\sin(${angleNum}^{\\circ})`);
-            choices.push(`\\cos(${angleNum}^{\\circ})`);
+            // The three ways a learner rewrites this wrongly are to invert cosine, to
+            // invert tangent, and to drop the reciprocal altogether. Each is a
+            // reciprocal relation a learner would write down.
+            choices=fourOptions(correct, [
+                `\\frac{1}{\\cos(${angleNum}^{\\circ})}`,
+                `\\frac{1}{\\tan(${angleNum}^{\\circ})}`,
+                `\\sin(${angleNum}^{\\circ})`,
+                `\\frac{\\cos\\theta}{\\sin\\theta}`
+            ]);
             break;
         }
         case "asymptote":{
-            correct=`x = n\\pi`;
+            correct="x = n\\pi";
             alternate="x=nπ";
-            display=`x = n\\pi`;
+            display=correct;
             latex=`Find the vertical asymptotes of \\( y=\\csc(x) \\) (in radians).`;
-            choices=[correct];
-            choices.push(`x = \\frac{\\pi}{2} + n\\pi`);
-            choices.push(`x = n\\pi + \\frac{\\pi}{2}`);
-            choices.push(`x = 2n\\pi`);
-            choices.push(`x = n\\pi + \\frac{\\pi}{4}`);
+            // The three ways a learner misreads the asymptote spacing are to double it, to
+            // halve it, and to place it a quarter turn away. Each is a family of lines a
+            // learner would write down.
+            choices=fourOptions(correct, [
+                "x = 2n\\pi",
+                "x = n\\pi + \\frac{\\pi}{2}",
+                "x = \\frac{\\pi}{2} + n\\pi",
+                "x = n\\pi + \\frac{\\pi}{4}"
+            ]);
             break;
         }
         default:
             return {latex: "Unknown cosecant question type", correct: ""};
-    }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
     }
     return {
         latex,
         correct,
         alternate,
         display,
-        choices: uniqueChoices,
+        choices,
         expectedFormat: ""
     };
 }
-export function generateSecant(_difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+export function generateSecant(_difficulty?: string, rng: RngFn=Math.random): QuestionDto{
     let type=rng()<0.5?"evaluate":"identity";
     let correct="";
     let alternate="";
     let display="";
     let choices:string[]=[];
     let latex="";
+    let ratio=(radians: number) => 1/Math.cos(radians);
     switch(type){
         case "evaluate":{
-            let angles=[0,Math.PI/3,Math.PI,5*Math.PI/3];
-            let labels=["0","\\frac{\\pi}{3}","\\pi","\\frac{5\\pi}{3}"];
-            let idx=Math.floor(rng()*angles.length);
-            let angle=angles[idx];
-            let value=(1/Math.cos(angle)).toFixed(2);
-            correct=value;
-            alternate=value;
-            display=value;
-            latex=`Evaluate \\( \\sec(${labels[idx]}) \\)`;
-            choices=[correct];
-            let wrong1=(1/Math.cos(angle+0.1)).toFixed(2);
-            let wrong2=(1/Math.cos(angle-0.1)).toFixed(2);
-            let wrong3=(1/Math.sin(angle)).toFixed(2);
-            let wrong4=(-1/Math.cos(angle)).toFixed(2);
-            choices.push(wrong1,wrong2,wrong3,wrong4);
+            // The angle is drawn from the special angles at which secant is defined. At
+            // a right angle the cosine is zero, so the secant is not a value a learner
+            // can write down, and dividing by it was what put "Infinity" in an option.
+            let defined=definedDegrees(ratio);
+            let angle=defined[Math.floor(rng()*defined.length)];
+            let radians=angle*Math.PI/180;
+            correct=roundTo(ratio(radians), 2).toFixed(2);
+            alternate=correct;
+            display=correct;
+            latex=`Evaluate \\( \\sec(${piLabel(angle)}) \\)`;
+            choices=fourOptions(correct, angleValuePool([ratio, Math.cos, Math.tan], angle, 2));
             break;
         }
         case "identity":{
@@ -105,51 +106,44 @@ export function generateSecant(_difficulty?: string, rng: RngFn = Math.random): 
             alternate="1";
             display="1";
             latex=`Complete the identity: \\( \\sec^2\\theta-\\tan^2\\theta=? \\)`;
-            choices=["1","0","-1","sec^2θ+tan^2θ"];
+            // Every option is a number the learner could write. The fourth is the two
+            // terms added rather than subtracted, which is the mistake this branch is
+            // about.
+            choices=["1","0","-1","2"];
             break;
         }
         default:
             return {latex: "Unknown secant question type", correct: ""};
-    }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
     }
     return {
         latex,
         correct,
         alternate,
         display,
-        choices: uniqueChoices,
+        choices,
         expectedFormat: ""
     };
 }
-export function generateCotangent(_difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+export function generateCotangent(_difficulty?: string, rng: RngFn=Math.random): QuestionDto{
     let type=rng()<0.5?"evaluate":"relationship";
     let correct="";
     let alternate="";
     let display="";
     let choices:string[]=[];
     let latex="";
+    let ratio=(radians: number) => Math.cos(radians)/Math.sin(radians);
     switch(type){
         case "evaluate":{
-            let angles=[Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4];
-            let labels=["\\frac{\\pi}{4}","\\frac{3\\pi}{4}","\\frac{5\\pi}{4}","\\frac{7\\pi}{4}"];
-            let idx=Math.floor(rng()*angles.length);
-            let angle=angles[idx];
-            let value=(1/Math.tan(angle)).toFixed(2);
-            correct=value;
-            alternate=value;
-            display=value;
-            latex=`Evaluate \\( \\cot(${labels[idx]}) \\)`;
-            choices=[correct];
-            let wrong1=(1/Math.tan(angle+0.1)).toFixed(2);
-            let wrong2=(1/Math.tan(angle-0.1)).toFixed(2);
-            let wrong3=(1/Math.sin(angle)).toFixed(2);
-            let wrong4=(1/Math.cos(angle)).toFixed(2);
-            choices.push(wrong1,wrong2,wrong3,wrong4);
+            // The angle is drawn from the special angles at which cotangent is defined. At
+            // a multiple of a turn the sine is zero, so the cotangent has no value there.
+            let defined=definedDegrees(ratio);
+            let angle=defined[Math.floor(rng()*defined.length)];
+            let radians=angle*Math.PI/180;
+            correct=roundTo(ratio(radians), 2).toFixed(2);
+            alternate=correct;
+            display=correct;
+            latex=`Evaluate \\( \\cot(${piLabel(angle)}) \\)`;
+            choices=fourOptions(correct, angleValuePool([ratio, Math.cos, Math.tan], angle, 2));
             break;
         }
         case "relationship":{
@@ -157,28 +151,26 @@ export function generateCotangent(_difficulty?: string, rng: RngFn = Math.random
             alternate="1/tanθ";
             display="\\frac{1}{\\tan\\theta}";
             latex=`Express \\( \\cot\\theta \\) in terms of tangent.`;
-            choices=[correct];
-            choices.push("\\frac{1}{\\sin\\theta}");
-            choices.push("\\frac{1}{\\cos\\theta}");
-            choices.push("\\tan\\theta");
-            choices.push("\\frac{\\cos\\theta}{\\sin\\theta}");
+            // The three ways a learner rewrites this wrongly are to invert sine, to invert
+            // cosine, and to read it as tangent itself. Each is a reciprocal relation a
+            // learner would write down.
+            choices=fourOptions(correct, [
+                "\\frac{1}{\\sin\\theta}",
+                "\\frac{1}{\\cos\\theta}",
+                "\\tan\\theta",
+                "\\cos^2\\theta"
+            ]);
             break;
         }
         default:
             return {latex: "Unknown cotangent question type", correct: ""};
-    }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
     }
     return {
         latex,
         correct,
         alternate,
         display,
-        choices: uniqueChoices,
+        choices,
         expectedFormat: ""
     };
 }
