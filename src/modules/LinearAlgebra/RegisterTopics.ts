@@ -8,3 +8,6 @@ registerTopic("linear_programming","linearAlgebra","generateLinearProgramming");
 registerTopic("vector3d","linearAlgebra","generateVector3D");
 registerTopic("line3d","linearAlgebra","generateLine3D");
 registerTopic("plane3d","linearAlgebra","generatePlane3D");
+registerTopic("eigenvalues","linearAlgebra","generateEigenvalues");
+registerTopic("orthogonality","linearAlgebra","generateOrthogonality");
+registerTopic("vectors_3d","linearAlgebra","generateVectors3D");
