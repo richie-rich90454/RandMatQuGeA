@@ -1,5 +1,6 @@
-﻿import type {RngFn, QuestionDto} from "../../types/global";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
+import {fourOptions} from "../shared/Options.js";
 /**
  * Generates a random limit question and returns it as a QuestionDto.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -42,11 +43,17 @@ export function generateLimit(difficulty?: string, rng: RngFn=Math.random): Ques
             mathExpression=`\\[ \\lim_{x \\to ${x0}} (${a}x^2+${c}) \\]`;
             plainCorrectAnswer=limit.toString();
             latexAnswer=plainCorrectAnswer;
-            choices=[plainCorrectAnswer];
-            choices.push((limit+1).toString());
-            choices.push((limit-1).toString());
-            choices.push((a*x0*x0).toString());
-            choices.push((c).toString());
+            // The two partial answers are what a learner writes by substituting one
+            // term and forgetting the other, and they collide with each other and
+            // with the answer often enough that a pool of five is needed to leave
+            // three options standing.
+            choices=fourOptions(plainCorrectAnswer, [
+                (limit+1).toString(),
+                (limit-1).toString(),
+                (a*x0*x0).toString(),
+                c.toString(),
+                a.toString()
+            ]);
             break;
         }
         case "rational":{
@@ -56,17 +63,20 @@ export function generateLimit(difficulty?: string, rng: RngFn=Math.random): Ques
             let limit=(a*x0+1)/(b*x0-1);
             let exactNum=a*x0+1;
             let exactDen=b*x0-1;
-            let exactFraction=`${exactNum}/${exactDen}`;
             mathExpression=`\\[ \\lim_{x \\to ${x0}} \\frac{${a}x+1}{${b}x-1} \\]`;
             plainCorrectAnswer=limit.toFixed(2);
             latexAnswer=plainCorrectAnswer;
-            let altNum=exactNum+1;
-            let altDen=exactDen-1;
-            choices=[plainCorrectAnswer];
-            choices.push(exactFraction);
-            choices.push((limit+0.1).toFixed(2));
-            choices.push((limit-0.1).toFixed(2));
-            choices.push(`${altNum}/${altDen}`);
+            // The exact fraction is not offered: when the quotient terminates it is
+            // the answer in a different spelling, which is how a four-option
+            // question becomes a three-option one. The two wrong fractions each
+            // move one term of the quotient, which is the slip being tested.
+            choices=fourOptions(plainCorrectAnswer, [
+                (limit+0.1).toFixed(2),
+                (limit-0.1).toFixed(2),
+                `${exactNum+1}/${exactDen}`,
+                `${exactNum}/${exactDen-1}`,
+                (limit*2).toFixed(2)
+            ]);
             break;
         }
         case "infinity":{
@@ -105,12 +115,7 @@ export function generateLimit(difficulty?: string, rng: RngFn=Math.random): Ques
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if (!uniqueChoices.includes(plainCorrectAnswer)){
-        if (uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
-        else uniqueChoices=[plainCorrectAnswer];
-    }
+    let uniqueChoices=fourOptions(plainCorrectAnswer, choices);
     if (type==="conceptual"&&problemText){
         mathExpression=`${problemText}\n${mathExpression}`;
     }
@@ -313,12 +318,7 @@ export function generateRelatedRates(difficulty?: string, rng: RngFn=Math.random
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(plainCorrectAnswer)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
-        else uniqueChoices=[plainCorrectAnswer];
-    }
+    let uniqueChoices=fourOptions(plainCorrectAnswer, choices);
     if(problemText){
         mathExpression=`${problemText}\n${mathExpression}`;
     }
