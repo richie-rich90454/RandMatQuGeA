@@ -96,6 +96,8 @@ export function generateProbabilityRules(difficulty?: string, rng: RngFn=Math.ra
     let latex="";
     let expectedFormat="Enter a fraction in lowest terms, for example 3/8";
     let choices:string[]=[];
+    let rungs:string[]=[];
+    let steps:string[]=[];
     switch(type){
         case "conditional_table":{
             // The four cells are drawn first and every total is derived from them,
@@ -119,6 +121,15 @@ export function generateProbabilityRules(difficulty?: string, rng: RngFn=Math.ra
                 {n:busTotal, d:total},
                 {n:total-busTotal, d:busTotal}
             ], rng)];
+            rungs=[
+                "\"Given that\" replaces the whole survey with the group you are told about, so the denominator is that group's total and not the grand total.",
+                "The group you are told about is the one that travels by bus, and the table leaves its column total out, so add the two cells of that column first."
+            ];
+            steps=[
+                `People who travel by bus: ${both} hold a card and ${busOnly} do not, so the column total is ${both} + ${busOnly} = ${busTotal}.`,
+                `Of those, the ones holding a card are the ${both} in the top cell.`,
+                `P(card given bus) = ${both}/${busTotal} = ${correct}.`
+            ];
             break;
         }
         case "total_probability":{
@@ -142,6 +153,15 @@ export function generateProbabilityRules(difficulty?: string, rng: RngFn=Math.ra
                 {n:firstRate+secondRate, d:200},
                 {n:numerator, d:100}
             ], rng)];
+            rungs=[
+                "The overall rate is a weighted average, not an average: each line's own rate is weighted by the share of output that line makes, and the two lines do not make the same share.",
+                `Line A makes ${firstShare} percent of the output at ${firstRate} percent faulty, and line B makes ${secondShare} percent at ${secondRate} percent, so weight each rate by its own share.`
+            ];
+            steps=[
+                `Line A contributes ${firstShare}/100 of the output, of which ${firstRate}/100 is faulty.`,
+                `Line B contributes ${secondShare}/100 of the output, of which ${secondRate}/100 is faulty.`,
+                `Adding the contributions: ${firstShare} x ${firstRate} + ${secondShare} x ${secondRate} = ${numerator} faulty per 10000, so the fraction is ${numerator}/10000 = ${correct}.`
+            ];
             break;
         }
         case "bayes":{
@@ -168,6 +188,15 @@ export function generateProbabilityRules(difficulty?: string, rng: RngFn=Math.ra
                 {n:falsePositive, d:flagged},
                 {n:flagged-truePositive, d:flagged}
             ], rng)];
+            rungs=[
+                "You are told the test was positive, so the people you are choosing from are the positive ones, not the sick ones. The answer inverts the test's own rates.",
+                "Count whole people rather than percentages: how many of the sick were flagged, against how many people were flagged altogether."
+            ];
+            steps=[
+                `Of the ${sick} people who have the condition, ${sensitivity} percent are flagged: ${sick} x ${sensitivity}/100 = ${truePositive} people.`,
+                `Of the ${healthy} who do not, ${falseRate} percent are flagged: ${healthy} x ${falseRate}/100 = ${falsePositive} people.`,
+                `Flagged in total: ${truePositive} + ${falsePositive} = ${flagged}, so the probability is ${truePositive}/${flagged} = ${correct}.`
+            ];
             break;
         }
         case "independence_statement":{
@@ -196,6 +225,15 @@ export function generateProbabilityRules(difficulty?: string, rng: RngFn=Math.ra
             display=independent?"independent":`${joint} \\neq ${first*second/100}`;
             latex=`For two events \\( A \\) and \\( B \\) in the same experiment, \\( P(A)=${first}\\% \\), \\( P(B)=${second}\\% \\) and \\( P(A \\cap B)=${joint}\\% \\). Which of these statements about the two events is true?`;
             choices=[answer, ...shuffle(rng, statements.filter(s=>s!==answer))];
+            rungs=[
+                "Independence is a claim about the joint probability: A and B are independent exactly when P(A and B) is P(A) x P(B), and mutually exclusive exactly when that joint probability is zero.",
+                `Multiply the two given percentages to get the joint probability independence would predict, and compare it with the joint probability the question states.`
+            ];
+            steps=[
+                `P(A) x P(B) = ${first} x ${second} percent = ${first*second/100} percent, which is what independence would require.`,
+                `The stated joint probability is ${joint} percent, so the events are ${independent?"independent":"not independent"}.`,
+                `Mutual exclusivity would need a joint probability of zero, and ${joint} is not zero, so the true statement is: ${correct}`
+            ];
             break;
         }
         case "expected_value":{
@@ -222,6 +260,15 @@ export function generateProbabilityRules(difficulty?: string, rng: RngFn=Math.ra
                 {n:topPrize, d:1},
                 {n:numerator, d:1000}
             ], rng)];
+            rungs=[
+                "An expected value is the probability-weighted average of every outcome, not the most likely one and not the average of the prizes. Paying nothing is an outcome too, and it loses the stake.",
+                `Weight each net gain by its own probability, and remember that the ${nothingChance} percent of plays that pay nothing lose the ${cost} chip stake.`
+            ];
+            steps=[
+                `Net gains: ${topChance} percent of ${topPrize-cost} chips, ${midChance} percent of ${midPrize-cost} chips, and ${nothingChance} percent of ${-cost} chips.`,
+                `Weighted sum: ${topChance} x (${topPrize} - ${cost}) + ${midChance} x (${midPrize} - ${cost}) - ${nothingChance} x ${cost} = ${numerator} hundredths of a chip.`,
+                `Dividing by 100, the expected net gain is ${numerator}/100, which in lowest terms is ${correct}.`
+            ];
             break;
         }
     }
@@ -231,5 +278,5 @@ export function generateProbabilityRules(difficulty?: string, rng: RngFn=Math.ra
         if (unique.length>0) unique[Math.floor(rng()*unique.length)]=correct;
         else unique=[correct];
     }
-    return {latex, correct, alternate, display, choices: unique, expectedFormat};
+    return {latex, correct, alternate, display, choices: unique, expectedFormat, subskill: type, hints: {rungs, concede: "The answer is "+correct+"."}, solution: steps};
 }
