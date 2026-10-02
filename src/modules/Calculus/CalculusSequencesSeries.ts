@@ -1,5 +1,6 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
+import {fourOptions} from "../shared/Options.js";
 /**
  * Generates a random sequences and series question and returns it as a QuestionDto.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -69,7 +70,11 @@ export function generateSequencesSeries(difficulty?: string, rng: RngFn=Math.ran
                 latexAnswer="\\text{diverges}";
             }
             expectedFormat="Enter converges or diverges";
-            choices=["converges","diverges"];
+            // A p-series with positive terms is decided outright, so "converges"
+            // and "diverges" were the only two options and the question shipped a
+            // two-option set. The two verdicts a learner reaches for instead of
+            // applying the test are the other two in this file's own vocabulary.
+            choices=fourOptions(plainCorrectAnswer, ["converges conditionally", "inconclusive", "converges absolutely"]);
             break;
         }
         case "comparisonTest":{
@@ -128,12 +133,15 @@ export function generateSequencesSeries(difficulty?: string, rng: RngFn=Math.ran
             plainCorrectAnswer=terms.join(" + ");
             latexAnswer=`1 + ${a}x + \\frac{${a*a}}{2}x^{2} + \\frac{${a*a*a}}{6}x^{3}`;
             expectedFormat="Enter polynomial";
-            let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[normalizedCorrect];
-            choices.push(`1+${a}x+${(a*a/2).toFixed(2)}x^2+${(a*a*a/6).toFixed(2)}x^4`.replace(/\s/g,"").toLowerCase());
-            choices.push(`1+${a}x+${(a*a/2).toFixed(2)}x^2+${(a*a*a/6).toFixed(2)}x^3+x^4`.replace(/\s/g,"").toLowerCase());
-            choices.push(`1+${a+1}x+${((a+1)*(a+1)/2).toFixed(2)}x^2+${((a+1)*(a+1)*(a+1)/6).toFixed(2)}x^3`.replace(/\s/g,"").toLowerCase());
-            choices.push(`1+${a}x+${(a*a/2).toFixed(2)}x^2`.replace(/\s/g,"").toLowerCase());
+            // The options are written in the same spelling as the answer. The answer
+            // with its spaces stripped used to be the first option, which made the
+            // question have two correct options that differ only in whitespace.
+            choices=fourOptions(plainCorrectAnswer, [
+                `1+${a}x+${(a*a/2).toFixed(2)}x^2+${(a*a*a/6).toFixed(2)}x^4`,
+                `1+${a}x+${(a*a/2).toFixed(2)}x^2+${(a*a*a/6).toFixed(2)}x^3+x^4`,
+                `1+${a+1}x+${((a+1)*(a+1)/2).toFixed(2)}x^2+${((a+1)*(a+1)*(a+1)/6).toFixed(2)}x^3`,
+                `1+${a}x+${(a*a/2).toFixed(2)}x^2`
+            ]);
             break;
         }
         case "lagrangeError":{
@@ -260,32 +268,16 @@ export function generateSequencesSeries(difficulty?: string, rng: RngFn=Math.ran
             plainCorrectAnswer=`∑_{n=0}^∞ ${a}^n x^{n+1}/n!`;
             latexAnswer=`\\sum_{n=0}^{\\infty} \\frac{${a}^{n}}{n!}x^{n+1}`;
             expectedFormat="Enter series";
-            let normalizedCorrect=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[normalizedCorrect];
-            choices.push(`∑_{n=0}^∞ ${a}^n x^n/n!`.replace(/\s/g,"").toLowerCase());
-            choices.push(`∑_{n=1}^∞ ${a}^{n-1} x^n/(n-1)!`.replace(/\s/g,"").toLowerCase());
-            choices.push(`∑_{n=0}^∞ ${a}^{n+1} x^{n+1}/n!`.replace(/\s/g,"").toLowerCase());
-            choices.push(`∑_{n=0}^∞ x^{n+1}/n!`.replace(/\s/g,"").toLowerCase());
+            choices=fourOptions(plainCorrectAnswer, [
+                `∑_{n=0}^∞ ${a}^n x^n/n!`,
+                `∑_{n=1}^∞ ${a}^{n-1} x^n/(n-1)!`,
+                `∑_{n=0}^∞ ${a}^{n+1} x^{n+1}/n!`,
+                `∑_{n=0}^∞ x^{n+1}/n!`
+            ]);
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    let found=false;
-    for(let i=0;i<uniqueChoices.length;i++){
-        if(uniqueChoices[i]===plainCorrectAnswer){
-            found=true;
-            break;
-        }
-    }
-    if(!found){
-        if(uniqueChoices.length>0){
-            uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
-        }
-        else{
-            uniqueChoices=[plainCorrectAnswer];
-        }
-    }
+    let uniqueChoices=fourOptions(plainCorrectAnswer, choices);
     return {
         latex: mathExpression,
         correct: plainCorrectAnswer,
