@@ -61,6 +61,33 @@ interface RecordDocument{
 }
 
 /**
+ * Reads the persisted record as it is stored, so an export carries the document
+ * the scheduler itself reads rather than a second spelling of it. Two copies of
+ * one key are two chances for an import to land somewhere the scheduler never
+ * looks, which is an import that appears to work and changes nothing.
+ *
+ * @returns The stored document, or null when the desktop database is the record
+ *          or when nothing has been written yet.
+ */
+export async function readDocument(): Promise<RecordDocument|null>{
+    if (isTauri()) return null;
+    return (await storage.read<RecordDocument>(RECORD_KEY))??null;
+}
+
+/**
+ * Replaces the persisted record with a document. Only a browser stores the record
+ * this way: on the desktop the record is the database, and a caller changing it
+ * goes through the export/import command instead.
+ *
+ * @param document - The document to store.
+ * @returns A promise resolving once the write has been attempted.
+ */
+export async function writeDocument(document: RecordDocument): Promise<void>{
+    if (isTauri()) return;
+    await storage.write(RECORD_KEY, document);
+}
+
+/**
  * A row as the desktop database returns it, which is snake_case and partial
  * because an older database may predate any given column.
  */
