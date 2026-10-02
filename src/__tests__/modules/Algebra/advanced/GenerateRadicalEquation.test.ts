@@ -47,4 +47,28 @@ describe("generateRadicalEquation",()=>{
         const dto2=generateRadicalEquation("medium", seededRng(99));
         expect(dto1).not.toEqual(dto2);
     });
+    it("offers four options for every radical branch, where squaring without subtracting the shift left three",()=>{
+        for(let difficulty of ["easy","medium","hard"]){
+            for(let seed=1; seed<=60; seed++){
+                const dto=generateRadicalEquation(difficulty, seededRng(seed));
+                expect(dto.choices).toHaveLength(4);
+                expect(new Set(dto.choices).size).toBe(4);
+                expect(dto.choices).toContain(dto.correct);
+            }
+        }
+    });
+    it("never offers the unsolved intermediate value as a distractor when it equals the answer",()=>{
+        for(let seed=1; seed<=60; seed++){
+            const dto=generateRadicalEquation("easy", seededRng(seed));
+            if (dto.latex.indexOf("sqrt{x}")===-1) continue;
+            const printed=dto.latex.match(/x \+ (\d+)/);
+            const rhs=dto.latex.match(/= (\d+)/);
+            if (!printed||!rhs) continue;
+            const a=Number(printed[1]);
+            const b=Number(rhs[1]);
+            const intermediate=(a-b*b)/(2*b);
+            if (Number(intermediate.toFixed(2))!==Number(dto.correct)) continue;
+            expect((dto.choices??[]).filter(o=>Number(o)===Number(dto.correct))).toHaveLength(1);
+        }
+    });
 });
