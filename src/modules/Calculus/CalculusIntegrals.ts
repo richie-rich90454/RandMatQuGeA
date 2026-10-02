@@ -1,5 +1,6 @@
-﻿import type {RngFn, QuestionDto} from "../../types/global";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
+import {fourOptions} from "../shared/Options.js";
 function gcd(a: number, b: number): number{
     while(b){
         let t=b;
@@ -21,6 +22,21 @@ function formatFraction(num: number, den: number): string{
     else{
         return `${num}/${den}`;
     }
+}
+/**
+ * Normalises an antiderivative to the single spelling this generator grades and
+ * offers: no spaces, no braces, lower case. The answer and every option go through
+ * it, so an option can never be the answer in a different spelling.
+ */
+function normalize(s: string): string{
+    return s.replace(/\s+/g,"")
+        .replace(/\^{/g,"^")
+        .replace(/[{}]/g,"")
+        .toLowerCase();
+}
+/** The sign that goes in front of a term whose sign has been flipped. */
+function wrongSign(sign: number): string{
+    return sign===1?"-":"";
 }
 /**
  * @fileoverview Generates random integral calculus questions for AP Calculus practice.
@@ -150,26 +166,16 @@ export function generateIntegral(difficulty?: string, rng: RngFn=Math.random): Q
             }
             alternateAnswer=`${signStr}${fractionStr} ${chosen.target}(${a}x)+C`;
             latexAnswer=`${signStr}\\frac{${coeff}}{${a}} ${chosen.target}(${a}x)+C`;
-            const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
-            choices=[normalizedCorrect];
-            let wrongSign;
-            if(chosen.sign===1){
-                wrongSign=-1;
-            }
-            else{
-                wrongSign=1;
-            }
-            let wrongSignStr;
-            if(wrongSign===1){
-                wrongSignStr='';
-            }
-            else{
-                wrongSignStr='-';
-            }
-            choices.push(`${wrongSignStr}${fractionStr} ${chosen.target}(${a}x)+C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`${signStr}${fractionStr} ${chosen.func}(${a}x)+C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`${signStr}${fractionStr} ${chosen.target}(x)+C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`${signStr}${coeff} ${chosen.target}(${a}x)+C`.replace(/\s/g,"").toLowerCase());
+            // Dropping the argument multiplier was one of the candidates, and at a
+            // multiplier of one it is the answer itself, so the branch offered a
+            // second correct option. The argument is displaced instead, which is
+            // wrong for every multiplier.
+            choices=fourOptions(normalize(plainCorrectIntegral), [
+                normalize(`${wrongSign(chosen.sign)}${fractionStr} ${chosen.target}(${a}x)+C`),
+                normalize(`${signStr}${fractionStr} ${chosen.func}(${a}x)+C`),
+                normalize(`${signStr}${fractionStr} ${chosen.target}(${a+1}x)+C`),
+                normalize(`${signStr}${coeff} ${chosen.target}(${a}x)+C`)
+            ]);
             break;
         }
         case "exponential":{
@@ -180,24 +186,30 @@ export function generateIntegral(difficulty?: string, rng: RngFn=Math.random): Q
                 mathExpression=`\\[ \\int ${coeff}e^{${a}x} \\,dx=? \\]`;
                 plainCorrectIntegral=`${formatNumber(coeff/a)}e^(${a}x)+C`;
                 latexAnswer=`\\frac{${coeff}}{${a}}e^{${a}x}+C`;
-                const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
-                choices=[normalizedCorrect];
-                choices.push(`${formatNumber(coeff)}e^(${a}x)+C`.replace(/\s/g,"").toLowerCase());
-                choices.push(`${formatNumber(coeff/a)}e^(${a}x)`.replace(/\s/g,"").toLowerCase());
-                choices.push(`${formatNumber(coeff*a)}e^(${a}x)+C`.replace(/\s/g,"").toLowerCase());
-                choices.push(`${formatNumber(coeff/(a+1))}e^(${a}x)+C`.replace(/\s/g,"").toLowerCase());
+                // Multiplying by the exponent of the argument is the mistake this
+                // question invites, and at an exponent of one it is the answer, which
+                // is why the branch used to offer two options. A fifth candidate
+                // covers that case: the antiderivative with the wrong constant.
+                choices=fourOptions(normalize(plainCorrectIntegral), [
+                    normalize(`${formatNumber(coeff*a)}e^(${a}x)+C`),
+                    normalize(`${formatNumber(coeff/(a+1))}e^(${a}x)+C`),
+                    normalize(`${formatNumber(coeff/a)}e^(${a}x)`),
+                    normalize(`${formatNumber(coeff/(a+2))}e^(${a}x)+C`),
+                    normalize(`${formatNumber(coeff)}e^(${a}x)+C`)
+                ]);
             }
             else{
                 mathExpression=`\\[ \\int ${coeff}${base}^{x} \\,dx=? \\]`;
                 const lnBase=Math.log(base as number);
                 plainCorrectIntegral=`${formatNumber(coeff/lnBase)}${base}^x+C`;
                 latexAnswer=`\\frac{${coeff}}{\\ln(${base})}${base}^{x}+C`;
-                const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
-                choices=[normalizedCorrect];
-                choices.push(`${coeff}${base}^x+C`.replace(/\s/g,"").toLowerCase());
-                choices.push(`${formatNumber(coeff)}${base}^x+C`.replace(/\s/g,"").toLowerCase());
-                choices.push(`${formatNumber(coeff/lnBase)}${base}^x`.replace(/\s/g,"").toLowerCase());
-                choices.push(`${formatNumber(coeff/(lnBase+1))}${base}^x+C`.replace(/\s/g,"").toLowerCase());
+                choices=fourOptions(normalize(plainCorrectIntegral), [
+                    normalize(`${coeff}${base}^x+C`),
+                    normalize(`${formatNumber(coeff)}${base}^x+C`),
+                    normalize(`${formatNumber(coeff/lnBase)}${base}^x`),
+                    normalize(`${formatNumber(coeff/(lnBase+1))}${base}^x+C`),
+                    normalize(`${formatNumber(coeff/lnBase)}${base}^x*x+C`)
+                ]);
             }
             break;
         }
@@ -206,12 +218,17 @@ export function generateIntegral(difficulty?: string, rng: RngFn=Math.random): Q
             mathExpression=`\\[ \\int \\frac{${coeff}}{x} \\,dx=? \\]`;
             plainCorrectIntegral=`${coeff}ln|x|+C`;
             latexAnswer=`${coeff}\\ln|x|+C`;
-            const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
-            choices=[normalizedCorrect];
-            choices.push(`${coeff}ln(x)+C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`${coeff}ln|${coeff}x|+C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`${coeff}x+ C`.replace(/\s/g,"").toLowerCase());
-            choices.push(`${coeff}/x + C`.replace(/\s/g,"").toLowerCase());
+            // The same answer written without the absolute value bars, and written
+            // with the coefficient inside them, were both offered. Both denote the
+            // antiderivative this question asks for, so the question had three
+            // correct options. The candidates below are the four slips that are not
+            // the answer in another spelling.
+            choices=fourOptions(normalize(plainCorrectIntegral), [
+                normalize(`${coeff}x+C`),
+                normalize(`${coeff}/x+C`),
+                normalize(`${coeff}ln|x^2|+C`),
+                normalize(`${coeff}x*ln|x|+C`)
+            ]);
             break;
         }
         case "substitution":{
@@ -333,31 +350,38 @@ export function generateIntegral(difficulty?: string, rng: RngFn=Math.random): Q
                 mathExpression=`\\[ \\int \\frac{dx}{\\sqrt{${a*a}-x^2}} \\]`;
                 plainCorrectIntegral=`arcsin(x/${a})+C`;
                 latexAnswer=`\\arcsin\\left(\\frac{x}{${a}}\\right)+C`;
-                const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
-                choices=[normalizedCorrect];
-                choices.push(`arcsin(x/${a*a})+C`.replace(/\s/g,"").toLowerCase());
-                choices.push(`arctan(x/${a})+C`.replace(/\s/g,"").toLowerCase());
-                choices.push(`(1/${a})arcsin(x/${a})+C`.replace(/\s/g,"").toLowerCase());
+                // The radius of the arcsine was squared in one candidate and the
+                // argument dropped in another, and at a radius of one dropping the
+                // argument is the answer, so the branch shipped three options of
+                // which one was a second correct answer. Displacing the argument is
+                // wrong for every radius.
+                choices=fourOptions(normalize(plainCorrectIntegral), [
+                    normalize(`arctan(x/${a})+C`),
+                    normalize(`arcsin(x/${a+1})+C`),
+                    normalize(`-arcsin(x/${a})+C`),
+                    normalize(`arcsin(${(a+1)}*x)+C`)
+                ]);
             }
             else if(sub==="arctan"){
                 mathExpression=`\\[ \\int \\frac{dx}{${a*a}+x^2} \\]`;
                 plainCorrectIntegral=`(1/${a})arctan(x/${a})+C`;
                 latexAnswer=`\\frac{1}{${a}}\\arctan\\left(\\frac{x}{${a}}\\right)+C`;
-                const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
-                choices=[normalizedCorrect];
-                choices.push(`arctan(x/${a})+C`.replace(/\s/g,"").toLowerCase());
-                choices.push(`(1/${a})arctan(${a}x)+C`.replace(/\s/g,"").toLowerCase());
-                choices.push(`(1/${a*a})arctan(x/${a})+C`.replace(/\s/g,"").toLowerCase());
+                choices=fourOptions(normalize(plainCorrectIntegral), [
+                    normalize(`-arctan(x/${a})+C`),
+                    normalize(`(1/${a+1})arctan(x/${a})+C`),
+                    normalize(`arctan(x/${a+1})+C`),
+                    normalize(`arctan(${(a+1)}*x)+C`)
+                ]);
             }
             else{
                 mathExpression=`\\[ \\int \\frac{dx}{x\\sqrt{x^2-1}} \\]`;
                 plainCorrectIntegral=`arcsec|x|+C`;
                 latexAnswer=`\\operatorname{arcsec}|x|+C`;
-                const normalizedCorrect=plainCorrectIntegral.replace(/\s/g,"").toLowerCase();
+                const normalizedCorrect=normalize(plainCorrectIntegral);
                 choices=[normalizedCorrect];
-                choices.push(`arcsin(x)+C`.replace(/\s/g,"").toLowerCase());
-                choices.push(`arctan(x)+C`.replace(/\s/g,"").toLowerCase());
-                choices.push(`ln|x+sqrt(x^2-1)|+C`.replace(/\s/g,"").toLowerCase());
+                choices.push(normalize(`arcsin(x)+C`));
+                choices.push(normalize(`arctan(x)+C`));
+                choices.push(normalize(`ln|x+sqrt(x^2-1)|+C`));
             }
             break;
         }
@@ -425,19 +449,9 @@ export function generateIntegral(difficulty?: string, rng: RngFn=Math.random): Q
             break;
         }
     }
-    const normalize=(s: string)=>
-        s.replace(/\s+/g,"")
-         .replace(/\^{/g,"^")
-         .replace(/[{}]/g,"")
-         .toLowerCase();
     let correctNorm=normalize(plainCorrectIntegral);
     let altNorm=alternateAnswer ? normalize(alternateAnswer) : correctNorm;
-    let uniqueChoices=[...new Set(choices.map(normalize))];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correctNorm)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctNorm;
-        else uniqueChoices=[correctNorm];
-    }
+    let uniqueChoices=fourOptions(correctNorm, choices);
     return {
         latex: mathExpression,
         correct: correctNorm,
