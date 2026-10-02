@@ -134,6 +134,222 @@ function freeSymbols(expr: string): string[]{
     }
 }
 /**
+ * Rewrites the LaTeX a generator printed into the plain expression the
+ * comparison below can read.
+ *
+ * @param s - The LaTeX or plain text.
+ * @returns The plain equivalent.
+ */
+function convertLatex(s: string): string{
+    // Replace fancy minus with hyphen
+    s=s.replace(/−/g,'-');
+    // Convert \frac{num}{den} to (num)/(den)
+    s=s.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g,'($1)/($2)');
+    // Convert \sqrt{arg} to sqrt(arg)
+    s=s.replace(/\\sqrt\{([^}]*)\}/g,'sqrt($1)');
+    // Convert \sqrt[root]{arg} to arg^(1/root)
+    s=s.replace(/\\sqrt\[([^\]]*)\]\{([^}]*)\}/g,'($2)^(1/($1))');
+    // Convert \langle ... \rangle to [...]
+    s=s.replace(/\\langle\s*(.*?)\s*\\rangle/g,'[$1]');
+    // Convert angle brackets <...> to [...] (if not already LaTeX)
+    s=s.replace(/<([^>]*)>/g,'[$1]');
+    // Convert matrix environments to math.js matrix syntax
+    // \begin{pmatrix} a & b \\ c & d \end{pmatrix} -> [[a,b],[c,d]]
+    // Use [\s\S] instead of . with 's' flag for ES6 compatibility
+    s=s.replace(/\\begin\{pmatrix\}([\s\S]*?)\\end\{pmatrix\}/g,(_,content)=>{
+        let rows=content.split('\\\\').map((row:string)=>row.trim());
+        let matrixRows=rows.map((row:string)=>{
+            let cells=row.split('&').map((cell:string)=>cell.trim());
+            return '['+cells.join(',')+']';
+        });
+        return '['+matrixRows.join(',')+']';
+    });
+    // Remove backslashes from other commands (e.g., \sin -> sin)
+    s=s.replace(/\\([a-zA-Z]+)/g,'$1');
+    return s;
+}
+/**
+ * Reports whether two sanitised expressions denote the same thing, which is the
+ * comparison a whole answer and one side of an equation are both graded with.
+ *
+ * **Supported Features:**
+ * - Identical text after sanitization.
+ * - Fraction ↔ decimal equivalence: `1/2` ↔ `0.5`.
+ * - Commutative addition: term order does not matter.
+ * - Numeric evaluation for constant expressions, including vectors.
+ * - Math.js structural simplification, e.g. `sin^2(x)+cos^2(x)` ↔ `1`.
+ * - Numerical sampling when both sides range over the same single free
+ *   variable. A constant but non-zero difference is a different expression and is
+ *   rejected.
+ *
+ * @param sanA - The first expression, already sanitized.
+ * @param sanB - The second expression, already sanitized.
+ * @returns True when the two are the same answer.
+ */
+function sameExpression(sanA: string, sanB: string): boolean{
+    if (sanA===sanB) return true;
+    // Decimal conversion
+    if (toDecimal(sanA)===toDecimal(sanB)) return true;
+    // Term-by-term comparison
+    if (toTerms(sanA).join('+')===toTerms(sanB).join('+')) return true;
+    // Numeric evaluation for constants (including vectors)
+    let valA=tryEvaluate(sanA);
+    let valB=tryEvaluate(sanB);
+    if (valA!==null && valB!==null){
+        if (Array.isArray(valA) && Array.isArray(valB)){
+            if (valA.length===valB.length){
+                let allMatch=true;
+                for (let i=0;i<valA.length;i++){
+                    if (Math.abs(valA[i]-valB[i])>=1e-8){
+                        allMatch=false;
+                        break;
+                    }
+                }
+                if (allMatch) return true;
+            }
+        }
+        else if (typeof valA==='number' && typeof valB==='number'){
+            if (Math.abs(valA-valB)<1e-8) return true;
+        }
+    }
+    try{
+        let simpA=mathjs.simplify(sanA).toString().replace(/\s+/g,'');
+        let simpB=mathjs.simplify(sanB).toString().replace(/\s+/g,'');
+        if (simpA===simpB) return true;
+        // The free symbols are taken from both sides and must match as
+        // sets. Sampling a variable that appears on only one side leaves
+        // the other expression undefined at every point, so the
+        // comparison silently decided nothing.
+        let varsA=freeSymbols(sanA);
+        let varsB=freeSymbols(sanB);
+        if (varsA.length!==varsB.length||!varsA.every(v=>varsB.indexOf(v)>=0)){
+            return false;
+        }
+        if (varsA.length===1){
+            let varName=varsA[0];
+            let points=[0.5,1,2,3,Math.PI/4,Math.E];
+            let match=true;
+            for (let x of points){
+                try{
+                    let scope={[varName]:x};
+                    let lv=mathjs.evaluate(sanA,scope);
+                    let rv=mathjs.evaluate(sanB,scope);
+                    if (!Number.isFinite(lv)||!Number.isFinite(rv)||Math.abs(lv-rv)>=1e-8){
+                        match=false;
+                        break;
+                    }
+                }
+                catch(e){
+                    match=false;
+                    break;
+                }
+            }
+            if (match) return true;
+        }
+        else if (varsA.length===0){
+            try{
+                let numA=mathjs.evaluate(sanA);
+                let numB=mathjs.evaluate(sanB);
+                if (Math.abs(numA-numB)<1e-8) return true;
+            }
+            catch(e){}
+        }
+    }
+    catch(e){
+        console.warn("Math.js evaluation failed in side comparison",e);
+    }
+    return false;
+}
+/**
+ * Reports whether two answer spellings mean the same thing, allowing for the
+ * notation a generator printed and the notation a learner typed.
+ *
+ * @param exprA - The first spelling.
+ * @param exprB - The second spelling.
+ * @returns True when the two are the same answer.
+ */
+function compareExpressions(exprA: string, exprB: string): boolean{
+    if (exprA===exprB) return true;
+    // Convert LaTeX in both expressions, then sanitize both
+    let sanA=sanitize(convertLatex(exprA));
+    let sanB=sanitize(convertLatex(exprB));
+    if (sameExpression(sanA, sanB)) return true;
+    // An integration constant is the one constant the hint ladder invites a
+    // learner to add, so the constant terms come off and the comparison runs
+    // again. It has to be the second attempt and not the first: dropping a
+    // constant from one side only turned "x^2+2x" into a different expression
+    // from "(x+1)^2", so a factored answer was rejected for carrying the very
+    // constant it was supposed to expand.
+    let funcA=removeConstants(sanA);
+    let funcB=removeConstants(sanB);
+    return funcA===funcB||sameExpression(funcA, funcB);
+}
+/**
+ * Reports whether the right-hand side of an equation is a value both sides agree
+ * on, which is decided numerically because "5^2" and "25" are the same number
+ * rather than the same expression.
+ *
+ * @param userSide - What the learner wrote on the right.
+ * @param correctSide - What the key says the right side is.
+ * @returns True when the two are the same value.
+ */
+function compareConstantSides(userSide: string, correctSide: string): boolean{
+    try{
+        let varsUser=mathjs.parse(userSide).filter((node:any)=>node.isSymbolNode).length;
+        let varsCorrect=mathjs.parse(correctSide).filter((node:any)=>node.isSymbolNode).length;
+        if (varsUser===0 && varsCorrect===0){
+            return Math.abs(mathjs.evaluate(userSide)-mathjs.evaluate(correctSide))<1e-8;
+        }
+    }
+    catch(e){
+        console.warn("Numeric evaluation of right side failed",e);
+    }
+    return false;
+}
+/**
+ * Grades a typed answer against the key and the alternate spelling of the key.
+ * The single-question flow and the mental session both come through here, so an
+ * answer accepted in one mode is accepted in the other.
+ *
+ * **Comparison Pipeline:**
+ * 1. **Equation Splitting** – When the answer and the key are both equations,
+ *    each side is compared separately, and a right-hand side with no symbols in
+ *    it is compared numerically.
+ * 2. **Expression Comparison** – Otherwise the answer is compared as a whole
+ *    against the key and then against the alternate spelling.
+ * 3. **Numeric Comparison** – As a last step `Settings.isAnswerCorrect` decides,
+ *    which is the exact-fraction, rounded-value and degree-marked comparison. The
+ *    key is handed to it exactly as the generator printed it, because
+ *    `latexToPlain` is the one place that decides an answer's spelling and
+ *    rewriting the key first is what used to turn `45^{\circ}` into `45^(circ)`.
+ *
+ * @param userInput - What the learner typed.
+ * @param correct - The answer key.
+ * @param alternate - An equivalent spelling of the key, if the topic has one.
+ * @returns True when the answer is right.
+ */
+export async function gradeAnswer(userInput: string, correct: string, alternate?: string): Promise<boolean>{
+    let answer=userInput.trim();
+    if (!answer) return false;
+    await ensureMathjs();
+    let alt=alternate&&alternate!==""?alternate:"";
+    // Check if the expression contains an equals sign (equation)
+    if (answer.includes('=') && correct.includes('=')){
+        let [userLeft, userRight] = answer.split('=').map(s=>s.trim());
+        let [correctLeft, correctRight] = correct.split('=').map(s=>s.trim());
+        if (!compareExpressions(userLeft, correctLeft)) return false;
+        if (compareConstantSides(userRight, correctRight)) return true;
+        return compareExpressions(userRight, correctRight);
+    }
+    // A single expression is compared by the same routine an equation side uses,
+    // against the key and then against the alternate spelling. One side carrying
+    // an equals sign and the other not used to be rejected outright, which marked
+    // "x=5" wrong against a key of "5" that the learner had answered correctly.
+    return compareExpressions(answer, correct)
+        || (alt!==""&&compareExpressions(answer, alt))
+        || await settings.isAnswerCorrect(answer, correct, alternate);
+}
+/**
  * Validates the user's answer against the expected correct answer.
  * This function performs a comprehensive, multi‑stage equivalence check between the user input
  * and the pre‑computed correct answer (and its alternate form) for the currently displayed
@@ -169,28 +385,8 @@ function freeSymbols(expr: string): string[]{
  *   are stripped of backslashes for symbolic comparison.
  * - Invalid syntax handling: gracefully falls back to plain text display.
  *
- * **Comparison Pipeline:**
- * 1. **LaTeX Preprocessing** – Convert LaTeX commands to math.js‑compatible syntax:
- *    - `\frac{a}{b}` → `(a)/(b)`
- *    - `\sqrt{a}` → `sqrt(a)`
- *    - `\sqrt[n]{a}` → `a^(1/n)`
- *    - `\langle ... \rangle` → `[...]`
- *    - `\begin{pmatrix} a & b \\ c & d \end{pmatrix}` → `[[a,b],[c,d]]`
- *    - Remove backslashes from other commands (e.g., `\sin` → `sin`).
- * 2. **Sanitization** – Trim, lowercase, remove whitespace, normalize braces, Unicode symbols, and implicit multiplication.
- *    Also removes a leading "1*" before a variable or function.
- * 3. **Function Name Normalization** – Convert all function names to a standard form (e.g., `ln` → `log`).
- * 4. **Constant Removal** – Identify and remove any constant term (including numeric constants) to compare only the functional part.
- *    - If the entire expression consists of constants, the original string is preserved (important for purely numeric answers).
- * 5. **Direct String Equality** – After sanitization and constant removal, check if strings are identical.
- * 6. **Fraction Handling** – If fractions are present, attempt decimal conversion and numeric comparison.
- * 7. **Term‑by‑Term Comparison** – Split expressions on `+` and `-`, sort terms lexicographically (works for polynomials).
- * 8. **Numeric Evaluation** – Try to evaluate both expressions as constants (including vectors). If both evaluate to numbers or arrays,
- *    compare with tolerance. This handles vector answers like `<−0.72,0.77>`.
- * 9. **Math.js Structural Simplification** – Use math.js to parse and simplify both expressions to a canonical form.
- * 10. **Numerical Sampling** – If both expressions contain the same single free variable, evaluate at multiple points and require the values to agree. A constant but non-zero difference is a different expression and is rejected.
- * 11. **Equation Splitting** – If the expression contains `=`, split into left and right; compare sides separately using the above steps.
- * 12. **Ultimate Fallback** – Use `settings.isAnswerCorrect` (simple evaluation).
+ * The answer itself is graded by `gradeAnswer`, which documents the pipeline and is
+ * the same routine the mental session grades with.
  *
  * After determining correctness, the function:
  * - Records performance data for adaptive learning (response time, error type) via Tauri.
@@ -239,172 +435,7 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
     }
     let correct=questionState.correctAnswer.correct;
     let alternate=questionState.correctAnswer.alternate||"";
-    // --- Helper to convert LaTeX to math.js syntax ---
-    let convertLatex=(s: string): string=>{
-        // Replace fancy minus with hyphen
-        s=s.replace(/−/g,'-');
-        // Convert \frac{num}{den} to (num)/(den)
-        s=s.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g,'($1)/($2)');
-        // Convert \sqrt{arg} to sqrt(arg)
-        s=s.replace(/\\sqrt\{([^}]*)\}/g,'sqrt($1)');
-        // Convert \sqrt[root]{arg} to arg^(1/root)
-        s=s.replace(/\\sqrt\[([^\]]*)\]\{([^}]*)\}/g,'($2)^(1/($1))');
-        // Convert \langle ... \rangle to [...]
-        s=s.replace(/\\langle\s*(.*?)\s*\\rangle/g,'[$1]');
-        // Convert angle brackets <...> to [...] (if not already LaTeX)
-        s=s.replace(/<([^>]*)>/g,'[$1]');
-        // Convert matrix environments to math.js matrix syntax
-        // \begin{pmatrix} a & b \\ c & d \end{pmatrix} -> [[a,b],[c,d]]
-        // Use [\s\S] instead of . with 's' flag for ES6 compatibility
-        s=s.replace(/\\begin\{pmatrix\}([\s\S]*?)\\end\{pmatrix\}/g,(_,content)=>{
-            let rows=content.split('\\\\').map((row:string)=>row.trim());
-            let matrixRows=rows.map((row:string)=>{
-                let cells=row.split('&').map((cell:string)=>cell.trim());
-                return '['+cells.join(',')+']';
-            });
-            return '['+matrixRows.join(',')+']';
-        });
-        // Remove backslashes from other commands (e.g., \sin -> sin)
-        s=s.replace(/\\([a-zA-Z]+)/g,'$1');
-        return s;
-    };
-    // --- Helper to compare two expressions (used for left/right sides) ---
-    let compareExpressions=(exprA: string, exprB: string, useFullPipeline: boolean=true): boolean=>{
-        if (exprA===exprB) return true;
-        // Convert LaTeX in both expressions
-        exprA=convertLatex(exprA);
-        exprB=convertLatex(exprB);
-        // Sanitize both
-        let sanA=sanitize(exprA);
-        let sanB=sanitize(exprB);
-        if (sanA===sanB) return true;
-        // Remove constants, but preserve purely numeric expressions
-        let funcA=removeConstants(sanA);
-        let funcB=removeConstants(sanB);
-        if (funcA===funcB) return true;
-        // Decimal conversion
-        let decA=toDecimal(funcA);
-        let decB=toDecimal(funcB);
-        if (decA===decB) return true;
-        // Term comparison
-        let termsA=toTerms(funcA);
-        let termsB=toTerms(funcB);
-        if (termsA.join('+')===termsB.join('+')) return true;
-        // Numeric evaluation for constants (including vectors)
-        let valA=tryEvaluate(exprA);
-        let valB=tryEvaluate(exprB);
-        if (valA!==null && valB!==null){
-            if (Array.isArray(valA) && Array.isArray(valB)){
-                if (valA.length===valB.length){
-                    let allMatch=true;
-                    for (let i=0;i<valA.length;i++){
-                        if (Math.abs(valA[i]-valB[i])>=1e-8){
-                            allMatch=false;
-                            break;
-                        }
-                    }
-                    if (allMatch) return true;
-                }
-            }
-            else if (typeof valA==='number' && typeof valB==='number'){
-                if (Math.abs(valA-valB)<1e-8) return true;
-            }
-        }
-        // Math.js if available
-        if (useFullPipeline){
-            try{
-                let simpA=mathjs.simplify(funcA).toString().replace(/\s+/g,'');
-                let simpB=mathjs.simplify(funcB).toString().replace(/\s+/g,'');
-                if (simpA===simpB) return true;
-                // The free symbols are taken from both sides and must match as
-                // sets. Sampling a variable that appears on only one side leaves
-                // the other expression undefined at every point, so the
-                // comparison silently decided nothing.
-                let varsA=freeSymbols(funcA);
-                let varsB=freeSymbols(funcB);
-                if (varsA.length!==varsB.length||!varsA.every(v=>varsB.indexOf(v)>=0)){
-                    return false;
-                }
-                if (varsA.length===1){
-                    let varName=varsA[0];
-                    let points=[0.5,1,2,3,Math.PI/4,Math.E];
-                    let match=true;
-                    for (let x of points){
-                        try{
-                            let scope={[varName]:x};
-                            let lv=mathjs.evaluate(funcA,scope);
-                            let rv=mathjs.evaluate(funcB,scope);
-                            if (!Number.isFinite(lv)||!Number.isFinite(rv)||Math.abs(lv-rv)>=1e-8){
-                                match=false;
-                                break;
-                            }
-                        }catch(e){
-                            match=false;
-                            break;
-                        }
-                    }
-                    if (match) return true;
-                }
-                else if (varsA.length===0){
-                    try{
-                        let numA=mathjs.evaluate(funcA);
-                        let numB=mathjs.evaluate(funcB);
-                        if (Math.abs(numA-numB)<1e-8) return true;
-                    }catch(e){}
-                }
-            }catch(e){
-                console.warn("Math.js evaluation failed in side comparison",e);
-            }
-        }
-        return false;
-    };
-    // --- Main comparison logic ---
-    let isCorrect=false;
-    // Check if the expression contains an equals sign (equation)
-    if (answer.includes('=') && correct.includes('=')){
-        let [userLeft, userRight] = answer.split('=').map(s=>s.trim());
-        let [correctLeft, correctRight] = correct.split('=').map(s=>s.trim());
-        // Compare left sides
-        let leftOk=compareExpressions(userLeft, correctLeft, true);
-        // Compare right sides: use numeric evaluation if both are constant expressions
-        let rightOk=false;
-        if (leftOk){
-            // Try numeric evaluation first
-            try{
-                let varsRightUser=mathjs.parse(userRight).filter((node:any)=>node.isSymbolNode).length;
-                let varsRightCorrect=mathjs.parse(correctRight).filter((node:any)=>node.isSymbolNode).length;
-                if (varsRightUser===0 && varsRightCorrect===0){
-                    let valUser=mathjs.evaluate(userRight);
-                    let valCorrect=mathjs.evaluate(correctRight);
-                    if (Math.abs(valUser-valCorrect)<1e-8){
-                        rightOk=true;
-                    }
-                }
-            }catch(e){
-                console.warn("Numeric evaluation of right side failed",e);
-            }
-            // If not numeric or failed, compare as expressions
-            if (!rightOk){
-                rightOk=compareExpressions(userRight, correctRight, true);
-            }
-        }
-        isCorrect = leftOk && rightOk;
-    }
-    else if (answer.includes('=') || correct.includes('=')){
-        // One is equation, other is not -> incorrect
-        isCorrect=false;
-    }
-    else {
-        // A single expression is compared by the same routine an equation side
-        // uses, against the key and then against the alternate spelling. The
-        // two had drifted apart, and the copy left behind accepted an answer
-        // that differed from the key by a constant.
-        isCorrect=compareExpressions(answer, correct, true)
-            || (alternate!==''&&compareExpressions(answer, alternate, true));
-        if (!isCorrect){
-            isCorrect=await settings.isAnswerCorrect(answer, sanitize(convertLatex(correct)), alternate);
-        }
-    }
+    let isCorrect=await gradeAnswer(answer, correct, alternate);
     let responseTime=getResponseTime();
     let errorType=!isCorrect ? detectErrorType(answer, correct, appState.selectedTopic || '') : null;
     // A review is recorded for every answer, correct or not, because the schedule
