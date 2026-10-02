@@ -270,20 +270,20 @@ function orthogonalFrame(rng: RngFn, size: number): {first: number[], second: nu
  * @param spread - The largest scale factor allowed.
  * @returns The input vectors and the orthogonalised vector the question asks for.
  */
-function gramSchmidtCase(rng: RngFn, size: number, spread: number): {inputs: number[][], answer: number[]}{
+function gramSchmidtCase(rng: RngFn, size: number, spread: number): {inputs: number[][], answer: number[], removals: number[]}{
     let frame=orthogonalFrame(rng, size);
     let scale=randNonZero(rng, 1, Math.max(1, spread), 0);
     let first=frame.first.map(x=>x*scale);
     let secondMix=randInt(rng, -2, 2);
     let secondWeight=randNonZero(rng, -3, 3, 0);
     let second=frame.first.map((x, i)=>x*secondMix+frame.second[i]*secondWeight);
-    if (size===2) return {inputs:[first, second], answer:frame.second.map(x=>x*secondWeight)};
+    if (size===2) return {inputs:[first, second], answer:frame.second.map(x=>x*secondWeight), removals:[secondMix]};
     let thirdMix=randInt(rng, -2, 2);
     let thirdSecondMix=randInt(rng, -2, 2);
     let thirdWeight=randNonZero(rng, -3, 3, 0);
     let third: number[]=[];
     for(let i=0; i<3; i++) third.push(first[i]*thirdMix+frame.second[i]*thirdSecondMix+frame.third[i]*thirdWeight);
-    return {inputs:[first, second, third], answer:frame.third.map(x=>x*thirdWeight)};
+    return {inputs:[first, second, third], answer:frame.third.map(x=>x*thirdWeight), removals:[thirdMix, thirdSecondMix]};
 }
 
 export function generateOrthogonality(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -299,6 +299,8 @@ export function generateOrthogonality(difficulty?: string, rng: RngFn=Math.rando
     let latex="";
     let expectedFormat="Enter a whole number";
     let choices:string[]=[];
+    let rungs:string[]=[];
+    let steps:string[]=[];
     switch(type){
         case "dot_product":{
             let u=drawVector(rng, size, spread);
@@ -311,6 +313,17 @@ export function generateOrthogonality(difficulty?: string, rng: RngFn=Math.rando
             let meaningful=[0];
             for(let i=0; i<size; i++) meaningful.push(answer+2*u[i]*w[i]);
             choices=fourOptions(correct, integerDistractors(answer, meaningful));
+            let products: string[]=[];
+            for(let i=0; i<size; i++) products.push(u[i]+" x "+w[i]);
+            rungs=[
+                "The dot product multiplies corresponding components and adds the products, so pair the first entry with the first, the second with the second, and so on.",
+                `There are ${size} components in each vector, so form ${size} products and add them.`
+            ];
+            steps=[
+                `The vectors are ${vectorLatex(u)} and ${vectorLatex(w)}.`,
+                `Componentwise products: ${products.join(" + ")}.`,
+                `Their sum is ${correct}.`
+            ];
             break;
         }
         case "norm":{
@@ -323,6 +336,19 @@ export function generateOrthogonality(difficulty?: string, rng: RngFn=Math.rando
             let total=0;
             for(let i=0; i<size; i++) total+=Math.abs(v[i]);
             choices=fourOptions(correct, integerDistractors(answer, [total, answer*2, -answer]));
+            let squares: string[]=[];
+            for(let i=0; i<size; i++) squares.push(v[i]+"^2 = "+v[i]*v[i]);
+            let sum=0;
+            for(let i=0; i<size; i++) sum+=v[i]*v[i];
+            rungs=[
+                "The length of a vector is the square root of the sum of the squares of its components, not the sum of the components and not the sum of their absolute values.",
+                `Square each of the ${size} components, add the squares, then take the square root of that sum.`
+            ];
+            steps=[
+                `The vector is ${vectorLatex(v)}.`,
+                `Squares: ${squares.join(", ")}, summing to ${sum}.`,
+                `The square root of ${sum} is ${answer}, so the length is ${correct}.`
+            ];
             break;
         }
         case "projection":{
@@ -341,6 +367,17 @@ export function generateOrthogonality(difficulty?: string, rng: RngFn=Math.rando
             latex=`Find the projection of \\( ${vectorLatex(point)} \\) onto \\( ${vectorLatex(v)} \\).`;
             expectedFormat=size===2?"Enter as (a, b)":"Enter as (a, b, c)";
             choices=fourOptions(correct, [vectorText(away), vectorText(point), ...vectorDistractors(along)]);
+            let numerator=dot(point, v);
+            let denominator=dot(v, v);
+            rungs=[
+                "The projection of a vector onto another is the scalar (w dot v) divided by (v dot v), times v, so the answer is always a multiple of the vector being projected onto.",
+                "Compute both dot products from the printed vectors, take the ratio, and multiply the target vector by it."
+            ];
+            steps=[
+                `The vector projected is ${vectorLatex(point)} and the target is ${vectorLatex(v)}.`,
+                `w dot v = ${numerator} and v dot v = ${denominator}, so the multiplier is ${numerator} / ${denominator} = ${multiple}.`,
+                `Multiplying the target vector by ${multiple} gives ${correct}.`
+            ];
             break;
         }
         case "gram_schmidt":{
@@ -354,6 +391,28 @@ export function generateOrthogonality(difficulty?: string, rng: RngFn=Math.rando
             latex=`Apply Gram-Schmidt to the ordered list ${subject.inputs.map(vectorLatex).join(", ")}. What is the ${position} vector the process produces?`;
             expectedFormat=count===2?"Enter as (a, b)":"Enter as (a, b, c)";
             choices=fourOptions(correct, vectorDistractors(wanted));
+            if (count===2){
+                rungs=[
+                    "Gram-Schmidt leaves the first vector as it stands and, at every later step, subtracts the projection of the current vector onto each vector already processed.",
+                    "For the second vector there is only the first one to project onto, so the answer is the second input minus its component along the first."
+                ];
+                steps=[
+                    `The first vector ${vectorLatex(subject.inputs[0])} is unchanged.`,
+                    `The second input is ${vectorLatex(subject.inputs[1])}; subtracting ${subject.removals[0]} times the first along it leaves ${vectorLatex(wanted)}.`,
+                    `So the second vector Gram-Schmidt produces is ${correct}.`
+                ];
+            }
+            else{
+                rungs=[
+                    "Gram-Schmidt leaves the first vector as it stands and, at every later step, subtracts the projection of the current vector onto each vector already processed.",
+                    "The third vector has two projections to remove, one onto the first vector and one onto the already-orthogonalised second, and what is left is the answer."
+                ];
+                steps=[
+                    `The first vector ${vectorLatex(subject.inputs[0])} is used unchanged, and the second input ${vectorLatex(subject.inputs[1])} becomes perpendicular to it.`,
+                    `Subtracting ${subject.removals[0]} times the first and ${subject.removals[1]} times the second from the third input ${vectorLatex(subject.inputs[2])} leaves ${vectorLatex(wanted)}.`,
+                    `So the third vector Gram-Schmidt produces is ${correct}.`
+                ];
+            }
             break;
         }
         case "orthogonal_complement":{
@@ -362,7 +421,17 @@ export function generateOrthogonality(difficulty?: string, rng: RngFn=Math.rando
             let offered: string[]=[];
             if (size===2){
                 answer=[-v[1], v[0]];
+                correct=vectorText(answer);
                 latex=`Give a vector perpendicular to \\( ${vectorLatex(v)} \\).`;
+                rungs=[
+                    "In two dimensions there is only one direction perpendicular to a given vector, and every nonzero vector along it is a correct answer.",
+                    "Swap the two components and negate the one that moves into the second place; the dot product of the two is then zero."
+                ];
+                steps=[
+                    `The vector is ${vectorLatex(v)} = (${v[0]}, ${v[1]}).`,
+                    `Swapping and negating gives (-${v[1]}, ${v[0]}) = (${answer[0]}, ${answer[1]}).`,
+                    `Its dot product with the original is ${(v[0]*answer[0])+ (v[1]*answer[1])}, so a vector perpendicular to it is ${correct}.`
+                ];
             }
             else{
                 let w=drawVector(rng, size, spread);
@@ -376,10 +445,19 @@ export function generateOrthogonality(difficulty?: string, rng: RngFn=Math.rando
                 // parallel to v and the cross product would come back zero.
                 if (isParallel(v, w)) w=[v[1], -v[0], v[2]];
                 answer=cross3(v, w);
+                correct=vectorText(answer);
                 latex=`Give a vector perpendicular to both \\( ${vectorLatex(v)} \\) and \\( ${vectorLatex(w)} \\).`;
                 offered.push(vectorText(w));
+                rungs=[
+                    "A vector perpendicular to two others in three dimensions is their cross product, since the cross product is perpendicular to both of its factors by construction.",
+                    "Order the two vectors, form their cross product, and check that it has dot product zero with each of them."
+                ];
+                steps=[
+                    `The two vectors are ${vectorLatex(v)} and ${vectorLatex(w)}.`,
+                    `Their cross product is ${vectorLatex(answer)}, and its dot product with each factor is ${dot(answer, v)} and ${dot(answer, w)}.`,
+                    `So a vector perpendicular to both is ${correct}.`
+                ];
             }
-            correct=vectorText(answer);
             alternate=correct;
             display=vectorLatex(answer);
             expectedFormat=size===2?"Enter as (a, b)":"Enter as (a, b, c)";
@@ -387,5 +465,5 @@ export function generateOrthogonality(difficulty?: string, rng: RngFn=Math.rando
             break;
         }
     }
-    return {latex, correct, alternate, display, choices, expectedFormat, subskill: type};
+    return {latex, correct, alternate, display, choices, expectedFormat, subskill: type, hints:{rungs, concede:"The answer is "+correct+"."}, solution: steps};
 }
