@@ -3,11 +3,14 @@
  * and CSS chunks, calculates gzipped sizes, and fails if any budget is exceeded.
  *
  * Budgets (gzipped):
- *   - Initial JS entry chunk:  BUNDLE_JS_BUDGET_KB   (default 40)
+ *   - Initial JS entry chunk:  BUNDLE_JS_BUDGET_KB   (default 35)
  *   - Initial CSS chunk:       BUNDLE_CSS_BUDGET_KB  (default 10)
- *   - Total initial load:      BUNDLE_TOTAL_BUDGET_KB (default 58)
+ *   - Total initial load:      BUNDLE_TOTAL_BUDGET_KB (default 55)
  *
- * Override via env vars, e.g. BUNDLE_JS_BUDGET_KB=40 node scripts/bundle-check.js
+ * These defaults are the numbers the payload actually has to meet, and raising
+ * them to make a build pass defeats the point of having them: a budget that is
+ * moved whenever it bites is not a budget. Override via env vars, e.g.
+ * BUNDLE_JS_BUDGET_KB=40 node scripts/bundle-check.js
  */
 import{readFileSync,existsSync}from"node:fs";
 import{gzipSync}from"node:zlib";
@@ -16,9 +19,9 @@ import{fileURLToPath}from"node:url";
 let __dirname=dirname(fileURLToPath(import.meta.url));
 let distDir=join(__dirname,"..","dist");
 let indexHtmlPath=join(distDir,"index.html");
-let JS_BUDGET=Number(process.env.BUNDLE_JS_BUDGET_KB||40);
+let JS_BUDGET=Number(process.env.BUNDLE_JS_BUDGET_KB||35);
 let CSS_BUDGET=Number(process.env.BUNDLE_CSS_BUDGET_KB||10);
-let TOTAL_BUDGET=Number(process.env.BUNDLE_TOTAL_BUDGET_KB||58);
+let TOTAL_BUDGET=Number(process.env.BUNDLE_TOTAL_BUDGET_KB||55);
 function gzipKb(buf){
 	return gzipSync(buf).length/1024;
 }
