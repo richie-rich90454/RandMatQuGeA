@@ -34,7 +34,7 @@ describe("generateFunctionProperties", ()=>{
         const dto=generateFunctionProperties("medium", rng);
         expect(dto.latex).toContain("even, odd, or neither");
         expect(dto.correct).toBe("even");
-        expect(dto.expectedFormat).toBe("Enter 'even', 'odd', or 'neither'");
+        expect(dto.expectedFormat).toBe("Enter 'even', 'odd', 'neither', or 'both'");
     });
     it("generates asymptotes question correctly", ()=>{
         const rng=vi.fn()
@@ -84,5 +84,20 @@ describe("generateFunctionProperties", ()=>{
         const dto1=generateFunctionProperties("medium", seededRng(42));
         const dto2=generateFunctionProperties("medium", seededRng(42));
         expect(dto1).toEqual(dto2);
+    });
+    it("offers a fourth parity word rather than shipping only even, odd and neither", ()=>{
+        let seen=0;
+        for(let difficulty of ["easy","medium","hard"]){
+            for(let seed=1; seed<=60; seed++){
+                const dto=generateFunctionProperties(difficulty, seededRng(seed));
+                expect(dto.choices).toHaveLength(4);
+                expect(new Set(dto.choices).size).toBe(4);
+                expect(dto.choices).toContain(dto.correct);
+                if (dto.latex.indexOf("even, odd, or neither")===-1) continue;
+                seen++;
+                expect(dto.choices).toContain("both");
+            }
+        }
+        expect(seen).toBeGreaterThan(0);
     });
 });
