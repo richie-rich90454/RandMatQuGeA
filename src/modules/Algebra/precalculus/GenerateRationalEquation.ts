@@ -1,5 +1,7 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
+import {fourOptions} from "../../shared/Options.js";
+import {fmt} from "../../shared/Numeric";
 /**
  * Rational equation: simple or extraneous.
  * @fileoverview Generates rational equation questions with MCQ distractors.
@@ -32,17 +34,16 @@ export function generateRationalEquation(difficulty?: string, rng: RngFn = Math.
         }
         if(numA===denominatorVal) numA=denominatorVal+1;
         const x=(e*denD-numB)/(numA-denominatorVal);
-        const ans=x.toFixed(2);
+        const ans=fmt(x,2);
         correct=ans;
         alternate=x.toString();
         display=ans;
         mathExpression=`Solve: \\( \\frac{${numA}x + ${numB}}{${denC}x + ${denD}} = ${e} \\)`;
-        const xNum=parseFloat(ans);
-        choices=[ans];
-        choices.push((xNum+0.1).toFixed(2));
-        choices.push((xNum-0.1).toFixed(2));
-        choices.push((e).toString());
-        choices.push("no solution");
+        // The reported defect here was `e` offered as "1" against a key of
+        // "1.00": two spellings of one value, which is one option, not two.
+        // Every candidate is rendered through the same fmt as the key, so the
+        // filter compares values and the set always reaches four.
+        choices=fourOptions(ans, [fmt(e,2), fmt(numA-denominatorVal,2), fmt(x+0.1,2), fmt(x-0.1,2), "no solution", fmt(numA,2)]);
         expectedFormat="Enter decimal answer";
     }
     else{
@@ -53,33 +54,28 @@ export function generateRationalEquation(difficulty?: string, rng: RngFn = Math.
             correct="no solution";
             alternate="no solution";
             display="no solution";
-            choices=["no solution",`x = ${extraneousVal}`,`x = ${extraneousVal+1}`,`x = ${extraneousVal-1}`];
+            // The excluded value is the answer a learner keeps when they cross-multiply
+            // without excluding it, which is the whole point of this branch.
+            choices=fourOptions(correct, [`x = ${extraneousVal}`,`x = ${extraneousVal+1}`,`x = ${extraneousVal-1}`,`x = ${extraneousVal+2}`]);
         }
         else{
+            // Cross-multiplying gives 1 = b + c(x-a), so x = a + (1-b)/c.
+            // b is not 1 here, so the solution is not the excluded value and
+            // `x = a` is provably wrong.
             const sol=a+(1-b)/c;
-            correct=sol.toFixed(2);
+            correct=fmt(sol,2);
             alternate=sol.toString();
             display=correct;
-            choices=[correct];
-            choices.push((sol+0.1).toFixed(2));
-            choices.push((sol-0.1).toFixed(2));
-            choices.push("no solution");
-            choices.push(`x = ${extraneousVal}`);
+            choices=fourOptions(correct, [fmt(sol+0.1,2), fmt(sol-0.1,2), "no solution", `x = ${extraneousVal}`]);
         }
         expectedFormat="Enter 'no solution' or the solution";
-    }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
     }
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: choices,
         expectedFormat: expectedFormat
     };
 }
