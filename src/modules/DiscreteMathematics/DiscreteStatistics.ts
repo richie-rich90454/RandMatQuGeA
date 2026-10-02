@@ -1,10 +1,11 @@
-﻿﻿/**
+/**
  * Statistics questions generator with MCQ distractors
  * @fileoverview Generates statistical questions (mean, median, mode, range, stem-and-leaf, box plot, standard deviation). Returns a QuestionDto with correct value, alternate representation, display format, and plausible wrong answers for MCQ mode.
  * @date 2026-03-29
  */
 import type {RngFn, QuestionDto} from "../../types/global";
 import {getDataRange, mean, median, mode, range, stdDev} from "./DiscreteUtils.js";
+import {fourOptions} from "../shared/Options.js";
 export function generateStatistics(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
     let types=["mean","median","mode","range","stem_leaf","box_plot","standard_deviation"];
     let type=types[Math.floor(rng()*types.length)];
@@ -49,22 +50,41 @@ export function generateStatistics(difficulty?: string, rng: RngFn=Math.random):
             let modes=mode(data);
             if (modes.length===data.length){
                 answer="no mode";
-                choices=["no mode","none","0","all"];
+                // "none" was offered here, which is the same statement as the answer
+                // written differently. The options are now the numbers a learner
+                // reaches for instead of a mode: the two other summary statistics,
+                // the spread, and the first few values themselves, none of which is
+                // the mode of a data set where every value occurs once.
+                choices=fourOptions(answer, [
+                    mean(data).toFixed(2),
+                    median(data).toFixed(2),
+                    stdDev(data).toFixed(2),
+                    data[0].toString(),
+                    data[1].toString(),
+                    data[2].toString()
+                ]);
             }
             else{
                 answer=modes.join(", ");
-                choices=[answer];
-                let wrongModes=[];
+                // The neighbours of the mode are the wrong modes a learner picks
+                // when they read one digit off the wrong entry, and the mean and
+                // median are the two summary statistics this question is not
+                // asking for. The median is no longer offered on its own, because
+                // for a whole-number median it prints as the mode with two decimals
+                // and is the same value in a different spelling.
+                let wrongModes:string[]=[];
                 if (modes.length===1){
                     wrongModes.push((modes[0]+1).toString());
                     wrongModes.push((modes[0]-1).toString());
-                    wrongModes.push(median(data).toFixed(2));
+                    wrongModes.push((modes[0]+2).toString());
                 }
                 else{
-                    wrongModes.push(modes[0].toString());
-                    wrongModes.push(mean(data).toFixed(2));
+                    wrongModes.push((modes[0]+1).toString());
+                    wrongModes.push((modes[1]-1).toString());
+                    wrongModes.push((modes[0]-1).toString());
                 }
-                choices.push(...wrongModes);
+                wrongModes.push(mean(data).toFixed(2));
+                choices=fourOptions(answer, wrongModes);
             }
             questionText=`Find the mode(s) of the data set: ${data.join(", ")}.`;
             hint="Enter numbers separated by commas, or 'no mode'";
@@ -155,12 +175,7 @@ export function generateStatistics(difficulty?: string, rng: RngFn=Math.random):
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if (!uniqueChoices.includes(answer)){
-        if (uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=answer;
-        else uniqueChoices=[answer];
-    }
+    let uniqueChoices=fourOptions(answer, choices);
     return {
         latex: questionText,
         correct: answer,
