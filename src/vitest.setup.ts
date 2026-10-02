@@ -2,7 +2,10 @@ import {vi} from "vitest";
 vi.mock("@tauri-apps/api/core",()=>({
     invoke: vi.fn().mockResolvedValue(undefined),
 }));
-// Mock three.js to prevent OOM from loading the large library
+// Mock three.js to prevent OOM from loading the large library.
+// Every implementation here is a `function`, not an arrow, because vitest
+// builds a constructor out of the implementation and an arrow is not callable
+// with `new`.
 vi.mock("three",()=>{
     const mockVector3={
         x:0,y:0,z:0,
@@ -10,85 +13,115 @@ vi.mock("three",()=>{
         copy:vi.fn().mockReturnThis(),
         clone:vi.fn().mockReturnThis(),
     };
+    // GridHelper, AxesHelper and Line are all LineSegments/Line, so they carry
+    // GPU buffers just as a Mesh does, and they hold the geometry and material
+    // they were constructed with, which is what teardown has to dispose.
+    function mockDisposable(geometry: any={dispose:vi.fn()}, material: any={dispose:vi.fn()}){
+        return {geometry, material, position:mockVector3};
+    }
+    function mockMaterial(){
+        return {dispose:vi.fn()};
+    }
     return {
-        Scene:vi.fn().mockImplementation(()=>({
-            add:vi.fn(),
-            traverse:vi.fn(),
-            position:mockVector3,
-        })),
-        PerspectiveCamera:vi.fn().mockImplementation(()=>({
-            position:mockVector3,
-            lookAt:vi.fn(),
-            updateProjectionMatrix:vi.fn(),
-            aspect:1,
-        })),
-        WebGLRenderer:vi.fn().mockImplementation(()=>({
-            setSize:vi.fn(),
-            setClearColor:vi.fn(),
-            setPixelRatio:vi.fn(),
-            render:vi.fn(),
-            dispose:vi.fn(),
-            domElement:document.createElement("canvas"),
-        })),
-        Mesh:vi.fn().mockImplementation(()=>({
-            position:mockVector3,
-            geometry:{dispose:vi.fn()},
-            material:{dispose:vi.fn()},
-        })),
-        MeshStandardMaterial:vi.fn(),
+        Scene:vi.fn().mockImplementation(function(){
+            const children: any[]=[];
+            return {
+                add:(child: any)=>{ children.push(child); },
+                traverse:(visit: any)=>{ for (let child of children) visit(child); },
+                position:mockVector3,
+            };
+        }),
+        PerspectiveCamera:vi.fn().mockImplementation(function(){
+            return {
+                position:mockVector3,
+                quaternion:{x:0,y:0,z:0,w:1},
+                lookAt:vi.fn(),
+                updateProjectionMatrix:vi.fn(),
+                aspect:1,
+            };
+        }),
+        WebGLRenderer:vi.fn().mockImplementation(function(){
+            return {
+                setSize:vi.fn(),
+                setClearColor:vi.fn(),
+                setPixelRatio:vi.fn(),
+                render:vi.fn(),
+                dispose:vi.fn(),
+                domElement:document.createElement("canvas"),
+            };
+        }),
+        Mesh:vi.fn().mockImplementation(function(geometry: any, material: any){ return mockDisposable(geometry, material); }),
+        MeshStandardMaterial:vi.fn().mockImplementation(mockMaterial),
         SphereGeometry:vi.fn(),
         BoxGeometry:vi.fn(),
         CylinderGeometry:vi.fn(),
         ConeGeometry:vi.fn(),
         TorusGeometry:vi.fn(),
-        BufferGeometry:vi.fn().mockImplementation(()=>({
-            setFromPoints:vi.fn().mockReturnThis(),
-        })),
-        LineBasicMaterial:vi.fn(),
-        Line:vi.fn(),
-        Group:vi.fn().mockImplementation(()=>({
-            add:vi.fn(),
-            position:mockVector3,
-        })),
+        BufferGeometry:vi.fn().mockImplementation(function(){
+            return {
+                setFromPoints:vi.fn().mockReturnThis(),
+                dispose:vi.fn(),
+            };
+        }),
+        LineBasicMaterial:vi.fn().mockImplementation(mockMaterial),
+        Line:vi.fn().mockImplementation(function(geometry: any, material: any){ return mockDisposable(geometry, material); }),
+        Group:vi.fn().mockImplementation(function(){
+            return {
+                add:vi.fn(),
+                position:mockVector3,
+            };
+        }),
         AmbientLight:vi.fn(),
-        DirectionalLight:vi.fn().mockImplementation(()=>({
-            position:mockVector3,
-        })),
-        GridHelper:vi.fn(),
-        AxesHelper:vi.fn(),
-        Vector3:vi.fn().mockImplementation((x=0,y=0,z=0)=>({
-            x,y,z,
-            set:vi.fn().mockReturnThis(),
-            copy:vi.fn().mockReturnThis(),
-            clone:vi.fn().mockReturnThis(),
-        })),
-        Box3:vi.fn().mockImplementation(()=>({
-            setFromObject:vi.fn().mockReturnThis(),
-            getBoundingSphere:vi.fn().mockReturnValue({radius:3}),
-        })),
+        DirectionalLight:vi.fn().mockImplementation(function(){
+            return {position:mockVector3};
+        }),
+        GridHelper:vi.fn().mockImplementation(function(){ return mockDisposable(); }),
+        AxesHelper:vi.fn().mockImplementation(function(){ return mockDisposable(); }),
+        Vector3:vi.fn().mockImplementation(function(x=0, y=0, z=0){
+            return {
+                x,y,z,
+                set:vi.fn().mockReturnThis(),
+                copy:vi.fn().mockReturnThis(),
+                clone:vi.fn().mockReturnThis(),
+            };
+        }),
+        Box3:vi.fn().mockImplementation(function(){
+            return {
+                setFromObject:vi.fn().mockReturnThis(),
+                getBoundingSphere:vi.fn().mockReturnValue({radius:3, center:{x:0,y:0,z:0,copy:vi.fn()}}),
+            };
+        }),
         Sphere:vi.fn(),
     };
 });
 vi.mock("three/examples/jsm/controls/OrbitControls.js",()=>({
-    OrbitControls:vi.fn().mockImplementation(()=>({
-        enableDamping:true,
-        dampingFactor:0.05,
-        screenSpacePanning:true,
-        maxPolarAngle:Math.PI/2,
-        target:{x:0,y:0,z:0},
-        update:vi.fn(),
-        dispose:vi.fn(),
-    })),
+    OrbitControls:vi.fn().mockImplementation(function(){
+        return {
+            enableDamping:true,
+            dampingFactor:0.05,
+            screenSpacePanning:true,
+            maxPolarAngle:Math.PI/2,
+            target:{x:0,y:0,z:0,copy:vi.fn()},
+            update:vi.fn(),
+            addEventListener:vi.fn(),
+            removeEventListener:vi.fn(),
+            dispose:vi.fn(),
+        };
+    }),
 }));
 vi.mock("three/examples/jsm/renderers/CSS2DRenderer.js",()=>({
-    CSS2DRenderer:vi.fn().mockImplementation(()=>({
-        setSize:vi.fn(),
-        render:vi.fn(),
-        domElement:document.createElement("div"),
-    })),
-    CSS2DObject:vi.fn().mockImplementation(()=>({
-        position:{x:0,y:0,z:0,set:vi.fn(),copy:vi.fn()},
-    })),
+    CSS2DRenderer:vi.fn().mockImplementation(function(){
+        return {
+            setSize:vi.fn(),
+            render:vi.fn(),
+            domElement:document.createElement("div"),
+        };
+    }),
+    CSS2DObject:vi.fn().mockImplementation(function(){
+        return {
+            position:{x:0,y:0,z:0,set:vi.fn(),copy:vi.fn()},
+        };
+    }),
 }));
 (globalThis as any).__TAURI_INTERNALS__={};
 (globalThis as any).__TAURI__={};
