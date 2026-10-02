@@ -70,4 +70,18 @@ describe("generateRationalEquation", ()=>{
         const dto2=generateRationalEquation("medium", seededRng(42));
         expect(dto1).toEqual(dto2);
     });
+    it("treats two spellings of one solution as one option rather than two", ()=>{
+        for(let difficulty of ["easy","medium","hard"]){
+            for(let seed=1; seed<=80; seed++){
+                const dto=generateRationalEquation(difficulty, seededRng(seed));
+                expect(dto.choices).toHaveLength(4);
+                expect(new Set(dto.choices).size).toBe(4);
+                expect(dto.choices).toContain(dto.correct);
+                let asNumbers=(dto.choices??[]).map(o=>Number(o));
+                if (asNumbers.every(o=>Number.isFinite(o))){
+                    expect(new Set(asNumbers).size).toBe(4);
+                }
+            }
+        }
+    });
 });
