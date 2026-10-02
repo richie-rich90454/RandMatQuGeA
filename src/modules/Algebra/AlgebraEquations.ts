@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Linear equations: one-step, two-step, both sides, parentheses, literal.
  * Quadratic equations: factoring, completing square, quadratic formula, discriminant.
  * Inequalities: linear, quadratic, rational, compound, absolute.
@@ -6,8 +6,19 @@
  * @fileoverview Generates equation and inequality questions with MCQ distractors.
  * @date 2026-04-18
  */
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxForDifficulty} from "./AlgebraUtils.js";
+import type{RngFn, QuestionDto}from "../../types/global";
+import{getMaxForDifficulty}from"./AlgebraUtils.js";
+import{fourOptions}from"../shared/Options.js";
+
+/**
+ * One-step, two-step, both-sides, parenthesised and literal linear equations.
+ * Every answer is a whole number, so nothing is rounded and the number in the
+ * prompt is the number graded.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generateLinearEquation(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["one_step","two_step","both_sides","parentheses","literal"];
     let type=types[Math.floor(rng()*types.length)];
@@ -31,22 +42,14 @@ export function generateLinearEquation(difficulty?: string, rng: RngFn = Math.ra
                 correct=x.toString();
                 alternate=correct;
                 display=correct;
-                choices=[correct];
-                choices.push((x+1).toString());
-                choices.push((x-1).toString());
-                choices.push(rhs.toString());
-                choices.push((rhs-a).toString());
+                choices=[`${rhs}`,`${-x}`,`${x+1}`,`${x-1}`,`${rhs+a}`];
             }else{
                 let rhs=a-x;
                 mathExpression=`Solve: \\( ${a} - x = ${rhs} \\)`;
                 correct=x.toString();
                 alternate=correct;
                 display=correct;
-                choices=[correct];
-                choices.push((x+1).toString());
-                choices.push((x-1).toString());
-                choices.push(rhs.toString());
-                choices.push((a-rhs).toString());
+                choices=[`${rhs}`,`${-x}`,`${x+1}`,`${x-1}`,`${rhs+a}`];
             }
             expectedFormat="Enter a number";
             break;
@@ -59,11 +62,11 @@ export function generateLinearEquation(difficulty?: string, rng: RngFn = Math.ra
             correct=x.toString();
             alternate=correct;
             display=correct;
-            choices=[correct];
-            choices.push((x+1).toString());
-            choices.push((x-1).toString());
-            choices.push(((rhs-constant)/coeff).toString());
-            choices.push((rhs-constant).toString());
+            // The slip a learner actually makes on a two-step equation is to
+            // subtract the constant and stop, so coeff*x is offered as the
+            // answer. It is the key itself when the coefficient is one, and the
+            // value filter drops it then rather than presenting one number twice.
+            choices=[`${rhs}`,`${coeff*x}`,`${x+1}`,`${x-1}`,`${rhs+coeff}`];
             expectedFormat="Enter a number";
             break;
         }
@@ -87,11 +90,9 @@ export function generateLinearEquation(difficulty?: string, rng: RngFn = Math.ra
             correct=x.toString();
             alternate=correct;
             display=correct;
-            choices=[correct];
-            choices.push((x+1).toString());
-            choices.push((x-1).toString());
-            choices.push((x+2).toString());
-            choices.push((x-2).toString());
+            // The two constants are offered because dropping one side of the
+            // equation is the slip this form is testing.
+            choices=[`${x+1}`,`${x-1}`,`${x+2}`,`${constant}`,`${rhsConst}`,`${-x}`];
             expectedFormat="Enter a number";
             break;
         }
@@ -103,47 +104,65 @@ export function generateLinearEquation(difficulty?: string, rng: RngFn = Math.ra
             correct=x.toString();
             alternate=correct;
             display=correct;
-            choices=[correct];
-            choices.push((x+1).toString());
-            choices.push((x-1).toString());
-            choices.push((rhs/coeff-inner).toString());
-            choices.push((rhs-coeff*inner).toString());
+            // x+inner is the slip this form is testing: dividing the right side
+            // by the coefficient and forgetting to take the inner term off.
+            choices=[`${rhs}`,`${coeff*x+inner}`,`${x+inner}`,`${x+1}`,`${x-1}`,`${-x}`];
             expectedFormat="Enter a number";
             break;
         }
         case "literal":{
-            let eq=`${a}x + ${b}y = ${c}`;
+            // The coefficient of x must exceed one and must differ from the
+            // coefficient of y. With a coefficient of one the option "c/a - by"
+            // is the same function as the key, and with equal coefficients the
+            // option that swaps them is, so both are excluded rather than
+            // offered as if they were wrong.
+            let xCoef=Math.floor(rng()*(range-1))+2;
+            let yCoef=Math.floor(rng()*(range-1))+1;
+            let literal=Math.floor(rng()*range)+1;
+            let attempts=0;
+            while(xCoef===yCoef&&attempts<10){
+                yCoef=Math.floor(rng()*(range-1))+1;
+                attempts++;
+            }
+            if(xCoef===yCoef) yCoef=xCoef+1;
+            let eq=`${xCoef}x + ${yCoef}y = ${literal}`;
             mathExpression=`Solve for x: \\( ${eq} \\)`;
-            let ans=`\\frac{${c} - ${b}y}{${a}}`;
+            let ans=`\\frac{${literal} - ${yCoef}y}{${xCoef}}`;
             correct=ans;
-            alternate=`(${c} - ${b}y)/${a}`;
+            alternate=`(${literal} - ${yCoef}y)/${xCoef}`;
             display=ans;
-            choices=[correct];
-            choices.push(`\\frac{${c} - ${a}y}{${b}}`);
-            choices.push(`\\frac{${c} + ${b}y}{${a}}`);
-            choices.push(`\\frac{${c}}{${a}} - ${b}y`);
-            choices.push(`${c} - ${b}y`);
+            choices=[
+                `\\frac{${literal} + ${yCoef}y}{${xCoef}}`,
+                `\\frac{${literal} - ${xCoef}y}{${yCoef}}`,
+                `\\frac{${literal}}{${xCoef}} - ${yCoef}y`,
+                `${literal} - ${yCoef}y`
+            ];
             expectedFormat="Enter expression";
             break;
         }
         default:
             return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: expectedFormat
     };
 }
+/**
+ * Factoring, completing the square, the quadratic formula, and the discriminant.
+ * A quadratic with an irrational root has an answer the learner cannot write
+ * exactly, so the prompt says where to round rather than grading a silent
+ * approximation.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generateQuadraticEquation(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["factor","complete_square","quadratic_formula","discriminant"];
     let type=types[Math.floor(rng()*types.length)];
@@ -216,7 +235,7 @@ export function generateQuadraticEquation(difficulty?: string, rng: RngFn = Math
                 c=1;
                 disc=0;
             }
-            mathExpression=`Solve using the quadratic formula: \\( x^2 ${b>=0?"+ "+b:"- "+(-b)}x ${c>=0?"+ "+c:"- "+(-c)}=0 \\)`;
+            mathExpression=`Solve using the quadratic formula: \\( x^2 ${b>=0?"+ "+b:"- "+(-b)}x ${c>=0?"+ "+c:"- "+(-c)}=0 \\). (Round each root to the nearest hundredth.)`;
             let sol1=(-b+Math.sqrt(disc))/(2*a);
             let sol2=(-b-Math.sqrt(disc))/(2*a);
             // Guard the repeated-root case with a tolerance: for small integer
@@ -226,11 +245,13 @@ export function generateQuadraticEquation(difficulty?: string, rng: RngFn = Math
                 correct=sol1.toFixed(2);
                 alternate=correct;
                 display=correct;
-                choices=[correct];
-                choices.push((sol1+0.1).toFixed(2));
-                choices.push((sol1-0.1).toFixed(2));
-                choices.push((sol1*2).toFixed(2));
-                choices.push((sol1/2).toFixed(2));
+                choices=[
+                    (sol1+0.1).toFixed(2),
+                    (sol1-0.1).toFixed(2),
+                    (sol1*2).toFixed(2),
+                    "no real roots",
+                    (-sol1).toFixed(2)
+                ];
             }
             else{
                 correct=`${sol1.toFixed(2)}, ${sol2.toFixed(2)}`;
@@ -266,21 +287,25 @@ export function generateQuadraticEquation(difficulty?: string, rng: RngFn = Math
         default:
             return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: expectedFormat
     };
 }
+/**
+ * Linear inequalities in solved, graphed, compound and absolute-value form.
+ * Every solution set is built from the drawn coefficient, so the interval in the
+ * key is the interval the printed inequality has.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generateLinearInequality(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["solve","graph","compound","absolute"];
     let type=types[Math.floor(rng()*types.length)];
@@ -354,21 +379,25 @@ export function generateLinearInequality(difficulty?: string, rng: RngFn = Math.
         default:
             return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: expectedFormat
     };
 }
+/**
+ * Quadratic inequalities, in solved and descriptive form. A quadratic with
+ * irrational roots has endpoints the learner cannot write exactly, so the prompt
+ * says where to round rather than grading a silent approximation.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generateQuadraticInequality(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["solve","graph"];
     let type=types[Math.floor(rng()*types.length)];
@@ -404,12 +433,14 @@ export function generateQuadraticInequality(difficulty?: string, rng: RngFn = Ma
             correct=`(${root1.toFixed(2)}, ${root2.toFixed(2)})`;
             alternate=correct;
             display=correct;
-            mathExpression=`Solve: \\( x^2 + ${b}x + ${c} < 0 \\) (Enter interval)`;
-            choices=[correct];
-            choices.push(`(-∞, ${root1.toFixed(2)}) ∪ (${root2.toFixed(2)}, ∞)`);
-            choices.push(`[${root1.toFixed(2)}, ${root2.toFixed(2)}]`);
-            choices.push(`(${root1.toFixed(2)}, ${root2.toFixed(2)}]`);
-            choices.push(`(${(parseFloat(root1.toFixed(2))-1).toFixed(2)}, ${root2.toFixed(2)})`);
+            mathExpression=`Solve: \\( x^2 + ${b}x + ${c} < 0 \\) (Enter interval, rounding each endpoint to the nearest hundredth)`;
+            choices=[
+                correct,
+                `(-∞, ${root1.toFixed(2)}) ∪ (${root2.toFixed(2)}, ∞)`,
+                `[${root1.toFixed(2)}, ${root2.toFixed(2)}]`,
+                `(${root1.toFixed(2)}, ${root2.toFixed(2)}]`,
+                `(${(parseFloat(root1.toFixed(2))-1).toFixed(2)}, ${root2.toFixed(2)})`
+            ];
             expectedFormat="Enter interval";
             break;
         }
@@ -429,61 +460,77 @@ export function generateQuadraticInequality(difficulty?: string, rng: RngFn = Ma
         default:
             return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: expectedFormat
     };
 }
+/**
+ * Rational inequalities of the form `(x-a)/(x-b) > 0`. The two zeros split the
+ * number line at `a` and `b`, and the sign chart gives two rays, so the key is
+ * always the two outer rays.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generateRationalInequality(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let maxVal=getMaxForDifficulty(difficulty,5);
     let a=Math.floor(rng()*maxVal)+1;
-        let b=Math.floor(rng()*maxVal)+1;
-        let attempts=0;
-        while(a===b&&attempts<10){
-            b=Math.floor(rng()*maxVal)+1;
-            attempts++;
-        }
-        if(a===b) b=a+1;
-    let mathExpression=`Solve: \\( \\frac{x-${a}}{x-${b}} > 0 \\) (Enter intervals)`;
-    let intervals:string;
-    if(a<b){
-        intervals=`(-∞,${a}) ∪ (${b},∞)`;
-    }else{
-        intervals=`(-∞,${b}) ∪ (${a},∞)`;
+    let b=Math.floor(rng()*maxVal)+1;
+    // Equal zeros make the fraction equal to one everywhere except at the
+    // single point it is undefined, so there is no two-ray answer. The redraw is
+    // bounded and falls back to a neighbouring pair, because a source that keeps
+    // returning the same value would otherwise spin here forever.
+    let attempts=0;
+    while(a===b&&attempts<10){
+        b=Math.floor(rng()*maxVal)+1;
+        attempts++;
     }
+    if(a===b) b=a+1;
+    let mathExpression=`Solve: \\( \\frac{x-${a}}{x-${b}} > 0 \\) (Enter intervals)`;
+    let lo=Math.min(a,b);
+    let hi=Math.max(a,b);
+    let intervals=`(-∞,${lo}) ∪ (${hi},∞)`;
     let correct=intervals;
     let alternate=intervals.replace(/∞/g,"infinity");
     let display=correct;
-    let choices=[correct];
-    choices.push(`(-∞,${a}) ∪ (${b},∞)`);
-    choices.push(`(-∞,${b}) ∪ (${a},∞)`);
-    choices.push(`(-∞,${Math.min(a,b)}) ∪ (${Math.max(a,b)},∞)`);
-    choices.push(`(${a},${b})`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    // The four mistakes this form produces: reading the sign the other way and
+    // giving the middle interval, forgetting that the poles are excluded, moving
+    // each boundary by one, and writing the two roots in the order they are
+    // printed rather than in order. Every one of them is a set a learner can
+    // actually write, and every one of them is wrong.
+    let choices=[
+        `(${lo},${hi})`,
+        `(-∞,${lo}] ∪ [${hi},∞)`,
+        `(-∞,${lo+1}) ∪ (${hi+1},∞)`,
+        `(-∞,${hi}) ∪ (${lo},∞)`
+    ];
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: "Enter intervals e.g., (-∞,2) ∪ (5,∞)"
     };
 }
+/**
+ * Two-by-two systems solved by graphing, substitution, elimination, or read out
+ * of a sum-and-difference word problem. A substitution solution is a rational
+ * number, so the prompt says where to round rather than grading a silent
+ * approximation.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generateSystem2x2(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["graphing","substitution","elimination","word"];
     let type=types[Math.floor(rng()*types.length)];
@@ -520,7 +567,7 @@ export function generateSystem2x2(difficulty?: string, rng: RngFn = Math.random)
         case "substitution":{
             let eq1=`y=${a}x + ${b}`;
             let eq2=`${c}x + ${d}y = ${e}`;
-            mathExpression=`Solve by substitution:<br> \\( ${eq1} \\)<br> \\( ${eq2} \\)`;
+            mathExpression=`Solve by substitution:<br> \\( ${eq1} \\)<br> \\( ${eq2} \\). (Round each coordinate to the nearest hundredth.)`;
             let denominator=c+d*a;
             if(denominator===0) denominator=1;
             let xSol=(e-d*b)/denominator;
@@ -573,21 +620,24 @@ export function generateSystem2x2(difficulty?: string, rng: RngFn = Math.random)
         default:
             return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: expectedFormat
     };
 }
+/**
+ * Three-by-three systems, built from a drawn integer solution so the printed
+ * right-hand sides are the ones the key satisfies.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generateSystem3x3(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let maxVal=getMaxForDifficulty(difficulty,5);
     let x=Math.floor(rng()*maxVal)+1;
@@ -609,23 +659,20 @@ export function generateSystem3x3(difficulty?: string, rng: RngFn = Math.random)
     let correct=`(${x}, ${y}, ${z})`;
     let alternate=`(${x},${y},${z})`;
     let display=correct;
-    let choices=[correct];
-    choices.push(`(${x+1}, ${y}, ${z})`);
-    choices.push(`(${x}, ${y+1}, ${z})`);
-    choices.push(`(${x}, ${y}, ${z+1})`);
-    choices.push(`(${x-1}, ${y}, ${z})`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let choices:string[]=[
+        `(${x+1}, ${y}, ${z})`,
+        `(${x}, ${y+1}, ${z})`,
+        `(${x}, ${y}, ${z+1})`,
+        `(${x-1}, ${y}, ${z})`,
+        `(${x}, ${y-1}, ${z})`
+    ];
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: "Enter as (x, y, z)"
     };
 }
