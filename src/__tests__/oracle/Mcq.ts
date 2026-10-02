@@ -3,8 +3,8 @@
  * @description A multiple-choice question is only useful if exactly one option is
  * correct. The defects this module exists to prevent are all cases where that is
  * not true: fewer than four options, two options that are the same number spelled
- * differently, a distractor that is also a correct answer, and a distractor that is
- * `NaN` or `Infinity`.
+ * differently, a key that is not offered at all, a distractor that is also a correct
+ * answer, and a distractor that is `NaN` or `Infinity`.
  *
  * A generator that cannot produce four provably-distinct, provably-wrong
  * alternatives is a build failure. There is no fallback filler, because filler
@@ -45,7 +45,13 @@ export const MCQ_CODES={
 function isUnusableOption(option: string): boolean{
     if (typeof option!=="string"||option.trim()==="") return true;
     if (option==="NaN"||option==="Infinity"||option==="-Infinity") return true;
-    if (option==="undefined"||option==="null") return true;
+    // "undefined" is deliberately not on this list. It is the correct answer
+    // wherever a trigonometric ratio is undefined, and it is a distractor
+    // `src/main/Mcq.ts` builds for a sign or parity question, so rejecting it
+    // here contradicted the builder and failed a correct generator. "Infinity"
+    // is a different thing: it is not a value a learner can write, and not an
+    // answer to a question about numbers, so it stays rejected.
+    if (option==="null") return true;
     if (option==="-0.00"||option==="NaN rad"||option==="Infinity rad") return true;
     // toExponential emits "1.0e+2", which contradicts a declared format of
     // "like 1.2e3" and is not a spelling any learner would write. A leading sign
@@ -145,6 +151,19 @@ export async function validateMcq(dto: QuestionDto): Promise<McqFinding[]>{
         findings.push({
             code:MCQ_CODES.correctNotFirst,
             message:"Option 0 is "+JSON.stringify(choices[0])+" but the correct answer is "+JSON.stringify(dto.correct)+"."
+        });
+    }
+    // Exactly one option has to be the key. Two of them is already reported as a
+    // duplicate, because two options equal to the key are two options equal to each
+    // other, so only the absent case is left to name here.
+    let correctCount=0;
+    for(let option of choices){
+        if (sameOption(option, dto.correct)) correctCount++;
+    }
+    if (correctCount===0){
+        findings.push({
+            code:MCQ_CODES.correctAbsent,
+            message:"None of the options is the correct answer "+JSON.stringify(dto.correct)+"."
         });
     }
     for(let i=1; i<choices.length; i++){
