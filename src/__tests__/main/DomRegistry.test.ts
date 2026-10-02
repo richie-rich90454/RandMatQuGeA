@@ -73,4 +73,35 @@ describe("DomRegistry",()=>{
     it("should have session accessor",()=>{
         expect(registry.session).toBeDefined();
     });
+    it("should report the topic pills as the grid's own children",()=>{
+        let grid=document.createElement("div");
+        grid.id="topic-grid";
+        let first=document.createElement("button");
+        first.className="topic-pill";
+        first.dataset.topicId="add";
+        let second=document.createElement("button");
+        second.className="topic-pill";
+        second.dataset.topicId="sub";
+        grid.appendChild(first);
+        grid.appendChild(second);
+        document.body.appendChild(grid);
+        expect(registry.displays.topicPills).toEqual([first,second]);
+        document.body.removeChild(grid);
+    });
+    it("should report no topic pills when the grid is missing",()=>{
+        expect(registry.displays.topicPills).toEqual([]);
+    });
+    it("should resolve the math toolbar's symbol buttons",()=>{
+        let toolbar=document.createElement("div");
+        toolbar.id="math-toolbar";
+        let dropdown=document.createElement("div");
+        dropdown.id="math-dropdown";
+        let nested=document.createElement("button");
+        nested.className="math-toolbar-btn";
+        dropdown.appendChild(nested);
+        toolbar.appendChild(dropdown);
+        document.body.appendChild(toolbar);
+        expect(registry.displays.mathToolbarButtons).toEqual([nested]);
+        document.body.removeChild(toolbar);
+    });
 });
