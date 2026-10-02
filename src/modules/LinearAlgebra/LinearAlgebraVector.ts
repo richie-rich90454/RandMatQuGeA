@@ -5,6 +5,7 @@
  */
 import type {RngFn, QuestionDto} from "../../types/global";
 import {Vector2D, getRange} from "./LinearAlgebraUtils.js";
+import {fourOptions} from "../shared/Options.js";
 import {roundTo} from "../shared/Numeric";
 export function generateVector(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
     let types=["magnitude","direction","unit","dot","angle","projection","parametric","polar_convert","cartesian_convert","polar_graph","motion","de_moivre","add","subtract","parametric_to_cartesian"];
@@ -74,16 +75,21 @@ export function generateVector(difficulty?: string, rng: RngFn=Math.random): Que
         case "unit":{
             const{ x, y }=generateNonZeroVector();
             let mag=Math.sqrt(x**2+y**2);
-            let ux=(x/mag).toFixed(2);
-            let uy=(y/mag).toFixed(2);
+            let ux=roundTo(x/mag, 2);
+            let uy=roundTo(y/mag, 2);
             mathExpression=`Find the unit vector in the direction of \\(\\langle ${x.toFixed(1)}, ${y.toFixed(1)} \\rangle\\).`;
-            correct=`\\langle ${ux}, ${uy} \\rangle`;
-            alternate=`<${ux}, ${uy}>`;
-            choices=[correct];
-            choices.push(`\\langle ${(x/mag+0.1).toFixed(2)}, ${uy} \\rangle`);
-            choices.push(`\\langle ${ux}, ${(y/mag+0.1).toFixed(2)} \\rangle`);
-            choices.push(`\\langle ${(x/mag).toFixed(2)}, ${(y/mag).toFixed(2)} \\rangle`);
-            choices.push(`\\langle ${(x/(mag+0.5)).toFixed(2)}, ${(y/(mag+0.5)).toFixed(2)} \\rangle`);
+            correct=`\\langle ${ux.toFixed(2)}, ${uy.toFixed(2)} \\rangle`;
+            alternate=`<${ux.toFixed(2)}, ${uy.toFixed(2)}>`;
+            // Dividing by the length plus a half is the mistake this question
+            // invites. The other three displace one component, which keeps three
+            // provably distinct options even when that first one rounds onto the
+            // answer, which is what used to leave this branch with three options.
+            choices=fourOptions(correct, [
+                `\\langle ${roundTo(x/(mag+0.5), 2).toFixed(2)}, ${roundTo(y/(mag+0.5), 2).toFixed(2)} \\rangle`,
+                `\\langle ${(ux+0.1).toFixed(2)}, ${uy.toFixed(2)} \\rangle`,
+                `\\langle ${(ux-0.1).toFixed(2)}, ${uy.toFixed(2)} \\rangle`,
+                `\\langle ${ux.toFixed(2)}, ${(uy+0.1).toFixed(2)} \\rangle`
+            ]);
             break;
         }
         case "dot":{
@@ -154,19 +160,25 @@ export function generateVector(difficulty?: string, rng: RngFn=Math.random): Que
             break;
         }
         case "polar_convert":{
-            let r=compFrom(0, range);
+            // A radius of zero is the origin, and converting the origin asks the
+            // learner nothing: every angle gives the same point, so the whole
+            // branch collapses onto one answer and the option set with it.
+            let r=compFrom(0.5, range);
             let theta=compFrom(-180, 180, 0);
-            let x=(r*Math.cos(theta*Math.PI/180)).toFixed(2);
-            let y=(r*Math.sin(theta*Math.PI/180)).toFixed(2);
+            let x=roundTo(r*Math.cos(theta*Math.PI/180), 2);
+            let y=roundTo(r*Math.sin(theta*Math.PI/180), 2);
             mathExpression=`Convert the polar coordinate \\((${r.toFixed(1)}, ${theta.toFixed(0)}^{\\circ})\\) to Cartesian coordinates.`;
-            correct=`(${x}, ${y})`;
+            correct=`(${x.toFixed(2)}, ${y.toFixed(2)})`;
             alternate=correct;
-            let xNum=parseFloat(x), yNum=parseFloat(y);
-            choices=[correct];
-            choices.push(`(${(xNum+0.5).toFixed(2)}, ${yNum})`);
-            choices.push(`(${xNum}, ${(yNum+0.5).toFixed(2)})`);
-            choices.push(`(${(xNum).toFixed(2)}, ${(yNum).toFixed(2)})`);
-            choices.push(`(${(r*Math.cos(theta*Math.PI/180+0.1)).toFixed(2)}, ${y})`);
+            // The candidates are the two coordinate slips a learner makes here:
+            // displacing one component, and reading the angle as a radian value
+            // offset. The unrounded pair is not offered, because it is the answer.
+            choices=fourOptions(correct, [
+                `(${(x+0.5).toFixed(2)}, ${y.toFixed(2)})`,
+                `(${x.toFixed(2)}, ${(y+0.5).toFixed(2)})`,
+                `(${(x-0.5).toFixed(2)}, ${y.toFixed(2)})`,
+                `(${(r*Math.cos(theta*Math.PI/180+0.1)).toFixed(2)}, ${y.toFixed(2)})`
+            ]);
             break;
         }
         case "cartesian_convert":{
@@ -297,12 +309,7 @@ export function generateVector(difficulty?: string, rng: RngFn=Math.random): Que
             correct="";
             alternate="";
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct,
