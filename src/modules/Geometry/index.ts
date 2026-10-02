@@ -4,3 +4,6 @@ export * from "./GeometryVolume.js";
 export * from "./GeometryTriangles.js";
 export * from "./GeometryMisc.js";
 export * from "./GeometryAnalytic.js";
+export * from "./GenerateSimilarity.js";
+export * from "./GenerateTransformations.js";
+export * from "./GenerateCircleGeometry.js";
