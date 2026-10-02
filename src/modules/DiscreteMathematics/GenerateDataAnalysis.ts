@@ -14,6 +14,7 @@
 import type{RngFn, QuestionDto}from"../../types/global";
 import{roundTo, fmt}from"../shared/Numeric";
 import{shuffle}from"../shared/Random";
+import{fourOptions}from"../shared/Options.js";
 
 /** The mean of a sample. */
 export function mean(values: number[]): number{
@@ -133,7 +134,17 @@ export function generateDataAnalysis(difficulty?: string, rng: RngFn=Math.random
             display=correct+"th percentile";
             latex=`In the data set ${values.join(", ")}, what percentile is the value ${value}? Count the values at or below it and divide by the number of values.`;
             expectedFormat="Enter a whole number from 0 to 100";
-            choices=shuffle(rng, [rank, Math.max(0, rank-10), Math.min(100, rank+10), Math.max(0, rank-20)].map(String).filter((v, i, a)=>a.indexOf(v)===i));
+            // The offsets are clamped into the range a percentile can take, and the
+            // pool is longer than the three options wanted: at the ends of the
+            // range the clamps collapse two of the offsets onto each other, which is
+            // what left the top decile with three options.
+            choices=shuffle(rng, fourOptions(correct, [
+                Math.min(100, rank+10),
+                Math.max(0, rank-10),
+                Math.max(0, rank-20),
+                Math.min(100, rank+20),
+                50
+            ].filter(v=>v!==rank).map(String)));
             break;
         }
         case "regression_slope":{
@@ -189,16 +200,11 @@ export function generateDataAnalysis(difficulty?: string, rng: RngFn=Math.random
             display=`Q1=${q1}, median=${median}, Q3=${q3}`;
             latex=`Find the median of ${values.join(", ")}.`;
             expectedFormat="Enter a whole number";
-            choices=shuffle(rng, [median, q1, q3, median+2].map(String));
+            choices=shuffle(rng, fourOptions(correct, [q1, q3, median+2, median-2, q1-1].map(String)));
             break;
         }
     }
-    let unique=[...new Set(choices)];
-    if (unique.length>4) unique=unique.slice(0, 4);
-    if (!unique.includes(correct)){
-        if (unique.length>0) unique[Math.floor(rng()*unique.length)]=correct;
-        else unique=[correct];
-    }
+    let unique=fourOptions(correct, choices);
     return {latex, correct, alternate, display, choices: unique, expectedFormat};
 }
 
