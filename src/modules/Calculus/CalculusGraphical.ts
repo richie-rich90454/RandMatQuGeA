@@ -1,5 +1,7 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
+import {fourOptions} from "../shared/Options.js";
+import{roundTo}from"../shared/Numeric";
 /**
  * Generates a random "graphical calculus" question involving visual or tabular data.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -42,11 +44,18 @@ export function generateGraphicalCalculus(difficulty?: string, rng: RngFn=Math.r
             plainCorrectAnswer=holeY.toString();
             latexAnswer=plainCorrectAnswer;
             expectedFormat="Enter a number";
-            choices=[plainCorrectAnswer];
-            choices.push((holeY+1).toString());
-            choices.push((holeY-1).toString());
-            choices.push((coeff*(holeX+1)*(holeX+1)).toString());
-            choices.push((coeff*(holeX-1)*(holeX-1)).toString());
+            // The two neighbouring values of x are the limits a learner reads off a
+            // graph at the wrong point, and the two quadratic values are the limits
+            // at the neighbouring points. At a limit of zero and a coefficient of
+            // one the last two collapse onto the first, so a fifth candidate is
+            // needed to leave three options standing.
+            choices=fourOptions(plainCorrectAnswer, [
+                (holeY+1).toString(),
+                (holeY-1).toString(),
+                (coeff*(holeX+1)*(holeX+1)).toString(),
+                (coeff*(holeX-1)*(holeX-1)).toString(),
+                (coeff*(holeX+2)*(holeX+2)).toString()
+            ]);
             break;
         }
         case "multipleReps":{
@@ -101,18 +110,26 @@ export function generateGraphicalCalculus(difficulty?: string, rng: RngFn=Math.r
         }
         case "inverseFunc":{
             let fVal=Math.floor(rng()*5)+2;
-            let fPrime=Math.floor(rng()*maxCoeff)+1;
+            // The slope is at least two. A slope of one makes the reciprocal
+            // derivative 1, and the candidate that divides by the slope minus one
+            // is then a division by zero, which offered "Infinity" as an option and
+            // left the set with three real values.
+            let fPrime=Math.floor(rng()*(maxCoeff-1))+2;
             let a=Math.floor(rng()*5)+1;
             mathExpression=`\\[ f(${a})=${fVal}, f'(${a})=${fPrime}. \\text{ Find } (f^{-1})'(${fVal}). \\]`;
-            let correct=1/fPrime;
+            let correct=roundTo(1/fPrime, 3);
             plainCorrectAnswer=correct.toFixed(3);
             latexAnswer=plainCorrectAnswer;
             expectedFormat="Enter a number";
-            choices=[plainCorrectAnswer];
-            choices.push((1/(fPrime+1)).toFixed(3));
-            choices.push((1/(fPrime-1)).toFixed(3));
-            choices.push(fPrime.toFixed(3));
-            choices.push((1/fVal).toFixed(3));
+            // The slope itself and the reciprocal of the function value are the two
+            // answers a learner gives by inverting the wrong fraction.
+            choices=fourOptions(plainCorrectAnswer, [
+                roundTo(1/(fPrime+1), 3).toFixed(3),
+                roundTo(1/(fPrime-1), 3).toFixed(3),
+                fPrime.toFixed(3),
+                roundTo(1/fVal, 3).toFixed(3),
+                roundTo(2/fPrime, 3).toFixed(3)
+            ]);
             break;
         }
         case "invTrigDeriv":{
@@ -121,11 +138,17 @@ export function generateGraphicalCalculus(difficulty?: string, rng: RngFn=Math.r
             plainCorrectAnswer=`${a}/(1+${a*a}x^2)`;
             latexAnswer=`\\frac{${a}}{1+${a*a}x^{2}}`;
             expectedFormat="Enter expression";
-            choices=[plainCorrectAnswer];
-            choices.push(`${a}/(1+x^2)`);
-            choices.push(`${a}/(1+${a*a}x)`);
-            choices.push(`${a}/(1+${a*a}x^2)*${a}`);
-            choices.push(`${a}*x/(1+${a*a}x^2)`);
+            // Dropping the coefficient was one of the candidates, and at a
+            // coefficient of one that is the answer itself, so this branch offered
+            // the learner a second spelling of the correct derivative. Each
+            // candidate below changes the power or adds a factor of x, which is
+            // wrong for every coefficient.
+            choices=fourOptions(plainCorrectAnswer, [
+                `${a}/(1+x)`,
+                `${a}/(1+${a*a}x)`,
+                `${a}*x/(1+${a*a}x^2)`,
+                `${a}/(1+${a*a}x^3)`
+            ]);
             break;
         }
         case "selectProcedure":{
@@ -347,12 +370,7 @@ export function generateGraphicalCalculus(difficulty?: string, rng: RngFn=Math.r
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(plainCorrectAnswer)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
-        else uniqueChoices=[plainCorrectAnswer];
-    }
+    let uniqueChoices=fourOptions(plainCorrectAnswer, choices);
     return {
         latex: mathExpression,
         correct: plainCorrectAnswer,
