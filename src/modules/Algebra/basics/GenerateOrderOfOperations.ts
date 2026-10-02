@@ -1,9 +1,17 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../AlgebraUtils.js";
+import type{RngFn, QuestionDto}from"../../../types/global";
+import{getMaxForDifficulty}from"../AlgebraUtils.js";
+import{fourOptions}from"../../shared/Options.js";
+
 /**
  * Generates an order‑of‑operations question (basic, with exponents, or with parentheses) with MCQ distractors.
- * @fileoverview Order of operations evaluation. Sets window.correctAnswer with numeric result and plausible wrong answers.
+ * @fileoverview Order of operations evaluation. Every answer is a whole number
+ * the printed expression evaluates to exactly, so nothing is rounded. The wrong
+ * answers are the three ways a learner gets precedence wrong: evaluating left to
+ * right, dropping the operation that should bind tightest, and binding it to the
+ * wrong pair of terms.
  * @date 2026-04-18
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
  * @returns QuestionDto
  */
 export function generateOrderOfOperations(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -27,58 +35,69 @@ export function generateOrderOfOperations(difficulty?: string, rng: RngFn=Math.r
             alternate=correct;
             display=correct;
             mathExpression=`Evaluate: \\( ${expr} \\)`;
-            let numRes=parseInt(correct);
-            choices=[correct];
-            choices.push((numRes+1).toString());
-            choices.push((numRes-1).toString());
-            choices.push((a+b*c).toString());
-            choices.push(((a+b)*c).toString());
+            choices=[
+                `${(a+b)*c}`,
+                `${a+b+c}`,
+                `${a*b+c}`,
+                `${a*b*c}`,
+                `${a*c+b}`,
+                `${a-b*c}`
+            ];
             break;
         }
         case "with_exponents":{
-            let expr=`${a} + ${b}^2`;
-            let result=a + b*b;
+            // The base is drawn above one, because an exponent of one makes the
+            // superscript the only thing in the expression that is not itself.
+            let power=Math.max(2, b);
+            let expr=`${a} + ${power}^2`;
+            let result=a + power*power;
             correct=result.toString();
             alternate=correct;
             display=correct;
             mathExpression=`Evaluate: \\( ${expr} \\)`;
-            let numRes=parseInt(correct);
-            choices=[correct];
-            choices.push((numRes+1).toString());
-            choices.push((numRes-1).toString());
-            choices.push((a+b).toString());
-            choices.push((a+b*b+1).toString());
+            // Reading the exponent as covering the whole sum is the mistake this
+            // form is testing; the other two are squaring the wrong term and
+            // treating the exponent as an ordinary factor.
+            choices=[
+                `${(a+power)*(a+power)}`,
+                `${a*a+power}`,
+                `${a+power}`,
+                `${a*power}`,
+                `${a+power+power}`
+            ];
             break;
         }
         case "with_parentheses":{
-            let expr=`(${a} + ${b}) \\times ${c}`;
-            let result=(a+b)*c;
+            // The multiplier is drawn above one, because a parenthesis times one
+            // is the same expression with the parenthesis deleted, which asks
+            // nothing about precedence.
+            let factor=Math.max(2, c);
+            let expr=`(${a} + ${b}) \\times ${factor}`;
+            let result=(a+b)*factor;
             correct=result.toString();
             alternate=correct;
             display=correct;
             mathExpression=`Evaluate: \\( ${expr} \\)`;
-            let numRes=parseInt(correct);
-            choices=[correct];
-            choices.push((numRes+1).toString());
-            choices.push((numRes-1).toString());
-            choices.push((a+b*c).toString());
-            choices.push((a+b).toString());
+            // Dropping the parentheses, dropping the multiplication, binding the
+            // multiplication to one term rather than the sum, and multiplying all
+            // three terms are the four slips this form is testing.
+            choices=[
+                `${a+b*factor}`,
+                `${a+b}`,
+                `${a*b+factor}`,
+                `${a*factor+b}`,
+                `${a*b*factor}`,
+                `${a+b+factor}`
+            ];
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
-    let latex=mathExpression;
     return {
-        latex,
+        latex: mathExpression,
         correct,
         alternate,
         display,
-        choices: uniqueChoices,
+        choices: fourOptions(correct, choices),
         expectedFormat
     };
 }
