@@ -20,7 +20,9 @@ import Fraction from "fraction.js";
  *
  * An angle the curriculum prints as `45^{\circ}` is the number 45, so the degree
  * mark goes rather than becoming a symbol the checker has to know about, and a
- * `\cdot` becomes the `*` a learner would have typed.
+ * `\cdot` becomes the `*` a learner would have typed. A radical printed as the
+ * single Unicode character `√` becomes `sqrt(...)` for the same reason: the
+ * checker reads `sqrt(x)` and has never read `√x`.
  *
  * @param value - The LaTeX or plain text.
  * @returns The plain equivalent.
@@ -36,6 +38,12 @@ export function latexToPlain(value: string): string{
         // the checker to read as two symbols multiplied together.
         .replace(/\^\{?\\circ\}?/g,"")
         .replace(/\\(?:cdot|times)/g,"*")
+        // The Unicode radical is a single character in a way a function call is
+        // not, so "√x + 2" has to become "sqrt(x) + 2" or the checker reads the
+        // root sign as a symbol multiplied by x. A bar over the radicand is
+        // ordinary LaTeX and is already handled above.
+        .replace(/√\s*([0-9]+(?:\.[0-9]+)?)/g,"sqrt($1)")
+        .replace(/√\s*([A-Za-z][A-Za-z0-9]*)/g,"sqrt($1)")
         .replace(/\\([a-zA-Z]+)/g,"$1")
         .replace(/[{}]/g,"");
 }
