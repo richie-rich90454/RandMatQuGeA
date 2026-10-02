@@ -269,7 +269,17 @@ Exported from `Answer.ts`. Multi-stage equivalence checking pipeline:
 3. Constant removal (+C for integrals)
 4. String equality → symbolic comparison → numeric evaluation → equation splitting
 
-Both modes and both builds grade with the same checker. `settings.checkAnswerFast`, which the mental-math session calls, is `settings.isAnswerCorrect`, and so is the last step of the pipeline above; the Rust `check_math` command is not consulted, because a second implementation could only ever disagree with this one about whether a correct answer was correct.
+### `gradeAnswer`
+
+Exported from `Answer.ts`. Both modes enter here, so both grade identically:
+
+1. `=`-splitting, then the expression comparison below on each side
+2. the expression comparison against the key, then against the `alternate`
+3. `settings.isAnswerCorrect` in `Settings.ts`, the last step
+
+The comparison itself — LaTeX preprocessing, sanitisation, symbolic comparison, numeric evaluation — is shared rather than duplicated per mode, because a mental-mode session that rejected `2y+x` for a key of `x+2y` while single mode accepted it was grading the same question two ways. The Rust `check_math` command is registered and callable but is not consulted: a second implementation could only ever disagree with this one about whether a correct answer was correct.
+
+`settings.checkAnswerFast` used to sit between the two modes. It had no callers left once both reached `gradeAnswer`, so it was deleted rather than kept as a second way in.
 
 ## MCQ
 
@@ -412,6 +422,8 @@ Invoked via `@tauri-apps/api/core` `invoke()`:
 | `get_weak_topics` | `{ limit? }` | `{ topic_id, accuracy, attempts }[]` |
 | `generate_worksheet_seed` | — | `number` |
 | `export_worksheet_pdf` | `{ questions, opts, filepath }` | `void` |
+| `export_learning_record` | `{ path?: string }` | `ExportDocument` — the whole record; writes it to `path` when one is given |
+| `import_learning_record` | `{ path, mode: "merge"\|"replace" }` | `{ mode, attempts, skills, stats, records }` |
 | `reset_all_data` | — | `void` |
 
 ## Generator Modules
@@ -460,7 +472,7 @@ Topics: sin/cos/tan, identities, equations, unit circle across `trigonometry` an
 ### `topics`
 
 ```typescript
-let topics: Topic[];  // All 125 topic definitions with id, name, icon, category
+let topics: Topic[];  // All 137 topic definitions with id, name, icon, category
 ```
 
 ### `scopeTopics`
