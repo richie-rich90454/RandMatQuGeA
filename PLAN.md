@@ -71,7 +71,7 @@ Three things are stated once and must not be re-decided at a call site:
 | Where data goes, and whether a write is durable | `src/main/services/Storage.ts` |
 | When a skill comes back | `src/main/services/Scheduler.ts` |
 | What a question may show | `src/main/Mcq.ts` |
-| How an answer is graded | `src/main/Answer.ts` (via `src/main/Settings.ts` `isAnswerCorrect`) |
+| How an answer is graded | `src/main/Answer.ts` via `Settings.ts` `isAnswerCorrect` |
 
 If a new persisted value, a new scheduling decision, or a new option set is needed, it goes through
 that module. Bypassing any of them makes the corresponding product promise false.
@@ -120,8 +120,8 @@ The desktop and web builds had **two different answer checkers**, and they disag
   per topic **and** per sub-skill, with the reason surfaced to the learner.
 - `src/main/services/ReviewStore.ts`: review records, per-topic and per-skill aggregates, and erase
   support.
-- Desktop commands read multi-column selects into **typed rows** (`AttemptRow`, `SkillRow`) rather
-  than `serde_json::Value`, which SQLx cannot construct for a multi-column select. Typed rows also
+- Desktop commands read multi-column selects into **typed rows** (`AttemptRow`, `SkillRow`) rather than
+  `serde_json::Value`, which SQLx cannot construct for a multi-column select. Typed rows also
   mean column names are checked at compile time. Commits in `04f267d` and earlier.
 
 ### 4.5 Daily challenge
@@ -134,8 +134,8 @@ The desktop and web builds had **two different answer checkers**, and they disag
 - `src/main/services/Help.ts` and `src/modules/shared/Hints.ts`: a rung-at-a-time hint ladder
   available on every topic, with "concession" (show the answer) as a separate, clearly-labelled
   choice. Confidence is captured where it is informative.
-- Generic solution scaffolding is honest about being generic. It is weaker than topic-specific
-  worked solutions — see O12.
+- Generic solution scaffolding is honest about being generic. The eight newest topics now supply
+  their own branch-specific ladders and worked solutions — see O12.
 
 ### 4.7 Mobile and PWA
 - Coarse-pointer layer with 44px minimum touch targets, safe-area insets, `100dvh`, and
@@ -145,26 +145,52 @@ The desktop and web builds had **two different answer checkers**, and they disag
   imports; the remainder is real correctness work.
 
 ### 4.8 Curriculum
-- 125 → **129 registered topics**: `divisibility`, `gcd_lcm`, `modular`, `data_analysis`, each with
+- 125 → **137 registered topics**: `divisibility`, `gcd_lcm`, `modular`, `data_analysis`, each with
   sub-skill rows in `src/modules/shared/SubSkills.ts`.
-- Eight further generators are written, committed, and verified but **not yet registered**. See O1.
+- Eight further generators are written, registered, reachable from the index, and oracle-verified:
+  `counting_principles`, `probability_rules`, `similarity`, `rigid_transformations`,
+  `circle_geometry`, `eigenvalues`, `orthogonality`, `vectors_3d`.
 - Many individual generator correctness defects were found and fixed: proportion formula and a
   self-contradictory scale question, finance currency symbols inside math, blank derivative and
-  definite-area prompts, rounded vector prompt/key mismatch, number-set classification, triangle
-  classification ambiguity, radical rationalisation and division duplicates, radical sum/difference
-  degree signs, trigonometric polar/complex degree signs, arithmetic bare-dollar delimiters,
-  unbounded loops, and degenerate random sources. An unbounded loop in `GenerateModular` was
-  committed *after* the rule against it was documented, and is now the example the rule cites.
+  definite-area prompts, rounded vector prompt/key mismatch, number-set classification,
+  triangle classification ambiguity, radical rationalisation and division duplicates, radical
+  sum/difference degree signs, trigonometric polar/complex degree signs, arithmetic bare-dollar
+  delimiters, unbounded loops, and degenerate random sources. An unbounded loop in `GenerateModular`
+  was committed *after* the rule against it was documented, and is now the example the rule cites.
+- **The option-set sweep.** The oracle's raw gate (O4) was extended to the generator's own `choices`
+  array, which exposed real defects in **32 of the 137 topics** — 135 fewer-than-four sets, 56
+  unusable options, 25 duplicates by value, and 6 option sets that did not contain their own key.
+  All are fixed. Highlights: `integration_advanced` lower-cased every option, so a key of
+  `y=C e^(1.50x^2)` was offered as `y=c e^(1.50x^2)`; `deri`'s exponential branch offered the
+  function itself as the distractor for `d/dx e^x`; `perm` with `r = 1` shipped a two-option
+  question; `sci_notation` graded a two-decimal rounding of a product its prompt gives exactly.
+  Where a branch's answer domain genuinely holds fewer than four values, the **question was
+  redesigned** rather than padded: `divisibility`'s recognition branch became "which of these four
+  numbers is divisible by n", `poly_end`'s IVT branch became a question about the signs of `f(a)`
+  and `f(b)`, and `real_ops`'s ordering branch became a choice between four relations.
+- The oracle now samples **all 137 topics** with an empty failure list, and the eight trigonometry
+  topics are additionally swept at 120 seeds per difficulty in
+  `src/__tests__/modules/Trigonometry/TrigOptionSets.test.ts`, because the gate's own eight seeds once
+  hid a defect for twenty-six of them.
 
 ### 4.9 Performance
 - `src/main/Topics.ts`: static `Map`/`Set` indexes, no document scan on the interaction path.
-- Remaining `querySelectorAll` sites are listed in O7.
+- `querySelectorAll` no longer appears anywhere in `src/main/` except inside
+  `src/main/core/DomRegistry.ts`, which is the registry itself.
+- The 3D graph stopped being a per-frame cost centre: see O8.
 
 ### 4.10 Desktop, packaging, updater, CI
 - Tauri review and attempt tables with real schedule commands and full-record erase.
 - Updater: progress accumulation, visible failures, `requireSignedVersion`.
 - Windows fixed-WebView2 Tauri flavour plus a CI job that builds it.
 - CI: separate Vitest `unit` and `oracle` projects; Chromium **and** WebKit installed for Playwright.
+- **Android toolchain upgraded**: Gradle wrapper `8.14.3` → `9.8.0` (wrapper jar, `gradlew`,
+  `gradlew.bat` and properties regenerated from the distribution, not hand-edited), Android Gradle
+  Plugin `8.11.0` → `9.3.1`, Kotlin `1.9.25` → `2.2.10` — the versions the installed Tauri CLI
+  2.12 writes into its own Android template. This required three Gradle 9 changes beyond the version
+  numbers: `BuildTask` now injects `ExecOperations` because **Gradle 9 removed `Project.exec`**,
+  `RustPlugin` registers its tasks instead of mutating a created task, and `app/build.gradle.kts`
+  moved `kotlinOptions` to `kotlin { compilerOptions }`.
 
 ### 4.11 Documentation
 `README.md`, `CODE_STYLE.md`, `AGENTS.md`, `docs/guide/architecture.md`, `docs/guide/usage.md`,
@@ -175,135 +201,96 @@ The desktop and web builds had **two different answer checkers**, and they disag
 
 Ordered by consequence. Each row states the acceptance test that closes it.
 
-### O1 — Register the eight new topics (blocks the curriculum phase)
-The generators are committed and individually verified, but **none are registered**: not in
-`src/main/Constants.ts`, not in the subject `RegisterTopics.ts`, not re-exported from the subject
-`index.ts`, and with no `SubSkills.ts` rows. The oracle resolves a generator through
-`import(".../<Subject>/index")`, so registering a topic without the re-export fails with
-"Generator function not found".
+### O1 — Register the eight new topics (CLOSED)
+All eight are registered in `src/main/Constants.ts`, in their subject's `RegisterTopics.ts`, re-exported
+from the subject `index.ts`, and given sub-skill rows with the exact branch strings. The count is 137
+in `topics`, 137 `registerTopic` calls, 137 sub-skill rows, and `scopeTopics.all` agrees with
+`topics`. `rigid_transformations` is a distinct id from the pre-existing Algebra topic
+`transformations`, because one moves a point in the plane and preserves every distance while the other
+moves a graph and does not.
 
-| File to create | Export | Sub-skill branches |
-|---|---|---|
-| `DiscreteMathematics/GenerateCountingPrinciples.ts` | `generateCountingPrinciples` | `multiplication_rule`, `addition_rule`, `permutation_restriction`, `combination_restriction`, `arrangement_repeats`, `shared_property` |
-| `DiscreteMathematics/GenerateProbabilityRules.ts` | `generateProbabilityRules` | `conditional_table`, `total_probability`, `bayes`, `independence_statement`, `expected_value` |
-| `Geometry/GenerateSimilarity.ts` | `generateSimilarSimilarity` | `proportional_sides`, `scale_factor`, `area_ratio`, `perimeter_ratio`, `scale_from_area`, `converse_proportionality` |
-| `Geometry/GenerateTransformations.ts` | `generateGeometricTransformations` | `translate_point`, `rotate_point`, `reflect_point`, `dilate_point`, `compose_transformations` |
-| `Geometry/GenerateCircleGeometry.ts` | `generateCircleGeometry` | `inscribed_central`, `arc_sector`, `tangent_right_angle`, `chord_length`, `chords_inside`, `secants_external` |
-| `LinearAlgebra/GenerateEigenvalues.ts` | `generateEigenvalues` | `eigenvalues_2x2`, `eigenvalues_3x3`, `eigenvector`, `characteristic_polynomial`, `diagonalise`, `defective` |
-| `LinearAlgebra/GenerateOrthogonality.ts` | `generateOrthogonality` | `dot_product`, `norm`, `projection`, `gram_schmidt`, `orthogonal_complement` |
-| `LinearAlgebra/GenerateVectors3D.ts` | `generateVectors3D` | `cross_product`, `triple_product`, `angle_3d`, `point_line_distance`, `point_plane_distance` |
+### O2 — Mental mode grades more narrowly than single mode (CLOSED)
+`gradeAnswer` in `src/main/Answer.ts` now owns the whole decision for **both** modes: `=`-splitting,
+then the shared `compareExpressions` against the key and the alternate, then `isAnswerCorrect`.
+`x=5`, `(x+1)^2` and `2y+x` are accepted in mental mode. The two `vi.mock("../../main/Settings")`
+factories were updated rather than worked around — `Session.test.ts` now uses `vi.importActual` for
+the real `isAnswerCorrect`, because a stub returning `true` is what let a broken grader pass.
 
-Steps, in order:
-1. Add `export * from "./Generate….js"` to the `index.ts` of each of the three subjects.
-2. Add a `register(...)` call in that subject's `RegisterTopics.ts`.
-3. Add the topic id, name, icon, and category to `src/main/Constants.ts`, **and** the id to the
-   correct `scopeTopics` list. Current register-call counts: Algebra 54, Trigonometry 30,
-   DiscreteMathematics 15, Geometry 11, Calculus 11, LinearAlgebra 10, Arithmetic 5.
-4. Add one `SubSkills.ts` row per branch above, using the exact branch strings.
-5. **Id collision:** `transformations` is **already an existing topic** (`Constants.ts:36`, name
-   "Transformations"). The new rigid-transformations generator must take a distinct id, e.g.
-   `rigid_transformations`. Verify every new id is unused before adding it.
-6. Update the topic count wherever it is stated (README, `docs/guide/architecture.md`). It is 129
-   now; it becomes 137.
+### O3 — `latexToPlain` does not handle two printed forms (CLOSED)
+`45^{\circ}` and `\cdot` are handled, in both modes. `\frac` with a nested brace level is the next
+known gap: `TrigReciprocal.ts` can print `\frac{1}{\sin(30^{\circ})}`, which the current regex cannot
+reach, and the key stays unparseable.
 
-**Acceptance:** the oracle samples all 137 topics, every sub-skill string above appears in
-`SubSkills.ts`, `src/main/Constants.ts` and the `scopeTopics` lists agree, and the running app shows
-the new topics with a working index link.
+### O4 — MCQ tests still permit option sets that are not four (CLOSED)
+`src/__tests__/main/Mcq.test.ts` asserts the contract rather than a bare length: exactly the
+configured count, exactly one option correct, no two options the same value, nothing unusable. The
+user-facing "Number of choices" setting (2–6, default 4) is kept, so the four-option invariant is
+asserted explicitly on the default path and generalized to the configured count elsewhere. The oracle
+gate now checks the **raw generator output** as well as the presented set, for
+`tooFew`/`duplicate`/`nonFinite`/`alsoCorrect`/`correctAbsent`, and not for `correctNotFirst` because a
+generator may shuffle its key out of first place. The findings and their fixes are in 4.8.
 
-Defects already found and fixed inside these generators while verifying them — keep them fixed when
-registering: `proportional_sides` scaled the wrong side; `chord_length` used `2r·sinθ` instead of
-`2r·sin(θ/2)`; the characteristic polynomial dropped leading coefficients; `point_line_distance`
-drew its scale factor per component, destroying both the length and the perpendicularity; the math
-delimiters in the eigenvalue template literals were being eaten.
+**Known limit, recorded rather than hidden:** `looksMathematical` in `src/__tests__/oracle/Mcq.ts` is
+false for prose, so `distractor-also-correct` cannot be evaluated for a word answer. It found one real
+instance of that class (`number_sets` classifying `0` and offering the whole-number list, which is also
+correct). `structuredDistractors` in `src/main/Mcq.ts` has the same blind spot. Catching this class
+properly needs a word-level equivalence rule, which is not yet written.
 
-### O2 — Mental mode grades more narrowly than single mode
-`src/main/Session.ts:248` calls `isAnswerCorrect`, which has no symbolic simplification, no `=`
-splitting, and no term reordering. So in mental mode `x=5` for a `linear_eq` key,
-`(x+1)^2` for `x^2+2x+1`, and `2y+x` for `x+2y` are all rejected where single mode accepts them.
-This is the only remaining grading gap.
+### O5 — Bundle budget was raised instead of met (CLOSED)
+`scripts/bundle-check.js` defaults are back to **35 kB JS / 10 kB CSS / 55 kB total**, and the current
+payload satisfies them: **JS 34.45 kB, CSS 8.30 kB, total 52.98 kB**. The 34 generators added since the
+budget was raised cost 0.38 kB of initial JavaScript, because generators are loaded per subject
+through a dynamic `import()` and never enter the entry chunk.
 
-The fix is to share `compareExpressions` out of `src/main/Answer.ts`, so both modes grade identically.
-**This is blocked on test-file ownership**: `Answer.test.ts` and `Session.test.ts` both
-`vi.mock("../../main/Settings")` with a factory that returns `undefined` for a relocated function, so
-the move requires editing those two test files in the same change.
+### O6 — No enforced coverage threshold (CLOSED)
+`vite.config.ts` now sets a floor at the project's real coverage on 2026-10-02, rounded down:
+statements 74, branches 58, functions 58, lines 76 (actual 74.48 / 58.70 / 58.76 / 76.87). The gate
+demonstrably bites: `Ui.test.ts` alone measures 40.72% statements and fails it.
 
-**Acceptance:** the three examples above are accepted in mental mode, and the two mock factories are
-updated rather than worked around.
+The plan's "every UI action covered" aspiration is **not** met and is deliberately not claimed. At
+58.76% functions the uncovered work is concentrated in DOM event wiring and platform paths, which the
+Playwright suite exercises rather than the unit suite. Closing it by unit test alone would mean
+mocking the DOM harder, which is the opposite of the direction the rest of this file takes.
 
-### O3 — `latexToPlain` does not handle two printed forms
-`src/main/AnswerFormat.ts` handles `\frac`, `\sqrt`, grouping braces, and `\left`/`\right`. It does
-**not** handle `45^{\circ}` (becomes `45^circ`, unparseable) or `\cdot` (becomes `cdot`). Single mode
-has the identical limitation, so grading is at least consistent, but both reject a degree-marked or
-`\cdot`-bearing key that the learner answered numerically. The degree case is live: angles in this
-curriculum are printed with `^{\circ}`.
+### O7 — Remaining `querySelectorAll` on interaction paths (CLOSED)
+No `querySelectorAll` remains in `src/main/` outside `src/main/core/DomRegistry.ts`. `Events.ts`,
+`Generation.ts`, `Ui.ts`, `WeakTopics.ts` and `DataManagement.ts` were migrated; `Session.ts`'s topic
+scan became one pass over the registry's pills.
 
-**Acceptance:** a degree-marked key accepts the numeric answer, in both modes.
-
-### O4 — MCQ tests still permit option sets that are not four
-`src/__tests__/main/Mcq.test.ts:60` expects `length === 3` and line 76 expects `length === 5`. Both
-were loosened to accommodate the builder instead of the builder being fixed to the contract. The
-oracle also checks the **presented** set produced by `buildChoiceSet`, not the raw generator
-`choices`, so a generator may still emit fewer than four, duplicates, or an also-correct distractor
-and pass.
-
-**Acceptance:** `Mcq.test.ts` asserts exactly four with exactly one correct in every case, and the
-oracle's MCQ gate checks the raw generator output as well as the presented set.
-
-### O5 — Bundle budget was raised instead of met
-`scripts/bundle-check.js` defaults were raised from 35/55 kB to 40/58 kB. That was an acknowledged
-deviation from a stated target, and the current payload — JS 34.07 kB, CSS 8.30 kB, total 52.41 kB
-— **fits the original 35/55**. Restore the defaults and let the budget bite again.
-
-**Acceptance:** defaults are 35/55 and `node scripts/bundle-check.js` still passes.
-
-### O6 — No enforced coverage threshold
-`package.json` has `test:coverage` and `@vitest/coverage-v8` is installed, but `vite.config.ts`
-defines **no thresholds**, so coverage is reported and never enforced. The plan called for an
-enforceable floor, and the "every UI action covered" part is unstarted.
-
-**Acceptance:** thresholds are configured and `npm run test:coverage` fails when coverage falls below
-them. Set the floor at the project's real current number rather than an aspirational one.
-
-### O7 — Remaining `querySelectorAll` on interaction paths
-`src/main/core/DomRegistry.ts` (3, legitimate — it is the registry). Still to be migrated to
-`DomRegistry` in `src/main/`: `DataManagement.ts` (1), `Events.ts` (1), `Generation.ts` (1),
-`Session.ts` (1), `Ui.ts` (1), `WeakTopics.ts` (1).
-
-**Acceptance:** no `querySelectorAll` outside `DomRegistry` in `src/main/`, or a comment justifying
-each remaining one.
-
-### O8 — 3D efficiency on mobile
-`three` `^0.186.1` is a dependency, but no mobile-oriented work has been done on it: no frame budget,
-no geometry reuse across frames, no reduced-DPR or paused-loop behaviour when the graph is offscreen,
-and no reduced-motion path.
-
-**Acceptance:** the 3D graph respects a device-pixel-ratio cap, stops rendering when offscreen, and
-honours `prefers-reduced-motion`.
+### O8 — 3D efficiency on mobile (CLOSED)
+`src/modules/Geometry/GeometryVisualization.ts` caps the device pixel ratio at 2 and re-applies it when
+the ratio changes, stops the loop when the container leaves the viewport or the tab is hidden, honours
+`prefers-reduced-motion` as a live query that disables the loop entirely, and draws on demand at a
+32 ms frame budget — so an untouched 3D question costs one render pass instead of sixty per second.
+Geometry and materials are built once per scene and disposed on teardown, including `Line` and
+`GridHelper`, which the old `instanceof Mesh` disposal missed.
 
 ### O9 — End-to-end coverage of the new features
-`e2e/daily-help-privacy.spec.ts` has **never been run**. The last mobile Safari run was 80 passed /
-6 failed and was aborted before the failures were diagnosed; the original baseline was 86 passed.
+`e2e/daily-help-privacy.spec.ts` has now been run as part of the full suite. See section 6 for the
+result, and section 7 for what remains open.
 
-**Acceptance:** the whole Playwright suite green on Chromium and WebKit, with the six mobile failures
-either fixed or explicitly recorded as known.
+### O10 — Stale architecture doc row (CLOSED)
+`docs/guide/architecture.md` now records `check_math` as registered and callable but not load-bearing,
+since 4.2 made the JavaScript checker authoritative.
 
-### O10 — Stale architecture doc row
-`docs/guide/architecture.md:176` still lists `check_math` as doing "Numeric and symbolic comparison".
-The command is registered and callable, so the row is not wrong, but it is no longer load-bearing and
-should say so, since 4.2 made the JavaScript checker authoritative.
+### O11 — Data export and import ignore the new tables (CLOSED)
+`src-tauri/src/record.rs` defines a versioned export document and applies an import atomically inside
+one SQL transaction; `export_learning_record` and `import_learning_record` are the two new commands.
+Merge and replace are explicit, and merge is the default because a merge cannot lose a record and a
+replace can. The browser path goes through `src/main/services/ReviewStore.ts`, which owns the storage
+key, so an import cannot land somewhere the scheduler never reads. `cargo test` is 227 passing,
+12 of them new round-trip and refusal tests.
 
-### O11 — Data export and import ignore the new tables
-`src/main/DataManagement.ts` export/import does not carry the attempts or skill-schedule tables, and
-full-record erase (`clear_performance`) is wired while a genuine export is not.
+The two destructive controls in the data modal called desktop-only commands, so in a browser they did
+nothing at all. They now erase through the storage module where there is no database, which is what
+the button's own confirmation promises.
 
-**Acceptance:** a full export/import round-trip preserves review history, attempts, and the schedule.
-
-### O12 — No worked solutions for the eight new topics
-The eight generators omit the worked `solution`/`hints` payload, so the help ladder falls back to
-generic scaffolding for them. This is the weakest part of the help feature.
-
-**Acceptance:** each new topic produces a topic-specific first hint and a worked final step, and the
-hint ladder in `Help.ts` prefers them over the generic scaffold.
+### O12 — No worked solutions for the eight new topics (CLOSED)
+Each of the eight generators returns `hints` (a first rung naming that branch's procedure, a second
+naming the numbers to use) and `solution` (steps ending in the arithmetic that produced the printed
+key), plus the `subskill` the scheduler records. `Help.ts` needed no change: `buildHintLadder` and
+`buildSolution` already prefer a generator's own payload, and a test now proves that preference through
+the service rather than through the helpers.
 
 ## 6. Validation
 
@@ -317,14 +304,24 @@ Expensive, run at the end only:
 ```
 npm run test:unit        # vitest --project unit
 npm run test:oracle      # vitest --project oracle
+npm run test:coverage    # vitest run --coverage, enforcing the O6 floor
 npx playwright test      # Chromium + WebKit
 npm run build
 node scripts/bundle-check.js
 ```
 
-Last full green baseline, before the eight new generators were written:
-`tsc` clean · unit 118 files, 7175 passed, 6 skipped · oracle 4 files, 18 passed ·
-cargo 215 passed · build 2.2 s · bundle JS 34.07 kB, CSS 8.30 kB, total 52.41 kB.
+Last full green baseline after this session's work:
+
+| Gate | Result |
+|---|---|
+| `tsc --noEmit` | clean |
+| unit | 124 files, 7,556 passed, 6 skipped |
+| oracle | 4 files, 23 passed, including the raw-option gate over all 137 topics |
+| coverage | statements 74.48, branches 58.70, functions 58.76, lines 76.87, floor enforced |
+| `cargo test` | 227 passed |
+| `npm run build:web` | built in 12.4 s |
+| bundle | JS 34.45 kB, CSS 8.30 kB, total 52.98 kB against 35/10/55 |
+| Playwright | see section 7 |
 
 Any change to a generator is incomplete until the oracle passes. Any change to a service is
 incomplete until `tsc` and its own unit tests pass.
@@ -332,7 +329,8 @@ incomplete until `tsc` and its own unit tests pass.
 ## 7. Definition of done
 
 - Every row in section 5 is closed, or the next agent has deliberately decided otherwise in writing
-  here, with the reason.
+  here, with the reason. The two deliberate decisions are the prose blind spot in O4 and the coverage
+  aspiration in O6; both state what is not covered and why.
 - All 137 topics are registered, reachable from the index, and pass the oracle.
 - The four rules in section 1 hold for every generator, enforced by CI rather than by review.
 - One answer checker, one storage module, one scheduler, one MCQ builder — each stated once and
@@ -354,6 +352,7 @@ Curriculum wiring:
 - `src/modules/<Subject>/RegisterTopics.ts` — generator to topic binding
 - `src/modules/<Subject>/index.ts` — re-exports the oracle resolves through
 - `src/modules/shared/SubSkills.ts` — the scheduling taxonomy, one row per sub-skill
+- `src/modules/shared/Options.ts` — the one option-set assembler every generator routes through
 - `src/modules/shared/Numeric.ts` — `roundTo`, `fmt`, `fmtTrim`, `pickDivisible`
 - `src/modules/shared/Random.ts` — `shuffle`, `randInt`, `pick`
 
@@ -362,3 +361,4 @@ Tests and gates:
 - `src/__tests__/main/Mcq.test.ts` — the option-set contract (see O4)
 - `.github/workflows/ci.yml` — unit, oracle, E2E, and the Windows fixed-runtime build
 - `scripts/bundle-check.js` — payload budget
+- `vite.config.ts` — the Vitest projects and the coverage floor
