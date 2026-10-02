@@ -1,6 +1,6 @@
 /**
  * Discrete mathematics utility functions for combinatorics, statistics, and number helpers.
- * @fileoverview Provides factorial, permutation/combination (nPr/nCr), difficulty scaling, data range, statistical measures (mean, median, mode, range, standard deviation), and ordinal suffix.
+ * @fileoverview Provides factorial, permutation/combination (nPr/nCr), difficulty scaling, data range, statistical measures (mean, median, mode, range, standard deviation), and the ordinal suffix.
  * @date 2026-03-15
  */
 /**
@@ -35,21 +35,39 @@ export function lcm(a: number, b: number): number{
 }
 /**
  * Computes the number of permutations (nPr): n!/(n-r)!.
+ *
+ * The product is accumulated rather than divided, because the closed form divides
+ * and a quotient of two exactly representable integers is not always exactly
+ * representable: P(13,5) divided the hard way prints as 154828800.00000003.
+ *
  * @param n - total items
  * @param r - selected items
  * @returns nPr or 0 if r>n
  */
 export function nPr(n: number, r: number): number{
-    return r>n?0:factorial(n)/factorial(n-r);
+    if (r>n) return 0;
+    let result=1;
+    for(let i=0; i<r; i++) result*=n-i;
+    return result;
 }
 /**
  * Computes the number of combinations (nCr): n!/(r!(n-r)!).
+ *
+ * Built from the exact recurrence C(n-r+i, i) = C(n-r+i-1, i-1) * (n-r+i) / i, which
+ * divides at every step by a number that makes the running value a whole number.
+ * The closed form divides once by a product of two factorials, and that quotient is
+ * not always exactly representable: C(16,7) comes out as 11440.000000000002.
+ *
  * @param n - total items
  * @param r - selected items
  * @returns nCr or 0 if r>n
  */
 export function nCr(n: number, r: number): number{
-    return r>n?0:factorial(n)/(factorial(r)*factorial(n-r));
+    if (r>n||r<0) return 0;
+    let k=Math.min(r, n-r);
+    let result=1;
+    for(let i=1; i<=k; i++) result=result*(n-k+i)/i;
+    return Math.round(result);
 }
 /**
  * Returns the maximum allowed value for n in combinatorial generators based on difficulty.
