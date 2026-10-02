@@ -7,3 +7,5 @@ export * from "./GenerateDivisibility.js";
 export * from "./GenerateModular.js";
 export {generateDataAnalysis, sampleStdDev} from "./GenerateDataAnalysis.js";
 export {generateGcdLcm, euclidChain} from "./GenerateGcdLcm.js";
+export * from "./GenerateCountingPrinciples.js";
+export * from "./GenerateProbabilityRules.js";
