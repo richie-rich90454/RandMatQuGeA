@@ -1,5 +1,6 @@
-﻿import type {RngFn, QuestionDto} from "../../types/global";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff, trigFunctions, expFunctions, logFunctions, latexToPlain} from "./CalculusUtils.js";
+import {fourOptions} from "../shared/Options.js";
 /**
  * Generates a random differentiation question and displays it in the global question area.
  *
@@ -191,18 +192,17 @@ export function generateDerivative(difficulty?: string, rng: RngFn=Math.random):
             correctDerivative=`${coeff} \\cdot ${trig.deriv}`;
             plainCorrectDerivative=`${coeff}*${trig.plainDeriv}`;
             mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
-            choices=[plainCorrectDerivative];
-            choices.push(`${coeff}*${trig.func}`);
-            let wrongSign;
-            if(trig.plainDeriv.startsWith("-")){
-                wrongSign=trig.plainDeriv.substring(1);
-            }
-            else{
-                wrongSign="-"+trig.plainDeriv;
-            }
-            choices.push(`${coeff}*${wrongSign}`);
-            if(trig.func.includes("sin")) choices.push(`${coeff}*cos(x)`);
-            if(trig.func.includes("cos")) choices.push(`${coeff}*-sin(x)`);
+            // The three candidates are the function handed back undifferentiated,
+            // the derivative with its sign dropped, and the derivative of the
+            // function this one is confused with. Each was previously picked by
+            // testing whether the name contained "sin" or "cos", so a tangent,
+            // secant, cosecant or cotangent question got two options: the pair the
+            // name test matched was the key itself and got dropped as a duplicate.
+            choices=fourOptions(plainCorrectDerivative, [
+                `${coeff}*${trig.plainFunc}`,
+                `${coeff}*${trig.plainDeriv.startsWith("-")?trig.plainDeriv.substring(1):"-"+trig.plainDeriv}`,
+                `${coeff}*${trig.plainSwap}`
+            ]);
             break;
         }
         case "exponential":{
@@ -212,10 +212,23 @@ export function generateDerivative(difficulty?: string, rng: RngFn=Math.random):
             correctDerivative=`${coeff} \\cdot ${exp.deriv}`;
             plainCorrectDerivative=`${coeff}*${exp.plainDeriv}`;
             mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
-            choices=[plainCorrectDerivative];
-            choices.push(`${coeff}*${exp.func}`);
-            choices.push(`${coeff}*${exp.plainDeriv.replace(/e\^/,"")}`);
-            choices.push(`${coeff}*${exp.plainDeriv.replace(/e\^x/,"x*e^{x}")}`);
+            // Handing the function back is a mistake for a base of two and the
+            // answer for a base of e, so it is only offered where it is wrong. The
+            // previous candidates were made by rewriting the text "e^" inside the
+            // derivative, so for a base of two nothing was rewritten and one option
+            // was offered three times.
+            let isEuler=exp.plainFunc==="e^x";
+            choices=fourOptions(plainCorrectDerivative, isEuler?[
+                `${coeff}*x*e^x`,
+                `${coeff}`,
+                "e^x",
+                `${coeff}*e^x*ln(x)`
+            ]:[
+                `${coeff}*${exp.plainFunc}`,
+                `${coeff}*x*${exp.plainDeriv}`,
+                `${coeff}*x*${exp.plainFunc}`,
+                `${coeff+1}*${exp.plainDeriv}`
+            ]);
             break;
         }
         case "logarithmic":{
@@ -224,10 +237,23 @@ export function generateDerivative(difficulty?: string, rng: RngFn=Math.random):
             correctDerivative=log.deriv;
             plainCorrectDerivative=log.plainDeriv;
             mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
-            choices=[plainCorrectDerivative];
-            choices.push(`1/${polynomial.replace(/ln/,"x")}`);
-            choices.push(`1/x`);
-            choices.push(`1/(${polynomial.replace(/ln/,"")})`);
+            // The candidates are the power rule, the quotient rule, a doubled
+            // denominator and the missing base factor. The previous candidates were
+            // built by replacing the letters "ln" inside the LaTeX of the function,
+            // which turned "\ln(x)" into "\x(x)": two unreadable options and a third
+            // that was the answer.
+            let isNatural=log.deriv.indexOf("\\frac{1}{x}")===0;
+            choices=fourOptions(plainCorrectDerivative, isNatural?[
+                "1/(x*x)",
+                "ln(x)/x",
+                "1/(2*x)",
+                "x*x"
+            ]:[
+                "1/x",
+                "ln(x)/x",
+                "1/(2*x)",
+                "1/(x*x)"
+            ]);
             break;
         }
         case "product":{
@@ -270,29 +296,43 @@ export function generateDerivative(difficulty?: string, rng: RngFn=Math.random):
                 polynomial=`${trigFunc.func.replace("x", inner)}`;
                 correctDerivative=`${trigFunc.deriv.replace("x", inner)} \\cdot ${a}`;
                 plainCorrectDerivative=`${trigFunc.plainDeriv.replace("x", plainInner)}*${a}`;
-                choices=[plainCorrectDerivative];
-                choices.push(`${trigFunc.plainDeriv.replace("x", plainInner)}`);
-                choices.push(`${trigFunc.plainDeriv.replace("x", plainInner)}*${a+1}`);
-                choices.push(`${trigFunc.plainDeriv.replace("x", plainInner)}/${a}`);
+                // The three candidates are the derivative with the chain-rule factor
+                // dropped, the factor applied twice, and the factor divided in. One
+                // of them used to be the derivative with the argument dropped, which
+                // is the answer itself at a chain factor of one.
+                choices=fourOptions(plainCorrectDerivative, [
+                    `${trigFunc.plainDeriv.replace("x", plainInner)}`,
+                    `${trigFunc.plainDeriv.replace("x", plainInner)}*${a+1}`,
+                    `${trigFunc.plainDeriv.replace("x", plainInner)}/${a}`,
+                    `${trigFunc.plainDeriv.replace("x", plainInner)}*${a*2}`
+                ]);
             }
             else if(chainType===1){
                 polynomial=`e^{${inner}}`;
                 correctDerivative=`e^{${inner}} \\cdot ${a}`;
                 plainCorrectDerivative=`e^(${plainInner})*${a}`;
-                choices=[plainCorrectDerivative];
-                choices.push(`e^(${plainInner})`);
-                choices.push(`${a}*e^(${plainInner})*${plainInner}`);
-                choices.push(`e^(${plainInner})*${a+1}`);
+                choices=fourOptions(plainCorrectDerivative, [
+                    `e^(${plainInner})`,
+                    `${a}*e^(${plainInner})*${plainInner}`,
+                    `e^(${plainInner})*${a+1}`,
+                    `e^(${plainInner})*${a*2}`
+                ]);
             }
             else{
                 let k=Math.floor(rng()*3)+2;
                 polynomial=`(${inner})^{${k}}`;
                 correctDerivative=`${k} (${inner})^{${k-1}} \\cdot ${a}`;
                 plainCorrectDerivative=`${k}*(${plainInner})^${k-1}*${a}`;
-                choices=[plainCorrectDerivative];
-                choices.push(`${k}*(${plainInner})^${k-1}`);
-                choices.push(`${k}*(${plainInner})^${k}*${a}`);
-                choices.push(`${k-1}*(${plainInner})^${k-2}*${a}`);
+                // The chain factor is never dropped, because a chain factor of one
+                // makes the dropped form the same function as the answer. The
+                // candidates displace the factor or the power instead, which is
+                // wrong for every inner function.
+                choices=fourOptions(plainCorrectDerivative, [
+                    `${k}*(${plainInner})^${k-1}*${a+1}`,
+                    `${k}*(${plainInner})^${k}*${a}`,
+                    `${k+1}*(${plainInner})^${k-1}*${a}`,
+                    `${k}*(${plainInner})^${k-1}*${a*2}`
+                ]);
             }
             break;
         }
@@ -303,10 +343,16 @@ export function generateDerivative(difficulty?: string, rng: RngFn=Math.random):
             correctDerivative=`-\\frac{${a}x}{${b}y}`;
             plainCorrectDerivative=`-(${a}x)/(${b}y)`;
             mathExpression=`\\[ \\text{Find } \\frac{dy}{dx} \\text{ given } ${polynomial} \\]`;
-            choices=[plainCorrectDerivative];
-            choices.push(`(${a}x)/(${b}y)`);
-            choices.push(`-(${b}x)/(${a}y)`);
-            choices.push(`-(${a}y)/(${b}x)`);
+            // The chain rule on both sides gives 2a x and 2b y. The fourth candidate
+            // is the same quotient with the factor of two dropped from the
+            // numerator, which is what the question produces when the derivative of
+            // x squared is read as x.
+            choices=fourOptions(plainCorrectDerivative, [
+                `(${a}x)/(${b}y)`,
+                `-(${b}x)/(${a}y)`,
+                `-(${a}y)/(${b}x)`,
+                `-(${a}x)/(${b}x)`
+            ]);
             break;
         }
         case "higherOrder":{
@@ -337,10 +383,18 @@ export function generateDerivative(difficulty?: string, rng: RngFn=Math.random):
                 plainCorrectDerivative=`${deriv}x^${currExp}`;
             }
             mathExpression=`\\[ \\frac{d^{${order}}}{dx^{${order}}} ${polynomial}=? \\]`;
-            choices=[plainCorrectDerivative];
-            choices.push(`${coeff*exp}x^{${exp}}`);
-            choices.push(`${coeff*exp}x^{${exp-1}}`);
-            if(order>1) choices.push(`${coeff*exp*(exp-1)}x^{${exp-2}}`);
+            // The candidates are the first, second and third derivatives and the
+            // function itself. One of the three derivatives is the answer at each
+            // order asked for, so the function is what guarantees a fourth option:
+            // the old third-derivative candidate was printed with braces around the
+            // exponent, so at an exponent of zero it read as the answer in a
+            // different spelling and the question had two correct options.
+            choices=fourOptions(plainCorrectDerivative, [
+                `${coeff*exp}x^${exp}`,
+                `${coeff*exp*(exp-1)}x^${exp-1}`,
+                exp-2<0?`${coeff*exp*(exp-1)*(exp-2)}`:`${coeff*exp*(exp-1)*(exp-2)}x^${exp-2}`,
+                `${coeff}x^${exp}`
+            ]);
             break;
         }
         case "motion":{
@@ -372,26 +426,45 @@ export function generateDerivative(difficulty?: string, rng: RngFn=Math.random):
         case "inverseTrig":{
             let subType=Math.floor(rng()*3);
             let a=Math.floor(rng()*maxCoeff)+1;
+            // The three inverse trigonometric derivatives are offered against each
+            // other, with the sign of the one asked for. The old candidates were the
+            // arcsine and arctangent forms only, so the branch always offered the
+            // answer plus two of its own family and shipped three options; and the
+            // arctangent form was the answer for every arctangent question.
             if(subType===0){
                 polynomial=`\\arcsin(${a}x)`;
                 correctDerivative=`\\frac{${a}}{\\sqrt{1-${a*a}x^{2}}}`;
                 plainCorrectDerivative=`${a}/sqrt(1-${a*a}x^2)`;
+                choices=fourOptions(plainCorrectDerivative, [
+                    `-${a}/sqrt(1-${a*a}x^2)`,
+                    `${a}/(1+${a*a}x^2)`,
+                    `-${a}/(1+${a*a}x^2)`,
+                    `${a}/sqrt(1-${a*a}x)`
+                ]);
             }
             else if(subType===1){
                 polynomial=`\\arccos(${a}x)`;
                 correctDerivative=`-\\frac{${a}}{\\sqrt{1-${a*a}x^{2}}}`;
                 plainCorrectDerivative=`-${a}/sqrt(1-${a*a}x^2)`;
+                choices=fourOptions(plainCorrectDerivative, [
+                    `${a}/sqrt(1-${a*a}x^2)`,
+                    `${a}/(1+${a*a}x^2)`,
+                    `-${a}/(1+${a*a}x^2)`,
+                    `${a}/sqrt(1-${a*a}x)`
+                ]);
             }
             else{
                 polynomial=`\\arctan(${a}x)`;
                 correctDerivative=`\\frac{${a}}{1+${a*a}x^{2}}`;
                 plainCorrectDerivative=`${a}/(1+${a*a}x^2)`;
+                choices=fourOptions(plainCorrectDerivative, [
+                    `${a}/sqrt(1-${a*a}x^2)`,
+                    `-${a}/sqrt(1-${a*a}x^2)`,
+                    `-${a}/(1+${a*a}x^2)`,
+                    `${a}/sqrt(1-${a*a}x)`
+                ]);
             }
             mathExpression=`\\[ \\frac{d}{dx} ${polynomial}=? \\]`;
-            choices=[plainCorrectDerivative];
-            choices.push(`${a}/(1+${a*a}x^2)`);
-            choices.push(`${a}/sqrt(1-${a*a}x^2)`);
-            choices.push(`-${a}/sqrt(1-${a*a}x^2)`);
             break;
         }
         case "implicitAdvanced":{
@@ -422,10 +495,18 @@ export function generateDerivative(difficulty?: string, rng: RngFn=Math.random):
             mathExpression=`\\[ \\text{Find } \\frac{dy}{dx} \\text{ for } ${polynomial} \\text{ and the tangent line at } (${x0},${y0}). \\]`;
             plainCorrectDerivative=`dy/dx=${plainCorrectDerivative}, tangent: ${tangent}`;
             correctDerivative=`\\frac{dy}{dx}=${correctDerivative},\\ \\text{tangent: } ${tangent}`;
-            choices=[plainCorrectDerivative];
-            choices.push(`dy/dx=-(${2*a}x+${b}y)/(${b}x+${2*c}y), tangent: y-${y0}=${(slope+0.5).toFixed(2)}(x-${x0})`);
-            choices.push(`dy/dx=(${2*a}x+${b}y)/(${b}x+${2*c}y), tangent: y-${y0}=${(-slope).toFixed(2)}(x-${x0})`);
-            choices.push(`dy/dx=-(${b}x+${2*c}y)/(${2*a}x+${b}y), tangent: y-${y0}=${(1/slope).toFixed(2)}(x-${x0})`);
+            // Each candidate displaces the tangent slope, and the last two also
+            // invert the quotient. The third candidate used to swap numerator for
+            // denominator, which is the answer itself whenever the curve is a circle
+            // and the branch shipped three options.
+            let line=(value: number): string=>`dy/dx=-(${2*a}x+${b}y)/(${b}x+${2*c}y), tangent: y-${y0}=${value.toFixed(2)}(x-${x0})`;
+            choices=fourOptions(plainCorrectDerivative, [
+                line(slope+0.5),
+                `dy/dx=(${2*a}x+${b}y)/(${b}x+${2*c}y), tangent: y-${y0}=${(-slope).toFixed(2)}(x-${x0})`,
+                `dy/dx=-(${b}x+${2*c}y)/(${2*a}x+${b}y), tangent: y-${y0}=${(1/slope).toFixed(2)}(x-${x0})`,
+                line(slope-0.5),
+                line(slope*2)
+            ]);
             break;
         }
     }
@@ -440,12 +521,7 @@ export function generateDerivative(difficulty?: string, rng: RngFn=Math.random):
             plainCorrectDerivative="1";
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(plainCorrectDerivative)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectDerivative;
-        else uniqueChoices=[plainCorrectDerivative];
-    }
+    let uniqueChoices=fourOptions(plainCorrectDerivative, choices);
     return {
         latex: mathExpression,
         correct: plainCorrectDerivative,
