@@ -1,5 +1,6 @@
-﻿import type {RngFn, QuestionDto} from "../../types/global";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
+import {fourOptions} from "../shared/Options.js";
 /**
  * Generates a random question involving parametric equations, polar coordinates, or vector-valued functions.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -53,11 +54,17 @@ export function generateParametricPolarVector(difficulty?: string, rng: RngFn=Ma
             plainCorrectAnswer=deriv.toFixed(3);
             latexAnswer=plainCorrectAnswer;
             expectedFormat="Enter number";
-            choices=[plainCorrectAnswer];
-            choices.push((deriv+0.1).toFixed(3));
-            choices.push((deriv-0.1).toFixed(3));
-            choices.push((dy/dx*dx).toFixed(3));
-            choices.push((dy/dx/dx).toFixed(3));
+            // A horizontal tangent makes the slope zero, and then the two
+            // multiply-and-divide candidates are both the answer again. The pool
+            // carries the two neighbouring values of t as well, which are always
+            // different from the answer.
+            choices=fourOptions(plainCorrectAnswer, [
+                (deriv+0.1).toFixed(3),
+                (deriv-0.1).toFixed(3),
+                (dy/dx*dx).toFixed(3),
+                (dy/dx/dx).toFixed(3),
+                (((3*t*t-b)/(2*a*(t+1)))).toFixed(3)
+            ]);
             break;
         }
         case "parametricSecond":{
@@ -101,12 +108,16 @@ export function generateParametricPolarVector(difficulty?: string, rng: RngFn=Ma
             plainCorrectAnswer=`<2t, ${a}e^(${a}t)>`;
             latexAnswer=`\\langle 2t,\\ ${a}e^{${a}t} \\rangle`;
             expectedFormat="Enter vector";
-            let correctNorm=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[correctNorm];
-            choices.push(`<2t, e^(${a}t)>`.replace(/\s/g,"").toLowerCase());
-            choices.push(`<2, ${a}e^(${a}t)>`.replace(/\s/g,"").toLowerCase());
-            choices.push(`<2t, ${a}e^(${a}t) + C>`.replace(/\s/g,"").toLowerCase());
-            choices.push(`<t^2, ${a}e^(${a}t)>`.replace(/\s/g,"").toLowerCase());
+            // The options are written in the same spelling as the answer. Copying
+            // the answer into the option list with its spaces stripped made the
+            // stripped copy a second correct option, because it is the same
+            // expression written differently.
+            choices=fourOptions(plainCorrectAnswer, [
+                `<2t, e^(${a}t)>`,
+                `<2, ${a}e^(${a}t)>`,
+                `<2t, ${a}e^(${a}t) + C>`,
+                `<t^2, ${a}e^(${a}t)>`
+            ]);
             break;
         }
         case "vectorIntegral":{
@@ -117,12 +128,12 @@ export function generateParametricPolarVector(difficulty?: string, rng: RngFn=Ma
             plainCorrectAnswer=`<${intX.toFixed(3)}, ${intY.toFixed(3)}>`;
             latexAnswer=`\\langle ${intX.toFixed(3)},\\ ${intY.toFixed(3)} \\rangle`;
             expectedFormat="Enter vector";
-            let correctNorm=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[correctNorm];
-            choices.push(`<0.5, ${a/2}>`.replace(/\s/g,"").toLowerCase());
-            choices.push(`<1, ${a}>`.replace(/\s/g,"").toLowerCase());
-            choices.push(`<0.5, ${a}>`.replace(/\s/g,"").toLowerCase());
-            choices.push(`<1, ${a/3}>`.replace(/\s/g,"").toLowerCase());
+            choices=fourOptions(plainCorrectAnswer, [
+                `<0.5, ${a}/2>`,
+                `<1, ${a}>`,
+                `<0.5, ${a}>`,
+                `<1, ${a}/3>`
+            ]);
             break;
         }
         case "motionParam":{
@@ -132,11 +143,17 @@ export function generateParametricPolarVector(difficulty?: string, rng: RngFn=Ma
             plainCorrectAnswer=speed.toString();
             latexAnswer=plainCorrectAnswer;
             expectedFormat="Enter number";
-            choices=[plainCorrectAnswer];
-            choices.push((a+1).toString());
-            choices.push((a-1).toString());
-            choices.push((a*a).toString());
-            choices.push("1");
+            // The speed of this curve is the frequency, so "1" and the square are
+            // the two answers a learner gives when the chain rule is skipped. At a
+            // frequency of one all three collide with the answer, which is what
+            // left this branch with three options.
+            choices=fourOptions(plainCorrectAnswer, [
+                (a+1).toString(),
+                (a-1).toString(),
+                (a*a).toString(),
+                "1",
+                (2*a).toString()
+            ]);
             break;
         }
         case "polarDeriv":{
@@ -244,31 +261,19 @@ export function generateParametricPolarVector(difficulty?: string, rng: RngFn=Ma
             plainCorrectAnswer=dotDeriv;
             latexAnswer=`e^{${a}t} + ${a}te^{${a}t} + 2t\\sin(${b}t) + ${b}t^{2}\\cos(${b}t)`;
             expectedFormat="Enter expression";
-            let correctNorm=plainCorrectAnswer.replace(/\s/g,"").toLowerCase();
-            choices=[correctNorm];
-            choices.push(`e^(${a}t) + t^2*${b}cos(${b}t)`.replace(/\s/g,"").toLowerCase());
-            choices.push(`2t*${a}e^(${a}t) + 2t*${b}cos(${b}t)`.replace(/\s/g,"").toLowerCase());
-            choices.push(`e^(${a}t) + 2t*${a}e^(${a}t) + t^2*${b}cos(${b}t)`.replace(/\s/g,"").toLowerCase());
+            // The options are written in the same spelling as the answer: the answer
+            // with its spaces stripped is the same expression written differently,
+            // and offering both is a question with two correct options.
+            choices=fourOptions(plainCorrectAnswer, [
+                `e^(${a}t) + t^2*${b}cos(${b}t)`,
+                `2t*${a}e^(${a}t) + 2t*${b}cos(${b}t)`,
+                `e^(${a}t) + 2t*${a}e^(${a}t) + t^2*${b}cos(${b}t)`,
+                `${a}*t*e^(${a}t) + ${b}*t^2*cos(${b}t)`
+            ]);
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    let found=false;
-    for(let i=0;i<uniqueChoices.length;i++){
-        if(uniqueChoices[i]===plainCorrectAnswer){
-            found=true;
-            break;
-        }
-    }
-    if(!found){
-        if(uniqueChoices.length>0){
-            uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
-        }
-        else{
-            uniqueChoices=[plainCorrectAnswer];
-        }
-    }
+    let uniqueChoices=fourOptions(plainCorrectAnswer, choices);
     return {
         latex: mathExpression,
         correct: plainCorrectAnswer,
