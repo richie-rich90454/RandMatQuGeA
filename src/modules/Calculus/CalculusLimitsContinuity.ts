@@ -1,5 +1,6 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../types/global";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
+import {fourOptions} from "../shared/Options.js";
 /**
  * Generates a random limits and continuity question and returns it as a QuestionDto.
  *
@@ -251,12 +252,7 @@ export function generateLimitsContinuity(difficulty?: string, rng: RngFn=Math.ra
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(plainCorrectAnswer)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=plainCorrectAnswer;
-        else uniqueChoices=[plainCorrectAnswer];
-    }
+    let uniqueChoices=fourOptions(plainCorrectAnswer, choices);
     return {
         latex: mathExpression,
         correct: plainCorrectAnswer,
