@@ -1,11 +1,14 @@
-﻿/**
+/**
  * Analytic trigonometry: degrees/radians conversion, arc length, angular/linear speed, right triangle definitions, special triangles, elevation/depression, reference angles, ASTC signs, sum/difference, double/half-angle, polar coordinates, parametric equations, complex numbers.
  * @fileoverview Generates a variety of analytic trigonometry questions with MCQ distractors. Returns a QuestionDto with LaTeX display and plain text alternate.
  * @date 2026-04-18
  */
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxForDifficulty} from "../Algebra/AlgebraUtils.js";
-import {formatPiFraction} from "./TrigUtils.js";
+import type{RngFn, QuestionDto}from "../../types/global";
+import{roundTo}from"../shared/Numeric";
+import{randDecimal, randInt}from"../shared/Random";
+import{getMaxForDifficulty}from "../Algebra/AlgebraUtils.js";
+import{angleValuePool, formatPiFraction}from"./TrigUtils.js";
+import{fourOptions}from"../shared/Options.js";
 export function generateDegreesToRadians(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let angleDeg: number;
     if(difficulty==="easy"){
@@ -22,25 +25,20 @@ export function generateDegreesToRadians(difficulty?: string, rng: RngFn = Math.
     const exact=formatPiFraction(angleRad);
     let latex=`Convert ${angleDeg}° to radians.`;
     let correct=exact;
-    let choices=[correct];
-    if(exact.includes("π")){
-        choices.push(exact.replace("π","2π"));
-        choices.push(exact.replace("π","π/2"));
-        choices.push(angleRad.toFixed(4)+" rad");
+    // Every option is the radian measure of a real angle, and every option is spelled the
+    // way the key is, so two of them can never be the same value written two ways. The
+    // honest mistakes are to read the degrees back as radians, to convert the complement
+    // or the supplement instead of the angle, and to convert a neighbouring angle. A
+    // whole turn of candidates is offered because at a special angle the complement and
+    // the supplement are the only two relatives inside half a turn, which is not enough
+    // for four options.
+    let wrongDegrees: number[]=[angleDeg, 90-angleDeg, 180-angleDeg, angleDeg*2, angleDeg/2, -angleDeg];
+    for(let step=1; step<=6; step++){
+        wrongDegrees.push(angleDeg+step*15);
+        wrongDegrees.push(angleDeg-step*15);
     }
-    else{
-        choices.push((angleRad+0.5).toFixed(4)+" rad");
-        choices.push((angleRad-0.5).toFixed(4)+" rad");
-        choices.push((angleRad*2).toFixed(4)+" rad");
-    }
-    choices.push(angleDeg+" rad");
-    choices.push((angleDeg*Math.PI/180).toFixed(2)+" rad");
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let pool:string[]=wrongDegrees.map(degrees=>formatPiFraction(degrees*Math.PI/180));
+    let uniqueChoices=fourOptions(correct, pool);
     return {
         latex,
         correct: correct,
@@ -50,7 +48,7 @@ export function generateDegreesToRadians(difficulty?: string, rng: RngFn = Math.
         expectedFormat: "Enter as a decimal (e.g., 0.7854 rad) or exact expression (e.g., π/4 rad)"
     };
 }
-export function generateRadiansToDegrees(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+export function generateRadiansToDegrees(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
     let angleRad: number;
     let displayRad: string;
     if(difficulty==="easy"){
@@ -59,76 +57,90 @@ export function generateRadiansToDegrees(difficulty?: string, rng: RngFn = Math.
         angleRad=easyRad[idx];
         displayRad=formatPiFraction(angleRad);
     }
-    else if(difficulty==="hard"){
-        angleRad=rng()*2*Math.PI;
-        displayRad=angleRad.toFixed(2)+" rad";
-    }
     else{
-        angleRad=parseFloat((rng()*Math.PI).toFixed(2));
+        // The angle is drawn from a grid that excludes zero. A question whose answer is
+        // "0.00°" has no honest distractors: every option a learner could write for it
+        // is either zero or a degree measure of a different angle entirely, and the two
+        // that are not zero are the only ones that survive the value filter.
+        let hundredths=randInt(rng, 10, difficulty==="hard"?628:314);
+        angleRad=roundTo(hundredths/100, 2);
         displayRad=angleRad.toFixed(2)+" rad";
     }
-    const angleDeg=(angleRad*180/Math.PI).toFixed(2);
-    let latex=`Convert ${displayRad} to degrees.`;
-    let correct=`${angleDeg}°`;
-    let choices=[correct];
-    choices.push(`${(parseFloat(angleDeg)+1).toFixed(2)}°`);
-    choices.push(`${(parseFloat(angleDeg)-1).toFixed(2)}°`);
-    choices.push(`${(parseFloat(angleDeg)*180/Math.PI).toFixed(2)}°`);
-    choices.push(`${(parseFloat(angleDeg)*Math.PI/180).toFixed(2)}°`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    const angleDeg=roundTo(angleRad*180/Math.PI, 2);
+    let latex=`Convert ${displayRad} to degrees, rounded to the nearest hundredth of a degree.`;
+    let correct=`${angleDeg.toFixed(2)}°`;
+    // Every option is the degree measure of a real angle. The three honest mistakes
+    // are to read the radians back as degrees, to convert the complement, and to
+    // convert the supplement.
+    let pool:string[]=[
+        `${roundTo(angleRad, 2).toFixed(2)}°`,
+        `${roundTo(90-angleDeg, 2).toFixed(2)}°`,
+        `${roundTo(180-angleDeg, 2).toFixed(2)}°`,
+        `${roundTo(-angleDeg, 2).toFixed(2)}°`,
+        `${roundTo(angleDeg*2, 2).toFixed(2)}°`
+    ];
+    let uniqueChoices=fourOptions(correct, pool);
     return {
         latex,
         correct: correct,
-        alternate: angleDeg,
+        alternate: angleDeg.toFixed(2),
         display: correct,
         choices: uniqueChoices,
         expectedFormat: "Enter as a number with ° (e.g., 45°)"
     };
 }
-export function generateArcLength(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+export function generateArcLength(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
     const maxR=getMaxForDifficulty(difficulty,10);
-    const r=Math.floor(rng()*maxR)+1;
-    let angle: number;
-    let angleType: string;
-    let angleRad: number;
-    if(rng()<0.5){
-        angle=Math.floor(rng()*180)+1;
-        angleType="°";
-        angleRad=angle*Math.PI/180;
+    // The radius is drawn from two upwards. At a radius of one the arc length equals the
+    // angle, so the "used the angle instead" distractor is the key and the question is
+    // left one option short.
+    const r=randInt(rng, 2, maxR);
+    // The angle is redrawn until the arc is long enough for the pool to be four distinct
+    // printed values. An arc of a few hundredths of a unit is a few hundredths of a unit
+    // whether it is computed as a radius times an angle or as a chord or as half of one,
+    // so every honest answer rounds to the same two places and a question whose four
+    // answers print alike would have three options rather than four. The bound of twenty
+    // attempts and the deterministic fallback are both required: a draw is a draw, and an
+    // unbounded loop here would hang the suite instead of failing it.
+    let angle=0;
+    let angleRad=0;
+    let angleType="°";
+    for(let attempt=0; attempt<20; attempt++){
+        if(rng()<0.5){
+            angle=randInt(rng, 15, 180);
+            angleType="°";
+            angleRad=angle*Math.PI/180;
+        }
+        else{
+            angle=roundTo(randDecimal(rng, 0.5, 2*Math.PI-0.5, 2), 2);
+            angleType=" rad";
+            angleRad=angle;
+        }
+        if (r*angleRad>=1) break;
     }
-    else{
-        angle=parseFloat((rng()*2*Math.PI).toFixed(2));
-        angleType=" rad";
-        angleRad=angle;
-    }
-    const arc=(r*angleRad).toFixed(2);
-    const angleDisplay=angle.toFixed(2)+(angleType==="°"?"°":" rad");
-    let latex=`Find the arc length of a circle with radius ${r} and central angle ${angleDisplay}.`;
-    let correct=arc;
-    let choices=[correct];
-    let wrongArc1=(r*(angleRad+0.1)).toFixed(2);
-    let wrongArc2=(r*(angleRad-0.1)).toFixed(2);
-    let wrongArc3=(r*angleRad*2).toFixed(2);
-    let wrongArc4=(r*angleRad/2).toFixed(2);
-    choices.push(wrongArc1,wrongArc2,wrongArc3,wrongArc4);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    const arc=roundTo(r*angleRad, 2);
+    const angleDisplay=angleType==="°"?angle+"°":angle.toFixed(2)+" rad";
+    let latex=`Find the arc length of a circle with radius ${r} and central angle ${angleDisplay}. Round your answer to the nearest hundredth.`;
+    let correct=arc.toFixed(2);
+    // The three ways a learner gets an arc length wrong are to use the radius as the
+    // arc instead of the angle, to use the chord instead of the arc, and to take the
+    // angle in degrees where radians were required. Each is a length a learner writes
+    // after doing real work, and each is finite.
+    let pool:string[]=[
+        roundTo(angleRad, 2).toFixed(2),
+        roundTo(2*r*Math.sin(angleRad/2), 2).toFixed(2),
+        roundTo(r*angle*Math.PI/180, 2).toFixed(2),
+        roundTo(r*angleRad*2, 2).toFixed(2),
+        roundTo(r*angleRad/2, 2).toFixed(2)
+    ];
+    let uniqueChoices=fourOptions(correct, pool);
     return {
         latex,
         correct: correct,
         alternate: correct,
         display: correct,
         choices: uniqueChoices,
-        expectedFormat: "Enter a number (e.g., 15.71)"
+        expectedFormat: "Enter a number rounded to the nearest hundredth (e.g., 15.71)"
     };
 }
 export function generateAngularLinearSpeed(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
@@ -159,12 +171,7 @@ export function generateAngularLinearSpeed(difficulty?: string, rng: RngFn = Mat
         choices.push((v*2).toFixed(2));
         choices.push((v/2).toFixed(2));
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
@@ -174,57 +181,55 @@ export function generateAngularLinearSpeed(difficulty?: string, rng: RngFn = Mat
         expectedFormat: "Enter a number (e.g., 6.28)"
     };
 }
-export function generateRightTriangleDefs(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
-    let funcs: string[];
-    if(difficulty==="hard"){
-        funcs=["sin","cos","tan","csc","sec","cot"];
-    }
-    else{
-        funcs=["sin","cos","tan"];
-    }
-    const func=funcs[Math.floor(rng()*funcs.length)];
-    let answer="";
-    if(func==="sin") answer="opposite/hypotenuse";
-    else if(func==="cos") answer="adjacent/hypotenuse";
-    else if(func==="tan") answer="opposite/adjacent";
-    else if(func==="csc") answer="hypotenuse/opposite";
-    else if(func==="sec") answer="hypotenuse/adjacent";
-    else if(func==="cot") answer="adjacent/opposite";
-    let latex=`In a right triangle, what is the definition of ${func} of an angle?`;
-    let correct=answer;
-    let choices=[correct];
-    if(func==="sin"){
-        choices.push("opposite/adjacent");
-        choices.push("adjacent/hypotenuse");
-        choices.push("hypotenuse/opposite");
-    }
-    else if(func==="cos"){
-        choices.push("opposite/hypotenuse");
-        choices.push("opposite/adjacent");
-        choices.push("hypotenuse/adjacent");
-    }
-    else if(func==="tan"){
-        choices.push("opposite/hypotenuse");
-        choices.push("adjacent/hypotenuse");
-        choices.push("hypotenuse/opposite");
-    }
-    else{
-        choices.push("opposite/hypotenuse");
-        choices.push("adjacent/hypotenuse");
-        choices.push("hypotenuse/adjacent");
-    }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
+/**
+ * The six ratios a right triangle defines, each written the way a learner writes
+ * it. This is a closed set of six, so a question about one of them can always
+ * offer three of the other five: there is never a shortage of honest answers and
+ * never a reason to invent one.
+ */
+const RIGHT_TRIANGLE_RATIOS=[
+    {func:"sin", ratio:"opposite/hypotenuse"},
+    {func:"cos", ratio:"adjacent/hypotenuse"},
+    {func:"tan", ratio:"opposite/adjacent"},
+    {func:"csc", ratio:"hypotenuse/opposite"},
+    {func:"sec", ratio:"hypotenuse/adjacent"},
+    {func:"cot", ratio:"adjacent/opposite"}
+];
+
+export function generateRightTriangleDefs(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
+    // At the lower difficulties only the three basic ratios are asked about, because the
+    // reciprocals are what a learner meets next. The option set is drawn from all six
+    // either way, since a distractor is only useful if it names a ratio the learner could
+    // plausibly reach for.
+    let pool=difficulty==="hard"?RIGHT_TRIANGLE_RATIOS:RIGHT_TRIANGLE_RATIOS.slice(0, 3);
+    let entry=pool[Math.floor(rng()*pool.length)];
+    let latex=`In a right triangle, what is the definition of \\( ${entry.func} \\) of an angle?`;
+    let correct=entry.ratio;
+    // The answer domain here is a closed set of six, so every option is a ratio a learner
+    // can write down and the key always has five honest alternatives to draw from. The
+    // three offered first are the ones a learner reaches for most directly: the ratio for
+    // the reciprocal, the ratio for the complement, and the one they get by dropping a
+    // term. The whole set follows, because three hand-picked names collide often enough
+    // to leave a three-option question, and a fourth honest ratio is always available.
+    let named=(name: string): string=>{
+        let found=RIGHT_TRIANGLE_RATIOS.find(item=>item.func===name);
+        return found===undefined?"":found.ratio;
+    };
+    let primary=["csc","cos","tan","sin","sec","cot"];
+    let preferred:string[]=[];
+    let others: string[]=[];
+    for(let name of primary){
+        let ratio=named(name);
+        if (ratio===""||ratio===correct) continue;
+        if (preferred.length<6) preferred.push(ratio);
+        others.push(ratio);
     }
     return {
         latex,
         correct: correct,
         alternate: correct,
         display: correct,
-        choices: uniqueChoices,
+        choices: fourOptions(correct, preferred.concat(others)),
         expectedFormat: "Enter as a fraction (e.g., opposite/hypotenuse)"
     };
 }
@@ -395,12 +400,7 @@ export function generateReferenceAngle(difficulty?: string, rng: RngFn = Math.ra
     choices.push((ref-5).toString());
     choices.push((180-ref).toString());
     choices.push((90-ref).toString());
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
@@ -410,15 +410,9 @@ export function generateReferenceAngle(difficulty?: string, rng: RngFn = Math.ra
         expectedFormat: "Enter a number (e.g., 30)"
     };
 }
-export function generateASTCSign(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+export function generateASTCSign(_difficulty?: string, rng: RngFn=Math.random): QuestionDto{
     const funcs=["sin","cos","tan"];
-    let availableQuads: string[];
-    if(difficulty==="easy"){
-        availableQuads=["I","II","III","IV"];
-    }
-    else{
-        availableQuads=["I","II","III","IV"];
-    }
+    let availableQuads=["I","II","III","IV"];
     const func=funcs[Math.floor(rng()*funcs.length)];
     const quad=availableQuads[Math.floor(rng()*availableQuads.length)];
     let sign="";
@@ -427,27 +421,23 @@ export function generateASTCSign(difficulty?: string, rng: RngFn = Math.random):
     else sign=(quad==="I"||quad==="III")?"positive":"negative";
     let latex=`In quadrant ${quad}, is ${func} positive or negative?`;
     let correct=sign;
-    let choices=[correct];
-    choices.push(sign==="positive"?"negative":"positive");
-    choices.push("zero");
-    choices.push("undefined");
-    choices.push("both");
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    // "zero" and "undefined" are honest here: inside a quadrant no ratio is zero and
+    // none is undefined, so both are what a learner writes when they place the angle
+    // on an axis instead of inside the quadrant. They are the same three alternatives
+    // `src/main/Mcq.ts` builds for a sign question.
+    let choices=fourOptions(correct, [sign==="positive"?"negative":"positive", "zero", "undefined"]);
     return {
         latex,
         correct: correct,
         alternate: correct,
         display: correct,
-        choices: uniqueChoices,
+        choices: choices,
         expectedFormat: "Enter 'positive' or 'negative'"
     };
 }
-export function generateSumDifference(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+export function generateSumDifference(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
+    let correct="";
+    let choices:string[]=[];
     const funcs=["sin","cos","tan"];
     const func=funcs[Math.floor(rng()*funcs.length)];
     const op=rng()<0.5?"sum":"difference";
@@ -481,36 +471,33 @@ export function generateSumDifference(difficulty?: string, rng: RngFn = Math.ran
     else{
         expr=`${func}(${a}^{\\circ} - ${b}^{\\circ})`;
     }
-    let latex=`Use the sum/difference formula to find the exact value of \\( ${expr} \\).`;
-    const radA=a*Math.PI/180;
-    const radB=b*Math.PI/180;
-    let value: number;
-    if(func==="sin") value=Math.sin(radA+(op==="sum"?radB:-radB));
-    else if(func==="cos") value=Math.cos(radA+(op==="sum"?radB:-radB));
-    else value=Math.tan(radA+(op==="sum"?radB:-radB));
-    const displayValue=value.toFixed(4);
-    let correct=displayValue;
-    let choices=[correct];
-    choices.push((value+0.1).toFixed(4));
-    choices.push((value-0.1).toFixed(4));
-    choices.push((value*2).toFixed(4));
-    choices.push((value/2).toFixed(4));
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let latex=`Use the sum/difference formula to find \\( ${expr} \\), rounded to four decimal places.`;
+    let ratio: (radians: number) => number;
+    if(func==="sin") ratio=Math.sin;
+    else if(func==="cos") ratio=Math.cos;
+    else ratio=Math.tan;
+    let combined=a+(op==="sum"?b:-b);
+    correct=roundTo(ratio(combined*Math.PI/180), 4).toFixed(4);
+    // The three ways a learner gets a sum or a difference wrong are to subtract where the
+    // prompt says add, to reach for the other basic ratio at the combined angle, and to
+    // take the supplement of it. Each is a value of a named ratio at a named angle, so
+    // each is a number a learner writes after doing real work.
+    let pool:string[]=angleValuePool([ratio, Math.cos], combined, 4);
+    pool.push(roundTo(ratio((a-b)*Math.PI/180), 4).toFixed(4));
+    pool.push(roundTo(ratio((180-combined)*Math.PI/180), 4).toFixed(4));
+    choices=fourOptions(correct, pool);
     return {
         latex,
         correct: correct,
         alternate: correct,
         display: correct,
-        choices: uniqueChoices,
-        expectedFormat: "Enter a decimal (e.g., 0.7071) or exact expression (e.g., √2/2)"
+        choices: choices,
+        expectedFormat: "Enter a decimal rounded to four decimal places (e.g., 0.7071)"
     };
 }
-export function generateDoubleAngle(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+export function generateDoubleAngle(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
+    let correct="";
+    let choices:string[]=[];
     const funcs=["sin","cos","tan"];
     const func=funcs[Math.floor(rng()*funcs.length)];
     let angle: number;
@@ -529,34 +516,32 @@ export function generateDoubleAngle(difficulty?: string, rng: RngFn = Math.rando
         }
     }
     let latex=`Use the double-angle formula to find \\( ${func}(2 \\cdot ${angle}^{\circ}) \\).`;
-    const rad=angle*Math.PI/180;
-    let value: number;
-    if(func==="sin") value=Math.sin(2*rad);
-    else if(func==="cos") value=Math.cos(2*rad);
-    else value=Math.tan(2*rad);
-    const displayValue=value.toFixed(4);
-    let correct=displayValue;
-    let choices=[correct];
-    choices.push((value+0.1).toFixed(4));
-    choices.push((value-0.1).toFixed(4));
-    choices.push((value*2).toFixed(4));
-    choices.push((value/2).toFixed(4));
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let ratio: (radians: number) => number;
+    if(func==="sin") ratio=Math.sin;
+    else if(func==="cos") ratio=Math.cos;
+    else ratio=Math.tan;
+    let doubled=2*angle;
+    correct=roundTo(ratio(doubled*Math.PI/180), 4).toFixed(4);
+    // The three ways a learner gets a double-angle question wrong are to double the ratio
+    // rather than the angle, to reach for the complementary ratio at the doubled angle, and
+    // to halve the doubled angle back again. Each is a value of a named ratio at a named
+    // angle, so each is a number a learner writes after doing real work.
+    let pool:string[]=angleValuePool([ratio, Math.cos], doubled, 4);
+    pool.push(roundTo(ratio(angle*Math.PI/180), 4).toFixed(4));
+    pool.push(roundTo(2*ratio(angle*Math.PI/180), 4).toFixed(4));
+    choices=fourOptions(correct, pool);
     return {
         latex,
         correct: correct,
         alternate: correct,
         display: correct,
-        choices: uniqueChoices,
-        expectedFormat: "Enter a decimal (e.g., 0.8660) or exact expression"
+        choices: choices,
+        expectedFormat: "Enter a decimal rounded to four decimal places (e.g., 0.8660)"
     };
 }
-export function generateHalfAngle(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+export function generateHalfAngle(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
+    let correct="";
+    let choices:string[]=[];
     const funcs=["sin","cos","tan"];
     const func=funcs[Math.floor(rng()*funcs.length)];
     let angle: number;
@@ -566,32 +551,28 @@ export function generateHalfAngle(difficulty?: string, rng: RngFn = Math.random)
     else{
         angle=Math.floor(rng()*90)+1;
     }
-    let latex=`Use the half-angle formula to find \\( ${func}(${angle}^{\circ}/2) \\).`;
-    const rad=angle*Math.PI/180/2;
-    let value: number;
-    if(func==="sin") value=Math.sin(rad);
-    else if(func==="cos") value=Math.cos(rad);
-    else value=Math.tan(rad);
-    const displayValue=value.toFixed(4);
-    let correct=displayValue;
-    let choices=[correct];
-    choices.push((value+0.1).toFixed(4));
-    choices.push((value-0.1).toFixed(4));
-    choices.push((value*2).toFixed(4));
-    choices.push((value/2).toFixed(4));
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let latex=`Use the half-angle formula to find \\( ${func}(${angle}^{\\circ}/2) \\), rounded to four decimal places.`;
+    let ratio: (radians: number) => number;
+    if(func==="sin") ratio=Math.sin;
+    else if(func==="cos") ratio=Math.cos;
+    else ratio=Math.tan;
+    let halved=angle/2;
+    correct=roundTo(ratio(halved*Math.PI/180), 4).toFixed(4);
+    // The three ways a learner gets a half-angle question wrong are to halve the ratio
+    // rather than the angle, to reach for the complementary ratio at the halved angle,
+    // and to double the halved angle back again. Each is a value of a named ratio at a
+    // named angle, so each is a number a learner writes after doing real work.
+    let pool:string[]=angleValuePool([ratio, Math.cos], halved, 4);
+    pool.push(roundTo(ratio(angle*Math.PI/180), 4).toFixed(4));
+    pool.push(roundTo(ratio(halved*Math.PI/180)/2, 4).toFixed(4));
+    choices=fourOptions(correct, pool);
     return {
         latex,
         correct: correct,
         alternate: correct,
         display: correct,
-        choices: uniqueChoices,
-        expectedFormat: "Enter a decimal (e.g., 0.2588) or exact expression"
+        choices: choices,
+        expectedFormat: "Enter a decimal rounded to four decimal places (e.g., 0.2588)"
     };
 }
 export function generatePolarToRectangular(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
@@ -619,12 +600,7 @@ export function generatePolarToRectangular(difficulty?: string, rng: RngFn = Mat
     choices.push(`(${x}, ${(parseFloat(y)+1).toFixed(2)})`);
     choices.push(`(${(parseFloat(x)-1).toFixed(2)}, ${y})`);
     choices.push(`(${x}, ${(parseFloat(y)-1).toFixed(2)})`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
@@ -661,12 +637,7 @@ export function generateRectangularToPolar(difficulty?: string, rng: RngFn = Mat
     choices.push(`(${r}, ${(parseFloat(thetaDeg)-10).toFixed(2)}°)`);
     choices.push(`(${(parseFloat(r)+1).toFixed(2)}, ${thetaDeg}°)`);
     choices.push(`(${(parseFloat(r)-1).toFixed(2)}, ${thetaDeg}°)`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
@@ -692,12 +663,7 @@ export function generatePolarDistance(difficulty?: string, rng: RngFn = Math.ran
     choices.push((parseFloat(dist)-0.5).toFixed(2));
     choices.push((Math.abs(r1-r2)).toFixed(2));
     choices.push((r1+r2).toFixed(2));
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
@@ -763,12 +729,7 @@ export function generatePolarGraphEquation(difficulty?: string, rng: RngFn = Mat
     else{
         choices.push("A rose", "A cardioid", "A lemniscate", "A limaçon");
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
@@ -837,12 +798,7 @@ export function generateParametricToCartesian(difficulty?: string, rng: RngFn = 
         choices.push(`y = ${parseFloat(cartesian.split("=")[1].split("x")[0])}x^3`);
         choices.push(`y = ${parseFloat(cartesian.split("=")[1].split("x")[0])}x`);
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
@@ -868,12 +824,7 @@ export function generateParametricMotion(difficulty?: string, rng: RngFn = Math.
     choices.push(`(${x.toFixed(2)}, ${(y+1).toFixed(2)})`);
     choices.push(`(${(x-1).toFixed(2)}, ${y.toFixed(2)})`);
     choices.push(`(${x.toFixed(2)}, ${(y-1).toFixed(2)})`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
@@ -899,12 +850,7 @@ export function generateComplexPolarForm(difficulty?: string, rng: RngFn = Math.
     choices.push(`${(parseFloat(r)-1).toFixed(2)} \\operatorname{cis} ${thetaDeg}^{\circ}`);
     choices.push(`${r} \\operatorname{cis} ${(parseFloat(thetaDeg)+10).toFixed(2)}^{\circ}`);
     choices.push(`${r} \\operatorname{cis} ${(parseFloat(thetaDeg)-10).toFixed(2)}^{\circ}`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
@@ -938,12 +884,7 @@ export function generateComplexMultiplyDivide(difficulty?: string, rng: RngFn = 
     choices.push(`${(parseFloat(resultR)-1).toFixed(2)} \\operatorname{cis} ${resultThetaDeg}^{\circ}`);
     choices.push(`${resultR} \\operatorname{cis} ${(resultThetaDeg+10).toFixed(2)}^{\circ}`);
     choices.push(`${resultR} \\operatorname{cis} ${(resultThetaDeg-10).toFixed(2)}^{\circ}`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
@@ -968,12 +909,7 @@ export function generateDeMoivre(difficulty?: string, rng: RngFn = Math.random):
     choices.push(`${(parseFloat(newR)-1).toFixed(2)} \\operatorname{cis} ${newThetaDeg}^{\circ}`);
     choices.push(`${newR} \\operatorname{cis} ${(newThetaDeg+10).toFixed(2)}^{\circ}`);
     choices.push(`${newR} \\operatorname{cis} ${(newThetaDeg-10).toFixed(2)}^{\circ}`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
@@ -1013,12 +949,7 @@ export function generateComplexRoots(difficulty?: string, rng: RngFn = Math.rand
     choices.push(wrongRoots.join("; "));
     choices.push(`${rootR} \\operatorname{cis} ${(thetaDeg/n).toFixed(2)}^{\circ} only`);
     choices.push("No real roots");
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let uniqueChoices=fourOptions(correct, choices);
     return {
         latex,
         correct: correct,
