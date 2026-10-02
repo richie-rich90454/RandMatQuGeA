@@ -1,9 +1,18 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
-import {gcd, getMaxForDifficulty} from "../AlgebraUtils.js";
+import type{RngFn, QuestionDto}from"../../../types/global";
+import{gcd, getMaxForDifficulty}from"../AlgebraUtils.js";
+import{fmt, fmtTrim, roundTo}from"../../shared/Numeric";
+import{fourOptions}from"../../shared/Options.js";
+
 /**
  * Generates a ratio/proportion question (simplify ratio, solve proportion, map scale, or unit rate) with MCQ distractors.
- * @fileoverview Ratios, proportions, scales, unit rates. Sets window.correctAnswer with numeric or plain ratio and plausible wrong answers.
+ * @fileoverview Ratios, proportions, scales, unit rates. The unreduced ratio is
+ * offered as a wrong answer, because "lowest terms" is what the question asks
+ * for; when the drawn ratio is already in lowest terms the unreduced form is the
+ * key and the option filter drops it. The unit rate is rounded once, where it is
+ * drawn, and every distractor is built from that one rounded value.
  * @date 2026-04-18
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
  * @returns QuestionDto
  */
 export function generateRatioProportion(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -21,16 +30,27 @@ export function generateRatioProportion(difficulty?: string, rng: RngFn=Math.ran
             let a=Math.floor(rng()*maxVal)+1;
             let b=Math.floor(rng()*maxVal)+1;
             let g=gcd(a,b);
-            let plain=`${a/g}:${b/g}`;
+            let p=a/g;
+            let q=b/g;
+            let plain=`${p}:${q}`;
             correct=plain;
-            alternate=`${a/g}/${b/g}`;
+            alternate=`${p}/${q}`;
             display=plain;
             mathExpression=`Simplify the ratio \\( ${a}:${b} \\) to lowest terms.`;
-            choices=[correct];
-            choices.push(`${a/g+1}:${b/g}`);
-            choices.push(`${a/g}:${b/g+1}`);
-            choices.push(`${a}:${b}`);
-            choices.push(`${a/g-1}:${b/g}`);
+            // The unreduced ratio is the mistake this form is testing, so it is
+            // offered rather than left out. When a and b are coprime it is the
+            // key, and the option filter drops it as the same value written the
+            // same way.
+            choices=[
+                `${a}:${b}`,
+                `${p+1}:${q}`,
+                `${p}:${q+1}`,
+                `${p-1}:${q}`,
+                `${p+1}:${q+1}`
+            ];
+            // A ratio with a zero term is not a ratio, so that rung is only
+            // offered when the answer's own second term leaves room for it.
+            if (q>1) choices.push(`${p}:${q-1}`);
             break;
         }
         case "proportion":{
@@ -45,12 +65,9 @@ export function generateRatioProportion(difficulty?: string, rng: RngFn=Math.ran
             alternate=correct;
             display=correct;
             mathExpression=`Solve for x: \\( \\frac{${a}}{${b}}=\\frac{${c}}{x} \\)`;
-            let numRes=parseInt(correct);
-            choices=[correct];
-            choices.push((numRes+1).toString());
-            choices.push((numRes-1).toString());
-            choices.push((numRes+2).toString());
-            choices.push((numRes-2).toString());
+            // c*a/b is the inverted cross-product, which is the mistake the
+            // corrected formula is guarding against.
+            choices=[`${x}`, fmtTrim(c*a/b), `${x+1}`, `${x-1}`, `${x+2}`];
             break;
         }
         case "scale":{
@@ -63,45 +80,50 @@ export function generateRatioProportion(difficulty?: string, rng: RngFn=Math.ran
             alternate=correct;
             display=correct;
             mathExpression=`On a map with scale 1:${map}, a distance measures ${scaled} cm. What is the actual distance in cm?`;
-            let numRes=parseInt(correct);
-            choices=[correct];
-            choices.push((numRes+1).toString());
-            choices.push((numRes-1).toString());
-            choices.push((scaled*map+1).toString());
-            choices.push((scaled).toString());
+            // Reporting the map distance unchanged, and applying the scale factor
+            // twice, are the two slips this form is testing. A scale of one makes
+            // both of them the key, so the off-by-one and the doubled distance
+            // carry the set there.
+            choices=[
+                `${actual}`,
+                `${scaled}`,
+                `${scaled*map*map}`,
+                `${actual+1}`,
+                `${actual-1}`,
+                `${scaled*2}`
+            ];
             break;
         }
         case "unit_rate":{
             let quantity=Math.floor(rng()*100)+20;
             let units=Math.floor(rng()*10)+2;
-            let rate=quantity/units;
-            let ans=rate.toFixed(2);
+            // Rounded once, where the rate is drawn, so the key and every
+            // distractor are built from the number the learner is asked for
+            // rather than from the quotient behind it.
+            let rate=roundTo(quantity/units, 2);
+            let ans=fmt(rate, 2);
             correct=ans;
-            alternate=rate.toString();
+            alternate=fmtTrim(rate);
             display=ans;
             mathExpression=`If ${quantity} items cost ${units} dollars, what is the unit price? (nearest cent)`;
-            let numRes=parseFloat(correct);
-            choices=[correct];
-            choices.push((numRes+0.1).toFixed(2));
-            choices.push((numRes-0.1).toFixed(2));
-            choices.push((quantity/units+0.01).toFixed(2));
-            choices.push((units/quantity).toFixed(2));
+            // Dividing the cost by the quantity instead of the other way round is
+            // the mistake this form is testing.
+            choices=[
+                ans,
+                fmt(units/quantity, 2),
+                fmt(rate+0.01, 2),
+                fmt(rate-0.01, 2),
+                fmt(rate*2, 2)
+            ];
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
-    let latex=mathExpression;
     return {
-        latex,
+        latex: mathExpression,
         correct,
         alternate,
         display,
-        choices: uniqueChoices,
+        choices: fourOptions(correct, choices),
         expectedFormat
     };
 }
