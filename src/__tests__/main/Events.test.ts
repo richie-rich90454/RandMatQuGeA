@@ -63,7 +63,7 @@ vi.mock("../../main/core/DomRegistry",()=>{
     const mcqToggle=inputProps();
     const topicSearch=inputProps();
     const clearAnswerBtn=btnProps();
-    const mathToolbar={style:{display:""},querySelectorAll:vi.fn(()=>[]),contains:vi.fn(()=>false)};
+    const mathToolbar={style:{display:""},contains:vi.fn(()=>false)};
     const copyAnswerBtn=btnProps({style:{display:""}});
     const shortcutsButton=btnProps();
     const shortcutsClose=btnProps();
@@ -90,7 +90,7 @@ vi.mock("../../main/core/DomRegistry",()=>{
     const mentalProgressBar={style:{width:""},setAttribute:vi.fn()};
     const buttons={generateQuestionButton,checkAnswerButton,themeToggle,helpButton,settingsButton,modeSingleBtn,modeMentalBtn,startSessionBtn,pauseSessionBtn,skipQuestionBtn,clearAnswerBtn,copyAnswerBtn,shortcutsButton,shortcutsClose,shortcutsGotit,leaderboardClose,onboardingClose,onboardingGotit,settingsClose,settingsSave,settingsReset,checkUpdatesBtn,settingsTabBasic,settingsTabAdvanced};
     const inputs={userAnswer,difficultySelect,autocontinueToggle,scopeSelect,shuffleToggle,mentalScopeSelect,mentalShuffleToggle,mcqToggle,topicSearch,unlimitedToggle};
-    const displays={timerDisplay,scoreDisplay,mathToolbar,previewDiv,expectedFormatDiv,mentalProgressBar,mcqChoicesContainer};
+    const displays={timerDisplay,scoreDisplay,mathToolbar,mathToolbarButtons:[],previewDiv,expectedFormatDiv,mentalProgressBar,mcqChoicesContainer};
     const modals={settingsModal,shortcutsModal,onboardingOverlay,answerCard};
     const session={mentalControls,singleControls,leaderboardCard,settingsBasicPanel,settingsAdvancedPanel,mentalProgressBar};
     const settings={settingsTheme,settingsDefaultMode,settingsAutoContinue,settingsShuffle,settingsScope,settingsDifficulty,settingsTimer,settingsMaxQuestions,settingsFont,settingsPerfMaster,settingsPerfWave,settingsPerfBlur,settingsPerfPreview,settingsPerfAnimations,settingsFpsCap,settingsNotifications,settingsAutoCheckDelay,settingsDecimalPlaces,settingsSound,settingsVibration,settingsMcqChoices,settingsAdaptive,settingsShowWeakPopup};
@@ -347,6 +347,17 @@ describe("setupEventListeners",()=>{
         expect((dom.checkAnswerButton as any).addEventListener).toHaveBeenCalled();
         (dom as any).generateQuestionButton=orig;
     });
+    it("inserts the symbol of a math toolbar button the registry hands back",async()=>{
+        vi.mocked(ui.insertSymbol).mockClear();
+        let toolbarButton={id:"math-plus",addEventListener:vi.fn()};
+        dom.displays.mathToolbarButtons=[toolbarButton];
+        await setupEventListeners();
+        let click=(toolbarButton.addEventListener.mock.calls as any[]).find((c:any[])=>c[0]==="click");
+        expect(click).toBeDefined();
+        click![1]({target:{dataset:{symbol:"+"}}});
+        expect(ui.insertSymbol).toHaveBeenCalledWith("+");
+        dom.displays.mathToolbarButtons=[];
+    });
 });
 describe("isVersionGreater",()=>{
     it("should compare version strings correctly",async()=>{
@@ -377,6 +388,10 @@ describe("keyboard shortcuts",()=>{
     let escapeKeydownHandler:any;
     beforeEach(async()=>{
         vi.clearAllMocks();
+        // clearAllMocks leaves a return value set by mockReturnValue in place, and
+        // the shortcut handler now asks the modals whether one of them is shown,
+        // so a test that made one look shown has to stop looking shown.
+        vi.mocked(dom.settingsModal!.classList.contains).mockReturnValue(false);
         let docAddSpy=vi.spyOn(document,"addEventListener");
         await setupEventListeners();
         let userAnswerCalls=(dom.userAnswer!.addEventListener as any).mock.calls;
@@ -424,6 +439,13 @@ describe("keyboard shortcuts",()=>{
         expect(mockEvent.preventDefault).not.toHaveBeenCalled();
         expect(ui.insertSymbol).not.toHaveBeenCalled();
         Object.defineProperty(document,"activeElement",{get:()=>document.body,configurable:true});
+    });
+    it("should suppress shortcuts while a modal is shown",()=>{
+        expect(ctrlKeydownHandler).toBeDefined();
+        vi.mocked(dom.settingsModal!.classList.contains).mockReturnValue(true);
+        ctrlKeydownHandler({ctrlKey:true,key:"g",preventDefault:vi.fn(),metaKey:false});
+        expect(generation.debounceGenerate).not.toHaveBeenCalled();
+        vi.mocked(dom.settingsModal!.classList.contains).mockReturnValue(false);
     });
 });
 describe("isVersionGreater - edge cases",()=>{
