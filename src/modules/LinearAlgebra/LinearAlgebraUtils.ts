@@ -1,5 +1,5 @@
 /**
- * Linear algebra utilities: types, range, matrix to LaTeX.
+ * Linear algebra utilities: types, range, and matrix to LaTeX.
  * @fileoverview Provides interfaces and helper functions for linear algebra generators.
  * @date 2026-03-15
  */
