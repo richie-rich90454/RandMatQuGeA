@@ -17,6 +17,7 @@
  */
 import type{RngFn, QuestionDto}from"../../types/global";
 import{shuffle}from"../shared/Random";
+import{fourOptions}from"../shared/Options.js";
 
 /**
  * The least non-negative residue of a value.
@@ -75,7 +76,10 @@ export function lastDigitOfPower(base: number, exponent: number): number{
 
 /**
  * Builds four options around a residue, including the answers that come from the
- * named mistakes: reducing after multiplying, and reducing only one term.
+ * named mistakes: reducing after multiplying, and reducing only one term. The
+ * unreduced answer comes first, because a question that asks for the least
+ * non-negative residue has exactly one honest way to be wrong about the reduction
+ * and the learner has to choose between that and the other two mistakes.
  *
  * @param answer - The correct residue.
  * @param modulus - The modulus in force.
@@ -85,11 +89,12 @@ export function lastDigitOfPower(base: number, exponent: number): number{
 function residueDistractors(answer: number, modulus: number, rng: RngFn): string[]{
     let candidates=[
         answer+modulus,
-        answer-modulus,
         residue(answer*2, modulus),
         residue(answer+1, modulus),
         residue(answer-2, modulus),
-        residue(Math.abs(answer-modulus), modulus)
+        residue(answer+2, modulus),
+        residue(Math.abs(answer-modulus), modulus),
+        answer+2*modulus
     ];
     let out:string[]=[];
     for(let value of candidates){
@@ -159,25 +164,27 @@ export function generateModular(difficulty?: string, rng: RngFn=Math.random): Qu
         }
         case "congruence_class":{
             // Which single value satisfies a stated congruence. Every option is a
-            // different residue class, so exactly one can be right. The redraw is
-            // bounded because a small modulus has fewer distinct residue classes
-            // than the four options asked for, and a set that cannot grow must not
-            // be asked to.
+            // different residue class, so exactly one can be right. That needs four
+            // classes to exist, so a modulus of three is redrawn: with only three
+            // residue classes the question cannot be asked with four honest options
+            // and a set that cannot grow must not be asked for. The classes are
+            // enumerated rather than sampled, so the set is complete by
+            // construction instead of by a loop that might not fill it.
+            if (modulus<4){
+                let wider=moduli.filter(m=>m>=4);
+                modulus=wider[Math.floor(rng()*wider.length)];
+            }
             let a=Math.floor(rng()*modulus*8);
             let answer=residue(a, modulus);
             correct=String(answer);
             alternate=correct;
             display=correct;
             latex=`Which of these is congruent to \\( ${a} \\) modulo \\( ${modulus} \\)?`;
-            let options=new Set<string>([correct]);
-            options.add(String(residue(answer+modulus, modulus)));
-            options.add(String(residue(answer-modulus, modulus)));
-            let attempts=0;
-            while (options.size<4&&attempts<40){
-                options.add(String(Math.floor(rng()*modulus)));
-                attempts++;
+            let others:string[]=[];
+            for(let value=0; value<modulus; value++){
+                if (value!==answer) others.push(String(value));
             }
-            choices=shuffle(rng, [...options]);
+            choices=shuffle(rng, [correct, ...shuffle(rng, others).slice(0, 3)]);
             break;
         }
         case "divisible_by":{
@@ -188,16 +195,15 @@ export function generateModular(difficulty?: string, rng: RngFn=Math.random): Qu
             alternate=correct;
             display=`${value} = ${k} \\times ${divisor}`;
             latex=`What is the largest whole number \\( k \\) for which \\( ${divisor}k = ${value} \\)?`;
-            choices=shuffle(rng, [k, divisor*k, k+divisor, k-1].map(String).filter((v, i, a)=>v!==String(k)&&a.indexOf(v)===i));
+            // The product, the next multiple up, and a number one short are the
+            // three answers this question actually produces. The filter this
+            // replaces removed the correct answer along with the duplicates, which
+            // is why the branch always shipped three options.
+            choices=shuffle(rng, fourOptions(correct, [String(divisor*k), String(k+divisor), String(k-1), String(k+2)]));
             break;
         }
     }
-    let unique=[...new Set(choices)];
-    if (unique.length>4) unique=unique.slice(0, 4);
-    if (!unique.includes(correct)){
-        if (unique.length>0) unique[Math.floor(rng()*unique.length)]=correct;
-        else unique=[correct];
-    }
+    let unique=fourOptions(correct, choices);
     return {latex, correct, alternate, display, choices: unique, expectedFormat};
 }
 
