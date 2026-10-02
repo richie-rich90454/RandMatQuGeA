@@ -505,6 +505,22 @@ async function updateMathJaxColors():Promise<void>{
         console.log("MathJax re-render error:",err);
     }
 }
+/**
+ * Grades a typed answer, in every build. This is the one function that decides.
+ *
+ * The desktop build used to ask the Rust `check_math` command first and fall
+ * back to this function only when Rust said no. Two checkers meant the same
+ * question could be graded differently depending on which build asked, and the
+ * Rust one could not read a fraction, a LaTeX fraction or an expression at all.
+ * Grading runs once per answer, so nothing was ever bought by the second
+ * checker, and this one already reads every form the app can print. `check_math`
+ * is still a registered command and is still callable; nothing grades through it.
+ *
+ * @param userInput - What the learner typed.
+ * @param correct - The answer key.
+ * @param alternate - An equivalent spelling of the key, if the topic has one.
+ * @returns True when the answer is right.
+ */
 export async function isAnswerCorrect(userInput:string,correct:string,alternate?:string):Promise<boolean>{
     function prepareForEval(expr:string):string{
         return expr.replace(/\\?π/g,"pi").replace(/[°˚]|deg(rees?)?/g,"").replace(/rad(ians?)?/g,"").replace(/\s+/g,"");
@@ -577,23 +593,4 @@ export async function isAnswerCorrect(userInput:string,correct:string,alternate?
         if (userSimple===altSimple) return true;
     }
     return false;
-}
-/**
- * Grades a typed answer, in every build.
- *
- * The desktop build used to ask the Rust `check_math` command first and fall
- * back to isAnswerCorrect only when Rust said no. Two checkers meant the same
- * question could be graded differently depending on which build asked, and the
- * Rust one could not read a fraction, a LaTeX fraction or an expression at all.
- * Grading runs once per answer, so nothing was ever bought by the second
- * checker, and the JavaScript one already reads every form the app can print.
- * It is therefore the only one that decides.
- *
- * @param userInput - What the learner typed.
- * @param correct - The answer key.
- * @param alternate - An equivalent spelling of the key, if the topic has one.
- * @returns True when the answer is right.
- */
-export async function checkAnswerFast(userInput:string,correct:string,alternate?:string):Promise<boolean>{
-    return await isAnswerCorrect(userInput,correct,alternate);
 }
