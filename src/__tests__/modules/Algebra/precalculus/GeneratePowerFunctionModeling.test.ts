@@ -80,4 +80,25 @@ describe("generatePowerFunctionModeling", ()=>{
         const dto2=generatePowerFunctionModeling("medium", seededRng(42));
         expect(dto1).toEqual(dto2);
     });
+    it("offers four distinct options for every variation branch, where a constant of one collapsed the direct branch to three", ()=>{
+        for(let difficulty of ["easy","medium","hard"]){
+            for(let seed=1; seed<=60; seed++){
+                const dto=generatePowerFunctionModeling(difficulty, seededRng(seed));
+                expect(dto.choices).toHaveLength(4);
+                expect(new Set(dto.choices).size).toBe(4);
+                expect(dto.choices).toContain(dto.correct);
+            }
+        }
+    });
+    it("names the power with its ordinal rather than always writing 'rd'", ()=>{
+        const seen=new Set<string>();
+        for(let seed=1; seed<=60; seed++){
+            const dto=generatePowerFunctionModeling("easy", seededRng(seed));
+            const match=dto.latex.match(/as the (\d+)([a-z]{2}) power/);
+            if (!match) continue;
+            expect(match[2]).toBe(match[1]==="2"?"nd":"rd");
+            seen.add(match[1] as string);
+        }
+        expect(seen.has("2")).toBe(true);
+    });
 });
