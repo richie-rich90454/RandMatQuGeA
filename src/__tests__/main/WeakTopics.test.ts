@@ -253,4 +253,14 @@ describe("checkAndShowWeakTopicsPopup - edge cases",()=>{
         practiceBtn.click();
         expect(modal.classList.contains("show")).toBe(false);
     });
+    it("wires the practice buttons without searching the document",async()=>{
+        vi.mocked(invoke).mockResolvedValue([{topic_id:"algebra",accuracy:0.5,attempts:5}]);
+        let scan=vi.spyOn(document,"querySelectorAll");
+        await checkAndShowWeakTopicsPopup();
+        expect(scan).not.toHaveBeenCalled();
+        scan.mockRestore();
+        const practiceBtn=list.querySelector(".practice-topic-btn")as HTMLElement;
+        practiceBtn.click();
+        expect(modal.classList.contains("show")).toBe(false);
+    });
 });
