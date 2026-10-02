@@ -197,6 +197,21 @@ The desktop and web builds had **two different answer checkers**, and they disag
 `docs/guide/getting-started.md`, `docs/contributing.md`, `docs/api/index.md`, and
 `CONTRIBUTING.md` are all updated for the work that landed.
 
+### 4.12 Two defects the browser run exposed
+Neither is visible to a unit test, which is the argument for running the suite in a real
+browser at all.
+
+- **A trigonometric graph question showed no graph at all.** `GeometryVisualization.ts`
+  implements seven canvas shapes but its router listed six, so a request for `graph` built a
+  WebGL renderer, fell through the 3D switch, warned `Unknown 3D shape`, and deleted the
+  visualisation it had just created. The trigonometry generator asks for that shape, so
+  every `trig_graph` question lost its figure and paid for a WebGL context to do it.
+- **A key printed with the Unicode radical sign could not be graded.** `45^{\circ}` and
+  `\cdot` were fixed in O3; `√5` is the same class of printed form and reached mathjs as a
+  bare radical character, which it cannot parse. `latexToPlain` now rewrites it to
+  `sqrt(…)` in both directions, so a learner may type either spelling.
+
+
 ## 5. Open work register
 
 Ordered by consequence. Each row states the acceptance test that closes it.
@@ -217,7 +232,8 @@ factories were updated rather than worked around — `Session.test.ts` now uses 
 the real `isAnswerCorrect`, because a stub returning `true` is what let a broken grader pass.
 
 ### O3 — `latexToPlain` does not handle two printed forms (CLOSED)
-`45^{\circ}` and `\cdot` are handled, in both modes. `\frac` with a nested brace level is the next
+`45^{\circ}` and `\cdot` are handled, in both modes, and the browser run added the Unicode radical
+sign `√` to the same treatment (see 4.12). `\frac` with a nested brace level is the next
 known gap: `TrigReciprocal.ts` can print `\frac{1}{\sin(30^{\circ})}`, which the current regex cannot
 reach, and the key stays unparseable.
 
