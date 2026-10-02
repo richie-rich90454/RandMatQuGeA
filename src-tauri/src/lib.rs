@@ -18,6 +18,7 @@ use tauri_utils::config::WindowEffectsConfig;
 mod adaptive;
 mod models;
 mod pdf;
+mod record;
 use models::{Difficulty, TopicId};
 #[derive(Serialize, Deserialize, Clone, sqlx::FromRow)]
 struct ScoreEntry {
@@ -97,7 +98,10 @@ fn exact_value(text: &str) -> Option<(i64, i64)> {
         Some(rest) => {
             let inner = strip_braces(rest);
             let split = inner.find('}')?;
-            (strip_braces(&inner[..split]), strip_braces(&inner[split + 1..]))
+            (
+                strip_braces(&inner[..split]),
+                strip_braces(&inner[split + 1..]),
+            )
         }
         None => match body.split_once('/') {
             Some((n, d)) => (n, d),
@@ -464,12 +468,21 @@ async fn save_skill_schedule(
             continue;
         }
         let sub = skill.get("subSkill").and_then(|v| v.as_str()).unwrap_or("");
-        let stability = skill.get("stability").and_then(|v| v.as_f64()).unwrap_or(1.0);
-        let difficulty = skill.get("difficulty").and_then(|v| v.as_f64()).unwrap_or(5.0);
+        let stability = skill
+            .get("stability")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(1.0);
+        let difficulty = skill
+            .get("difficulty")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(5.0);
         let last = skill.get("lastReview").and_then(|v| v.as_i64());
         let due = skill.get("due").and_then(|v| v.as_i64());
         let reviews = skill.get("reviews").and_then(|v| v.as_i64()).unwrap_or(0);
-        let correct = skill.get("correctReviews").and_then(|v| v.as_i64()).unwrap_or(0);
+        let correct = skill
+            .get("correctReviews")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(0);
         let aoa = skill.get("aoa").and_then(|v| v.as_f64()).unwrap_or(0.0);
         sqlx::query(
             "INSERT INTO review_skills
@@ -534,6 +547,125 @@ async fn clear_performance(state: tauri::State<'_, DbState>) -> Result<(), Strin
         .map_err(|e| e.to_string())?;
     Ok(())
 }
+/// The tables the whole learning record lives in, created on every launch. This
+/// is a function rather than a block inside setup so the round-trip test can
+/// build the real schema on a real file, and so a table added later is added in
+/// one place.
+pub(crate) async fn create_schema(pool: &SqlitePool) -> Result<(), String> {
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS scores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic TEXT,
+            score INTEGER,
+            total INTEGER,
+            difficulty TEXT,
+            date TEXT
+        );",
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| format!("DB init error for scores: {}", e))?;
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS user_topic_stats (
+            topic_id TEXT NOT NULL,
+            difficulty TEXT NOT NULL,
+            attempts INTEGER DEFAULT 0,
+            correct INTEGER DEFAULT 0,
+            total_response_time_ms INTEGER DEFAULT 0,
+            last_error_type TEXT,
+            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (topic_id, difficulty)
+        );",
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| format!("DB init error for user_topic_stats: {}", e))?;
+    // The review schedule needs a place to keep memory strength and
+    // difficulty per skill, which the topic-level table cannot hold,
+    // and a place for the confidence the learner reported, which
+    // nothing stored before this.
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS review_skills (
+            topic_id TEXT NOT NULL,
+            sub_skill TEXT NOT NULL DEFAULT '',
+            stability REAL NOT NULL DEFAULT 1.0,
+            difficulty REAL NOT NULL DEFAULT 5.0,
+            last_review INTEGER,
+            due INTEGER,
+            reviews INTEGER NOT NULL DEFAULT 0,
+            correct_reviews INTEGER NOT NULL DEFAULT 0,
+            aoa REAL NOT NULL DEFAULT 0.0,
+            PRIMARY KEY (topic_id, sub_skill)
+        );",
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| format!("DB init error for review_skills: {}", e))?;
+    // Every answer is kept, not just the aggregate, so a learner's
+    // history can be exported, audited and rebuilt rather than being
+    // only what the current schema happens to summarise.
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS attempts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic_id TEXT NOT NULL,
+            sub_skill TEXT NOT NULL DEFAULT '',
+            difficulty TEXT NOT NULL DEFAULT '',
+            correct INTEGER NOT NULL DEFAULT 0,
+            response_ms INTEGER NOT NULL DEFAULT 0,
+            confidence TEXT,
+            error_type TEXT,
+            answered_at INTEGER NOT NULL
+        );",
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| format!("DB init error for attempts: {}", e))?;
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS attempts_topic_idx ON attempts (topic_id, answered_at);",
+    )
+    .execute(pool)
+    .await
+    .ok();
+    sqlx::query("CREATE INDEX IF NOT EXISTS review_due_idx ON review_skills (due);")
+        .execute(pool)
+        .await
+        .ok();
+    Ok(())
+}
+
+/// Writes the whole learning record to a file the learner chooses. The path is
+/// optional, so a caller that only wants to read the record does not have to
+/// invent a place to put it, and the document that was written is returned
+/// either way so the interface can report what the file actually contains.
+#[tauri::command]
+async fn export_learning_record(
+    state: tauri::State<'_, DbState>,
+    path: Option<String>,
+) -> Result<record::ExportDocument, String> {
+    let document = record::read_learning_record(&state.pool).await?;
+    if let Some(target) = path {
+        let text = serde_json::to_string_pretty(&document).map_err(|e| e.to_string())?;
+        std::fs::write(&target, text).map_err(|e| format!("Could not write {}: {}", target, e))?;
+    }
+    Ok(document)
+}
+
+/// Applies a learning record the learner chose, either merging it into what is
+/// here or making it the whole record. The document is read, checked and
+/// applied in one call so a payload this build cannot read is refused before a
+/// single row changes.
+#[tauri::command]
+async fn import_learning_record(
+    state: tauri::State<'_, DbState>,
+    path: String,
+    mode: record::ImportMode,
+) -> Result<record::ImportSummary, String> {
+    let text =
+        std::fs::read_to_string(&path).map_err(|e| format!("Could not read {}: {}", path, e))?;
+    let document = record::decode(&text)?;
+    record::apply_learning_record(&state.pool, &document, mode).await
+}
+
 #[tauri::command]
 fn generate_worksheet_seed() -> u64 {
     rand::random()
@@ -544,9 +676,11 @@ async fn export_worksheet_pdf(
     opts: pdf::WorksheetOptsRust,
     filepath: String,
 ) -> Result<(), String> {
-    tauri::async_runtime::spawn_blocking(move || pdf::export_worksheet_pdf_impl(questions, opts, &filepath))
-        .await
-        .map_err(|e| e.to_string())?
+    tauri::async_runtime::spawn_blocking(move || {
+        pdf::export_worksheet_pdf_impl(questions, opts, &filepath)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 #[tauri::command]
 async fn delete_score(state: tauri::State<'_, DbState>, id: i32) -> Result<(), String> {
@@ -593,6 +727,8 @@ pub fn run() {
             save_skill_schedule,
             load_skill_schedule,
             clear_performance,
+            export_learning_record,
+            import_learning_record,
             generate_worksheet_seed,
             export_worksheet_pdf,
             delete_score,
@@ -611,82 +747,7 @@ pub fn run() {
                 let pool = SqlitePool::connect(&db_url)
                     .await
                     .map_err(|e| format!("DB connect error: {}", e))?;
-                sqlx::query(
-                    "CREATE TABLE IF NOT EXISTS scores (
-						id INTEGER PRIMARY KEY AUTOINCREMENT,
-						topic TEXT,
-						score INTEGER,
-						total INTEGER,
-						difficulty TEXT,
-						date TEXT
-					);",
-                )
-                .execute(&pool)
-                .await
-                .map_err(|e| format!("DB init error: {}", e))?;
-                sqlx::query(
-                    "CREATE TABLE IF NOT EXISTS user_topic_stats (
-						topic_id TEXT NOT NULL,
-						difficulty TEXT NOT NULL,
-						attempts INTEGER DEFAULT 0,
-						correct INTEGER DEFAULT 0,
-						total_response_time_ms INTEGER DEFAULT 0,
-						last_error_type TEXT,
-						last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-						PRIMARY KEY (topic_id, difficulty)
-					);",
-                )
-                .execute(&pool)
-                .await
-                .map_err(|e| format!("DB init error for user_topic_stats: {}", e))?;
-                // The review schedule needs a place to keep memory strength and
-                // difficulty per skill, which the topic-level table cannot hold,
-                // and a place for the confidence the learner reported, which
-                // nothing stored before this.
-                sqlx::query(
-                    "CREATE TABLE IF NOT EXISTS review_skills (
-						topic_id TEXT NOT NULL,
-						sub_skill TEXT NOT NULL DEFAULT '',
-						stability REAL NOT NULL DEFAULT 1.0,
-						difficulty REAL NOT NULL DEFAULT 5.0,
-						last_review INTEGER,
-						due INTEGER,
-						reviews INTEGER NOT NULL DEFAULT 0,
-						correct_reviews INTEGER NOT NULL DEFAULT 0,
-						aoa REAL NOT NULL DEFAULT 0.0,
-						PRIMARY KEY (topic_id, sub_skill)
-					);",
-                )
-                .execute(&pool)
-                .await
-                .map_err(|e| format!("DB init error for review_skills: {}", e))?;
-                // Every answer is kept, not just the aggregate, so a learner's
-                // history can be exported, audited and rebuilt rather than being
-                // only what the current schema happens to summarise.
-                sqlx::query(
-                    "CREATE TABLE IF NOT EXISTS attempts (
-						id INTEGER PRIMARY KEY AUTOINCREMENT,
-						topic_id TEXT NOT NULL,
-						sub_skill TEXT NOT NULL DEFAULT '',
-						difficulty TEXT NOT NULL DEFAULT '',
-						correct INTEGER NOT NULL DEFAULT 0,
-						response_ms INTEGER NOT NULL DEFAULT 0,
-						confidence TEXT,
-						error_type TEXT,
-						answered_at INTEGER NOT NULL
-					);",
-                )
-                .execute(&pool)
-                .await
-                .map_err(|e| format!("DB init error for attempts: {}", e))?;
-                sqlx::query("CREATE INDEX IF NOT EXISTS attempts_topic_idx ON attempts (topic_id, answered_at);")
-                    .execute(&pool)
-                    .await
-                    .ok();
-                sqlx::query("CREATE INDEX IF NOT EXISTS review_due_idx ON review_skills (due);")
-                    .execute(&pool)
-                    .await
-                    .ok();
+                create_schema(&pool).await?;
                 Ok::<SqlitePool, String>(pool)
             })
             .map_err(|e| {
@@ -719,7 +780,11 @@ pub fn run() {
                 let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
                 let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
                 let _tray = TrayIconBuilder::with_id("main")
-                    .icon(app.default_window_icon().expect("default window icon must be configured").clone())
+                    .icon(
+                        app.default_window_icon()
+                            .expect("default window icon must be configured")
+                            .clone(),
+                    )
                     .menu(&menu)
                     .on_menu_event(move |app, event| match event.id.as_ref() {
                         "quit" => {
@@ -827,21 +892,19 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        let count_before: (i64,) =
-            sqlx::query_as("SELECT COUNT(*) FROM user_topic_stats")
-                .fetch_one(&pool)
-                .await
-                .unwrap();
+        let count_before: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM user_topic_stats")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
         assert_eq!(count_before.0, 1);
         sqlx::query("DELETE FROM user_topic_stats")
             .execute(&pool)
             .await
             .unwrap();
-        let count_after: (i64,) =
-            sqlx::query_as("SELECT COUNT(*) FROM user_topic_stats")
-                .fetch_one(&pool)
-                .await
-                .unwrap();
+        let count_after: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM user_topic_stats")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
         assert_eq!(count_after.0, 0);
     }
     #[test]
@@ -923,10 +986,7 @@ mod tests {
     async fn should_create_db_state_with_default_pool() {
         let pool = SqlitePool::connect("sqlite::memory:").await.unwrap();
         let _state = DbState { pool: pool.clone() };
-        let row: (i64,) = sqlx::query_as("SELECT 1")
-            .fetch_one(&pool)
-            .await
-            .unwrap();
+        let row: (i64,) = sqlx::query_as("SELECT 1").fetch_one(&pool).await.unwrap();
         assert_eq!(row.0, 1);
     }
     #[test]
@@ -952,15 +1012,27 @@ mod tests {
     }
     #[test]
     fn should_handle_check_math_with_matching_alternate() {
-        assert!(check_math("1/2".to_string(), "0.5".to_string(), Some("1/2".to_string())));
+        assert!(check_math(
+            "1/2".to_string(),
+            "0.5".to_string(),
+            Some("1/2".to_string())
+        ));
     }
     #[test]
     fn should_handle_check_math_with_alternate_decimal_match() {
-        assert!(check_math("0.5".to_string(), "1/2".to_string(), Some("0.50".to_string())));
+        assert!(check_math(
+            "0.5".to_string(),
+            "1/2".to_string(),
+            Some("0.50".to_string())
+        ));
     }
     #[test]
     fn should_handle_check_math_with_non_matching_alternate() {
-        assert!(!check_math("x+1".to_string(), "x+2".to_string(), Some("y+1".to_string())));
+        assert!(!check_math(
+            "x+1".to_string(),
+            "x+2".to_string(),
+            Some("y+1".to_string())
+        ));
     }
     #[test]
     fn should_accept_a_fraction_written_as_a_decimal() {
@@ -973,7 +1045,11 @@ mod tests {
     }
     #[test]
     fn should_accept_the_latex_form_of_a_fraction() {
-        assert!(check_math("0.75".to_string(), "\\frac{3}{4}".to_string(), None));
+        assert!(check_math(
+            "0.75".to_string(),
+            "\\frac{3}{4}".to_string(),
+            None
+        ));
         assert!(check_math(
             "-0.75".to_string(),
             "-\\frac{3}{4}".to_string(),
@@ -1154,15 +1230,17 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("INSERT INTO scores (topic, score, total, difficulty, date) VALUES (?, ?, ?, ?, ?)")
-            .bind("calculus")
-            .bind(3)
-            .bind(5)
-            .bind("hard")
-            .bind("2025-01-01")
-            .execute(&pool)
-            .await
-            .unwrap();
+        sqlx::query(
+            "INSERT INTO scores (topic, score, total, difficulty, date) VALUES (?, ?, ?, ?, ?)",
+        )
+        .bind("calculus")
+        .bind(3)
+        .bind(5)
+        .bind("hard")
+        .bind("2025-01-01")
+        .execute(&pool)
+        .await
+        .unwrap();
         sqlx::query("DELETE FROM user_topic_stats")
             .execute(&pool)
             .await
@@ -1431,7 +1509,11 @@ mod check_math_extended_tests {
     }
     #[test]
     fn alternate_numeric_match_with_whitespace() {
-        assert!(check_math("0.5".into(), "1/2".into(), Some(" 0.50 ".into())));
+        assert!(check_math(
+            "0.5".into(),
+            "1/2".into(),
+            Some(" 0.50 ".into())
+        ));
     }
 }
 
@@ -1440,27 +1522,45 @@ mod difficulty_serde_tests {
     use crate::models::Difficulty;
     #[test]
     fn serializes_easy_lowercase() {
-        assert_eq!(serde_json::to_string(&Difficulty::Easy).unwrap(), "\"easy\"");
+        assert_eq!(
+            serde_json::to_string(&Difficulty::Easy).unwrap(),
+            "\"easy\""
+        );
     }
     #[test]
     fn serializes_medium_lowercase() {
-        assert_eq!(serde_json::to_string(&Difficulty::Medium).unwrap(), "\"medium\"");
+        assert_eq!(
+            serde_json::to_string(&Difficulty::Medium).unwrap(),
+            "\"medium\""
+        );
     }
     #[test]
     fn serializes_hard_lowercase() {
-        assert_eq!(serde_json::to_string(&Difficulty::Hard).unwrap(), "\"hard\"");
+        assert_eq!(
+            serde_json::to_string(&Difficulty::Hard).unwrap(),
+            "\"hard\""
+        );
     }
     #[test]
     fn deserializes_easy() {
-        assert_eq!(serde_json::from_str::<Difficulty>("\"easy\"").unwrap(), Difficulty::Easy);
+        assert_eq!(
+            serde_json::from_str::<Difficulty>("\"easy\"").unwrap(),
+            Difficulty::Easy
+        );
     }
     #[test]
     fn deserializes_medium() {
-        assert_eq!(serde_json::from_str::<Difficulty>("\"medium\"").unwrap(), Difficulty::Medium);
+        assert_eq!(
+            serde_json::from_str::<Difficulty>("\"medium\"").unwrap(),
+            Difficulty::Medium
+        );
     }
     #[test]
     fn deserializes_hard() {
-        assert_eq!(serde_json::from_str::<Difficulty>("\"hard\"").unwrap(), Difficulty::Hard);
+        assert_eq!(
+            serde_json::from_str::<Difficulty>("\"hard\"").unwrap(),
+            Difficulty::Hard
+        );
     }
     #[test]
     fn deserializes_pascal_case_fails() {
