@@ -1,5 +1,6 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
+import {fourOptions} from "../../shared/Options.js";
 /**
  * Function properties: continuity, extrema, symmetry, asymptotes, end behavior.
  * @fileoverview Generates function property questions with MCQ distractors.
@@ -33,13 +34,22 @@ export function generateFunctionProperties(difficulty?: string, rng: RngFn = Mat
             alternate=answer;
             display=answer;
             if(answer==="none"){
-                choices=["none","x=0","x=1","all reals"];
+                // A learner who cannot find a discontinuity reaches for a
+                // value rather than for "nowhere", and for "everywhere" when
+                // they read it as continuity instead.
+                choices=fourOptions(answer, [`x = ${a}`, "all reals", "x = 0", `x = ${a+1}`]);
             }
             else if(answer.includes("x =")){
-                choices=[answer,`x = ${a+1}`,`x = ${a-1}`,`x = 0`];
+                // `a-1` is 0 whenever a is 1, and `x = 0` was also offered,
+                // so the pair collapsed and left three. Off-by-one on the
+                // shift and a sign that was not accounted for back it up.
+                choices=fourOptions(answer, [`x = ${a+1}`,`x = ${a-1}`,`x = ${a+2}`,"x = 0",`x ≠ ${a}`]);
             }
             else{
-                choices=[answer,`x ≤ ${a}`,`x > ${a}`,`x ≥ ${a}`];
+                // The four interval readings of the radical's domain, all
+                // of which a learner writes before settling on the strict
+                // one the prompt asks for.
+                choices=fourOptions(answer, [`x ≤ ${a}`,`x > ${a}`,`x ≥ ${a}`,`x ≠ ${a}`]);
             }
             expectedFormat="Enter x value, interval, or 'none'";
             break;
@@ -66,8 +76,14 @@ export function generateFunctionProperties(difficulty?: string, rng: RngFn = Mat
             correct=chosen.type;
             alternate=chosen.type;
             display=chosen.type;
-            choices=["even","odd","neither"];
-            expectedFormat="Enter 'even', 'odd', or 'neither'";
+            // Three words cannot make four options. The fourth is the fourth
+            // word in the same register, which this generator already uses in
+            // its extrema branch: the zero function is both even and odd, so
+            // "both" is a real answer to this question, and a learner reaches
+            // for it. None of these three polynomials is the zero function,
+            // so it is wrong here.
+            choices=fourOptions(correct, ["even","odd","neither","both"]);
+            expectedFormat="Enter 'even', 'odd', 'neither', or 'both'";
             break;
         }
         case "asymptotes":{
@@ -79,7 +95,10 @@ export function generateFunctionProperties(difficulty?: string, rng: RngFn = Mat
             correct=ans;
             alternate=ans;
             display=ans;
-            choices=[ans,`x=${a+1}`,`x=${a-1}`,`y=0`];
+            // The horizontal asymptote, which is the numerator's leading
+            // coefficient, is the mistake this branch exists to catch, so it
+            // leads. a-1 is 0 whenever a is 1 and `y=0` was also offered.
+            choices=fourOptions(ans, [`y=${a}`,"y=0",`x=${a+1}`,`x=${a-1}`,`x=${a+2}`]);
             expectedFormat="Enter x = number";
             break;
         }
@@ -98,31 +117,20 @@ export function generateFunctionProperties(difficulty?: string, rng: RngFn = Mat
             correct=desc;
             alternate=desc;
             display=desc;
-            let wrong1="both ends up";
-            let wrong2="both ends down";
-            let wrong3="left down, right up";
-            let wrong4="left up, right down";
-            choices=[desc];
-            for(let w of [wrong1,wrong2,wrong3,wrong4]){
-                if(w!==desc) choices.push(w);
-                if(choices.length>=4) break;
-            }
+            // Reading the degree's parity backwards and reading the leading
+            // coefficient's sign backwards are the two mistakes, and the
+            // four descriptions are the whole answer domain.
+            choices=fourOptions(desc, ["both ends up","both ends down","left down, right up","left up, right down"]);
             expectedFormat="Enter description like 'both ends up'";
             break;
         }
-    }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
     }
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: choices,
         expectedFormat: expectedFormat
     };
 }
