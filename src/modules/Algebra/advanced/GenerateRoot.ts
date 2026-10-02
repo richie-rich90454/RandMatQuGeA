@@ -1,9 +1,17 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
-import {getMaxForDifficulty} from "../AlgebraUtils.js";
+import type{RngFn, QuestionDto}from"../../../types/global";
+import{getMaxForDifficulty}from"../AlgebraUtils.js";
+import{fourOptions}from"../../shared/Options.js";
 /**
  * Roots: simplify nth roots.
- * @fileoverview Generates root simplification questions with MCQ distractors.
+ * @fileoverview Generates root simplification questions with MCQ distractors. The
+ * radicand is a perfect power of a whole base, so the key is exact and the prompt
+ * needs no rounding instruction. The wrong answers are the mistakes this form
+ * produces: a neighbouring whole number, the base doubled, the index instead of
+ * the root, and the radicand left unextracted. The option filter drops whichever
+ * of them coincides with the key, which is what a base of one used to do.
  * @date 2026-04-18
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
  * @returns QuestionDto
  */
 export function generateRoot(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -20,24 +28,19 @@ export function generateRoot(difficulty?: string, rng: RngFn=Math.random): Quest
         rootExpression=`\\[ \\sqrt[${root}]{${radicand}}=? \\]`;
     }
     let correctRoot=base.toString();
-    let choices=[correctRoot];
-    choices.push((base+1).toString());
-    choices.push((base-1).toString());
-    choices.push((base*2).toString());
-    choices.push((Math.pow(radicand,1/root+0.1)).toFixed(2));
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correctRoot)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctRoot;
-        else uniqueChoices=[correctRoot];
-    }
-    let latex=rootExpression;
+    let choices=[
+        `${base+1}`,
+        `${base-1}`,
+        `${base*2}`,
+        `${root}`,
+        `${radicand}`
+    ];
     return {
-        latex,
+        latex: rootExpression,
         correct: correctRoot,
         alternate: correctRoot,
         display: correctRoot,
-        choices: uniqueChoices,
+        choices: fourOptions(correctRoot, choices),
         expectedFormat: "Enter a whole number"
     };
 }
