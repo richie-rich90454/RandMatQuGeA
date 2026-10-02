@@ -1,4 +1,4 @@
-﻿﻿/**
+/**
  * Discrete mathematics: permutations and combinations generator
  * @fileoverview Provides functions to generate permutation and combination questions with MCQ distractors.
  * Each question returns a QuestionDto with:
@@ -12,6 +12,7 @@
  */
 import type {RngFn, QuestionDto} from "../../types/global";
 import {factorial, nPr, nCr, getMaxN} from "./DiscreteUtils.js";
+import {fourOptions} from "../shared/Options.js";
 /**
  * Generates a random permutation question with MCQ distractors.
  * @param difficulty - optional difficulty level
@@ -23,7 +24,10 @@ export function generatePermutation(difficulty?: string, rng: RngFn=Math.random)
     let type=types[Math.floor(rng()*types.length)];
     let maxN=getMaxN(difficulty);
     let n=Math.floor(rng()*maxN)+5;
-    let r=Math.floor(rng()*(n-1))+1;
+    // Two or more items are chosen. Choosing one makes P(n,1), C(n,1) and n^1 all
+    // equal to n, so every candidate this branch offers collapses onto the answer
+    // and the question ships with two options.
+    let r=Math.floor(rng()*(n-2))+2;
     let correctAns: string="";
     let choices: string[]=[];
     let mathExpression="";
@@ -43,12 +47,17 @@ export function generatePermutation(difficulty?: string, rng: RngFn=Math.random)
             let val=nPr(n, r);
             correctAns=n.toString();
             mathExpression=`Find \\( n \\) if \\( P(n, ${r})=${val} \\)`;
+            // A candidate that guesses the order of the two factors, and one that
+            // drops the constraint altogether, are the answers a learner reaches by
+            // taking the root the other way round. The two roots used to be offered
+            // and collide for small r, which is what left three options.
             choices=[
                 correctAns,
                 (r+1).toString(),
                 Math.floor(Math.pow(val, 1/r)).toString(),
-                Math.floor(Math.sqrt(val)).toString(),
-                (r).toString()
+                r.toString(),
+                (r-1).toString(),
+                Math.floor(Math.sqrt(val)).toString()
             ];
             break;
         }
@@ -78,36 +87,34 @@ export function generatePermutation(difficulty?: string, rng: RngFn=Math.random)
             ];
             break;
         case "identical":{
-            let k=Math.floor(rng()*(n-1))+1;
+            // Two or more identical items, for the same reason as r above: with one
+            // identical item every arrangement is distinct and the three candidate
+            // formulas all reduce to n!.
+            let k=Math.floor(rng()*(n-2))+2;
             correctAns=(factorial(n)/factorial(k)).toString();
             mathExpression=`Permutations of \\( ${n} \\) items when \\( ${k} \\) are identical`;
+            choices=[correctAns, factorial(n).toString(), (factorial(n)/factorial(n-k)).toString(), (factorial(n)/factorial(k)/factorial(n-k)).toString(), n.toString()];
+            break;
+        }
+        case "withReplacement":{
+            // The count of ordered selections with repetition is n to the power r,
+            // and past the eighth power that is past nine digits: it cannot be typed
+            // into an answer box and it is past the largest whole number a double
+            // holds exactly, so the printed count would be wrong in its last digits.
+            let draws=Math.min(r, 8);
+            correctAns=Math.pow(n, draws).toString();
+            mathExpression=`How many ordered selections of \\( ${draws} \\) items from \\( ${n} \\) types if repetition is allowed?`;
             choices=[
                 correctAns,
+                nPr(n, draws).toString(),
+                nCr(n, draws).toString(),
                 factorial(n).toString(),
-                (factorial(n)/factorial(n-k)).toString(),
-                (factorial(n)/factorial(k)/factorial(n-k)).toString(),
-                n.toString()
+                (n*draws).toString()
             ];
             break;
         }
-        case "withReplacement":
-            correctAns=Math.pow(n, r).toString();
-            mathExpression=`How many ordered selections of \\( ${r} \\) items from \\( ${n} \\) types if repetition is allowed?`;
-            choices=[
-                correctAns,
-                nPr(n, r).toString(),
-                nCr(n, r).toString(),
-                factorial(n).toString(),
-                (n*r).toString()
-            ];
-            break;
     }
-    let uniqueChoices=[...new Set(choices)];
-    if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if (!uniqueChoices.includes(correctAns)){
-        if (uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAns;
-        else uniqueChoices=[correctAns];
-    }
+    let uniqueChoices=fourOptions(correctAns, choices);
     return {
         latex: mathExpression,
         correct: correctAns,
@@ -128,7 +135,7 @@ export function generateCombination(difficulty?: string, rng: RngFn=Math.random)
     let type=types[Math.floor(rng()*types.length)];
     let maxN=getMaxN(difficulty);
     let n=Math.floor(rng()*maxN)+5;
-    let r=Math.floor(rng()*(n-1))+1;
+    let r=Math.floor(rng()*(n-2))+2;
     let correctAns: string="";
     let choices: string[]=[];
     let mathExpression="";
@@ -148,12 +155,16 @@ export function generateCombination(difficulty?: string, rng: RngFn=Math.random)
             let val=nCr(n, r);
             correctAns=n.toString();
             mathExpression=`Find \\( n \\) if \\( C(n, ${r})=${val} \\)`;
+            // Same reasoning as the permutation branch: the two roots of the value
+            // collide for small r, so the pool offers the order of the factors and
+            // a doubled factor instead of a second root.
             choices=[
                 correctAns,
                 (r+1).toString(),
                 Math.floor(Math.pow(val, 1/r)).toString(),
-                Math.floor(Math.sqrt(val)).toString(),
-                (r).toString()
+                r.toString(),
+                (r-1).toString(),
+                (2*r).toString()
             ];
             break;
         }
@@ -198,21 +209,21 @@ export function generateCombination(difficulty?: string, rng: RngFn=Math.random)
         case "multiset":
             correctAns=nCr(n+r-1, r).toString();
             mathExpression=`Ways to choose \\( ${r} \\) items from \\( ${n} \\) types if repeats allowed?`;
+            // The factorial of the combined total is not offered: above twenty it
+            // leaves the range a double can hold exactly and prints in exponential
+            // notation, which is not a spelling of any number a learner writes. The
+            // ordered count is offered instead, capped for the same reason the
+            // with-replacement branch caps its own.
             choices=[
                 correctAns,
                 nCr(n+r-1, n-1).toString(),
                 nCr(n+r, r).toString(),
-                Math.pow(n, r).toString(),
-                factorial(n+r-1).toString()
+                Math.pow(n, Math.min(r, 8)).toString(),
+                factorial(n).toString()
             ];
             break;
     }
-    let uniqueChoices=[...new Set(choices)];
-    if (uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if (!uniqueChoices.includes(correctAns)){
-        if (uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctAns;
-        else uniqueChoices=[correctAns];
-    }
+    let uniqueChoices=fourOptions(correctAns, choices);
     return {
         latex: mathExpression,
         correct: correctAns,
