@@ -5,6 +5,12 @@ interface TrigFunction{
     func: string;
     deriv: string;
     plainDeriv: string;
+    /** The function in plain text, which is what a learner writes when they
+     * differentiate the wrong thing and hand back what they were given. */
+    plainFunc: string;
+    /** The plain-text derivative of the function this one is most often confused
+     * with, which is a real mistake rather than a mangled spelling. */
+    plainSwap: string;
 }
 
 /**
@@ -14,6 +20,9 @@ interface ExpFunction{
     func: string;
     deriv: string;
     plainDeriv: string;
+    /** The function in plain text, which is what a learner writes when they
+     * differentiate the wrong thing and hand back what they were given. */
+    plainFunc: string;
 }
 
 /**
@@ -88,12 +97,12 @@ export function latexToPlain(str: string): string{
  * used for generating derivative questions.
  */
 export const trigFunctions: TrigFunction[]=[
-    {func: "\\sin(x)", deriv: "\\cos(x)", plainDeriv: "cos(x)"},
-    {func: "\\cos(x)", deriv: "-\\sin(x)", plainDeriv: "-sin(x)"},
-    {func: "\\tan(x)", deriv: "\\sec^{2}(x)", plainDeriv: "sec^2(x)"},
-    {func: "\\csc(x)", deriv: "-\\csc(x)\\cot(x)", plainDeriv: "-csc(x)cot(x)"},
-    {func: "\\sec(x)", deriv: "\\sec(x)\\tan(x)", plainDeriv: "sec(x)tan(x)"},
-    {func: "\\cot(x)", deriv: "-\\csc^{2}(x)", plainDeriv: "-csc^2(x)"}
+    {func: "\\sin(x)", deriv: "\\cos(x)", plainDeriv: "cos(x)", plainFunc: "sin(x)", plainSwap: "sec^2(x)"},
+    {func: "\\cos(x)", deriv: "-\\sin(x)", plainDeriv: "-sin(x)", plainFunc: "cos(x)", plainSwap: "sec^2(x)"},
+    {func: "\\tan(x)", deriv: "\\sec^{2}(x)", plainDeriv: "sec^2(x)", plainFunc: "tan(x)", plainSwap: "sec(x)tan(x)"},
+    {func: "\\csc(x)", deriv: "-\\csc(x)\\cot(x)", plainDeriv: "-csc(x)cot(x)", plainFunc: "csc(x)", plainSwap: "-csc^2(x)"},
+    {func: "\\sec(x)", deriv: "\\sec(x)\\tan(x)", plainDeriv: "sec(x)tan(x)", plainFunc: "sec(x)", plainSwap: "sec^2(x)"},
+    {func: "\\cot(x)", deriv: "-\\csc^{2}(x)", plainDeriv: "-csc^2(x)", plainFunc: "cot(x)", plainSwap: "-csc(x)cot(x)"}
 ];
 
 /**
@@ -101,8 +110,8 @@ export const trigFunctions: TrigFunction[]=[
  * used for generating derivative questions.
  */
 export const expFunctions: ExpFunction[]=[
-    {func: "e^{x}", deriv: "e^{x}", plainDeriv: "e^x"},
-    {func: "2^{x}", deriv: "2^{x}\\ln(2)", plainDeriv: "2^x*ln(2)"}
+    {func: "e^{x}", deriv: "e^{x}", plainDeriv: "e^x", plainFunc: "e^x"},
+    {func: "2^{x}", deriv: "2^{x}\\ln(2)", plainDeriv: "2^x*ln(2)", plainFunc: "2^x"}
 ];
 
 /**
