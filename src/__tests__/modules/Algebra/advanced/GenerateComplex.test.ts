@@ -47,4 +47,14 @@ describe("generateComplex",()=>{
         const dto2=generateComplex("medium", seededRng(99));
         expect(dto1).not.toEqual(dto2);
     });
+    it("offers four options for every complex branch, where two divisions that rounded alike collapsed the divide branch to three",()=>{
+        for(let difficulty of ["easy","medium","hard"]){
+            for(let seed=1; seed<=60; seed++){
+                const dto=generateComplex(difficulty, seededRng(seed));
+                expect(dto.choices).toHaveLength(4);
+                expect(new Set(dto.choices).size).toBe(4);
+                expect(dto.choices).toContain(dto.correct);
+            }
+        }
+    });
 });
