@@ -27,7 +27,7 @@ A comprehensive, free online math question generator built with TypeScript that 
 
 ## ✨ Key Features
 
-- **📚 129 Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus, discrete math, number theory, linear algebra, trigonometry, and geometry (7 subject areas)
+- **📚 137 Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus, discrete math, number theory, linear algebra, trigonometry, and geometry (7 subject areas)
 - **⚡ Instant Feedback**: Real-time answer checking with detailed explanations and LaTeX rendering
 - **🧠 Mental Math Mode**: Timed sessions with score tracking, pause/skip, unlimited practice, and configurable difficulty
 - **✅ Multiple‑Choice Mode**: Intelligent distractor generation (numeric, pattern-based, and text fallback) with 2–6 choices
@@ -76,7 +76,7 @@ Download the latest installer from **GitHub Releases**:
 
 ➡️ [https://github.com/richie-rich90454/random-math-question-generator-app/releases](https://github.com/richie-rich90454/random-math-question-generator-app/releases)
 
-### Supported Math Topics (129 Topics)
+### Supported Math Topics (137 Topics)
 
 | Category | Topics |
 |----------|--------|
@@ -84,10 +84,10 @@ Download the latest installer from **GitHub Releases**:
 | **Algebra (Basics)** | Fractions, Percentages, Ratios & Proportions, Unit Conversion, Expression Evaluation, Number Sets, Algebraic Properties, Order of Operations, Linear Word Problems, Radical Simplification, Radical Equations, Rational Exponents, Exponent Rules, Scientific Notation, Complex Numbers, Direct/Inverse Variation, Real Number Operations, Cartesian Plane, Special Linear Equations, Rational Equations, Roots, Logarithms, Exponentials, Factorials, Series, Function Properties, Basic Functions, Function Operations, Inverse Functions, Transformations, Power Function Modeling, Polynomial Inequalities, Polynomial End Behavior, Synthetic Division, Complex Zeros, Rational Graph Analysis, Circle Equations, Logistic Functions, Exponential Modeling, Logarithmic Modeling, Finance |
 | **Algebra (Advanced)** | Linear Equations, Quadratic Equations, Linear Inequalities, Quadratic Inequalities, Rational Inequalities, 2×2 Systems, Polynomial Operations, Polynomial Division, Factoring, Function Concepts, Linear Graphs, Non‑Linear Graphs |
 | **Calculus** | Limits, Derivatives (polynomial, trigonometric, exponential, logarithmic, product, quotient, chain, implicit, higher order, motion), Integrals (polynomial, trigonometric, exponential, logarithmic, substitution, definite, initial value, area, motion), Related Rates (ladder, cone), Limits & Continuity, Applications of Differentiation, Advanced Integration, Graphical Calculus, Parametric/Polar/Vector Calculus, Sequences & Series |
-| **Linear Algebra** | Matrix Operations (add, subtract, multiply, inverse, transpose, scalar multiplication, power, row echelon), 3×3 Systems, Row Echelon Form, Partial Fractions, Linear Programming, 3D Vectors (magnitude, unit, dot, angle, projection), 3D Lines (parametric, point at given t), 3D Planes (distance, equation) |
+| **Linear Algebra** | Matrix Operations (add, subtract, multiply, inverse, transpose, scalar multiplication, power, row echelon), 3×3 Systems, Row Echelon Form, Partial Fractions, Linear Programming, 3D Vectors (magnitude, unit, dot, angle, projection), 3D Lines (parametric, point at given t), 3D Planes (distance, equation), Eigenvalues & Eigenvectors (2×2, 3×3, characteristic polynomial, diagonalisation, defective), Orthogonality (dot product, norm, projection, Gram‑Schmidt, orthogonal complement), Cross Product & 3D (cross/scalar triple products, angle in 3D, point‑to‑line and point‑to‑plane distance) |
 | **Trigonometry** | Sine, Cosine, Tangent, Cosecant, Secant, Cotangent, Inverse Trig, Trig Equations, Trig Graphs, Degrees/Radians Conversion, Arc Length, Angular/Linear Speed, Right Triangle Definitions, Special Triangles, Elevation/Depression, Reference Angle, ASTC Signs, Sum/Difference Formulas, Double‑Angle Formulas, Half‑Angle Formulas, Polar/Rectangular Conversion, Polar Distance, Polar Graph Equations, Parametric → Cartesian, Parametric Motion, Complex Polar Form, Complex Multiply/Divide, De Moivre's Theorem, Complex Roots |
-| **Discrete Mathematics** | Permutations (basic, equation, word, circular, identical, with replacement), Combinations (basic, equation, word, complement, paths, multiset), Probability (basic, conditional, independent, mutually exclusive, Bayes, binomial, expected value, complement, permutation/combination, geometric), Statistics (mean, median, mode, range, stem‑and‑leaf, box plot, standard deviation) |
-| **Geometry** | Area (circle, rectangle, triangle, sector), Volume (sphere, cylinder, cone, pyramid, cube), Surface Area (cube), Triangles (Pythagorean theorem, similar triangles, classification), Perimeter, Arc Length, Distance Formula, Angle Relations, Conic Sections (parabola, ellipse, hyperbola, polar conics), 3D Geometry (distance/midpoint, sphere equations, lines/planes in 3D) |
+| **Discrete Mathematics** | Permutations (basic, equation, word, circular, identical, with replacement), Combinations (basic, equation, word, complement, paths, multiset), Probability (basic, conditional, independent, mutually exclusive, Bayes, binomial, expected value, complement, permutation/combination, geometric), Statistics (mean, median, mode, range, stem‑and‑leaf, box plot, standard deviation), Divisibility & Factors, GCD & LCM, Modular Arithmetic, Data Analysis, Counting Principles (multiplication/addition rule, restricted permutations and combinations, arrangements with repeats), Probability Rules (conditional table, total probability, Bayes, independence, expected value) |
+| **Geometry** | Area (circle, rectangle, triangle, sector), Volume (sphere, cylinder, cone, pyramid, cube), Surface Area (cube), Triangles (Pythagorean theorem, similar triangles, classification), Perimeter, Arc Length, Distance Formula, Angle Relations, Conic Sections (parabola, ellipse, hyperbola, polar conics), 3D Geometry (distance/midpoint, sphere equations, lines/planes in 3D), Similarity (proportional sides, scale factor, area/perimeter ratio, converse), Rigid Motions (translate/rotate/reflect/dilate a point, compose), Circle Geometry (inscribed vs central angles, arcs & sectors, tangent–radius right angle, chord length, intersecting chords, external secants) |
 
 ## 🚀 Quick Start
 
@@ -134,7 +134,7 @@ npm run tauri build
 
 ## 🎯 How to Use
 
-1. **Select a Topic**: Choose from 129 math categories organized by subject (filter by search or scope)
+1. **Select a Topic**: Choose from 137 math categories organized by subject (filter by search or scope)
 2. **Generate Question**: Click "Generate Question" (or press `Ctrl+G`) to get a new problem
 3. **Enter Answer**: Type your solution in the answer box (use the math toolbar for symbols)
 4. **Check Answer**: Click "Check Answer" or press `Shift+Enter` for instant feedback
@@ -382,7 +382,7 @@ We take security seriously. Please see our [SECURITY.md](SECURITY.md) for report
 
 ## 📊 Project Stats
 
-- **129** Math topics supported
+- **137** Math topics supported
 - **7** Major math categories (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry)
 - **7,000+** Vitest unit tests (118 files)
 - **85+** Playwright end-to-end tests (including a full matrix — every topic × easy/medium/hard)
