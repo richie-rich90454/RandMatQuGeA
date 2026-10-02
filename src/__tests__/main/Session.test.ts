@@ -126,18 +126,26 @@ vi.mock("../../main/core/QuestionState",()=>{
         set hasQuestion(v:any){(window as any).hasQuestion=v;}
     }};
 });
-vi.mock("../../main/Settings.js",()=>({
-    settings:{
-        timer:30,
-        maxQuestions:5,
-        sound:false,
-        vibration:false,
-        autoCheckDelay:800,
-        notifications:true,
-        mcqMode:false,
-    },
-    checkAnswerFast:vi.fn(()=>Promise.resolve(true)),
-}));
+// The mental session grades through Answer.gradeAnswer, whose last step is
+// Settings.isAnswerCorrect. A stub standing in for that function made every
+// grading assertion here meaningless, so the real one is loaded and only the
+// preferences object is faked.
+vi.mock("../../main/Settings.js",async()=>{
+    const actual=await vi.importActual<any>("../../main/Settings.js");
+    return{
+        settings:{
+            timer:30,
+            maxQuestions:5,
+            sound:false,
+            vibration:false,
+            autoCheckDelay:800,
+            notifications:true,
+            mcqMode:false,
+            decimalPlaces:2
+        },
+        isAnswerCorrect:actual.isAnswerCorrect
+    };
+});
 vi.mock("../../main/Ui.js",()=>({
     showNotification:vi.fn(),
     clearAllTimeouts:vi.fn(),
@@ -338,7 +346,6 @@ describe("session",()=>{
             vi.clearAllMocks();
             (window as any).hasQuestion=true;
             (window as any).correctAnswer={correct:"42",alternate:"42",display:"42"};
-            vi.mocked(settings.checkAnswerFast).mockResolvedValue(true);
         });
         it("should increment correct count on correct answer",async()=>{
             state.setSessionActive(true);
@@ -349,7 +356,6 @@ describe("session",()=>{
             expect(state.setSessionScore).toHaveBeenLastCalledWith({correct:1,total:1});
         });
         it("should increment total count on any answer",async()=>{
-            vi.mocked(settings.checkAnswerFast).mockResolvedValueOnce(false);
             state.setSessionActive(true);
             state.setSessionPaused(false);
             state.setSessionScore({correct:2,total:3});
@@ -390,6 +396,34 @@ describe("session",()=>{
             await handleMentalAnswer("42");
             expect(state.setTimeLeft).toHaveBeenCalledWith((settings as any).settings.timer);
             expect(ui.updateTimerDisplay).toHaveBeenCalled();
+        });
+    });
+    describe("mental-mode grading",()=>{
+        beforeEach(()=>{
+            vi.clearAllMocks();
+            (window as any).hasQuestion=true;
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setUnlimitedMode(true);
+        });
+        async function gradedAsCorrect(key: string, typed: string): Promise<boolean>{
+            (window as any).correctAnswer={correct:key,alternate:"",display:key};
+            state.setSessionScore({correct:0,total:0});
+            await handleMentalAnswer(typed);
+            return state.sessionScore.correct===1;
+        }
+        it("grades an answer with the single-mode comparison",async()=>{
+            // One grader decides in both modes, so an answer the single-question
+            // flow accepts is accepted in a session.
+            expect(await gradedAsCorrect("5","x=5")).toBe(true);
+            expect(await gradedAsCorrect("x^2+2x+1","(x+1)^2")).toBe(true);
+            expect(await gradedAsCorrect("x+2y","2y+x")).toBe(true);
+        });
+        it("accepts a degree-marked key and a \\cdot key",async()=>{
+            // Angles print as 45^{\circ} and a product as 2\cdot3, and the
+            // number the learner typed is the same answer.
+            expect(await gradedAsCorrect("45^{\\circ}","45")).toBe(true);
+            expect(await gradedAsCorrect("2\\cdot3","6")).toBe(true);
         });
     });
     describe("session timer",()=>{
