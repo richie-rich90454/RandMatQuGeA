@@ -320,6 +320,27 @@ function matrixText(m: number[][]): string{
 }
 
 /**
+ * The trace of a square matrix, the sum of the two-by-two principal minors, and its
+ * determinant, which are the three coefficients below the leading term of the
+ * characteristic polynomial. Reading them off the matrix is the whole of the work in
+ * the branches that ask for the polynomial, so they are computed once here rather
+ * than three times in the generator.
+ *
+ * @param m - The matrix.
+ * @returns The trace, the sum of the principal minors, and the determinant.
+ */
+function invariants(m: number[][]): {trace: number, minors: number[], minorSum: number, determinant: number}{
+    let n=m.length;
+    let trace=0;
+    for(let i=0; i<n; i++) trace+=m[i][i];
+    let minors: number[]=[];
+    for(let i=0; i<n; i++) minors.push(determinant(minorOf(m, i, i)));
+    let minorSum=0;
+    for(let value of minors) minorSum+=value;
+    return {trace, minors, minorSum, determinant: determinant(m)};
+}
+
+/**
  * Assembles the option set: the answer, then three distractors, dropping anything
  * that repeats an option already offered. The answer stays first, and the
  * distractors keep the order they were built in, because the app chooses where the
@@ -494,14 +515,14 @@ function basisDistractors(basis: number[][]): string[]{
  * @param rng - The injected random source.
  * @returns The matrix and how many linearly independent eigenvectors it has.
  */
-function repeatedCase(rng: RngFn): {matrix: number[][], independent: number}{
+function repeatedCase(rng: RngFn): {matrix: number[][], independent: number, eigenvalues: number[]}{
     let shape=randInt(rng, 0, 2);
     let value=randInt(rng, -4, 5);
     let other=randInt(rng, -5, 6);
     if (other===value) other=value+1;
-    if (shape===0) return {matrix:[[value, 1, 0], [0, value, 1], [0, 0, value]], independent:1};
-    if (shape===1) return {matrix:[[value, 1, 0], [0, value, 0], [0, 0, other]], independent:2};
-    return {matrix:[[value, 0, 0], [0, value, 0], [0, 0, value]], independent:3};
+    if (shape===0) return {matrix:[[value, 1, 0], [0, value, 1], [0, 0, value]], independent:1, eigenvalues:[value, value, value]};
+    if (shape===1) return {matrix:[[value, 1, 0], [0, value, 0], [0, 0, other]], independent:2, eigenvalues:[value, value, other]};
+    return {matrix:[[value, 0, 0], [0, value, 0], [0, 0, value]], independent:3, eigenvalues:[value, value, value]};
 }
 
 export function generateEigenvalues(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -516,6 +537,8 @@ export function generateEigenvalues(difficulty?: string, rng: RngFn=Math.random)
     let latex="";
     let expectedFormat="Enter a whole number";
     let choices:string[]=[];
+    let rungs:string[]=[];
+    let steps:string[]=[];
     switch(type){
         case "eigenvalues_2x2":
         case "eigenvalues_3x3":{
@@ -529,6 +552,29 @@ export function generateEigenvalues(difficulty?: string, rng: RngFn=Math.random)
             latex=`Find the eigenvalues of \\( A = ${matrixLatex(matrix)} \\), in increasing order.`;
             expectedFormat="Enter the eigenvalues in increasing order, separated by commas";
             choices=fourOptions(correct, eigenvalueDistractors(values));
+            let summary=invariants(matrix);
+            if (size===2){
+                rungs=[
+                    "The trace of a two-by-two matrix is the sum of its eigenvalues and its determinant is their product, so the two eigenvalues are the roots of x squared minus the trace times x plus the determinant.",
+                    `Read the trace and the determinant off the matrix and find the two whole numbers with that sum and that product.`
+                ];
+                steps=[
+                    `The trace is ${summary.trace} and the determinant is ${summary.determinant}.`,
+                    `A two-by-two characteristic polynomial is x^2 - (${summary.trace})x + (${summary.determinant}), whose roots are the two eigenvalues.`,
+                    `Its roots are ${values[0]} and ${values[1]}, so in increasing order the eigenvalues are ${correct}.`
+                ];
+            }
+            else{
+                rungs=[
+                    "A three-by-three characteristic polynomial is x cubed, then minus the trace times x squared, plus the sum of the two-by-two principal minors times x, then minus the determinant.",
+                    `Compute the trace, the three principal minors and the determinant of the matrix, then factor the polynomial that comes out.`
+                ];
+                steps=[
+                    `The trace is ${summary.trace}, the principal minors are ${summary.minors.join(", ")} and so sum to ${summary.minorSum}, and the determinant is ${summary.determinant}.`,
+                    `p(x) = x^3 - (${summary.trace})x^2 + (${summary.minorSum})x - (${summary.determinant}), whose roots are the eigenvalues.`,
+                    `Factoring gives the roots ${values[0]}, ${values[1]} and ${values[2]}, so in increasing order the eigenvalues are ${correct}.`
+                ];
+            }
             break;
         }
         case "eigenvector":{
@@ -544,6 +590,18 @@ export function generateEigenvalues(difficulty?: string, rng: RngFn=Math.random)
             latex=`Give an eigenvector of \\( A = ${matrixLatex(matrix)} \\) corresponding to \\( \\lambda = ${values[index]} \\).`;
             expectedFormat=size===2?"Enter as (a, b)":"Enter as (a, b, c)";
             choices=fourOptions(correct, eigenvectorDistractors(basis, index));
+            let lambda=values[index] as number;
+            let image=multiply(matrix, [wanted])[0] as number[];
+            let scaled=wanted.map(x=>lambda*x);
+            rungs=[
+                "An eigenvector for lambda is a nonzero vector v with A v equal to lambda v, so the rows of A minus lambda times the identity give a homogeneous system whose null space is the answer.",
+                "Set up (A - lambda I)v = 0 for the lambda the prompt names, then read a free variable off the resulting system."
+            ];
+            steps=[
+                `With lambda = ${lambda}, the system (A - ${lambda}I)v = 0 has the solution ${vectorLatex(wanted)} up to a nonzero multiple.`,
+                `Checking it: A times ${vectorLatex(wanted)} is ${vectorLatex(image)}, and ${lambda} times that vector is ${vectorLatex(scaled)}.`,
+                `So an eigenvector for lambda = ${lambda} is ${correct}.`
+            ];
             break;
         }
         case "characteristic_polynomial":{
@@ -558,6 +616,29 @@ export function generateEigenvalues(difficulty?: string, rng: RngFn=Math.random)
             latex=`Find the characteristic polynomial \\( p(x) = \\det(xI - A) \\) of \\( A = ${matrixLatex(matrix)} \\).`;
             expectedFormat="Enter the polynomial in descending powers of x";
             choices=fourOptions(correct, polynomialDistractors(coeffs));
+            let summary=invariants(matrix);
+            if (size===2){
+                rungs=[
+                    "For a two-by-two matrix, det(xI - A) is x squared minus the trace times x plus the determinant, so the whole polynomial comes from two numbers on the matrix.",
+                    "Add the diagonal entries for the trace and work out the determinant, then substitute both."
+                ];
+                steps=[
+                    `The trace is ${summary.trace} and the determinant is ${summary.determinant}.`,
+                    `p(x) = x^2 - (${summary.trace})x + (${summary.determinant}).`,
+                    `Written out in descending powers of x that is ${correct}.`
+                ];
+            }
+            else{
+                rungs=[
+                    "For a three-by-three matrix, det(xI - A) is x cubed, then minus the trace times x squared, plus the sum of the three two-by-two principal minors times x, then minus the determinant.",
+                    "Compute the trace, each of the three principal minors formed by deleting a row and its matching column, and the determinant, then substitute all of them."
+                ];
+                steps=[
+                    `The trace is ${summary.trace}, the principal minors are ${summary.minors.join(", ")} and sum to ${summary.minorSum}, and the determinant is ${summary.determinant}.`,
+                    `p(x) = x^3 - (${summary.trace})x^2 + (${summary.minorSum})x - (${summary.determinant}).`,
+                    `Written out in descending powers of x that is ${correct}.`
+                ];
+            }
             break;
         }
         case "diagonalise":{
@@ -570,6 +651,17 @@ export function generateEigenvalues(difficulty?: string, rng: RngFn=Math.random)
             latex=`The matrix \\( A = ${matrixLatex(matrix)} \\) is diagonalisable. Find \\( P \\) whose first column is an eigenvector for \\( \\lambda = ${values[0]} \\) and whose second column is an eigenvector for \\( \\lambda = ${values[1]} \\).`;
             expectedFormat="Enter as [[a, b], [c, d]]";
             choices=fourOptions(correct, basisDistractors(basis));
+            let first=column(basis, 0);
+            let second=column(basis, 1);
+            rungs=[
+                "In a diagonalisation A = P D P inverse, the columns of P are the eigenvectors of A in the order the eigenvalues appear on the diagonal of D.",
+                "The first column has to be an eigenvector for the first lambda the prompt names and the second column an eigenvector for the second, and any nonzero multiple in a column is equally correct."
+            ];
+            steps=[
+                `Solve (A - ${values[0]}I)v = 0 for the first column, giving ${vectorLatex(first)} up to a nonzero multiple.`,
+                `Solve (A - ${values[1]}I)v = 0 for the second column, giving ${vectorLatex(second)} up to a nonzero multiple.`,
+                `With D = diag(${values[0]}, ${values[1]}) the columns in that order give A = P D P inverse, so P = ${correct}.`
+            ];
             break;
         }
         case "defective":{
@@ -580,8 +672,17 @@ export function generateEigenvalues(difficulty?: string, rng: RngFn=Math.random)
             latex=`How many linearly independent eigenvectors does \\( A = ${matrixLatex(repeat.matrix)} \\) have?`;
             expectedFormat="Enter a whole number from 0 to 3";
             choices=fourOptions(correct, ["0", "1", "2", "3"].filter(v=>v!==correct));
+            rungs=[
+                "Count the independent eigenvectors by counting dimensions: for each eigenvalue, the number of independent eigenvectors is the nullity of A minus that eigenvalue times the identity.",
+                "Find the eigenvalues first, then work out the nullity of A - lambda I for each of them and add those numbers."
+            ];
+            steps=[
+                `The matrix is ${matrixLatex(repeat.matrix)}, whose only eigenvalue is ${repeat.eigenvalues[0]} with algebraic multiplicity ${repeat.eigenvalues.length}.`,
+                `A - ${repeat.eigenvalues[0]}I has a null space of dimension ${repeat.independent}, and ${repeat.eigenvalues.length>1&&repeat.eigenvalues[0]!==repeat.eigenvalues[2]?`the second eigenvalue contributes one more, giving ${repeat.independent}`:`so the total over the eigenvalues is ${repeat.independent}`}.`,
+                `The number of linearly independent eigenvectors is ${correct}.`
+            ];
             break;
         }
     }
-    return {latex, correct, alternate, display, choices, expectedFormat, subskill: type};
+    return {latex, correct, alternate, display, choices, expectedFormat, subskill: type, hints:{rungs, concede:"The answer is "+correct+"."}, solution: steps};
 }
