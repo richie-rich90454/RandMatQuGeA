@@ -634,6 +634,20 @@ describe('checkAnswer', () => {
             await checkAnswer();
             expect(dom.answerResults!.className).toBe('results-display correct');
         });
+        it('accepts a key printed with the Unicode radical sign', async () => {
+            // The curriculum prints a root as the single character √ in places, and
+            // the checker reads sqrt(...). Without this the same expression was
+            // unreadable in both directions and the learner was told they were
+            // wrong for an answer that was right.
+            dom.userAnswer!.value='sqrt(5)';
+            window.correctAnswer.correct='√5';
+            await checkAnswer();
+            expect(dom.answerResults!.className).toBe('results-display correct');
+            dom.userAnswer!.value='√5';
+            window.correctAnswer.correct='sqrt(5)';
+            await checkAnswer();
+            expect(dom.answerResults!.className).toBe('results-display correct');
+        });
     });
     describe('checkAnswer - timer and performance', () => {
         it('should record response time', async () => {
