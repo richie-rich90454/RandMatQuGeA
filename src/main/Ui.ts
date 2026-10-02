@@ -61,10 +61,10 @@ export function updateScoreDisplay(): void{
     dom.displays.scoreDisplay.innerHTML=`<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> ${appState.sessionScore.correct} / ${appState.sessionScore.total}`;
 }
 export function disableTopicSelection(disabled: boolean): void{
-    document.querySelectorAll(".topic-pill").forEach(el=>{
-        (el as HTMLButtonElement).disabled=disabled;
-        (el as HTMLButtonElement).setAttribute("aria-disabled",String(disabled));
-    });
+    for(let pill of dom.displays.topicPills){
+        pill.disabled=disabled;
+        pill.setAttribute("aria-disabled",String(disabled));
+    }
 }
 export function disableModeButtons(disabled: boolean): void{
     appState.modeButtons.forEach(btn=>{
