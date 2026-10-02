@@ -5,6 +5,8 @@ import{validateQuestionLatex}from"./Latex";
 import{isWellFormed}from"./Symbolic";
 import{validateMcq, MCQ_CODES}from"./Mcq";
 import{buildChoiceSet}from"../../main/Mcq";
+import{buildHintLadder, buildSolution}from"../../modules/shared/Hints";
+import * as help from"../../main/services/Help";
 import{seededRng}from"../../main/core/Rng";
 import{canonicalNumeric, sameNumericValue}from"../../main/AnswerFormat";
 import type{QuestionDto}from"../../types/global";
@@ -19,6 +21,19 @@ const DIFFICULTIES=["easy", "medium", "hard"];
  * number and a placeholder are the values that are never an answer.
  */
 const UNUSABLE_OPTION=/NaN|Infinity|null|\?\?/;
+
+/**
+ * The findings the raw gate reports on. `correctNotFirst` is excluded because a
+ * generator is allowed to shuffle its options: the app places the key, so where
+ * the key sits in a generator's array is not a defect.
+ */
+const GATED_CODES: string[]=[
+    MCQ_CODES.tooFew,
+    MCQ_CODES.duplicate,
+    MCQ_CODES.nonFinite,
+    MCQ_CODES.alsoCorrect,
+    MCQ_CODES.correctAbsent
+];
 
 /**
  * Records a failure against the topic, difficulty and seed that produced it, so a
@@ -145,10 +160,10 @@ describe("generator invariants",()=>{
                     let sample=await sampleQuestion(topicId, difficulty, seed);
                     let dto: QuestionDto=sample.dto;
                     if (!Array.isArray(dto.choices)) continue;
-                    // A generator may offer a short or partly duplicated set,
-                    // and the app is required to repair it. The invariant that
-                    // matters is the set the learner is shown, so it is checked
-                    // after repair rather than on the generator's raw array.
+                    // The presented set is what the learner is shown, so it is checked
+                    // after the builder has run. The generator's own array is checked
+                    // separately below, because a builder that quietly repairs a bad
+                    // set is a way of never finding the bad set.
                     let options=buildChoiceSet(dto.correct, dto.choices, seededRng(seed));
                     if (options.length!==4){
                         record(failures, topicId, difficulty, seed, "presents "+options.length+" option(s): "+JSON.stringify(options));
@@ -163,6 +178,26 @@ describe("generator invariants",()=>{
                     if (correctCount!==1){
                         record(failures, topicId, difficulty, seed, correctCount+" of the presented options are correct: "+JSON.stringify(options)+" for "+JSON.stringify(dto.correct));
                     }
+                }
+            }
+        }
+        expect(failures).toEqual([]);
+    }, 600000);
+    it("every generator's own raw option set is already four usable options with one correct",async()=>{
+        let failures:string[]=[];
+        for(let topicId of registeredTopicIds()){
+            for(let difficulty of DIFFICULTIES){
+                for(let seed=1; seed<=8; seed++){
+                    let sample=await sampleQuestion(topicId, difficulty, seed);
+                    let dto: QuestionDto=sample.dto;
+                    // A topic that offers no curated options at all is not making a
+                    // claim about its options, and the presented-set gate above covers
+                    // the set the builder makes for it. One that does offer a set has
+                    // already made the claim, and the claim has to hold.
+                    if (!Array.isArray(dto.choices)||dto.choices.length===0) continue;
+                    let findings=await validateMcq(dto);
+                    let gated=describeFindings(findings.filter(f=>GATED_CODES.indexOf(f.code)>=0));
+                    if (gated) record(failures, topicId, difficulty, seed, gated+" raw options "+JSON.stringify(dto.choices));
                 }
             }
         }
@@ -184,4 +219,141 @@ describe("generator invariants",()=>{
         }
         expect(failures).toEqual([]);
     }, 600000);
+});
+
+/** The eight topics whose generators carry their own worked solutions. */
+const WORKED_TOPICS=["counting_principles","probability_rules","similarity","rigid_transformations","circle_geometry","eigenvalues","orthogonality","vectors_3d"];
+
+/** The words the generic scaffold always opens a ladder with. */
+const SCAFFOLD_OPENER="What the answer should look like";
+
+/**
+ * Mounts the elements the help panel writes into, so `Help` can be driven end to end
+ * in jsdom rather than only through the two functions it delegates to. The same
+ * panel is reused across tests, because the registry caches the element it first
+ * resolved and a second element with the same id would never be found again;
+ * `prepare` clears the panel, so each test still starts from empty.
+ *
+ * @returns The hint panel element.
+ */
+function mountHelpPanel(): HTMLElement{
+    let existing=document.getElementById("hint-panel");
+    if (existing) return existing as HTMLElement;
+    document.body.innerHTML="<button id=\"show-hint\"></button><button id=\"show-solution\"></button><div id=\"hint-panel\" hidden></div><div id=\"confidence-row\" hidden></div>";
+    return document.getElementById("hint-panel") as HTMLElement;
+}
+
+/**
+ * Reports whether a worked step finishes on the printed answer. A trailing full stop
+ * is punctuation rather than content, and several topics print a whole sentence as
+ * their answer, so both sides lose theirs before the comparison.
+ *
+ * @param step - The last worked step.
+ * @param key - The printed answer.
+ * @returns True when the step ends with the answer.
+ */
+function endsWithKey(step: string, key: string): boolean{
+    let left=step.replace(/\.$/,"").trim();
+    let right=key.replace(/\.$/,"").trim();
+    if (right===""||left.length<right.length) return false;
+    return left.slice(left.length-right.length)===right;
+}
+
+/**
+ * The help a learner is actually shown has to come from the generator, because the
+ * generic scaffold only knows the answer's shape and not the procedure. This drives
+ * the service rather than the two helpers it calls, so the preference is proved where
+ * it is used rather than where it is implemented.
+ */
+describe("help ladders",()=>{
+    it("shows a generator's own ladder and worked solution instead of the generic scaffold",()=>{
+        let panel=mountHelpPanel();
+        let supplied: QuestionDto={
+            latex:"Find x.",
+            correct:"42",
+            expectedFormat:"Enter a whole number",
+            subskill:"demo",
+            solution:["Step one: read the two numbers off the prompt.", "Step two: 6 x 7 = 42."],
+            hints:{rungs:["Name the procedure for this branch."], concede:"The answer is 42."}
+        };
+        help.prepare(supplied);
+        help.reveal();
+        help.revealSolution();
+        let shown=panel.textContent||"";
+        expect(shown).toContain("Name the procedure for this branch.");
+        expect(shown).toContain("Step two: 6 x 7 = 42.");
+        expect(shown).not.toContain(SCAFFOLD_OPENER);
+    });
+    it("falls back to the generic scaffold when a generator supplies nothing",()=>{
+        let panel=mountHelpPanel();
+        help.prepare({latex:"Find x.", correct:"hello there", expectedFormat:"Enter a whole number"});
+        help.reveal();
+        expect(panel.textContent||"").toContain(SCAFFOLD_OPENER);
+    });
+    it("every branch of the eight new topics opens with its own procedure and never the answer",async()=>{
+        let failures:string[]=[];
+        for(let topicId of WORKED_TOPICS){
+            let byBranch=new Map<string, Set<string>>();
+            for(let seed=1; seed<=120; seed++){
+                let sample=await sampleQuestion(topicId, "hard", seed);
+                let ladder=buildHintLadder(sample.dto);
+                if (!ladder||ladder.rungs.length===0){
+                    record(failures, topicId, "hard", seed, "the question carries no hint ladder");
+                    continue;
+                }
+                if (ladder.concede.indexOf(sample.dto.correct)<0){
+                    record(failures, topicId, "hard", seed, "the concession does not give the answer: "+JSON.stringify(ladder.concede));
+                }
+                let opener=ladder.rungs[0];
+                if (opener.indexOf(SCAFFOLD_OPENER)===0){
+                    record(failures, topicId, "hard", seed, "the first hint is the generic scaffold: "+JSON.stringify(opener));
+                    continue;
+                }
+                let branch=sample.dto.subskill||"(none)";
+                let openers=byBranch.get(branch);
+                if (!openers){
+                    openers=new Set<string>();
+                    byBranch.set(branch, openers);
+                }
+                openers.add(opener);
+            }
+            let branches=Array.from(byBranch.keys());
+            if (branches.length<2){
+                record(failures, topicId, "hard", 0, "only one branch was reachable, so one hint cannot be branch-specific");
+            }
+            // Two branches that open with the same words are not two procedures, and a
+            // topic that opens every branch the same way has a topic-level hint.
+            for(let i=0; i<branches.length; i++){
+                for(let j=i+1; j<branches.length; j++){
+                    let left=byBranch.get(branches[i] as string) as Set<string>;
+                    let right=byBranch.get(branches[j] as string) as Set<string>;
+                    let shared=Array.from(left).filter(opener=>right.has(opener));
+                    if (shared.length>0){
+                        record(failures, topicId, "hard", 0, "branches "+branches[i]+" and "+branches[j]+" share the opening "+JSON.stringify(shared));
+                    }
+                }
+            }
+        }
+        expect(failures).toEqual([]);
+    }, 300000);
+    it("the last worked step of every new topic reproduces the printed key",async()=>{
+        let failures:string[]=[];
+        for(let topicId of WORKED_TOPICS){
+            for(let difficulty of DIFFICULTIES){
+                for(let seed=1; seed<=12; seed++){
+                    let sample=await sampleQuestion(topicId, difficulty, seed);
+                    let steps=buildSolution(sample.dto);
+                    if (!steps||steps.length===0){
+                        record(failures, topicId, difficulty, seed, "the question carries no worked solution");
+                        continue;
+                    }
+                    let last=(steps[steps.length-1] as string);
+                    if (!endsWithKey(last, sample.dto.correct)){
+                        record(failures, topicId, difficulty, seed, "the last step "+JSON.stringify(last)+" does not end with the key "+JSON.stringify(sample.dto.correct));
+                    }
+                }
+            }
+        }
+        expect(failures).toEqual([]);
+    }, 300000);
 });
