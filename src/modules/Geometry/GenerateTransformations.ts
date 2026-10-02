@@ -92,6 +92,24 @@ function drawPoint(rng: RngFn, limit: number, run: (x: number, y: number)=>[numb
 }
 
 /**
+ * Turns a point a whole number of quarter turns counterclockwise about the origin.
+ * The centre of rotation is moved to the origin, turned, and moved back, which is
+ * what keeps every coordinate a whole number, and the same turn is used by the
+ * question and by its worked solution.
+ *
+ * @param degrees - The turn, a multiple of ninety degrees.
+ * @param a - The first coordinate.
+ * @param b - The second coordinate.
+ * @returns The turned point.
+ */
+function quarterTurn(degrees: number, a: number, b: number): [number, number]{
+    let quarter=((degrees/90)%4+4)%4;
+    if (quarter===1) return [-b, a];
+    if (quarter===2) return [-a, -b];
+    return [b, -a];
+}
+
+/**
  * Builds a step from the drawn values. The rotation is a quarter turn about the
  * drawn centre: the point is moved into a frame centred on that point, turned,
  * and moved back, which keeps every coordinate whole.
@@ -105,15 +123,10 @@ function buildStep(kind: string, v: StepValues): Step{
         return {text:`translated by the vector \\( \\left( ${v.dx}, ${v.dy} \\right) \\)`, map:(x, y)=>[x+v.dx, y+v.dy]};
     }
     if (kind==="rotate"){
-        let turn:(x: number, y: number)=>[number, number];
-        let quarter=((v.degrees/90)%4+4)%4;
-        if (quarter===1) turn=(x, y)=>[-y, x];
-        else if (quarter===2) turn=(x, y)=>[-x, -y];
-        else turn=(x, y)=>[y, -x];
         return {
             text:`rotated \\( ${v.degrees}^{\\circ} \\) counterclockwise about the point \\( \\left( ${v.cx}, ${v.cy} \\right) \\)`,
             map:(x, y)=>{
-                let turned=turn(x-v.cx, y-v.cy);
+                let turned=quarterTurn(v.degrees, x-v.cx, y-v.cy);
                 return [turned[0]+v.cx, turned[1]+v.cy];
             }
         };
@@ -162,6 +175,9 @@ export function generateGeometricTransformations(difficulty?: string, rng: RngFn
     let values=drawValues(rng, difficulty, limit);
     let run:(x: number, y: number)=>[number, number];
     let stem="";
+    let rungs:string[]=[];
+    let steps:string[]=[];
+    let firstStep: Step|null=null;
     if (type==="compose_transformations"){
         let kinds=["translate","rotate","reflect","dilate"];
         let first=kinds[Math.floor(rng()*kinds.length)];
@@ -169,21 +185,86 @@ export function generateGeometricTransformations(difficulty?: string, rng: RngFn
         let second=rest[Math.floor(rng()*rest.length)];
         let one=buildStep(first, values);
         let two=buildStep(second, values);
+        firstStep=one;
         run=(px, py)=>{
             let middle=one.map(px, py);
             return two.map(middle[0], middle[1]);
         };
         stem=`First \\( P \\) is ${one.text}, then the result is ${two.text}.`;
+        rungs=[
+            "A composition is not simultaneous: the two transformations are applied one after the other, and the order the prompt gives is the order they are applied in.",
+            "Do the first step on P, then feed whatever that gives into the second step. Doing both at once is what turns a composition into a mistake."
+        ];
     }
     else{
         let kind=type==="translate_point"?"translate":type==="rotate_point"?"rotate":type==="reflect_point"?"reflect":"dilate";
         let step=buildStep(kind, values);
         run=step.map;
         stem=`Then \\( P \\) is ${step.text}.`;
+        if (kind==="translate"){
+            rungs=[
+                "A translation slides every point by the same vector, so it adds that vector's two components to the two coordinates and changes no length.",
+                "Add the translation vector to P, component by component."
+            ];
+        }
+        else if (kind==="rotate"){
+            rungs=[
+                "To turn a point about a centre that is not the origin, move the centre of rotation to the origin, turn the point there, and move the centre back.",
+                "A quarter turn swaps the two coordinates and negates one of them; the third and fourth quarter turns repeat the swap with the other sign."
+            ];
+        }
+        else if (kind==="reflect"){
+            rungs=[
+                "A reflection flips a coordinate rather than adding to it, and which coordinate flips depends on the line: the x-axis changes the sign of y, the y-axis the sign of x, the line y = x swaps the two, and the line y = -x swaps them and negates both.",
+                "Work out the rule for the line the prompt names before touching the numbers, then apply it to the coordinates of P."
+            ];
+        }
+        else{
+            rungs=[
+                "A dilation about a point leaves that point fixed and multiplies every distance from it by the scale factor, so the centre has to be taken out of the picture first.",
+                "Subtract the centre of dilation from P, multiply what is left by the scale factor, then add the centre back."
+            ];
+        }
     }
     let [x, y]=drawPoint(rng, limit, run, [[values.dx, values.dy], [values.cx, values.cy]]);
     let image=run(x, y);
     let keyText=`(${image[0]}, ${image[1]})`;
     let latex=`Point \\( P \\) is at \\( \\left( ${x}, ${y} \\right) \\). ${stem} What are the coordinates of the${type==="compose_transformations"?" final":""} image of \\( P \\)?`;
-    return {latex, correct:keyText, alternate:keyText, display:keyText, choices:imageOptions(rng, image), expectedFormat:"Enter as (x, y)", subskill:type};
+    if (type==="translate_point"){
+        steps=[
+            `The translation vector is (${values.dx}, ${values.dy}) and P is (${x}, ${y}).`,
+            `Add component by component: ${x} + ${values.dx} = ${image[0]} and ${y} + ${values.dy} = ${image[1]}.`,
+            `The image of P is ${keyText}.`
+        ];
+    }
+    else if (type==="rotate_point"){
+        steps=[
+            `P is (${x}, ${y}) and the centre of rotation is (${values.cx}, ${values.cy}).`,
+            `Move the centre to the origin: (${x} - ${values.cx}, ${y} - ${values.cy}) = (${x-values.cx}, ${y-values.cy}).`,
+            `Turn that by ${values.degrees} degrees to get (${quarterTurn(values.degrees, x-values.cx, y-values.cy)[0]}, ${quarterTurn(values.degrees, x-values.cx, y-values.cy)[1]}), then add the centre back: ${keyText}.`
+        ];
+    }
+    else if (type==="reflect_point"){
+        steps=[
+            `P is (${x}, ${y}) and the line of reflection is the ${values.axis}.`,
+            `The ${values.axis} sends (${x}, ${y}) to (${image[0]}, ${image[1]}).`,
+            `The image of P is ${keyText}.`
+        ];
+    }
+    else if (type==="dilate_point"){
+        steps=[
+            `P is (${x}, ${y}) and the centre of dilation is (${values.cx}, ${values.cy}).`,
+            `Take the centre out: (${x} - ${values.cx}, ${y} - ${values.cy}) = (${x-values.cx}, ${y-values.cy}).`,
+            `Multiply by the scale factor ${values.scale} to get (${(x-values.cx)*values.scale}, ${(y-values.cy)*values.scale}), then add the centre back: ${keyText}.`
+        ];
+    }
+    else{
+        let middle=(firstStep as Step).map(x, y);
+        steps=[
+            `P is (${x}, ${y}), and the two steps are applied in turn.`,
+            `The first step gives (${middle[0]}, ${middle[1]}), and the second step turns that into (${image[0]}, ${image[1]}).`,
+            `The final image of P is ${keyText}.`
+        ];
+    }
+    return {latex, correct:keyText, alternate:keyText, display:keyText, choices:imageOptions(rng, image), expectedFormat:"Enter as (x, y)", subskill:type, hints:{rungs, concede:"The answer is "+keyText+"."}, solution: steps};
 }
