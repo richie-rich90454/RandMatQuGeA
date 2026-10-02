@@ -3,7 +3,7 @@ layout: home
 hero:
     name: RandMatQuGeA
     text: Random Math Question Generator Algorithm
-    tagline: 125 topics across 7 subjects — Tauri v2 desktop app + web fallback
+    tagline: 137 topics across 7 subjects — Tauri v2 desktop app + web fallback
     actions:
         - theme: brand
           text: Get Started
