@@ -1,5 +1,6 @@
-﻿import type {RngFn, QuestionDto} from "../../types/global";
+import type {RngFn, QuestionDto} from "../../types/global";
 import {getMaxCoeff} from "./CalculusUtils.js";
+import {fourOptions} from "../shared/Options.js";
 /**
  * Generates and displays a random "applications of derivatives" question in the global `questionArea`.
  * Includes custom multiple‑choice options for MCQ mode.
@@ -59,23 +60,27 @@ export function generateApplicationsDiff(difficulty?: string, rng: RngFn=Math.ra
             let b=Math.floor(rng()*maxCoeff)+1;
             let x0=Math.floor(rng()*5)+1;
             // The correction term is 0.1/(2*sqrt(point)), so it shrinks as the
-            // radicand grows. Past 25 it falls below 0.01 and the estimate
-            // prints identically to the true value at three decimals, which
-            // silently collapsed this option set to three options. Bounding the
-            // radicand keeps the estimate and the true value visibly apart.
+            // radicand grows. Past 25 it falls below 0.01 and the estimate prints
+            // identically to the true value at three decimals, which silently
+            // collapsed this option set to three options. Bounding the radicand
+            // keeps the estimate and the true value visibly apart.
             let point=Math.min(a*x0+b, 25);
             let approx=Math.sqrt(point)+(0.1)/(2*Math.sqrt(point));
             mathExpression=`\\[ \\text{Use linear approximation to estimate } \\sqrt{${point+0.1}}. \\]`;
             plainCorrectAnswer=approx.toFixed(3);
             latexAnswer=plainCorrectAnswer;
             expectedFormat="Enter a decimal";
-            let correctNum=parseFloat(plainCorrectAnswer);
-            let trueValue=Math.sqrt(point+0.1);
-            choices=[plainCorrectAnswer];
-            choices.push((correctNum+0.05).toFixed(3));
-            choices.push((correctNum-0.05).toFixed(3));
-            choices.push(trueValue.toFixed(3));
-            choices.push((trueValue+0.05).toFixed(3));
+            // The true value of the root is not offered as a distractor. The tangent
+            // and the function agree to within 0.005/p^1.5 at any radicand a learner
+            // can be asked about, so the two print identically to three places and
+            // the option was a second spelling of the answer rather than a mistake.
+            // The offsets are the arithmetic slips this question actually produces.
+            choices=fourOptions(plainCorrectAnswer, [
+                (approx+0.05).toFixed(3),
+                (approx-0.05).toFixed(3),
+                (approx+0.1).toFixed(3),
+                (approx-0.1).toFixed(3)
+            ]);
             break;
         }
         case "lhopital":{
@@ -84,11 +89,16 @@ export function generateApplicationsDiff(difficulty?: string, rng: RngFn=Math.ra
             plainCorrectAnswer=a.toString();
             latexAnswer=plainCorrectAnswer;
             expectedFormat="Enter a number";
-            choices=[plainCorrectAnswer];
-            choices.push((a+1).toString());
-            choices.push((a-1).toString());
-            choices.push((a/2).toFixed(2));
-            choices.push("0");
+            // Every candidate is a whole number. A halved limit was offered before,
+            // and for an even limit it printed as "1.00" next to the "1" that
+            // a-1 produces, which is one option written twice.
+            choices=fourOptions(plainCorrectAnswer, [
+                (a+1).toString(),
+                (a-1).toString(),
+                (2*a).toString(),
+                "0",
+                (3*a).toString()
+            ]);
             break;
         }
         case "mvt":{
@@ -169,12 +179,17 @@ export function generateApplicationsDiff(difficulty?: string, rng: RngFn=Math.ra
             plainCorrectAnswer=maxVal.toFixed(2);
             latexAnswer=plainCorrectAnswer;
             expectedFormat="Enter a number";
-            let correctNum=parseFloat(plainCorrectAnswer);
-            choices=[plainCorrectAnswer];
-            choices.push((correctNum+1).toFixed(2));
-            choices.push((correctNum-1).toFixed(2));
-            choices.push((27-3*a).toFixed(2));
-            choices.push("0");
+            // The endpoint value and zero are both offered because a maximum at an
+            // endpoint really can be either of them; the option set drops whichever
+            // of the three collides with the answer, which is what happens once the
+            // maximum is the endpoint itself.
+            choices=fourOptions(plainCorrectAnswer, [
+                (parseFloat(plainCorrectAnswer)+1).toFixed(2),
+                (parseFloat(plainCorrectAnswer)-1).toFixed(2),
+                (27-3*a).toFixed(2),
+                "0",
+                (parseFloat(plainCorrectAnswer)+2).toFixed(2)
+            ]);
             break;
         }
         case "concavity":{
@@ -288,10 +303,16 @@ export function generateApplicationsDiff(difficulty?: string, rng: RngFn=Math.ra
             plainCorrectAnswer=`cut=${optimalCut.toFixed(2)} in, volume=${maxVol.toFixed(2)} cubic in`;
             latexAnswer=`\\text{cut}=${optimalCut.toFixed(2)}\\text{ in},\\ \\text{volume}=${maxVol.toFixed(2)}\\text{ in}^3`;
             expectedFormat="Enter cut length and volume";
-            choices=[plainCorrectAnswer];
-            choices.push(`cut=${(optimalCut+0.5).toFixed(2)} in, volume=${(2*Math.pow(side/6+0.5,3)).toFixed(2)} cubic in`);
-            choices.push(`cut=${(optimalCut-0.5).toFixed(2)} in, volume=${(2*Math.pow(side/6-0.5,3)).toFixed(2)} cubic in`);
-            choices.push(`cut=${(side/5).toFixed(2)} in, volume=${(2*Math.pow(side/5,3)).toFixed(2)} cubic in`);
+            // The two displaced cuts are the rounding a learner does by hand, and
+            // halving the cut is the mistake of dividing by four instead of six.
+            // The pool is a quarter of a side long, because a cut of side/4 and a
+            // volume recomputed from it can print as the answer for a small side.
+            choices=fourOptions(plainCorrectAnswer, [
+                `cut=${(optimalCut+0.5).toFixed(2)} in, volume=${(2*Math.pow(side/6+0.5,3)).toFixed(2)} cubic in`,
+                `cut=${(optimalCut-0.5).toFixed(2)} in, volume=${(2*Math.pow(side/6-0.5,3)).toFixed(2)} cubic in`,
+                `cut=${(side/5).toFixed(2)} in, volume=${(2*Math.pow(side/5,3)).toFixed(2)} cubic in`,
+                `cut=${(side/4).toFixed(2)} in, volume=${(2*Math.pow(side/4,3)).toFixed(2)} cubic in`
+            ]);
             break;
         }
         case "cylinderOptimization":{
@@ -341,24 +362,7 @@ export function generateApplicationsDiff(difficulty?: string, rng: RngFn=Math.ra
             break;
         }
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    let found=false;
-    for(let i=0;i<uniqueChoices.length;i++){
-        if(uniqueChoices[i]===plainCorrectAnswer){
-            found=true;
-            break;
-        }
-    }
-    if(!found){
-        if(uniqueChoices.length>0){
-            let randomIndex=Math.floor(rng()*uniqueChoices.length);
-            uniqueChoices[randomIndex]=plainCorrectAnswer;
-        }
-        else{
-            uniqueChoices=[plainCorrectAnswer];
-        }
-    }
+    let uniqueChoices=fourOptions(plainCorrectAnswer, choices);
     return {
         latex: mathExpression,
         correct: plainCorrectAnswer,
