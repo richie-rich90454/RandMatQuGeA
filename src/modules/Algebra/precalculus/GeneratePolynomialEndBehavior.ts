@@ -1,5 +1,6 @@
-﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
+import {fourOptions, numberOptions} from "../../shared/Options.js";
 /**
  * Polynomial end behavior: end behavior, multiplicity, IVT.
  * @fileoverview Generates polynomial property questions with MCQ distractors.
@@ -32,15 +33,9 @@ export function generatePolynomialEndBehavior(difficulty?: string, rng: RngFn = 
             correct=desc;
             alternate=desc;
             display=desc;
-            let wrong1="both ends up";
-            let wrong2="both ends down";
-            let wrong3="left down, right up";
-            let wrong4="left up, right down";
-            choices=[desc];
-            for(let w of [wrong1,wrong2,wrong3,wrong4]){
-                if(w!==desc) choices.push(w);
-                if(choices.length>=4) break;
-            }
+            // The four descriptions are the whole domain of the answer, so all
+            // four are offered and the one that is right leads.
+            choices=fourOptions(desc, ["both ends up","both ends down","left down, right up","left up, right down"]);
             expectedFormat="Enter description like 'both ends up'";
             break;
         }
@@ -53,11 +48,12 @@ export function generatePolynomialEndBehavior(difficulty?: string, rng: RngFn = 
             correct=ans;
             alternate=ans;
             display=ans;
-            choices=[ans];
-            choices.push((mult+1).toString());
-            choices.push((mult-1).toString());
-            choices.push("1");
-            choices.push("0");
+            // A multiplicity of 1 made `mult+1`, `1` and the key the same
+            // option, which left the set at three. The pool is the whole
+            // answer domain a learner would reach for: the exponent read
+            // one high or one low, zero for a root that is not repeated,
+            // and the root's own location.
+            choices=numberOptions(mult, [mult+1, mult-1, 0, 3, 2*mult, root], 0);
             expectedFormat="Enter a number";
             break;
         }
@@ -66,28 +62,40 @@ export function generatePolynomialEndBehavior(difficulty?: string, rng: RngFn = 
             const val2=val1+Math.floor(rng()*5)+2;
             const poly=`x^3 - ${a}x + ${b}`;
             const f=(x:number):number=>x*x*x-a*x+b;
-            const hasRoot=f(val1)*f(val2)<=0;
-            mathExpression=`Use the Intermediate Value Theorem to show that \\( ${poly} \\) has a root between ${val1} and ${val2}. (Enter yes/no if it applies)`;
-            correct=hasRoot?"yes":"no";
+            // "maybe" and "cannot determine" were offered here, and neither is
+            // an answer a learner could give to a sign computation: they
+            // were filler that taught the learner to pick the option that
+            // looked like an answer. The question is asked as the sign
+            // comparison the theorem actually turns on, whose four
+            // outcomes are mutually exclusive and exhaustive.
+            const first=f(val1);
+            const second=f(val2);
+            if (first===0||second===0){
+                correct="at least one of them is zero";
+            }
+            else if (first>0&&second>0){
+                correct="both positive";
+            }
+            else if (first<0&&second<0){
+                correct="both negative";
+            }
+            else{
+                correct="opposite signs";
+            }
             alternate=correct;
             display=correct;
-            choices=["yes","no","maybe","cannot determine"];
-            expectedFormat="Enter 'yes' or 'no'";
+            mathExpression=`Use the Intermediate Value Theorem: compute \\( ${poly} \\) at \\( x = ${val1} \\) and at \\( x = ${val2} \\), then report their signs.`;
+            choices=fourOptions(correct, ["both positive","both negative","opposite signs","at least one of them is zero"]);
+            expectedFormat="Enter a description of the two signs";
             break;
         }
-    }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
     }
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: choices,
         expectedFormat: expectedFormat
     };
 }
