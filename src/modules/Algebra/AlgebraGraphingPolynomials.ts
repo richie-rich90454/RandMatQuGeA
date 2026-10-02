@@ -1,12 +1,22 @@
-﻿﻿/**
+/**
  * Polynomial operations: addition, subtraction, multiplication, division, factoring.
  * Function concepts: domain, range, notation, evaluation.
  * Graphing: linear (slope, intercepts, equation from points, parallel/perpendicular), nonlinear (parabola vertex, absolute value, sqrt, transformations).
  * @fileoverview Generates algebra questions with MCQ distractors.
  * @date 2026-04-18
  */
-import type {RngFn, QuestionDto} from "../../types/global";
-import {getMaxForDifficulty} from "./AlgebraUtils.js";
+import type{RngFn, QuestionDto}from"../../types/global";
+import{getMaxForDifficulty}from"./AlgebraUtils.js";
+import{fmt, roundTo}from"../shared/Numeric";
+import{fourOptions}from"../shared/Options.js";
+
+/**
+ * Quadratic polynomial addition, subtraction and multiplication.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generatePolynomial(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["add","subtract","multiply"];
     let type=types[Math.floor(rng()*types.length)];
@@ -82,21 +92,23 @@ export function generatePolynomial(difficulty?: string, rng: RngFn = Math.random
         default:
             return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: expectedFormat
     };
 }
+/**
+ * Division of a quadratic by a monomial, with and without a remainder.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generatePolynomialDivision(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["simple","with_remainder"];
     let type=types[Math.floor(rng()*types.length)];
@@ -155,21 +167,24 @@ export function generatePolynomialDivision(difficulty?: string, rng: RngFn = Mat
         default:
             return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: expectedFormat
     };
 }
+/**
+ * Factoring by greatest common factor, trinomial, difference of squares, and
+ * the sum and difference of cubes.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generateFactoring(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["gcf","trinomial","difference_squares","sum_cubes","difference_cubes"];
     let type=types[Math.floor(rng()*types.length)];
@@ -263,21 +278,23 @@ export function generateFactoring(difficulty?: string, rng: RngFn = Math.random)
         default:
             return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: expectedFormat
     };
 }
+/**
+ * Domain, range, function notation and evaluation of a linear function.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generateFunctionConcepts(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["domain","range","notation","evaluate"];
     let type=types[Math.floor(rng()*types.length)];
@@ -350,21 +367,28 @@ export function generateFunctionConcepts(difficulty?: string, rng: RngFn = Math.
         default:
             return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: expectedFormat
     };
 }
+/**
+ * Slope from two points, the intercepts of a line, the equation of a line
+ * through two points, and the parallel and perpendicular slopes of a given one.
+ *
+ * A slope between two integer points is a rational number that is usually not
+ * exact in two decimal places, so every branch that returns one says where to
+ * round and derives the key and every distractor from the single rounded value.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generateLinearGraphing(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["slope","intercepts","equation_from_points","parallel_perpendicular"];
     let type=types[Math.floor(rng()*types.length)];
@@ -390,17 +414,18 @@ export function generateLinearGraphing(difficulty?: string, rng: RngFn = Math.ra
     switch(type){
         case "slope":{
             let slope=(y2-y1)/(x2-x1);
-            let ans=slope.toFixed(2);
+            let rounded=roundTo(slope, 2);
+            let ans=fmt(rounded, 2);
             correct=ans;
-            alternate=slope.toString();
+            alternate=ans;
             display=ans;
-            mathExpression=`Find the slope between (${x1},${y1}) and (${x2},${y2}).`;
-            let slopeNum=parseFloat(ans);
-            choices=[correct];
-            choices.push((slopeNum+0.1).toFixed(2));
-            choices.push((slopeNum-0.1).toFixed(2));
-            choices.push(((y2-y1)).toString());
-            choices.push(((x2-x1)).toString());
+            mathExpression=`Find the slope between (${x1},${y1}) and (${x2},${y2}). (Round to the nearest hundredth.)`;
+            // The two classic slips are to report the rise or the run instead of
+            // their quotient, and to invert the quotient. The reciprocal is only
+            // offered when the slope is nonzero, because a horizontal line has
+            // no reciprocal slope and Infinity is not an answer.
+            choices=[fmt(rounded+0.1, 2), fmt(rounded-0.1, 2), `${y2-y1}`, `${x2-x1}`];
+            if (rounded!==0) choices.push(fmt(roundTo(1/rounded, 2), 2));
             expectedFormat="Enter a decimal number";
             break;
         }
@@ -413,66 +438,81 @@ export function generateLinearGraphing(difficulty?: string, rng: RngFn = Math.ra
             alternate=ans.replace(/\s+/g,"");
             display=ans;
             mathExpression=`Find the x- and y-intercepts of \\( ${eq} \\).`;
-            choices=[correct];
-            choices.push(`(${xInt+1},0) and (0,${yInt})`);
-            choices.push(`(${xInt},0) and (0,${yInt+1})`);
-            choices.push(`(${xInt-1},0) and (0,${yInt})`);
-            choices.push(`(${xInt},0) and (0,${yInt-1})`);
+            // The swap is the slip this form is testing: dividing the equation by
+            // the y coefficient first and reading the two intercepts the wrong
+            // way round.
+            choices=[
+                `(${xInt+1},0) and (0,${yInt})`,
+                `(${xInt},0) and (0,${yInt+1})`,
+                `(${xInt-1},0) and (0,${yInt})`,
+                `(${xInt},0) and (0,${yInt-1})`,
+                `(${yInt},0) and (0,${xInt})`
+            ];
             expectedFormat="Enter as (x,0) and (0,y)";
             break;
         }
         case "equation_from_points":{
             let slope=(y2-y1)/(x2-x1);
-            let intercept=y1-slope*x1;
-            let ans=`y=${slope.toFixed(2)}x + ${intercept.toFixed(2)}`;
+            // Each of the two numbers in the key comes from one rounding of the
+            // exact value, and every distractor is rendered from those same two
+            // rounded numbers. Writing the intercept into a distractor as a bare
+            // number while the key printed it as "0.00" made the two the same
+            // value, so the question had two correct options.
+            let roundedSlope=roundTo(slope, 2);
+            let roundedIntercept=roundTo(y1-slope*x1, 2);
+            let ans=`y=${fmt(roundedSlope,2)}x + ${fmt(roundedIntercept,2)}`;
             correct=ans;
             alternate=ans.replace(/\s+/g,"");
             display=ans;
-            mathExpression=`Find the equation of the line through (${x1},${y1}) and (${x2},${y2}).`;
-            choices=[correct];
-            let slopeNum=parseFloat(slope.toFixed(2));
-            let intNum=parseFloat(intercept.toFixed(2));
-            choices.push(`y=${(slopeNum+0.1).toFixed(2)}x + ${intNum}`);
-            choices.push(`y=${slopeNum}x + ${(intNum+0.1).toFixed(2)}`);
-            choices.push(`y=${(slopeNum-0.1).toFixed(2)}x + ${intNum}`);
-            choices.push(`y=${slopeNum}x + ${(intNum-0.1).toFixed(2)}`);
+            mathExpression=`Find the equation of the line through (${x1},${y1}) and (${x2},${y2}). (Round the slope and the intercept to the nearest hundredth.)`;
+            choices=[
+                `y=${fmt(roundedSlope+0.1,2)}x + ${fmt(roundedIntercept,2)}`,
+                `y=${fmt(roundedSlope,2)}x + ${fmt(roundedIntercept+0.1,2)}`,
+                `y=${fmt(roundedSlope-0.1,2)}x + ${fmt(roundedIntercept,2)}`,
+                `y=${fmt(roundedSlope,2)}x + ${fmt(roundedIntercept-0.1,2)}`,
+                `y=${fmt(-roundedSlope,2)}x + ${fmt(roundedIntercept,2)}`
+            ];
             expectedFormat="Enter equation like y = mx + b";
             break;
         }
         case "parallel_perpendicular":{
             let slope=a;
-            let perp=-1/slope;
-            let ans=`parallel: ${slope}, perpendicular: ${perp.toFixed(2)}`;
+            let perp=roundTo(-1/slope, 2);
+            let ans=`parallel: ${slope}, perpendicular: ${fmt(perp,2)}`;
             correct=ans;
             alternate=ans.replace(/\s+/g,"");
             display=ans;
-            mathExpression=`Line L has slope ${slope}. What is the slope of a line parallel to L? Perpendicular?`;
-            choices=[correct];
-            choices.push(`parallel: ${slope+1}, perpendicular: ${perp.toFixed(2)}`);
-            choices.push(`parallel: ${slope}, perpendicular: ${(perp+0.1).toFixed(2)}`);
-            choices.push(`parallel: ${slope-1}, perpendicular: ${perp.toFixed(2)}`);
-            choices.push(`parallel: ${slope}, perpendicular: ${(perp-0.1).toFixed(2)}`);
+            mathExpression=`Line L has slope ${slope}. What is the slope of a line parallel to L? Perpendicular? (Round the perpendicular slope to the nearest hundredth.)`;
+            choices=[
+                `parallel: ${slope+1}, perpendicular: ${fmt(perp,2)}`,
+                `parallel: ${slope}, perpendicular: ${fmt(perp+0.1,2)}`,
+                `parallel: ${slope-1}, perpendicular: ${fmt(perp,2)}`,
+                `parallel: ${slope}, perpendicular: ${fmt(perp-0.1,2)}`,
+                `parallel: ${slope}, perpendicular: ${fmt(roundTo(1/slope, 2),2)}`
+            ];
             expectedFormat="Enter 'parallel: m, perpendicular: n'";
             break;
         }
         default:
             return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: expectedFormat
     };
 }
+/**
+ * Vertex, absolute-value shift, square-root domain and a shifted parabola.
+ *
+ * @param difficulty - Which difficulty to generate at.
+ * @param rng - The injected random source.
+ * @returns The generated question.
+ */
 export function generateNonLinearGraphing(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
     let types=["parabola_vertex","abs_value","sqrt","transform"];
     let type=types[Math.floor(rng()*types.length)];
@@ -550,18 +590,13 @@ export function generateNonLinearGraphing(difficulty?: string, rng: RngFn = Math
         default:
             return {latex: mathExpression, correct, alternate, display, choices, expectedFormat};
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
-    }
+    let optionSet=fourOptions(correct, choices);
     return {
         latex: mathExpression,
         correct: correct,
         alternate: alternate,
         display: display,
-        choices: uniqueChoices,
+        choices: optionSet,
         expectedFormat: expectedFormat
     };
 }
