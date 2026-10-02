@@ -15,7 +15,7 @@ vi.mock("../../main/core/DomRegistry",()=>{
         checkAnswerButton,
         expectedFormatDiv,
         inputs:{difficultySelect,userAnswer},
-        displays:{answerResults,questionArea,expectedFormatDiv},
+        displays:{answerResults,questionArea,expectedFormatDiv,topicPills:[]},
         buttons:{checkAnswerButton},
         // The registry grew a help group and a daily group. They are present here
         // as absent controls rather than omitted, which is not a shape the
@@ -249,6 +249,19 @@ describe("generateQuestion",()=>{
         state.setShuffle(true);
         await generateQuestion();
         expect(pickRandomTopicMock).toHaveBeenCalled();
+    });
+    it("marks the shuffled topic's pill from the grid the registry holds, without searching the document",async()=>{
+        state.setShuffle(true);
+        let chosen={dataset:{topicId:"add"},classList:{toggle:vi.fn()}};
+        let other={dataset:{topicId:"sub"},classList:{toggle:vi.fn()}};
+        dom.displays.topicPills=[chosen,other];
+        let scan=vi.spyOn(document,"querySelectorAll");
+        await generateQuestion();
+        expect(chosen.classList.toggle).toHaveBeenCalledWith("active",true);
+        expect(other.classList.toggle).toHaveBeenCalledWith("active",false);
+        expect(scan).not.toHaveBeenCalled();
+        scan.mockRestore();
+        dom.displays.topicPills=[];
     });
 });
 describe("generateQuestion - edge cases",()=>{
