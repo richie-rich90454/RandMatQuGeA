@@ -205,7 +205,7 @@ index.html            static shell; every element the app manipulates has an id
 
 ## Complexity budget
 
-Complexity is a correctness concern here, not just a speed one: the topic grid is 125
+Complexity is a correctness concern here, not just a speed one: the topic grid is 137
 entries, the generated question space is unbounded, and the history is append-only.
 
 **Budgets**
@@ -222,8 +222,8 @@ entries, the generated question space is unbounded, and the history is append-on
 
 1. **`Array.prototype.includes` and `Array.prototype.find` inside a loop over another
    array is O(n·m).** Build a `Set` first. `topics.filter(t=>allowedIds.includes(t.id))`
-   over 125 topics and a 125-entry scope list is ~15 000 string comparisons per
-   keystroke; `new Set(allowedIds)` makes it 125.
+   over 137 topics and a 137-entry scope list is ~19 000 string comparisons per
+   keystroke; `new Set(allowedIds)` makes it 137.
 2. **Never `querySelectorAll` on an interaction path.** Cache the element references
    in a `Map` at render time, as `Topics.ts` already does, and mutate the map's
    entries.
