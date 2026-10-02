@@ -1,4 +1,4 @@
-﻿﻿import{invoke}from"@tauri-apps/api/core";
+﻿import{invoke}from"@tauri-apps/api/core";
 import{selectTopic}from"./Topics";
 import{topics}from"./Constants";
 import{generateQuestion}from"./Generation";
@@ -35,16 +35,19 @@ export async function checkAndShowWeakTopicsPopup(){
             `;
             weakTopicsList.appendChild(item);
         }
-        document.querySelectorAll(".practice-topic-btn").forEach((btn:Element)=>{
-            btn.addEventListener("click",(e:Event)=>{
-                const topicId=(e.currentTarget as HTMLElement).getAttribute("data-topic");
-                if(topicId){
-                    selectTopic(topicId);
-                    generateQuestion(topicId).catch((err:unknown)=>ui.showNotification("Failed to generate question: "+((err as Error)?.message||err),"warning"));
-                    weakTopicsModal?.classList.remove("show");
-                }
-            });
-        });
+        // The buttons were just built into this list, so one handler on the list
+        // serves every one of them. Assigning rather than adding keeps a second
+        // open from stacking a second handler on the same element.
+        weakTopicsList.onclick=(e:Event)=>{
+            let button=(e.target as Element|null)?.closest(".practice-topic-btn");
+            if(!button)return;
+            const topicId=button.getAttribute("data-topic");
+            if(topicId){
+                selectTopic(topicId);
+                generateQuestion(topicId).catch((err:unknown)=>ui.showNotification("Failed to generate question: "+((err as Error)?.message||err),"warning"));
+                weakTopicsModal?.classList.remove("show");
+            }
+        };
         let dismissBtn=document.getElementById("weak-topics-dismiss");
         if(dismissBtn)dismissBtn.onclick=()=>weakTopicsModal?.classList.remove("show");
         let practiceAllBtn=document.getElementById("weak-topics-practice-all");
