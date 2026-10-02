@@ -173,12 +173,14 @@ Built with Tauri v2, the backend provides:
 
 | Command | Purpose |
 |---|---|
-| `check_math` | Numeric and symbolic comparison |
+| `check_math` | Registered and callable, but nothing grades through it: `isAnswerCorrect` in `src/main/Settings.ts`, reached through `src/main/Answer.ts`, is the one answer checker |
 | `save_score` / `load_scores` / `delete_score` | Score CRUD |
 | `save_performance` | Per-topic/difficulty performance tracking |
 | `save_attempt` / `load_attempts` | Every answer, kept in full with its confidence and error type |
 | `save_skill_schedule` / `load_skill_schedule` | Memory stability, difficulty and due date per topic and sub-skill |
 | `clear_performance` | Erases the schedule, the answers and the aggregate together |
+| `export_learning_record` | Writes the whole record — schedule, answers, aggregate — to a versioned JSON file |
+| `import_learning_record` | Applies such a file, merging or replacing, in one transaction |
 | `get_performance_stats` | Aggregate performance queries |
 | `get_next_question_recommendation` | Adaptive difficulty + weak topic detection |
 | `get_weak_topics` | Weak topic analysis (< 70% accuracy, ≥ 3 attempts) |
@@ -209,6 +211,27 @@ Two rules are enforced by construction in these files rather than by convention:
 - Divisor sums accumulate by repeated addition. The closed form divides, and a
   power of three over two is not an integer.
 
+### Counting, similarity and linear algebra
+
+Eight further generators were added for the same reason, and each is a procedure
+whose answer the learner can reproduce from the printed numbers:
+
+| Topic | Covers |
+|---|---|
+| `counting_principles` | Multiplication and addition rules, permutations and combinations under restriction, arrangements with repeats |
+| `probability_rules` | Conditional probability from a table, the law of total probability, Bayes, independence statements, expected value |
+| `similarity` | Proportional sides, scale factors, area and perimeter ratios, recovering a scale from an area, the converse |
+| `rigid_transformations` | Translating, rotating, reflecting and dilating a point, and composing two of them |
+| `circle_geometry` | Inscribed against central angles, arcs and sectors, the right angle a tangent makes with a radius, chord length, intersecting chords, secants from outside |
+| `eigenvalues` | Eigenvalues of 2×2 and 3×3 matrices, eigenvectors, the characteristic polynomial, diagonalisation, defective matrices |
+| `orthogonality` | Dot products, norms, projection, Gram-Schmidt, orthogonal complements |
+| `vectors_3d` | Cross and scalar triple products, angles between 3D vectors, point-to-line and point-to-plane distances |
+
+`rigid_transformations` is a distinct topic from the Algebra topic
+`transformations`, and the id says so on purpose: one moves a point in the plane
+and preserves every distance, the other moves the graph of a function and does
+not. Two topics with one label would make a learner's review record ambiguous.
+
 ```
 src/modules/
 ├── Arithmetic/        (add, subtract, multiply, divide)
@@ -222,7 +245,7 @@ src/modules/
 
 All generators follow the same signature: `(difficulty: string, rng?: RngFn) => QuestionDto`.
 
-There are **129 topics** across 7 subject modules (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry). The count is asserted rather than written down: the oracle test compares the registered topic ids against the sub-skill table in both directions, so a topic that is registered without a row, or a row whose key is not a registered topic, is a build failure rather than a note.
+There are **137 topics** across 7 subject modules (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry). The count is asserted rather than written down: the oracle test compares the registered topic ids against the sub-skill table in both directions, so a topic that is registered without a row, or a row whose key is not a registered topic, is a build failure rather than a note.
 
 ## Testing
 
