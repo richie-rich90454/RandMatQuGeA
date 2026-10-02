@@ -13,6 +13,7 @@
 import type{RngFn, QuestionDto}from"../../types/global";
 import{shuffle}from"../shared/Random";
 import{gcd, lcm}from"./DiscreteUtils.js";
+import{fourOptions}from"../shared/Options.js";
 
 /**
  * The Euclidean chain for a pair, as the steps a learner would write.
@@ -50,20 +51,15 @@ function drawPair(rng: RngFn, limit: number): { a: number; b: number }{
 }
 
 /**
- * Builds a set of four wrong numbers around an answer. A wrong multiple is as
- * useful as a wrong offset, because the most common error is to compute the
- * product rather than the least common multiple.
+ * Builds a pool of wrong numbers around an answer, best first. A wrong multiple is
+ * as useful as a wrong offset, because the most common error is to compute the
+ * product rather than the least common multiple. The pool is longer than the three
+ * options wanted so that it cannot run dry when the answer is small: a remainder of
+ * zero leaves only two meaningful candidates, and a pool of two would ship a
+ * three-option question.
  */
-function wrongAround(answer: number, rng: RngFn): string[]{
-    let candidates=[answer+1, answer-1, answer*2, answer/2, answer+answer];
-    let out:string[]=[];
-    for(let value of candidates){
-        let text=String(value);
-        if (text===String(answer)||out.indexOf(text)>=0) continue;
-        out.push(text);
-        if (out.length===3) break;
-    }
-    return shuffle(rng, out);
+function wrongAround(answer: number): number[]{
+    return [answer+1, answer-1, answer*2, answer/2, answer+answer, answer+2, answer-2, answer+3];
 }
 
 export function generateGcdLcm(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
@@ -84,7 +80,7 @@ export function generateGcdLcm(difficulty?: string, rng: RngFn=Math.random): Que
             alternate=correct;
             display=correct;
             latex=`Find the greatest common divisor of ${a} and ${b}.`;
-            choices=[correct, ...wrongAround(value, rng)];
+            choices=shuffle(rng, fourOptions(correct, wrongAround(value).map(String)));
             break;
         }
         case "lcm":{
@@ -94,7 +90,7 @@ export function generateGcdLcm(difficulty?: string, rng: RngFn=Math.random): Que
             alternate=correct;
             display=correct;
             latex=`Find the least common multiple of ${a} and ${b}.`;
-            choices=[correct, ...wrongAround(value, rng)];
+            choices=shuffle(rng, fourOptions(correct, wrongAround(value).map(String)));
             break;
         }
         case "find_other":{
@@ -112,7 +108,7 @@ export function generateGcdLcm(difficulty?: string, rng: RngFn=Math.random): Que
             display=correct;
             latex=`The greatest common divisor of \\( ${a} \\) and \\( x \\) is \\( ${gcd(a, b)} \\), and \\( ${a} \\) is a multiple of \\( ${common} \\). What is \\( x \\)?`;
             expectedFormat="Enter a whole number";
-            choices=[correct, ...wrongAround(b, rng)];
+            choices=shuffle(rng, fourOptions(correct, wrongAround(b).map(String)));
             break;
         }
         case "euclid_step":{
@@ -134,7 +130,7 @@ export function generateGcdLcm(difficulty?: string, rng: RngFn=Math.random): Que
             alternate=correct;
             display=`${larger} = ${Math.floor(larger/smaller)} \\times ${smaller} + ${value}`;
             latex=`The Euclidean algorithm starts by dividing the larger number by the smaller. What is the remainder when ${larger} is divided by ${smaller}?`;
-            choices=[correct, ...wrongAround(value, rng)];
+            choices=shuffle(rng, fourOptions(correct, wrongAround(value).map(String)));
             break;
         }
         case "gcd_lcm_identity":{
@@ -144,15 +140,10 @@ export function generateGcdLcm(difficulty?: string, rng: RngFn=Math.random): Que
             alternate=correct;
             display=correct;
             latex=`The greatest common divisor of \\( ${a} \\) and \\( ${b} \\) is \\( ${gcd(a, b)} \\). What is their least common multiple?`;
-            choices=[correct, ...wrongAround(value, rng)];
+            choices=shuffle(rng, fourOptions(correct, wrongAround(value).map(String)));
             break;
         }
     }
-    let unique=[...new Set(choices)];
-    if (unique.length>4) unique=unique.slice(0, 4);
-    if (!unique.includes(correct)){
-        if (unique.length>0) unique[Math.floor(rng()*unique.length)]=correct;
-        else unique=[correct];
-    }
+    let unique=fourOptions(correct, choices);
     return {latex, correct, alternate, display, choices: unique, expectedFormat};
 }
