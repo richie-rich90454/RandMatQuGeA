@@ -18,6 +18,10 @@ import Fraction from "fraction.js";
  * constructs the app actually prints as an answer are handled; anything else
  * keeps its backslash stripped and is left to the caller's comparison.
  *
+ * An angle the curriculum prints as `45^{\circ}` is the number 45, so the degree
+ * mark goes rather than becoming a symbol the checker has to know about, and a
+ * `\cdot` becomes the `*` a learner would have typed.
+ *
  * @param value - The LaTeX or plain text.
  * @returns The plain equivalent.
  */
@@ -27,6 +31,11 @@ export function latexToPlain(value: string): string{
         .replace(/\\(?:left|right|displaystyle|,|;|!)/g,"")
         .replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,"($1)/($2)")
         .replace(/\\sqrt\{([^{}]*)\}/g,"sqrt($1)")
+        // The degree mark and the multiplication dot have to be rewritten before
+        // the generic rule below, which would leave "45^(circ)" and "2cdot3" for
+        // the checker to read as two symbols multiplied together.
+        .replace(/\^\{?\\circ\}?/g,"")
+        .replace(/\\(?:cdot|times)/g,"*")
         .replace(/\\([a-zA-Z]+)/g,"$1")
         .replace(/[{}]/g,"");
 }
