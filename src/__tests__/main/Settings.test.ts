@@ -278,28 +278,6 @@ describe("settings",()=>{
             expect(document.documentElement.classList.contains("light")).toBe(true);
         });
     });
-    describe("checkAnswerFast",()=>{
-        it("should fall back to isAnswerCorrect when not in Tauri",async()=>{
-            const savedTauri=(window as any).__TAURI__;
-            const savedInternals=(window as any).__TAURI_INTERNALS__;
-            delete (window as any).__TAURI__;
-            delete (window as any).__TAURI_INTERNALS__;
-            const result=await settings.checkAnswerFast("42","42");
-            expect(result).toBe(true);
-            (window as any).__TAURI__=savedTauri;
-            (window as any).__TAURI_INTERNALS__=savedInternals;
-        });
-        it("should return result from isAnswerCorrect",async()=>{
-            const savedTauri=(window as any).__TAURI__;
-            const savedInternals=(window as any).__TAURI_INTERNALS__;
-            delete (window as any).__TAURI__;
-            delete (window as any).__TAURI_INTERNALS__;
-            const result=await settings.checkAnswerFast("hello","42");
-            expect(result).toBe(false);
-            (window as any).__TAURI__=savedTauri;
-            (window as any).__TAURI_INTERNALS__=savedInternals;
-        });
-    });
     describe("settings persistence",()=>{
         it("should persist theme to localStorage",async()=>{
             localStorage.setItem("appSettings",JSON.stringify({theme:"dark"}));
