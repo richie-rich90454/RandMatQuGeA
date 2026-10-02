@@ -78,11 +78,9 @@ export async function generateQuestion(explicitTopicId?: string, rng?: RngFn): P
         let randomTopic=topics.pickRandomTopic();
         if (randomTopic){
             appState.selectedTopic=randomTopic;
-            document.querySelectorAll(".topic-pill").forEach(item=>{
-                item.classList.remove("active");
-            });
-            let selectedElement=document.querySelector(`[data-topic-id="${randomTopic}"]`);
-            if(selectedElement)selectedElement.classList.add("active");
+            for(let pill of dom.displays.topicPills){
+                pill.classList.toggle("active",pill.dataset.topicId===randomTopic);
+            }
         }
         else{
             ui.showNotification("No topics available in current scope","warning");
