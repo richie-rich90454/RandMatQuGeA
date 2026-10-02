@@ -9,3 +9,6 @@ registerTopic("polar_conics","geometry","generatePolarConic");
 registerTopic("coord3d","geometry","generate3DDistanceMidpoint");
 registerTopic("sphere_eq","geometry","generateSphereEquation");
 registerTopic("line_plane_3d","geometry","generateLinePlane3D");
+registerTopic("similarity","geometry","generateSimilarSimilarity");
+registerTopic("rigid_transformations","geometry","generateGeometricTransformations");
+registerTopic("circle_geometry","geometry","generateCircleGeometry");
