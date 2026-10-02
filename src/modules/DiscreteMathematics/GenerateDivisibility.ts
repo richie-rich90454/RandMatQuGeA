@@ -13,6 +13,7 @@
  */
 import type{RngFn, QuestionDto}from"../../types/global";
 import{shuffle}from"../shared/Random";
+import{fourOptions}from"../shared/Options.js";
 
 /** A divisibility rule, with the digit sum it depends on. */
 interface DivisibilityRule{
@@ -139,17 +140,25 @@ export function generateDivisibility(difficulty?: string, rng: RngFn=Math.random
     let choices:string[]=[];
     switch(type){
         case "is_divisible":{
-            let rule=RULES[Math.floor(rng()*RULES.length)];
-            // Half the time the answer is yes, because a rule that is always
-            // answered no teaches recognition of failure rather than of the rule.
-            let target=rng()<0.5;
-            let n=drawUntil(rng, value=>rule.test(value)===target, size);
-            correct=target?"yes":"no";
-            alternate=rule.test(n)?"divisible":"not divisible";
-            display=alternate;
-            latex=`Is ${format(n)} divisible by ${rule.divisor}?`;
-            expectedFormat='Enter "yes" or "no"';
-            choices=["yes","no"];
+            // "Is this divisible by n?" is a yes/no question, and a yes/no question
+            // has no honest third option: the only way to offer four is to pad with
+            // "maybe" and "always", which teaches a learner to pick the option that
+            // looks like an answer. The rule is therefore asked as a selection
+            // instead: a multiple of the rule's divisor and the three numbers either
+            // side of it. The three offsets are smaller than the divisor, so none of
+            // them can be a multiple, which makes exactly one option correct by
+            // construction rather than by luck. The numbers are printed, because in
+            // free-response mode the learner has to see what they are choosing
+            // between.
+            let rule=RULES.filter(r=>r.divisor>=4)[Math.floor(rng()*6)];
+            let multiple=rule.divisor*(Math.floor(rng()*Math.floor(size/rule.divisor))+1);
+            let offered=[multiple-1, multiple, multiple+1, multiple+2];
+            correct=String(multiple);
+            alternate=correct;
+            display=correct;
+            latex=`Which of these is divisible by ${rule.divisor}? ${offered.join(", ")}.`;
+            expectedFormat="Enter the number";
+            choices=shuffle(rng, offered.map(String));
             break;
         }
         case "which_divisible":{
@@ -169,7 +178,9 @@ export function generateDivisibility(difficulty?: string, rng: RngFn=Math.random
             correct=String(multiple);
             alternate=correct;
             display=correct;
-            latex=`Which of these is divisible by ${divisor}?`;
+            // The four numbers are printed, because "which of these" is unanswerable
+            // in free-response mode without them.
+            latex=`Which of these is divisible by ${divisor}? ${shuffled.join(", ")}.`;
             expectedFormat="Enter the number";
             choices=shuffled.map(String);
             break;
@@ -209,22 +220,8 @@ export function generateDivisibility(difficulty?: string, rng: RngFn=Math.random
             break;
         }
     }
-    let unique=[...new Set(choices)];
-    if (unique.length>4) unique=unique.slice(0, 4);
-    if (!unique.includes(correct)){
-        if (unique.length>0) unique[Math.floor(rng()*unique.length)]=correct;
-        else unique=[correct];
-    }
+    let unique=fourOptions(correct, choices);
     return {latex, correct, alternate, display, choices: unique, expectedFormat};
-}
-
-/** Draws a value satisfying a test, searching rather than rejecting forever. */
-function drawUntil(rng: RngFn, test: (n: number)=>boolean, size: number): number{
-    for(let attempt=0; attempt<400; attempt++){
-        let n=Math.floor(rng()*size)+1;
-        if (test(n)) return n;
-    }
-    return test(1)?1:2;
 }
 
 /** Counts the multiples of a divisor in an inclusive range. */
@@ -239,9 +236,4 @@ function countDivisibleIn(lo: number, hi: number, divisor: number): number{
 function distinctAround(value: number, offset: number): string[]{
     let deltas=[offset+1, offset+2, offset-1, offset+3];
     return deltas.map(d=>String(value+d));
-}
-
-/** Formats an integer with thousands separators so it reads as a whole number. */
-function format(n: number): string{
-    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
