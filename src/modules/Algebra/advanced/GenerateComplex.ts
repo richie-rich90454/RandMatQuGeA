@@ -1,5 +1,22 @@
-﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import type {RngFn, QuestionDto} from "../../../types/global";
 import {getMaxForDifficulty} from "../AlgebraUtils.js";
+import {fourOptions} from "../../shared/Options.js";
+import {fmt} from "../../shared/Numeric";
+/**
+ * Renders a complex number the way this generator prints it, so a key and a
+ * distractor built from the same mistake are spelled the same way and cannot
+ * collide as text while differing in value.
+ *
+ * @param real - The real part.
+ * @param imag - The imaginary part, sign included.
+ * @param decimals - Decimal places to render each part at.
+ * @returns The option text.
+ */
+function complexText(real: number, imag: number, decimals: number): string{
+    let magnitude=imag<0?-imag:imag;
+    let sign=imag<0?" - ":" + ";
+    return fmt(real,decimals)+sign+fmt(magnitude,decimals)+"i";
+}
 /**
  * Complex number operations: addition, subtraction, multiplication, division, powers of i.
  * @fileoverview Generates complex number arithmetic questions with MCQ distractors. Sets window.correctAnswer with correct result and display.
@@ -28,15 +45,17 @@ export function generateComplex(difficulty?: string, rng: RngFn=Math.random): Qu
             alternate=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
             display=correct;
             mathExpression=`Add: \\( (${a} + ${b}i) + (${c} + ${d}i) \\)`;
-            choices=[correct];
-            let wrongReal1=real+1;
-            let wrongImag1=imag+1;
-            choices.push(wrongImag1>=0?`${wrongReal1} + ${wrongImag1}i`:`${wrongReal1} - ${-wrongImag1}i`);
-            let wrongReal2=real-1;
-            let wrongImag2=imag-1;
-            choices.push(wrongImag2>=0?`${wrongReal2} + ${wrongImag2}i`:`${wrongReal2} - ${-wrongImag2}i`);
-            choices.push(`${real} + ${imag+1}i`);
-            choices.push(`${real+1} + ${imag}i`);
+            // Dropping a carry in one part only is the mistake, so the two
+            // single-part errors lead and the two-part error backs them up.
+            // Both single-part errors are distinct from the key because imag
+            // is the sum of two positive draws.
+            choices=fourOptions(correct, [
+                complexText(real,imag+1,0),
+                complexText(real+1,imag,0),
+                complexText(real-1,imag-1,0),
+                complexText(real+2,imag,0),
+                complexText(real,imag+2,0)
+            ]);
             break;
         }
         case "subtract":{
@@ -46,15 +65,17 @@ export function generateComplex(difficulty?: string, rng: RngFn=Math.random): Qu
             alternate=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
             display=correct;
             mathExpression=`Subtract: \\( (${a} + ${b}i) - (${c} + ${d}i) \\)`;
-            choices=[correct];
-            let wrongReal1=real+1;
-            let wrongImag1=imag+1;
-            choices.push(wrongImag1>=0?`${wrongReal1} + ${wrongImag1}i`:`${wrongReal1} - ${-wrongImag1}i`);
-            let wrongReal2=real-1;
-            let wrongImag2=imag-1;
-            choices.push(wrongImag2>=0?`${wrongReal2} + ${wrongImag2}i`:`${wrongReal2} - ${-wrongImag2}i`);
-            choices.push(`${real} + ${imag-1}i`);
-            choices.push(`${real-1} + ${imag}i`);
+            // A carry dropped in either part, or the subtraction not carried
+            // into both at once. Every candidate differs from the key in the
+            // real part or by more than the rounding, so the value filter
+            // cannot keep one by accident.
+            choices=fourOptions(correct, [
+                complexText(real,imag+1,0),
+                complexText(real+1,imag,0),
+                complexText(real-1,imag-1,0),
+                complexText(real+2,imag,0),
+                complexText(real,imag+2,0)
+            ]);
             break;
         }
         case "multiply":{
@@ -64,48 +85,43 @@ export function generateComplex(difficulty?: string, rng: RngFn=Math.random): Qu
             alternate=imag>=0?`${real}+${imag}i`:`${real}-${-imag}i`;
             display=correct;
             mathExpression=`Multiply: \\( (${a} + ${b}i)(${c} + ${d}i) \\)`;
-            choices=[correct];
-            let wrongReal1=real+1;
-            let wrongImag1=imag+1;
-            choices.push(wrongImag1>=0?`${wrongReal1} + ${wrongImag1}i`:`${wrongReal1} - ${-wrongImag1}i`);
-            let wrongReal2=real-1;
-            let wrongImag2=imag-1;
-            choices.push(wrongImag2>=0?`${wrongReal2} + ${wrongImag2}i`:`${wrongReal2} - ${-wrongImag2}i`);
-            choices.push(`${a*c} + ${b*d}i`);
-            choices.push(`${a*d} + ${b*c}i`);
+            // The two expansions that get the signs wrong: keeping only the
+            // ac and bd products, and keeping only the ad and bc cross
+            // terms. Those are the mistakes this branch exists to catch, so
+            // they lead.
+            choices=fourOptions(correct, [
+                complexText(a*c,b*d,0),
+                complexText(a*d,b*c,0),
+                complexText(real,imag+1,0),
+                complexText(real+1,imag,0),
+                complexText(real-1,imag-1,0),
+                complexText(a*c+b*d,b*d-a*c,0)
+            ]);
             break;
         }
         case "divide":{
             let denom=c*c+d*d;
             let real=(a*c+b*d)/denom;
             let imag=(b*c-a*d)/denom;
-            let realFixed=real.toFixed(2);
-            let absImag=Math.abs(imag).toFixed(2);
-            if(imag>=0){
-                correct=`${realFixed} + ${absImag}i`;
-            }
-            else{
-                correct=`${realFixed} - ${absImag}i`;
-            }
-            alternate=imag>=0?`${realFixed}+${absImag}i`:`${realFixed}-${absImag}i`;
+            correct=complexText(real,imag,2);
+            // The same number without the spaces, which is what a learner
+            // types, so it is offered as the alternate spelling.
+            alternate=`${fmt(real,2)}${imag<0?"-":"+"}${fmt(imag<0?-imag:imag,2)}i`;
             display=correct;
             expectedFormat="Enter as a+bi decimals (e.g., 0.33+0.25i)";
             mathExpression=`Divide: \\( \\frac{${a} + ${b}i}{${c} + ${d}i} \\)`;
-            choices=[correct];
-            let wrongRealNum=(a*c+b*d)/(denom+1);
-            let wrongImagNum=(b*c-a*d)/(denom+1);
-            let wrongRealFixed=wrongRealNum.toFixed(2);
-            let wrongAbsImag=Math.abs(wrongImagNum).toFixed(2);
-            let wrongStr=wrongImagNum>=0?`${wrongRealFixed} + ${wrongAbsImag}i`:`${wrongRealFixed} - ${wrongAbsImag}i`;
-            choices.push(wrongStr);
-            wrongRealNum=(a*c+b*d)/(denom-1);
-            wrongImagNum=(b*c-a*d)/(denom-1);
-            wrongRealFixed=wrongRealNum.toFixed(2);
-            wrongAbsImag=Math.abs(wrongImagNum).toFixed(2);
-            wrongStr=wrongImagNum>=0?`${wrongRealFixed} + ${wrongAbsImag}i`:`${wrongRealFixed} - ${wrongAbsImag}i`;
-            choices.push(wrongStr);
-            choices.push(`${(a*c+b*d).toFixed(2)} + ${(b*c-a*d).toFixed(2)}i`);
-            choices.push(`${(a*c).toFixed(2)} + ${(b*d).toFixed(2)}i`);
+            // Forgetting to divide by c^2+d^2, and multiplying by the
+            // conjugate without dividing at all, are the two mistakes. The
+            // +/-1 on the denominator is arithmetic noise rather than a
+            // misconception, and it is what used to leave three options when
+            // the two expansions rounded to the same two decimals.
+            choices=fourOptions(correct, [
+                complexText(a*c+b*d,b*c-a*d,2),
+                complexText(a*c,b*d,2),
+                complexText((a*c+b*d)/denom,a*d-b*c,2),
+                complexText((b*c-a*d)/denom,(a*c+b*d)/denom,2),
+                complexText((a*c+b*d)/(denom+1),(b*c-a*d)/(denom+1),2)
+            ]);
             break;
         }
         case "powers_i":{
@@ -116,19 +132,11 @@ export function generateComplex(difficulty?: string, rng: RngFn=Math.random): Qu
             display=ans;
             expectedFormat="Enter i, -1, -i, or 1";
             mathExpression=`Simplify: \\( i^{${n}} \\)`;
-            let all=["i","-1","-i","1"];
-            choices=[correct];
-            for(let opt of all){
-                if(opt!==correct) choices.push(opt);
-            }
+            // The four powers of i are the whole answer domain, so all four
+            // are offered and the one the prompt names leads.
+            choices=fourOptions(correct, ["i","-1","-i","1"]);
             break;
         }
-    }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correct)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-        else uniqueChoices=[correct];
     }
     let latex=mathExpression;
     return {
@@ -136,7 +144,7 @@ export function generateComplex(difficulty?: string, rng: RngFn=Math.random): Qu
         correct,
         alternate,
         display,
-        choices: uniqueChoices,
+        choices,
         expectedFormat
     };
 }
