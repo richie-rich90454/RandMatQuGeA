@@ -1,10 +1,22 @@
-﻿﻿/**
+/**
  * Linear algebra advanced topics: 3x3 systems, row echelon, partial fractions, linear programming, 3D vectors, lines, planes.
  * @fileoverview Generates advanced linear algebra questions with MCQ distractors. Returns a QuestionDto with LaTeX display, plain text alternate, and plausible wrong answers.
  * @date 2026-03-29
  */
 import type {RngFn, QuestionDto} from "../../types/global";
 import {getRange} from "./LinearAlgebraUtils.js";
+import {fourOptions} from "../shared/Options.js";
+import {roundTo} from "../shared/Numeric";
+/**
+ * Rounds every component of a vector to the two decimal places the prompt prints,
+ * so a value shown to the learner is the same value the answer is computed from.
+ *
+ * @param v - The drawn vector.
+ * @returns The vector with each component rounded to two places.
+ */
+function roundToVector(v: { x: number; y: number; z: number }): { x: number; y: number; z: number }{
+    return {x: roundTo(v.x, 2), y: roundTo(v.y, 2), z: roundTo(v.z, 2)};
+}
 function generate3x3Matrix(range: number, rng: RngFn): number[][]{
     let mat: number[][]=[];
     for(let i=0;i<3;i++){
@@ -55,12 +67,7 @@ export function generateSystem3x3(difficulty?: string, rng: RngFn=Math.random): 
     choices.push(`x=${x}, y=${y+1}, z=${z}`);
     choices.push(`x=${x}, y=${y}, z=${z+1}`);
     choices.push(`x=${x-1}, y=${y}, z=${z}`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correctLaTeX)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctLaTeX;
-        else uniqueChoices=[correctLaTeX];
-    }
+    let uniqueChoices=fourOptions(correctLaTeX, choices);
     return {
         latex: mathExpression,
         correct: correctLaTeX,
@@ -100,12 +107,7 @@ export function generateRowEchelon3x3(difficulty?: string, rng: RngFn=Math.rando
     wrongRow3[1]=[0,0,0];
     let wrongLaTeX3=`\\begin{bmatrix} ${wrongRow3[0][0].toFixed(2)} & ${wrongRow3[0][1].toFixed(2)} & ${wrongRow3[0][2].toFixed(2)} \\\\ ${wrongRow3[1][0].toFixed(2)} & ${wrongRow3[1][1].toFixed(2)} & ${wrongRow3[1][2].toFixed(2)} \\\\ ${wrongRow3[2][0].toFixed(2)} & ${wrongRow3[2][1].toFixed(2)} & ${wrongRow3[2][2].toFixed(2)} \\end{bmatrix}`;
     choices.push(wrongLaTeX3);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(correctLaTeX)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correctLaTeX;
-        else uniqueChoices=[correctLaTeX];
-    }
+    let uniqueChoices=fourOptions(correctLaTeX, choices);
     return {
         latex: mathExpression,
         correct: correctLaTeX,
@@ -169,12 +171,7 @@ export function generatePartialFractions(difficulty?: string, rng: RngFn=Math.ra
         choices.push(`\\frac{${numerator}x + ${a+1}}{x^2 + ${b}x + ${c}}`);
         choices.push(`\\frac{${numerator}}{x^2 + ${b}x + ${c}}`);
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(answer)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=answer;
-        else uniqueChoices=[answer];
-    }
+    let uniqueChoices=fourOptions(answer, choices);
     return {
         latex: question,
         correct: answer,
@@ -259,12 +256,7 @@ export function generateLinearProgramming(difficulty?: string, rng: RngFn=Math.r
         choices.push("No feasible region");
         choices.push("Unbounded");
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(answer)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=answer;
-        else uniqueChoices=[answer];
-    }
+    let uniqueChoices=fourOptions(answer, choices);
     return {
         latex: mathExpression,
         correct: answer,
@@ -366,12 +358,7 @@ export function generateVector3D(difficulty?: string, rng: RngFn=Math.random): Q
         choices.push(`\\langle ${projx}, ${(parseFloat(projy)+0.1).toFixed(2)}, ${projz} \\rangle`);
         choices.push(`\\langle ${projx}, ${projy}, ${(parseFloat(projz)+0.1).toFixed(2)} \\rangle`);
     }
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(answer)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=answer;
-        else uniqueChoices=[answer];
-    }
+    let uniqueChoices=fourOptions(answer, choices);
     return {
         latex: question,
         correct: answer,
@@ -398,12 +385,7 @@ export function generateLine3D(difficulty?: string, rng: RngFn=Math.random): Que
     choices.push(`(${px.toFixed(2)}, ${(py+1).toFixed(2)}, ${pz.toFixed(2)})`);
     choices.push(`(${px.toFixed(2)}, ${py.toFixed(2)}, ${(pz+1).toFixed(2)})`);
     choices.push(`(${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)})`);
-    let uniqueChoices=[...new Set(choices)];
-    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-    if(!uniqueChoices.includes(answer)){
-        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=answer;
-        else uniqueChoices=[answer];
-    }
+    let uniqueChoices=fourOptions(answer, choices);
     return {
         latex: mathExpression,
         correct: answer,
@@ -415,9 +397,14 @@ export function generateLine3D(difficulty?: string, rng: RngFn=Math.random): Que
 }
 export function generatePlane3D(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
     const range=getRange(difficulty)*2;
-    const normal=generateRandomVector3D(range, rng);
-    const point=generateRandomVector3D(range, rng);
-    let d=normal.x*point.x+normal.y*point.y+normal.z*point.z;
+    // Every component of the plane is rounded where it is drawn, and the plane's
+    // constant is computed from the rounded components and rounded in turn, so the
+    // plane printed in the prompt is the plane the distance is measured from. The
+    // previous version printed two-decimal coefficients and measured the distance
+    // from the unrounded ones, which is an answer the learner cannot reproduce.
+    const normal=roundToVector(generateRandomVector3D(range, rng));
+    const point=roundToVector(generateRandomVector3D(range, rng));
+    let d=roundTo(normal.x*point.x+normal.y*point.y+normal.z*point.z, 2);
     const type=rng()<0.5?"point-distance":"equation";
     let mathExpression="";
     let answer="";
@@ -425,27 +412,28 @@ export function generatePlane3D(difficulty?: string, rng: RngFn=Math.random): Qu
     let choices: string[]=[];
     let expectedFormat="";
     if(type==="point-distance"){
-        const q=generateRandomVector3D(range, rng);
+        const q=roundToVector(generateRandomVector3D(range, rng));
+        // The numerator and the length of the normal are not rounded: they are
+        // computed from the two-decimal numbers the prompt prints, and rounding them
+        // again would grade the learner against a value they were never shown.
         let numerator=Math.abs(normal.x*q.x+normal.y*q.y+normal.z*q.z-d);
         let denom=Math.sqrt(normal.x*normal.x+normal.y*normal.y+normal.z*normal.z);
-        let dist=(numerator/denom).toFixed(2);
+        let dist=roundTo(numerator/denom, 2);
         mathExpression=`Find the distance from the point \\( (${q.x.toFixed(2)}, ${q.y.toFixed(2)}, ${q.z.toFixed(2)}) \\) to the plane \\( ${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)} \\).`;
-        let correct=dist;
+        let correct=dist.toFixed(2);
         answer=correct;
         alternate=correct;
-        let choicesArr=[correct];
-        let distNum=parseFloat(dist);
-        choicesArr.push((distNum+0.5).toFixed(2));
-        choicesArr.push((distNum-0.5).toFixed(2));
-        choicesArr.push((numerator/denom).toFixed(2));
-        choicesArr.push((Math.abs(normal.x*q.x+normal.y*q.y+normal.z*q.z-d)/denom).toFixed(2));
-        let uniqueChoices=[...new Set(choicesArr)];
-        if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-        if(!uniqueChoices.includes(correct)){
-            if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-            else uniqueChoices=[correct];
-        }
-        choices=uniqueChoices;
+        // The two named mistakes are the numerator on its own, which forgets to
+        // divide by the length of the normal vector, and the distance from the
+        // origin to the plane, which is the same formula at a different point.
+        // Neither is a second spelling of the answer, which is what the two
+        // candidates this replaces both were.
+        choices=fourOptions(correct, [
+            (dist+0.5).toFixed(2),
+            (dist-0.5).toFixed(2),
+            numerator.toFixed(2),
+            (Math.abs(d)/denom).toFixed(2)
+        ]);
         expectedFormat="Enter a number";
     }
     else{
@@ -454,18 +442,12 @@ export function generatePlane3D(difficulty?: string, rng: RngFn=Math.random): Qu
         let correct=eq;
         answer=correct;
         alternate=correct;
-        let choicesArr=[correct];
-        choicesArr.push(`${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${(d+1).toFixed(2)}`);
-        choicesArr.push(`${(normal.x+1).toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)}`);
-        choicesArr.push(`${normal.x.toFixed(2)}x + ${(normal.y+1).toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)}`);
-        choicesArr.push(`${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${(normal.z+1).toFixed(2)}z = ${d.toFixed(2)}`);
-        let uniqueChoices=[...new Set(choicesArr)];
-        if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
-        if(!uniqueChoices.includes(correct)){
-            if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
-            else uniqueChoices=[correct];
-        }
-        choices=uniqueChoices;
+        choices=fourOptions(correct, [
+            `${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${(d+1).toFixed(2)}`,
+            `${(normal.x+1).toFixed(2)}x + ${normal.y.toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)}`,
+            `${normal.x.toFixed(2)}x + ${(normal.y+1).toFixed(2)}y + ${normal.z.toFixed(2)}z = ${d.toFixed(2)}`,
+            `${normal.x.toFixed(2)}x + ${normal.y.toFixed(2)}y + ${(normal.z+1).toFixed(2)}z = ${d.toFixed(2)}`
+        ]);
         expectedFormat="Enter as ax + by + cz = d";
     }
     return {
