@@ -121,6 +121,13 @@ export class DomRegistry{
         return{
             get questionArea(){return self.getElement<HTMLDivElement>("question-area");},
             get topicGrid(){return self.getElement("topic-grid");},
+            // Topics.ts appends every pill straight to the grid, so the pills are
+            // the grid's own children rather than something the document has to be
+            // searched for.
+            get topicPills(): HTMLButtonElement[]{
+                let grid=self.getElement("topic-grid");
+                return grid?Array.from(grid.children) as HTMLButtonElement[]:[];
+            },
             get currentTopicDisplay(){return self.getElement("current-topic");},
             get answerResults(){return self.getElement("answer-results");},
             get expectedFormatDiv(){return self.getElement("expected-format");},
@@ -129,6 +136,7 @@ export class DomRegistry{
             get mentalProgressBar(){return self.getElement("mental-progress-bar");},
             get previewDiv(){return self.getElement("preview");},
             get mathToolbar(){return self.getElement("math-toolbar");},
+            get mathToolbarButtons(){return self.queryElementAll<HTMLButtonElement>(".math-toolbar-btn");},
             get customContextMenu(){return self.getElement("custom-context-menu");},
             get leaderboardContent(){return self.getElement("leaderboard-content");},
             get statisticsPanel(){return self.getElement("statistics-panel");},
