@@ -29,10 +29,13 @@ describe("generateGraphicalCalculus",()=>{
         const rng=vi.fn()
             .mockReturnValueOnce(0.19)// type->floor(22*0.19)=4 inverseFunc
             .mockReturnValueOnce(0.3)// fVal->floor(5*0.3)+2=1+2=3
-            .mockReturnValueOnce(0.5)// fPrime->floor(5*0.5)+1=2+1=3
+            .mockReturnValueOnce(0.5)// fPrime->floor(4*0.5)+2=2+2=4
             .mockReturnValueOnce(0.7);// a->floor(5*0.7)+1=3+1=4
         const dto=generateGraphicalCalculus("medium", rng);
-        let correct=1/3;
+        // The slope is drawn from two upwards, because a slope of one made the
+        // candidate that divides by the slope less one a division by zero, and
+        // "Infinity" was offered to the learner as an answer.
+        let correct=1/4;
         expect(dto.correct).toBe(correct.toFixed(3));
         expect(dto.alternate).toBe(correct.toFixed(3));
     });
