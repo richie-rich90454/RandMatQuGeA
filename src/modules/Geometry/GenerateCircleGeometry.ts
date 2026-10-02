@@ -16,6 +16,7 @@
  */
 import type{RngFn, QuestionDto}from"../../types/global";
 import{fmt}from"../shared/Numeric";
+import{fourOptions}from"../shared/Options.js";
 import{randInt, randStep, shuffle}from"../shared/Random";
 
 /**
@@ -31,37 +32,6 @@ function chordLength(radius: number, centralDeg: number): number{
     return 2*radius*Math.sin(centralDeg*Math.PI/360);
 }
 
-/**
- * Builds exactly four options around a numeric answer.
- *
- * @param rng - The injected random source.
- * @param key - The correct answer.
- * @param wrong - Candidate wrong answers, already at the answer's precision.
- * @param format - Renders a value the way this branch grades it, so the key and
- *                 every option are formatted identically and cannot compare equal
- *                 or unequal by accident of precision.
- * @returns The key and three distinct wrong options, shuffled.
- */
-function fourOptions(rng: RngFn, key: number, wrong: number[], format: (value: number)=>string): string[]{
-    let keyText=format(key);
-    let picked:string[]=[];
-    for(let candidate of wrong){
-        let text=format(candidate);
-        if (text===keyText||picked.indexOf(text)>=0) continue;
-        picked.push(text);
-        if (picked.length===3) break;
-    }
-    // A draw whose candidate mistakes all collide leaves the set short of four
-    // options, so the ladder walks away from the key instead. The bound of forty
-    // is what keeps an unlucky draw from spinning instead of failing.
-    for(let step=1; picked.length<3&&step<=40; step++){
-        let text=format(key+step);
-        if (text===keyText||picked.indexOf(text)>=0) continue;
-        picked.push(text);
-    }
-    return shuffle(rng, [keyText, ...picked]);
-}
-
 export function generateCircleGeometry(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
     let types=["inscribed_central","arc_sector","tangent_right_angle","chord_length","chords_inside","secants_external"];
     let type=types[Math.floor(rng()*types.length)];
@@ -71,6 +41,8 @@ export function generateCircleGeometry(difficulty?: string, rng: RngFn=Math.rand
     let wrong:number[]=[];
     let format:(value: number)=>string=String;
     let expectedFormat="Enter a whole number";
+    let rungs:string[]=[];
+    let steps:string[]=[];
     switch(type){
         case "inscribed_central":{
             if (rng()<0.5){
@@ -83,12 +55,30 @@ export function generateCircleGeometry(difficulty?: string, rng: RngFn=Math.rand
                 key=central/2;
                 latex=`Points \\( A \\), \\( B \\) and \\( C \\) lie on a circle with centre \\( O \\). The central angle \\( AOC \\) measures \\( ${central}^{\\circ} \\). What is the measure, in degrees, of the inscribed angle \\( ABC \\) subtending the same arc \\( AC \\)?`;
                 wrong=[central, 360-central, 180-central/2, central*2];
+                rungs=[
+                    "The two angles stand on the same chord, and the one at the centre is twice the one at the circle, so halve the central angle you are given.",
+                    "Both angles open onto the same arc AC, which is what makes the relationship hold; an inscribed angle on the other arc is the supplement."
+                ];
+                steps=[
+                    `The central angle AOC subtends arc AC and measures ${central} degrees.`,
+                    `The inscribed angle ABC subtends the same arc, and is half the central angle.`,
+                    `Half of ${central} degrees = ${key}`
+                ];
             }
             else{
                 let inscribed=randInt(rng, 20, 90);
                 key=inscribed*2;
                 latex=`Points \\( A \\), \\( B \\) and \\( C \\) lie on a circle with centre \\( O \\). The inscribed angle \\( ABC \\) subtending the arc \\( AC \\) measures \\( ${inscribed}^{\\circ} \\). What is the measure, in degrees, of the central angle \\( AOC \\) subtending the same arc \\( AC \\)?`;
                 wrong=[inscribed, 180-inscribed, Math.round(inscribed/2), key-2];
+                rungs=[
+                    "The two angles stand on the same chord, and the one at the centre is twice the one at the circle, so double the inscribed angle you are given.",
+                    "Both angles open onto the same arc AC, which is what makes the relationship hold."
+                ];
+                steps=[
+                    `The inscribed angle ABC subtends arc AC and measures ${inscribed} degrees.`,
+                    `The central angle AOC subtends the same arc, and is twice the inscribed angle.`,
+                    `Twice ${inscribed} degrees = ${key}`
+                ];
             }
             break;
         }
@@ -105,11 +95,29 @@ export function generateCircleGeometry(difficulty?: string, rng: RngFn=Math.rand
                 key=(angle/360)*3.14*radius*radius;
                 latex=`Find the area of a sector with central angle \\( ${angle}^{\\circ} \\) in a circle of radius \\( ${radius} \\). Use \\( \\pi \\approx 3.14 \\) and round your answer to the nearest hundredth.`;
                 wrong=[(angle/360)*3.14*(radius+1)*(radius+1), 3.14*radius*radius, ((360-angle)/360)*3.14*radius*radius, key/2];
+                rungs=[
+                    "A sector is the share of the whole circle its central angle names, and an area is what that share is taken of: pi times the radius squared.",
+                    `Work out what fraction of the circle the angle covers, then take that fraction of the whole area.`
+                ];
+                steps=[
+                    `The sector is ${angle}/360 of the circle.`,
+                    `The whole circle is 3.14 x ${radius} x ${radius} = ${fmt(3.14*radius*radius, 4)}.`,
+                    `So the area is ${angle}/360 x ${fmt(3.14*radius*radius, 4)}, which rounds to ${format(key)}`
+                ];
             }
             else{
                 key=(angle/360)*2*3.14*radius;
                 latex=`Find the length of the arc with central angle \\( ${angle}^{\\circ} \\) in a circle of radius \\( ${radius} \\). Use \\( \\pi \\approx 3.14 \\) and round your answer to the nearest hundredth.`;
                 wrong=[(angle/360)*2*3.14*(radius+1), 2*3.14*radius, ((360-angle)/360)*2*3.14*radius, key/2];
+                rungs=[
+                    "An arc is the share of the whole circumference its central angle names, and the whole circumference is twice pi times the radius.",
+                    `Work out what fraction of the circumference the angle covers, then take that fraction of the whole circumference.`
+                ];
+                steps=[
+                    `The arc is ${angle}/360 of the circumference.`,
+                    `The whole circumference is 2 x 3.14 x ${radius} = ${fmt(2*3.14*radius, 4)}.`,
+                    `So the arc length is ${angle}/360 x ${fmt(2*3.14*radius, 4)}, which rounds to ${format(key)}`
+                ];
             }
             break;
         }
@@ -121,6 +129,15 @@ export function generateCircleGeometry(difficulty?: string, rng: RngFn=Math.rand
             key=90-alpha;
             latex=`A line is tangent to a circle at the point \\( T \\), so the radius \\( OT \\) is perpendicular to it. A chord from \\( T \\) meets the circle again at \\( A \\). The angle \\( OAT \\) measures \\( ${alpha}^{\\circ} \\). What is the measure, in degrees, of the angle \\( AOT \\)?`;
             wrong=[180-alpha, 90+alpha, alpha, alpha*2];
+            rungs=[
+                "A tangent is perpendicular to the radius at the point of tangency, so the radius, the chord and the tangent bound a triangle with a right angle at T and the other two angles summing to ninety.",
+                "The angle you are given and the angle you want are the two non-right angles of that triangle, so they add to ninety."
+            ];
+            steps=[
+                `The angle at T is a right angle, so angle OAT + angle AOT = 90 degrees.`,
+                `angle AOT = 90 - ${alpha} degrees.`,
+                `90 - ${alpha} = ${key}`
+            ];
             break;
         }
         case "chord_length":{
@@ -132,6 +149,15 @@ export function generateCircleGeometry(difficulty?: string, rng: RngFn=Math.rand
             expectedFormat="Enter a decimal rounded to the nearest hundredth";
             latex=`A chord of a circle of radius \\( ${radius} \\) subtends a central angle of \\( ${angle}^{\\circ} \\). The chord is \\( 2r\\sin\\left(\\frac{\\theta}{2}\\right) \\), where \\( r \\) is the radius and \\( \\theta \\) is the central angle in degrees. Round your answer to the nearest hundredth.`;
             wrong=[chordLength(radius, angle/2), radius*Math.cos(angle*Math.PI/360), 2*radius, angle];
+            rungs=[
+                "The chord is twice the radius times the sine of half the central angle, so the half-angle is what goes into the sine and not the whole angle.",
+                "Halve the central angle the prompt gives before you take its sine, then multiply by twice the radius."
+            ];
+            steps=[
+                `Half of ${angle} degrees is ${angle/2} degrees.`,
+                `Chord = 2 x ${radius} x sin(${angle/2} degrees) = ${fmt(2*radius*Math.sin(angle*Math.PI/360), 4)}.`,
+                `Rounded to the nearest hundredth, the chord is ${format(key)}`
+            ];
             break;
         }
         case "chords_inside":{
@@ -143,6 +169,15 @@ export function generateCircleGeometry(difficulty?: string, rng: RngFn=Math.rand
             key=(first+second)/2;
             latex=`Chords \\( AB \\) and \\( CD \\) of a circle intersect at a point \\( P \\) inside the circle. The arc \\( \\widehat{AB} \\) cut off by the angle \\( APB \\) and the arc \\( \\widehat{CD} \\) cut off by its vertical angle \\( CPD \\) measure \\( ${first}^{\\circ} \\) and \\( ${second}^{\\circ} \\). What is the measure, in degrees, of the angle \\( APB \\)?`;
             wrong=[first+second, first, second, 180-(first+second)/2];
+            rungs=[
+                "Two chords meeting inside a circle make an angle equal to half the sum of the two arcs cut off by it and by its vertical angle, not half of one of them.",
+                "Add the two arcs first, then halve the sum."
+            ];
+            steps=[
+                `The two arcs cut off measure ${first} and ${second} degrees.`,
+                `angle APB = (${first} + ${second}) / 2.`,
+                `(${first} + ${second}) / 2 = ${key}`
+            ];
             break;
         }
         case "secants_external":{
@@ -154,9 +189,18 @@ export function generateCircleGeometry(difficulty?: string, rng: RngFn=Math.rand
             key=(far-near)/2;
             latex=`Two secants drawn from a point \\( P \\) outside a circle meet it at \\( A \\), \\( B \\) and at \\( C \\), \\( D \\), where \\( B \\) and \\( C \\) are the nearer intersection points. The far arc \\( \\widehat{AD} \\) measures \\( ${far}^{\\circ} \\) and the near arc \\( \\widehat{BC} \\) measures \\( ${near}^{\\circ} \\). What is the measure, in degrees, of the angle between the two secants at \\( P \\)?`;
             wrong=[far-near, (far+near)/2, far/2, near/2];
+            rungs=[
+                "Two secants from a point outside the circle make an angle equal to half the difference of the far arc and the near arc, not half of the far arc alone.",
+                "Subtract the near arc from the far arc, then halve the difference."
+            ];
+            steps=[
+                `The far arc measures ${far} degrees and the near arc ${near} degrees.`,
+                `angle P = (${far} - ${near}) / 2.`,
+                `(${far} - ${near}) / 2 = ${key}`
+            ];
             break;
         }
     }
     let keyText=format(key);
-    return {latex, correct:keyText, alternate:keyText, display:keyText, choices:fourOptions(rng, key, wrong, format), expectedFormat, subskill:type};
+    return {latex, correct:keyText, alternate:keyText, display:keyText, choices:shuffle(rng, fourOptions(keyText, wrong.map(format))), expectedFormat, subskill:type, hints:{rungs, concede:"The answer is "+keyText+"."}, solution: steps};
 }
