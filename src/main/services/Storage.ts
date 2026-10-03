@@ -20,6 +20,8 @@
  * then, only when the mode allows it, to durable storage.
  */
 
+import {isTauri}from"../../utils/envUtils";
+
 /** Where persisted state is allowed to go. */
 export type PersistenceMode="desktop"|"indexed"|"zdr";
 
@@ -132,6 +134,48 @@ export function isPersistent(): boolean{
 export async function read<T>(key: string): Promise<T|undefined>{
     if (memory.has(key)) return memory.get(key) as T;
     if (mode==="zdr") return undefined;
+    let db=await openDatabase();
+    if (!db) return undefined;
+    try{
+        return await new Promise<T|undefined>(resolve=>{
+            let tx=db.transaction(STORE_NAME,"readonly");
+            let request=tx.objectStore(STORE_NAME).get(key);
+            request.onsuccess=()=>{
+                let record=request.result as {key: string; value: T}|undefined;
+                if (record) memory.set(key, record.value);
+                resolve(record?record.value:undefined);
+            };
+            request.onerror=()=>resolve(undefined);
+        });
+    }
+    catch{
+        return undefined;
+    }
+}
+
+/**
+ * Reads a value from durable storage whatever the current mode is.
+ *
+ * Exactly one document decides the mode itself: the settings hold the learner's
+ * `persistence` choice. Reading that document through `read` is impossible, because
+ * `read` answers nothing while the mode is still its default private session, and
+ * the mode is unknown until the document is read. A browser that had been told to
+ * keep its record therefore could never read the proof that it had, and came back
+ * after every reload showing the defaults while its own stored document sat
+ * unread a few bytes away.
+ *
+ * This is the way out of that circle, and it is deliberately narrow: it is for the
+ * key that decides the mode, not a way to keep records during a private session.
+ * Nothing else should call it, and nothing is written here, so choosing a private
+ * session still leaves nothing behind.
+ *
+ * @param key - The key to read.
+ * @returns A promise resolving to the stored value, or undefined when absent.
+ */
+export async function readPersisted<T>(key: string): Promise<T|undefined>{
+    // The desktop build keeps its records in a file, so there is no browser store
+    // to consult and opening one would leave an empty database behind.
+    if (isTauri()) return undefined;
     let db=await openDatabase();
     if (!db) return undefined;
     try{
