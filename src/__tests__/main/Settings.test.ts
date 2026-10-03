@@ -551,11 +551,15 @@ describe("settings",()=>{
             }
         });
         it('removes the streak badge where no streak is kept',()=>{
+            // Gated on adaptive rather than on "something is kept". A browser asked to
+            // remember writes settings, and the review record a streak counts is not
+            // written there, so under the weaker condition this badge would have shown
+            // a number that is always zero.
             delete (globalThis as any).__TAURI_INTERNALS__;
-            settings.settings.persistence='zdr';
+            settings.settings.persistence='indexed';
             settings.applyPersistenceVisibility();
             expect(gated('daily-streak').classList.contains('hidden')).toBe(true);
-            settings.settings.persistence='indexed';
+            (globalThis as any).__TAURI_INTERNALS__={};
             settings.applyPersistenceVisibility();
             expect(gated('daily-streak').classList.contains('hidden')).toBe(false);
         });
