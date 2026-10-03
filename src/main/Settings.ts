@@ -90,12 +90,29 @@ export async function applyPersistence(chosen: PersistenceMode): Promise<void>{
     await saveSettings();
 }
 /**
+ * Reports the store that is actually in force, which is not always the one the
+ * learner chose.
+ *
+ * The desktop build has exactly one store and writes it to disk, so a private
+ * session is not something it can offer: choosing one would have to mean erasing,
+ * and the control is disabled rather than offering that. What it must not do is
+ * display "nothing is stored" while keeping everything, which is what reading the
+ * stored choice straight into the control came to produce, and what made the
+ * adaptive surfaces look like a contradiction rather than a consequence.
+ *
+ * @returns The mode that is really in force.
+ */
+export function effectivePersistence(): PersistenceMode{
+    return isTauri()?"desktop":settings.persistence;
+}
+/**
  * Hides or shows the controls that only work where something is kept, so a build
  * or a mode that cannot remember does not offer a control that quietly discards
  * what the learner did.
  */
 export function applyPersistenceVisibility(): void{
-    let usable=settings.persistence!=="zdr"||isTauri();
+    let mode=effectivePersistence();
+    let usable=mode!=="zdr";
     let eraseGroup=dom.settings.settingEraseData;
     setHidden(eraseGroup, !usable);
     let persistenceSelect=dom.settings.settingsPersistence;
@@ -103,27 +120,37 @@ export function applyPersistenceVisibility(): void{
         // The select reflects the mode in force, which is not always the mode that
         // was chosen: a browser that cannot write falls back to a private session,
         // and the control has to say so rather than claiming a record is kept.
-        persistenceSelect.value=settings.persistence;
+        persistenceSelect.value=mode;
         persistenceSelect.disabled=isTauri();
     }
     let help=dom.settings.settingsPersistenceHelp;
     if (help){
-        help.textContent=settings.persistence==="zdr"
+        help.textContent=mode==="zdr"
             ? "A private session keeps nothing after you close the tab."
-            : "Your review schedule and streak are stored in this browser only, and never sent anywhere.";
+            : mode==="indexed"
+                ? "Your review schedule and streak are stored in this browser only, and never sent anywhere."
+                : "Your review schedule and streak are stored on this computer only, and never sent anywhere.";
     }
+    // The adaptive surfaces depend on the mode, so they are decided here rather
+    // than only at start-up. A learner who turns a private session on in the
+    // browser has just removed the record the scheduler reads, and leaving the
+    // switch on screen after that would be offering a button whose only honest
+    // answer is that there is nothing left to learn from.
+    applyAdaptiveVisibility();
 }
 /**
  * Removes every adaptive surface where adaptive learning cannot run, and turns the
  * preference off so nothing can act on it.
  *
- * The rule the style guide states is that a feature either works in every
- * environment or is hidden where it cannot. Adaptive learning cannot work in a
- * plain browser: the scheduler's inputs are performance records written over Tauri
- * IPC, so the difficulty would drift on a partial history and the weak-topic list
- * would be confidently wrong. The difficulty adjustment already refused to run
- * there, which left the interface offering a switch that changed nothing and a
- * recommendation button that could only report that it was unavailable.
+ * Adaptive learning needs two things, and the desktop app under a private session
+ * has only one of them. The scheduler's inputs are performance records written over
+ * Tauri IPC, which a browser never holds, so the difficulty would drift on a
+ * partial history and the weak-topic list would be confidently wrong. And a
+ * private session discards the record when the window closes, so a schedule built
+ * from it describes a session that no longer exists. The difficulty adjustment
+ * already refused to run outside Tauri, which left the interface offering a switch
+ * that changed nothing and a recommendation button that could only report that it
+ * was unavailable.
  *
  * Hiding rather than explaining is the deliberate choice. A disabled switch and a
  * button that notifies on press both leave the learner reading about a feature they
@@ -134,7 +161,7 @@ export function applyPersistenceVisibility(): void{
  * that cannot see why it is meaningless.
  */
 export function applyAdaptiveVisibility(): void{
-    let available=adaptiveAvailable();
+    let available=adaptiveAvailable(effectivePersistence());
     if (!available) settings.adaptive=false;
     let row=dom.settings.settingAdaptive;
     setHidden(row, !available);
