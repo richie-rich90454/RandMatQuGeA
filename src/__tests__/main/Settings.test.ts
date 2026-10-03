@@ -7,6 +7,16 @@ vi.mock("../../main/core/DomRegistry",()=>{
     const weakTopicsModal=document.createElement("div");
     const settings={
         settingsTheme:{value:"system"},
+        // The persistence control and its help text are real elements, with real
+        // options, because what the mode control claims is itself the thing under
+        // test: a desktop build that said "nothing is stored" while writing to disk
+        // is the bug these options were added for.
+        settingsPersistence:Object.assign(document.createElement("select"),{innerHTML:
+            '<option value="desktop">This computer (the desktop app)</option>'
+            +'<option value="zdr">Private session (nothing is stored)</option>'
+            +'<option value="indexed">Remember me (stored in this browser)</option>'}),
+        settingsPersistenceHelp:document.createElement("p"),
+        settingEraseData:document.createElement("div"),
         settingsDefaultMode:{value:"single"},
         settingsAutoContinue:{checked:false},
         settingsShuffle:{checked:false},
@@ -85,7 +95,7 @@ describe("settings",()=>{
     afterEach(async()=>{
         localStorage.clear();
         // The storage module keeps an in-memory map for the lifetime of the tab,
-        // which is the behaviour the privacy promise depends on and also the
+        // which is the behavior the privacy promise depends on and also the
         // reason clearing local storage alone is not enough between cases: a value
         // read by an earlier test would otherwise still be there and the read would
         // never fall through to the legacy copy.
@@ -413,7 +423,7 @@ describe("settings",()=>{
             expect(dom.buttons.recommendBtn.classList.contains("hidden")).toBe(true);
             expect(dom.modals.weakTopicsModal.classList.contains("hidden")).toBe(true);
         });
-        it('turns the preference off where it cannot be honoured',()=>{
+        it('turns the preference off where it cannot be honored',()=>{
             // Hiding the control is not enough: a stored true would be read back by
             // the difficulty adjustment and acted on, and nothing on screen would
             // explain why the learner had no way to turn it off again.
@@ -427,6 +437,68 @@ describe("settings",()=>{
             settings.settings.adaptive=false;
             settings.applyAdaptiveVisibility();
             expect(settings.settings.adaptive).toBe(false);
+        });
+    });
+    describe('effectivePersistence', ()=>{
+        let saved: unknown=(globalThis as Record<string, unknown>).__TAURI_INTERNALS__;
+        afterEach(()=>{
+            (globalThis as Record<string, unknown>).__TAURI_INTERNALS__=saved as Record<string, unknown>;
+        });
+        it('reports the desktop store, because that is what the desktop build writes to',()=>{
+            (globalThis as any).__TAURI_INTERNALS__={};
+            settings.settings.persistence='zdr';
+            expect(settings.effectivePersistence()).toBe('desktop');
+        });
+        it('reports the chosen mode in a browser',()=>{
+            delete (globalThis as any).__TAURI_INTERNALS__;
+            settings.settings.persistence='indexed';
+            expect(settings.effectivePersistence()).toBe('indexed');
+        });
+    });
+    describe('applyPersistenceVisibility', ()=>{
+        let saved: unknown=(globalThis as Record<string, unknown>).__TAURI_INTERNALS__;
+        let previous: unknown;
+        beforeEach(()=>{
+            saved=(globalThis as Record<string, unknown>).__TAURI_INTERNALS__;
+            previous=settings.settings.persistence;
+        });
+        afterEach(()=>{
+            (globalThis as Record<string, unknown>).__TAURI_INTERNALS__=saved as Record<string, unknown>;
+            settings.settings.persistence=previous as 'zdr'|'indexed';
+        });
+        it('never tells the desktop app that nothing is stored',()=>{
+            (globalThis as any).__TAURI_INTERNALS__={};
+            settings.settings.persistence='zdr';
+            settings.applyPersistenceVisibility();
+            expect(dom.settings.settingsPersistence.value).toBe('desktop');
+            expect(dom.settings.settingsPersistenceHelp.textContent).toContain('this computer');
+            expect(dom.settings.settingsPersistenceHelp.textContent).not.toContain('close the tab');
+        });
+        it('keeps the adaptive surfaces in the desktop app',()=>{
+            (globalThis as any).__TAURI_INTERNALS__={};
+            settings.settings.adaptive=true;
+            settings.applyPersistenceVisibility();
+            expect(dom.settings.settingAdaptive.classList.contains('hidden')).toBe(false);
+            expect(dom.buttons.recommendBtn.classList.contains('hidden')).toBe(false);
+        });
+        it('re-decides the adaptive surfaces when the mode changes',()=>{
+            // Turning a private session on is the moment the record the scheduler
+            // reads disappears, so the switch has to go at that moment rather than at
+            // the next start-up.
+            delete (globalThis as any).__TAURI_INTERNALS__;
+            settings.settings.persistence='indexed';
+            settings.settings.adaptive=true;
+            settings.applyPersistenceVisibility();
+            expect(dom.settings.settingAdaptive.classList.contains('hidden')).toBe(true);
+        });
+        it('offers the erase control wherever something is kept',()=>{
+            delete (globalThis as any).__TAURI_INTERNALS__;
+            settings.settings.persistence='indexed';
+            settings.applyPersistenceVisibility();
+            expect(dom.settings.settingEraseData.classList.contains('hidden')).toBe(false);
+            settings.settings.persistence='zdr';
+            settings.applyPersistenceVisibility();
+            expect(dom.settings.settingEraseData.classList.contains('hidden')).toBe(true);
         });
     });
 });
