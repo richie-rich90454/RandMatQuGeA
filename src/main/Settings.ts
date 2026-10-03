@@ -151,7 +151,13 @@ export function loadSettings(): Promise<void>{
     // assuming they are already there.
     fillControls();
     return useStorage().then(async store=>{
-        let stored: typeof settings|undefined=await store.read<typeof settings>(SETTINGS_KEY);
+    // The durable read comes first, and it is the only way this document can be
+    // read at all: the mode is still the default private session at this point, and
+    // the mode is one of the things this document says. Reading it the ordinary way
+    // answers nothing, so a browser that had been told to keep its record came back
+    // on every reload showing the defaults while its own document sat unread.
+    let stored: typeof settings|undefined=await store.readPersisted<typeof settings>(SETTINGS_KEY)
+        ?? await store.read<typeof settings>(SETTINGS_KEY);
         if (!stored){
             // An earlier build kept these in localStorage. Reading them here is
             // what makes the upgrade real: a learner who has never opened the data
