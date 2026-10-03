@@ -11,6 +11,28 @@ import{dom}from"./core/DomRegistry";
 import{questionState}from"./core/QuestionState";
 import{renderer}from"./core/QuestionRenderer";
 import{isTauri}from"../utils/envUtils";
+/** What a session snapshot holds, and therefore everything a restore may read. */
+type SessionSnapshot={
+    sessionScore:{correct:number,total:number};
+    timeLeft:number;
+    maxQuestions:number;
+    currentDifficulty:string;
+    mentalShuffle:boolean;
+    mentalScope:string;
+    unlimitedMode:boolean;
+    selectedTopic:string|null;
+    timestamp:number;
+};
+/**
+ * The storage module, loaded on demand. It stays out of the initial payload
+ * because the budget in `scripts/bundle-check.js` has about 2.5% of headroom
+ * and nothing needs a store before the first question is answered.
+ */
+let storageModule: typeof import("./services/Storage")|null=null;
+async function useStorage(): Promise<typeof import("./services/Storage")>{
+    if (!storageModule) storageModule=await import("./services/Storage");
+    return storageModule;
+}
 let _previousDeleteHandler: ((e: Event)=>void)|null=null;
 export function saveSessionSnapshot(): void{
     if(!appState.sessionActive)return;
@@ -25,15 +47,24 @@ export function saveSessionSnapshot(): void{
         selectedTopic:appState.selectedTopic,
         timestamp:Date.now()
     };
-    localStorage.setItem(SESSION_STORAGE_KEY,JSON.stringify(snapshot));
+    // A snapshot is written through the store rather than straight to
+    // localStorage because the mode is what decides whether anything may outlive
+    // this tab. Writing it here would keep the score, the timer and the topic of
+    // a session the learner chose not to keep, which is the one thing a private
+    // session is not allowed to do.
+    useStorage().then(store=>store.write(SESSION_STORAGE_KEY,snapshot)).catch((err:unknown)=>console.warn("Failed to save session snapshot",err));
 }
-export function restoreSessionSnapshot(): void{
-    let saved=localStorage.getItem(SESSION_STORAGE_KEY);
-    if(!saved)return;
+export async function restoreSessionSnapshot(): Promise<void>{
     try{
-        let snap=JSON.parse(saved);
+        let store=await useStorage();
+        let snap=await store.read<SessionSnapshot>(SESSION_STORAGE_KEY);
+        if(!snap)return;
+        // A stored snapshot is untrusted input whatever wrote it, so it is not
+        // read until it has the one field that decides whether it is usable at
+        // all. Anything else fails this test and is left alone.
+        if(typeof snap.timestamp!=="number")return;
         if(Date.now()-snap.timestamp>60*60*1000){
-            localStorage.removeItem(SESSION_STORAGE_KEY);
+            await store.remove(SESSION_STORAGE_KEY);
             return;
         }
         appState.mentalShuffle=snap.mentalShuffle;
@@ -71,7 +102,7 @@ export function restoreSessionSnapshot(): void{
         ui.disableDifficulty(true);
         ui.setSessionButton(true);
         generateNextMentalQuestion().catch((err:unknown)=>console.error("generateNextMentalQuestion failed:",err));
-        localStorage.removeItem(SESSION_STORAGE_KEY);
+        await store.remove(SESSION_STORAGE_KEY);
     }
     catch(e){
         console.warn("Failed to restore session",e);
@@ -421,7 +452,7 @@ export async function endMentalSession(): Promise<void>{
     ui.clearAllTimeouts();
     appState.sessionActive=false;
     appState.sessionPaused=false;
-    localStorage.removeItem(SESSION_STORAGE_KEY);
+    useStorage().then(store=>store.remove(SESSION_STORAGE_KEY)).catch((err:unknown)=>console.warn("Failed to clear session snapshot",err));
     if(dom.displays.mentalProgressBar)dom.displays.mentalProgressBar.style.width="0%";
     ui.updateProgressBar();
     if(dom.displays.statisticsPanel)dom.displays.statisticsPanel.classList.add("hidden");
