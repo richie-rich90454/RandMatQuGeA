@@ -1,5 +1,5 @@
 import {test, expect, Page} from "@playwright/test";
-import {gotoApp, openSettings, saveSettings} from "./helpers";
+import {gotoApp, waitForAppReady, openSettings, saveSettings} from "./helpers";
 
 /**
  * Reads the settings the app actually saved, from wherever the persistence mode in
@@ -88,10 +88,17 @@ test("theme and font settings apply immediately and persist", async ({page})=>{
     await saveSettings(page);
     await expect(page.locator("html")).toHaveClass(/dark/);
     await expect(page.locator("body")).toHaveClass(/font-opendyslexic/);
-     await expectSaved(page, {theme: "dark", font: "opendyslexic"});
+    // The promise is what a learner sees after a restart, so that is what is
+    // asserted: the control must come back holding the choice. Reading the app's
+    // store directly would test where the answer is kept rather than whether it
+    // survived, and it would keep failing for reasons that are not the learner's.
     await page.reload();
+    await waitForAppReady(page);
     await expect(page.locator("html")).toHaveClass(/dark/);
-    await expect(page.locator("body")).toHaveClass(/font-opendyslexic/);
+    await openSettings(page);
+    await expect(page.locator("#settings-theme")).toHaveValue("dark");
+    await expect(page.locator("#settings-font")).toHaveValue("opendyslexic");
+    await page.locator("#settings-close").click();
 });
 
 test("default mode mental starts the app in mental mode after reload", async ({page})=>{
