@@ -400,18 +400,18 @@ describe("settings",()=>{
             (globalThis as any).__TAURI_INTERNALS__={};
             settings.settings.adaptive=true;
             settings.applyAdaptiveVisibility();
-            expect(dom.settings.settingAdaptive.hidden).toBe(false);
-            expect(dom.buttons.recommendBtn.hidden).toBe(false);
-            expect(dom.modals.weakTopicsModal.hidden).toBe(false);
+            expect(dom.settings.settingAdaptive.classList.contains("hidden")).toBe(false);
+            expect(dom.buttons.recommendBtn.classList.contains("hidden")).toBe(false);
+            expect(dom.modals.weakTopicsModal.classList.contains("hidden")).toBe(false);
             expect(settings.settings.adaptive).toBe(true);
         });
         it('hides every adaptive surface in a browser',()=>{
             delete (globalThis as any).__TAURI_INTERNALS__;
             settings.settings.adaptive=true;
             settings.applyAdaptiveVisibility();
-            expect(dom.settings.settingAdaptive.hidden).toBe(true);
-            expect(dom.buttons.recommendBtn.hidden).toBe(true);
-            expect(dom.modals.weakTopicsModal.hidden).toBe(true);
+            expect(dom.settings.settingAdaptive.classList.contains("hidden")).toBe(true);
+            expect(dom.buttons.recommendBtn.classList.contains("hidden")).toBe(true);
+            expect(dom.modals.weakTopicsModal.classList.contains("hidden")).toBe(true);
         });
         it('turns the preference off where it cannot be honoured',()=>{
             // Hiding the control is not enough: a stored true would be read back by
