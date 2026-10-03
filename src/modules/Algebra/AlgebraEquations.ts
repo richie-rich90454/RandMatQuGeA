@@ -485,7 +485,7 @@ export function generateRationalInequality(difficulty?: string, rng: RngFn = Mat
     let b=Math.floor(rng()*maxVal)+1;
     // Equal zeros make the fraction equal to one everywhere except at the
     // single point it is undefined, so there is no two-ray answer. The redraw is
-    // bounded and falls back to a neighbouring pair, because a source that keeps
+    // bounded and falls back to a neighboring pair, because a source that keeps
     // returning the same value would otherwise spin here forever.
     let attempts=0;
     while(a===b&&attempts<10){
