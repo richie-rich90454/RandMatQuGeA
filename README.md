@@ -96,7 +96,7 @@ npm run tauri dev      # starts the dev server and the native window
 
 ```bash
 npm run typecheck      # tsc --noEmit
-npm run test:unit      # Vitest unit suite (129 files, ~9,950 cases)
+npm run test:unit      # Vitest unit suite (129 files, 9,967 cases)
 npm run test:oracle    # the invariant gate over all 204 topics
 npm run test:coverage  # unit suite with the enforced coverage floor
 npm run test:e2e       # Playwright, Chromium + WebKit, desktop and mobile projects
@@ -138,7 +138,18 @@ Several features depend on the Rust backend and are **hidden rather than disable
 - **Performance data** — per-topic statistics, stored in SQLite
 - **Leaderboard** and **in-app updates**
 
-If you do not see the adaptive toggle in Settings, you are on the web or PWA build. Everything else — all 204 topics, every mode, hints, solutions, worksheets, and the daily challenge — works identically in both builds.
+If you do not see the adaptive toggle in Settings, adaptive learning cannot run where you are, and that is now decided by two things rather than one. It needs the desktop runtime, because the scheduler's inputs are performance records written over Tauri IPC, and it needs a store that will still have the record tomorrow, because a private session discards it when the window closes. Both conditions are re-checked whenever the mode changes, so turning a private session on in the desktop app removes the adaptive surfaces at that moment rather than at the next restart.
+
+Everything else — all 204 topics, every mode, hints, solutions, worksheets, and the daily challenge — works identically in both builds.
+
+### Reaching every topic
+
+The topic grid opens on the arithmetic scope, and the scope is a real constraint: it decides which of the 204 topics are on screen. Two controls cross it rather than stopping at it, because a filter that can be pointed at nothing is a dead end:
+
+- **A category chip** that the current scope excludes widens the scope to the narrowest one holding that category. `Calculus 0` against the arithmetic scope means *not in this scope*, not *unavailable*, and choosing it says so by changing the scope rather than by showing an empty grid.
+- **The search box** does the same. Typing the name of a topic is about as unambiguous a request as this interface gets, so a term the scope cannot answer widens the scope instead of returning nothing.
+
+In both cases the scope control is left showing what changed, so the narrowing that was given up is visible and can be taken back.
 
 ## 🔒 Privacy and Where Your Data Goes
 
@@ -149,6 +160,8 @@ All persistence goes through one module, `src/main/services/Storage.ts`. Nothing
 | **Private session** (web default) | Nothing at all after you close the tab | Memory only |
 | **Keep on this device** (web) | Settings, review schedule, streak, records | IndexedDB, this browser only |
 | **Desktop** | The same, plus performance data | SQLite in the app's data directory |
+
+The mode control always names the store that is really in force. On the desktop build that is the third option, and the control is disabled: the desktop app has one store and writes it to disk, so a private session is not something it can offer, and saying otherwise while keeping everything would be a false promise rather than a setting.
 
 Choosing *Private session* reads and then deletes anything an earlier build left in `localStorage`, so the promise holds even after an upgrade. A versioned learning record can be exported and re-imported from the Data dialog on either build; import is atomic and merges or replaces by choice.
 
@@ -211,11 +224,11 @@ Where a generator's natural question has fewer than four honest answers, **the q
 | Gate | Result |
 |---|---|
 | Type check | clean |
-| Unit tests | 129 files, 9,956 passed, 6 skipped |
+| Unit tests | 129 files, 9,967 passed, 6 skipped |
 | Invariant oracle | 23 tests across all 204 topics |
 | Coverage | statements 81.0%, branches 68.2%, functions 69.3%, lines 82.8% (floor enforced) |
-| Rust tests | `cargo test` |
-| Bundle | JS 37.7 kB, CSS 8.6 kB, total 56.5 kB gzipped (budget 38/10/57) |
+| Rust tests | 227 passed (`cargo test -p random_math_question_generator`) |
+| Bundle | JS 38.0 kB, CSS 8.6 kB, total 56.9 kB gzipped (budget 38/10/57) |
 
 ## ⚠️ A Note on Tauri Versions
 
