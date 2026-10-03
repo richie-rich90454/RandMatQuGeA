@@ -14,6 +14,7 @@ export class AppState{
     private _scope: string="simple";
     private _shuffle: boolean=false;
     private _mentalScope: string="simple";
+    private _topicCategory: string="all";
     private _mentalShuffle: boolean=false;
     private _autoTimeout: ReturnType<typeof setTimeout>|null=null;
     private _generateDebounceTimeout: ReturnType<typeof setTimeout>|null=null;
@@ -57,6 +58,17 @@ export class AppState{
     set shuffle(value: boolean){this._shuffle=value;}
     get mentalScope(): string{return this._mentalScope;}
     set mentalScope(value: string){this._mentalScope=value;}
+    /**
+     * The category the topic grid is narrowed to, or "all".
+     *
+     * A view preference rather than a study setting: it decides what the learner
+     * is looking at, not what the scheduler is allowed to pick, so it is held in
+     * memory with the rest of the view state and is not persisted. The scope is
+     * the control that limits practice, and persisting both would mean two
+     * controls narrowing the same list.
+     */
+    get topicCategory(): string{return this._topicCategory;}
+    set topicCategory(value: string){this._topicCategory=value;}
     get mentalShuffle(): boolean{return this._mentalShuffle;}
     set mentalShuffle(value: boolean){this._mentalShuffle=value;}
     get autoTimeout(): ReturnType<typeof setTimeout>|null{return this._autoTimeout;}
