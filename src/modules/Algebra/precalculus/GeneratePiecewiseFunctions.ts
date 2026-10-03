@@ -51,15 +51,15 @@ function plugged(slope: number, constant: number, at: number): string{
 }
 
 /**
- * Renders the equation of an absolute value function with its vertex as the centre.
+ * Renders the equation of an absolute value function with its vertex as the center.
  *
  * @param slope - The size of the arms.
- * @param centre - The x-coordinate of the vertex.
+ * @param center - The x-coordinate of the vertex.
  * @param height - The y-coordinate of the vertex.
  * @returns The equation, for example "f(x) = 2|x - 3| + 1".
  */
-function vEquation(slope: number, centre: number, height: number): string{
-    let bars=centre===0?"|x|":`|x ${centre>0?"- "+centre:"+ "+Math.abs(centre)}|`;
+function vEquation(slope: number, center: number, height: number): string{
+    let bars=center===0?"|x|":`|x ${center>0?"- "+center:"+ "+Math.abs(center)}|`;
     let body=`${slope===1?"":slope}${bars}`;
     if (height===0) return `f(x) = ${body}`;
     return `f(x) = ${body} ${height>0?"+ "+height:"- "+Math.abs(height)}`;
