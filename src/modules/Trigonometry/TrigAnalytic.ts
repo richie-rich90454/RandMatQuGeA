@@ -28,7 +28,7 @@ export function generateDegreesToRadians(difficulty?: string, rng: RngFn = Math.
     // Every option is the radian measure of a real angle, and every option is spelled the
     // way the key is, so two of them can never be the same value written two ways. The
     // honest mistakes are to read the degrees back as radians, to convert the complement
-    // or the supplement instead of the angle, and to convert a neighbouring angle. A
+    // or the supplement instead of the angle, and to convert a neighboring angle. A
     // whole turn of candidates is offered because at a special angle the complement and
     // the supplement are the only two relatives inside half a turn, which is not enough
     // for four options.
