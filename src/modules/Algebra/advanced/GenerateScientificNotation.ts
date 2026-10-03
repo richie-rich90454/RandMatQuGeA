@@ -4,7 +4,7 @@ import{fmt}from"../../shared/Numeric";
 import{fourOptions}from"../../shared/Options.js";
 
 /**
- * Splits a positive whole number into a normalised mantissa and a power of ten.
+ * Splits a positive whole number into a normalized mantissa and a power of ten.
  * The mantissa is exact in the precision the question asks for, because a whole
  * number divided by the largest power of ten below it carries no digits past
  * that power. This is what lets the generator print a key in the form the
@@ -105,7 +105,7 @@ export function generateScientificNotation(difficulty?: string, rng: RngFn=Math.
             display=`${parts.mantissa} \\times 10^{${parts.exponent}}`;
             mathExpression=`Multiply: \\( ${sci1} \\times ${sci2} \\)`;
             expectedFormat="Enter in scientific notation like 1.23e4";
-            // The last candidate is the unnormalised form, which is the value ten
+            // The last candidate is the unnormalized form, which is the value ten
             // times the answer once the product is a two-digit number. When the
             // product is a single digit it is the key, and the filter drops it.
             choices=[
