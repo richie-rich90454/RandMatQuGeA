@@ -184,7 +184,7 @@ export function generateLcmPeriods(difficulty?: string, rng: RngFn=Math.random):
                 wantMultiple?
                     `The least common multiple is ${first/common} x ${second} = ${value}, and that is the length both ribbons can be cut to.`:
                     `A side length that cuts both ribbons exactly is the common factor of the two lengths.`,
-                wantMultiple?`The shortest piece length in centimetres is ${key}`:`The largest side length in centimetres is ${key}`
+                wantMultiple?`The shortest piece length in centimeters is ${key}`:`The largest side length in centimeters is ${key}`
             ];
             break;
         }
