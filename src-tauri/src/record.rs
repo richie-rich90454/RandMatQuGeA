@@ -141,7 +141,7 @@ fn now_ms() -> i64 {
         .unwrap_or(0)
 }
 
-/// Reads the whole learning record out of the database. Nothing is summarised
+/// Reads the whole learning record out of the database. Nothing is summarized
 /// on the way out: the aggregate, every recorded answer and every remembered
 /// skill are carried as they are, so that a file is the record rather than a
 /// summary of it.
