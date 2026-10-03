@@ -1,5 +1,6 @@
 import {test, expect} from "@playwright/test";
 import {gotoApp} from "./helpers";
+import {scopeTopics} from "../src/main/Constants";
 
 const PREVIEW = "#print-preview .ws-document";
 
@@ -88,7 +89,12 @@ test("scope selection filters the topic dropdown", async ({page})=>{
     await gotoApp(page);
     await openPrintModal(page);
     await page.selectOption("#print-scope", "simple");
-    await expect(page.locator("#print-topic option")).toHaveCount(5);
+    // Counted from the scope rather than written down. The literal this replaced was
+    // four topics plus the leading "All topics" option, and the arithmetic scope grew
+    // to twelve while the number stayed five, so the case had been quietly asserting
+    // a scope nobody ships.
+    const simpleCount=scopeTopics.simple.length+1;
+    await expect(page.locator("#print-topic option")).toHaveCount(simpleCount);
     await page.selectOption("#print-scope", "calc");
     await expect(page.locator('#print-topic option[value="deri"]')).toHaveCount(1);
     await expect(page.locator('#print-topic option[value="add"]')).toHaveCount(1);
