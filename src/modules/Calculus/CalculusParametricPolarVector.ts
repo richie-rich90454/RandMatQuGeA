@@ -56,7 +56,7 @@ export function generateParametricPolarVector(difficulty?: string, rng: RngFn=Ma
             expectedFormat="Enter number";
             // A horizontal tangent makes the slope zero, and then the two
             // multiply-and-divide candidates are both the answer again. The pool
-            // carries the two neighbouring values of t as well, which are always
+            // carries the two neighboring values of t as well, which are always
             // different from the answer.
             choices=fourOptions(plainCorrectAnswer, [
                 (deriv+0.1).toFixed(3),
