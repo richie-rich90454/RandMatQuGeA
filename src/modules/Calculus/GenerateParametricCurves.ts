@@ -105,7 +105,7 @@ export function generateParametricCurves(difficulty?: string, rng: RngFn=Math.ra
     }
     else if (type==="curvature"){
         if (rng()<0.5){
-            // A circle travelled at unit speed has curvature exactly its reciprocal
+            // A circle traveled at unit speed has curvature exactly its reciprocal
             // radius, and a straight line has curvature exactly zero. Both are exact
             // without a rounding decision.
             let radii=[2, 4, 5, 8];
