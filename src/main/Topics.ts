@@ -1,7 +1,7 @@
-﻿import{dom}from"./core/DomRegistry";
+import{dom}from"./core/DomRegistry";
 import{appState}from"./core/StateStore";
 import * as ui from"./Ui";
-import{topics,scopeTopics}from"./Constants";
+import{topics,scopeTopics,scopeLadder}from"./Constants";
 import type{Topic}from"../types/global";
 /** The category value that means "do not narrow by category". */
 const ALL_CATEGORIES="all";
@@ -65,7 +65,7 @@ function buildIndexes(): void{
  *
  * An empty value, or one naming no category the topic list declares, counts as
  * showing everything. State can outlive a release that renamed a category, and a
- * filter that narrowed the grid to nothing because it did not recognise its own
+ * filter that narrowed the grid to nothing because it did not recognize its own
  * value would leave the learner with an empty grid and no way out of it.
  *
  * @returns True when no single category has been chosen.
@@ -131,8 +131,112 @@ function ensureCategoryChips(): void{
         let category=target?.dataset.category;
         if (!category) return;
         appState.topicCategory=category;
+        reachCategory(category);
         renderTopicGrid();
     });
+}
+/**
+ * Moves the mode's scope to a wider one and puts the scope control in step, so the
+ * learner can see which narrowing was given up and take it back.
+ *
+ * @param next - The scope to move to.
+ */
+function applyScope(next: string): void{
+    if (appState.currentMode==="single"){
+        appState.scope=next;
+        if (dom.inputs.scopeSelect) dom.inputs.scopeSelect.value=next;
+    }
+    else{
+        appState.mentalScope=next;
+        if (dom.inputs.mentalScopeSelect) dom.inputs.mentalScopeSelect.value=next;
+    }
+}
+/**
+ * Reports how many topics of a scope the current search term matches.
+ *
+ * @param scope - The scope name.
+ * @param searchTerm - The lower-cased term already in the box.
+ * @returns True when the scope holds at least one match.
+ */
+function scopeHasMatch(scope: string, searchTerm: string): boolean{
+    let set=scopeSets.get(scope);
+    if (!set) return false;
+    for(let id of set.keys()){
+        if (matchesSearch(id, searchTerm)) return true;
+    }
+    return false;
+}
+/**
+ * Reports the narrowest scope on the ladder that holds a topic of the category.
+ *
+ * @param category - The category the learner chose.
+ * @returns The scope name to widen to, or null when no scope holds the category.
+ */
+function narrowestScopeWith(category: string): string|null{
+    for(let scope of scopeLadder){
+        let set=scopeSets.get(scope);
+        if (!set) continue;
+        for(let topic of topicsByCategory.get(category)||[]){
+            if (set.has(topic.id)) return scope;
+        }
+    }
+    return null;
+}
+/**
+ * Makes the chosen category reachable, widening the scope when the current one
+ * holds none of it.
+ *
+ * The default scope is the twelve arithmetic topics, and against that scope every
+ * other chip reads "0" in the dimmed style, which reads as *unavailable* rather
+ * than as *not in this scope*. A learner who has just discovered there are 204
+ * topics and then clicked Calculus was told, by a dimmed zero, that there was
+ * nothing to see. The chip is the primary way into a category, so it cannot lead
+ * to a dead end: choosing one that the scope excludes widens the scope to the
+ * narrowest that includes it, and leaves the scope control showing what changed.
+ *
+ * "All" is the same case with a bigger target. It means every category, and a
+ * scope of twelve arithmetic topics cannot show every category, so it widens to
+ * the whole curriculum.
+ *
+ * @param category - The category the learner chose.
+ */
+function reachCategory(category: string): void{
+    let scope=currentScope();
+    if (category===ALL_CATEGORIES){
+        if (scope!=="all") applyScope("all");
+        return;
+    }
+    let allowed=scopeSets.get(scope)||new Set<string>();
+    for(let topic of topicsByCategory.get(category)||[]){
+        if (allowed.has(topic.id)) return;
+    }
+    let wider=narrowestScopeWith(category);
+    if (!wider||wider===scope) return;
+    applyScope(wider);
+}
+/**
+ * Makes a search term reachable, widening the scope when nothing in it matches.
+ *
+ * Filtering the grid by the scope and the search box together means a learner who
+ * types the name of a topic is told nothing exists if the default scope excludes
+ * it. Typing "sin" is about as unambiguous a request as this interface gets, and
+ * answering it with an empty grid is the same dead end as a chip reading zero.
+ *
+ * Widening rather than ignoring the scope is the deliberate choice: ignoring it
+ * would show a topic the scope says is out of bounds and leave the control
+ * claiming otherwise, and the learner would have no way back.
+ *
+ * @param searchTerm - The lower-cased term already in the box.
+ */
+function reachSearch(searchTerm: string): void{
+    let scope=currentScope();
+    if (scopeHasMatch(scope, searchTerm)) return;
+    for(let candidate of scopeLadder){
+        if (scopeHasMatch(candidate, searchTerm)){
+            applyScope(candidate);
+            return;
+        }
+    }
 }
 /**
  * Writes the in-scope count onto each chip and marks the chosen one. The counts
@@ -154,8 +258,8 @@ function updateCategoryChips(allowed: Set<string>): void{
         }
         let label=value===ALL_CATEGORIES?"All":value;
         // The count is printed even when it is zero: a category showing "Algebra 0"
-        // tells the learner the category exists and that this scope has none of
-        // it, which is a different message from a category that is simply absent.
+        // says this scope has none of it, and choosing it widens the scope. Hiding
+        // the zero instead would make the learner believe the category is missing.
         chip.textContent=`${label} ${count}`;
         let selected=value===appState.topicCategory;
         chip.setAttribute("aria-pressed", selected?"true":"false");
@@ -251,9 +355,10 @@ export function resetTopicGrid(): void{
 export function renderTopicGrid(): void{
     buildIndexes();
     if (!dom.displays.topicGrid) return;
+    let searchTerm=(dom.inputs.topicSearch?.value||"").toLowerCase().trim();
+    if (searchTerm) reachSearch(searchTerm);
     let scope=currentScope();
     let allowed=scopeSets.get(scope)||scopeSets.get("simple")||new Set<string>();
-    let searchTerm=(dom.inputs.topicSearch?.value||"").toLowerCase().trim();
     updateCategoryChips(allowed);
     if (!gridInitialized){
         buildGridContent();
