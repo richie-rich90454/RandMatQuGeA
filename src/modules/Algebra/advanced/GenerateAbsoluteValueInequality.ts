@@ -20,7 +20,7 @@ import{randInt, shuffle}from"../../shared/Random";
 
 /**
  * Renders the inside of the bars with its sign spelled out, so that a negative
- * centre never prints as a minus sign followed by a minus sign.
+ * center never prints as a minus sign followed by a minus sign.
  *
  * @param slope - The coefficient of x.
  * @param constant - The constant term.
@@ -49,19 +49,19 @@ export function generateAbsoluteValueInequality(difficulty?: string, rng: RngFn=
             // A single inequality of this shape describes a closed interval, and the
             // largest whole number in it is one of its endpoints rather than the number
             // of whole numbers it contains.
-            let centre=randInt(rng, -8, 8);
+            let center=randInt(rng, -8, 8);
             let reach=difficulty==="hard"?14:difficulty==="easy"?5:9;
-            let expression=inside(1, centre);
-            key=String(centre+reach);
+            let expression=inside(1, center);
+            key=String(center+reach);
             latex=`Solve \\( | ${expression} | \\le ${reach} \\). What is the greatest whole number that satisfies it?`;
-            choices=numberOptions(centre+reach, [centre-reach, centre, centre+reach+1, centre+reach-1], 0);
+            choices=numberOptions(center+reach, [center-reach, center, center+reach+1, center+reach-1], 0);
             rungs=[
-                "The bars give a distance, so the inequality says the distance is at most that many, which describes an interval with one endpoint on each side of the centre.",
-                `The interval runs from ${centre-reach} to ${centre+reach}, so read off the endpoint on the right.`
+                "The bars give a distance, so the inequality says the distance is at most that many, which describes an interval with one endpoint on each side of the center.",
+                `The interval runs from ${center-reach} to ${center+reach}, so read off the endpoint on the right.`
             ];
             steps=[
-                `| ${expression} | <= ${reach} means ${centre-reach} <= x <= ${centre+reach}.`,
-                `The interval is closed, so ${centre+reach} itself is allowed.`,
+                `| ${expression} | <= ${reach} means ${center-reach} <= x <= ${center+reach}.`,
+                `The interval is closed, so ${center+reach} itself is allowed.`,
                 `The greatest whole number that satisfies it is ${key}`
             ];
             break;
@@ -96,8 +96,8 @@ export function generateAbsoluteValueInequality(difficulty?: string, rng: RngFn=
             // An absolute value reaches zero and never goes below it, so exactly one
             // largest bound is satisfied by every real x and the others are ruled out
             // by reading the sign of the bars.
-            let centre=randInt(rng, 2, 12);
-            let expression=inside(1, centre);
+            let center=randInt(rng, 2, 12);
+            let expression=inside(1, center);
             key="0";
             latex=`The inequality \\( | ${expression} | \\ge c \\) is satisfied by every real number \\( x \\). What is the largest whole number \\( c \\) for which that is true?`;
             choices=numberOptions(0, [1, -1, 2], 0);
@@ -107,7 +107,7 @@ export function generateAbsoluteValueInequality(difficulty?: string, rng: RngFn=
             ];
             steps=[
                 `| ${expression} | is never negative, because it is a distance.`,
-                `At x = ${centre} the bars are exactly 0, so any c above 0 fails there.`,
+                `At x = ${center} the bars are exactly 0, so any c above 0 fails there.`,
                 `The largest whole number c that every real x satisfies is ${key}`
             ];
             break;
@@ -117,11 +117,11 @@ export function generateAbsoluteValueInequality(difficulty?: string, rng: RngFn=
             // asks which of four printed intervals is the solution set. The other three
             // each change an endpoint or a bracket, so each is a different set and only
             // one of them is right.
-            let centre=randInt(rng, -6, 8);
+            let center=randInt(rng, -6, 8);
             let reach=randInt(rng, 2, difficulty==="hard"?12:8);
-            let low=centre-reach;
-            let high=centre+reach;
-            let expression=inside(1, centre);
+            let low=center-reach;
+            let high=center+reach;
+            let expression=inside(1, center);
             key=`(${low}, ${high})`;
             alternate=`${low} < x < ${high}`;
             let others=[`[${low}, ${high})`, `(${low}, ${high}]`, `[${low-1}, ${high+1}]`];
@@ -131,10 +131,10 @@ export function generateAbsoluteValueInequality(difficulty?: string, rng: RngFn=
             choices=fourOptions(key, others);
             rungs=[
                 "A strict inequality gives an open interval, so both endpoints are excluded and both brackets are round, while a non-strict inequality gives square brackets.",
-                `The interval has ${centre} in the middle and reaches ${reach} either side of it, and the endpoints are not included.`
+                `The interval has ${center} in the middle and reaches ${reach} either side of it, and the endpoints are not included.`
             ];
             steps=[
-                `| ${expression} | < ${reach} means the distance from ${centre} is less than ${reach}, which is ${low} < x < ${high}.`,
+                `| ${expression} | < ${reach} means the distance from ${center} is less than ${reach}, which is ${low} < x < ${high}.`,
                 "The inequality is strict, so neither endpoint is reached and both brackets are round.",
                 `The solution set is ${key}`
             ];
