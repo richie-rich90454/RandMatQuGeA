@@ -1,7 +1,7 @@
 /**
  * @file Tier-one answer equivalence: exact rational arithmetic.
  * @description The check that a learner is not told something false. Two answers
- * that a person would call the same number must be recognised as equal, and two
+ * that a person would call the same number must be recognized as equal, and two
  * that a person would call different must never be. This module uses
  * `fraction.js`, which is BigInt-backed and never round-trips through a float,
  * so `14/3` equals `28/6` and `0.1+0.2` equals `0.3` exactly.
