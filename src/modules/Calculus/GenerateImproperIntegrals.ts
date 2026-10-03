@@ -78,8 +78,8 @@ export function generateImproperIntegrals(difficulty?: string, rng: RngFn=Math.r
             break;
         }
         case "decide_convergence":{
-            let flavour=Math.floor(rng()*2);
-            if (flavour===0||easy){
+            let flavor=Math.floor(rng()*2);
+            if (flavor===0||easy){
                 key=2;
                 latex=`The improper integral \\( \\int_{1}^{\\infty} \\dfrac{1}{x^{p}}\\,dx \\) converges exactly when \\( p > 1 \\). What is the smallest whole number \\( p \\) for which it converges?`;
                 wrong=[1, 3, 0, 4];
