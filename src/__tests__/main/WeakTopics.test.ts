@@ -8,6 +8,7 @@ vi.mock("../../main/Generation.js",()=>({
 }));
 vi.mock("../../main/Settings.js",()=>({
     settings:{showWeakTopicsPopup:true},
+    effectivePersistence:()=>"desktop",
 }));
 vi.mock("@tauri-apps/api/core",()=>({
     invoke:vi.fn().mockResolvedValue([]),
