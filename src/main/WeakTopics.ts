@@ -3,6 +3,7 @@ import{selectTopic}from"./Topics";
 import{topics}from"./Constants";
 import{generateQuestion}from"./Generation";
 import*as settings from"./Settings";
+import{effectivePersistence}from"./Settings";
 import*as ui from"./Ui";
 import{appState}from"./core/StateStore";
 import{adaptiveAvailable}from"../utils/envUtils";
@@ -15,7 +16,7 @@ export async function checkAndShowWeakTopicsPopup(){
     // function is also reachable from a session ending, and a hidden entry point is
     // still an entry point. It also means the desktop-only notice this used to show
     // on press is gone with the press.
-    if(!adaptiveAvailable())return;
+    if(!adaptiveAvailable(effectivePersistence()))return;
     try{
         let weakTopics=await invoke("get_weak_topics",{limit:5})as Array<{topic_id:string,accuracy:number,attempts:number}>;
         if(!weakTopics||weakTopics.length===0){ui.showNotification("No weak topics yet — answer more questions to get recommendations.","info");return;}
