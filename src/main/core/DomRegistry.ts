@@ -99,6 +99,7 @@ export class DomRegistry{
             get settingsSave(){return self.getElement<HTMLButtonElement>("settings-save");},
             get settingsReset(){return self.getElement<HTMLButtonElement>("settings-reset");},
             get checkUpdatesBtn(){return self.getElement<HTMLButtonElement>("check-updates");},
+            get recommendBtn(){return self.getElement<HTMLButtonElement>("recommend-btn");},
         };
     }
     get inputs(){
@@ -226,6 +227,7 @@ export class DomRegistry{
             get settingsPersistence(){return self.getElement<HTMLSelectElement>("settings-persistence");},
             get settingsPersistenceHelp(){return self.getElement("settings-persistence-help");},
             get settingEraseData(){return self.getElement("setting-erase-data");},
+            get settingAdaptive(){return self.getElement("setting-adaptive");},
             get settingsEraseData(){return self.getElement<HTMLButtonElement>("settings-erase-data");},
         };
     }
