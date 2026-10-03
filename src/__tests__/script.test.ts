@@ -7,6 +7,10 @@ vi.mock("../main/Settings.js",()=>({
     // the first await rejects and nothing after it ever runs.
     applyPersistence:vi.fn(async()=>{}),
     applyPersistenceVisibility:vi.fn(),
+    // Called at boot beside it: the surfaces adaptive learning does not have in a
+    // browser are removed before the first paint, and a mock that omitted it would
+    // abort the rest of the boot sequence.
+    applyAdaptiveVisibility:vi.fn(),
     settings:{defaultMode:"single",adaptive:true,persistence:"zdr"},
 }));
 vi.mock("../main/Ui.js",()=>({
