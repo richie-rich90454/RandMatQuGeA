@@ -8,65 +8,47 @@
 [![Live Demo](https://img.shields.io/badge/demo-live-green?style=for-the-badge&logo=vercel&logoColor=white)](https://math.richardsblogs.com/)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.19.0-brightgreen?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/typescript-7.0.2-%23007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tauri](https://img.shields.io/badge/tauri-v2-%2324C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app/)
-[![Rust](https://img.shields.io/badge/rust-1.85.0-%23DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![Vite](https://img.shields.io/badge/vite-8.2.0-%23646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Vitest](https://img.shields.io/badge/vitest-4.1.10-%236E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
-[![Playwright](https://img.shields.io/badge/playwright-1.62-%232EAD33?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev/)
-[![MathJax](https://img.shields.io/badge/MathJax-4.1.3-007ACC?style=for-the-badge&logo=mathjax&logoColor=white)](https://www.mathjax.org/)
-[![KaTeX](https://img.shields.io/badge/KaTeX-0.16.28-007ACC?style=for-the-badge&logo=katex&logoColor=white)](https://katex.org/)
+[![Tauri](https://img.shields.io/badge/tauri-2.12.1-%2324C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app/)
+[![Rust](https://img.shields.io/badge/rust-2021%20edition-%23DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Vite](https://img.shields.io/badge/vite-8.3.1-%23646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Vitest](https://img.shields.io/badge/vitest-5.0.2-%236E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Playwright](https://img.shields.io/badge/playwright-1.56-%232EAD33?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev/)
+[![MathJax](https://img.shields.io/badge/MathJax-4.1.2-007ACC?style=for-the-badge&logo=mathjax&logoColor=white)](https://www.mathjax.org/)
+[![KaTeX](https://img.shields.io/badge/KaTeX-0.18.9-007ACC?style=for-the-badge&logo=katex&logoColor=white)](https://katex.org/)
 [![Math.js](https://img.shields.io/badge/math.js-15.2.0-007ACC?style=for-the-badge&logo=math.js&logoColor=white)](https://mathjs.org/)
-[![Three.js](https://img.shields.io/badge/three.js-0.185-%23000000?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
+[![Three.js](https://img.shields.io/badge/three.js-0.186-%23000000?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
 [![SQLite](https://img.shields.io/badge/sqlite-embedded-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
 [![Offline First](https://img.shields.io/badge/offline-first-success?style=for-the-badge&logo=offline&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Offline_service_workers)
-[![Lightweight](https://img.shields.io/badge/binary-lightweight-blue?style=for-the-badge&logo=webpack&logoColor=white)](https://tauri.app/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge&logo=github&logoColor=white)](CONTRIBUTING.md)
 [![Cross-Platform](https://img.shields.io/badge/cross--platform-windows%20%7C%20macos%20%7C%20linux-success?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app/)
 
-A comprehensive, free online math question generator built with TypeScript that helps students practice algebra, calculus, trigonometry, and more with instant answer verification. Available as both a web application and cross-platform desktop app. Perfect for students, educators, and anyone looking to improve their math skills!
+A free mathematics practice app that covers **204 topics** from arithmetic to linear algebra, checks every answer instantly, and runs as a web app, an installable PWA, and a native desktop app. It generates its own questions rather than asking a language model for them, so a wrong answer is never the app's fault and the same question never changes between runs.
 
 ## ✨ Key Features
 
-- **📚 137 Math Topics**: Comprehensive coverage from basic arithmetic to advanced calculus, discrete math, number theory, linear algebra, trigonometry, and geometry (7 subject areas)
-- **⚡ Instant Feedback**: Real-time answer checking with detailed explanations and LaTeX rendering
-- **🧠 Mental Math Mode**: Timed sessions with score tracking, pause/skip, unlimited practice, and configurable difficulty
-- **✅ Multiple‑Choice Mode**: Intelligent distractor generation (numeric, pattern-based, and text fallback) with 2–6 choices
-- **🖨️ Printable Worksheets**: Generate worksheet PDFs with answer keys (append / separate page / answer-key-only), seeded for reproducibility
-- **🖥️ Native Desktop Experience**: Tauri-based desktop app with system tray, global shortcuts, and modern window effects (Mica on Windows)
-- **💾 Persistent Storage**: Built-in SQLite database for scores, performance tracking, and adaptive learning
-- **🎯 Adaptive Learning**: Rust-backed engine auto-adjusts difficulty and recommends weak topics based on your performance
-- **📱 Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- **🎯 Progressive Difficulty**: Questions adapt to different skill levels (easy, medium, hard)
-- **🔢 Math Notation Support**: Beautiful mathematical rendering with MathJax and KaTeX
-- **🎲 Unlimited Questions**: Generate endless practice problems
-- **💡 Educational Focus**: Designed specifically for learning and practice
-- **🖥️ Cross-Platform Desktop App**: Native desktop application built with Tauri v2 (Windows, macOS, Linux)
-- **🔒 Type Safety**: Fully migrated to TypeScript (strict mode) with a comprehensive type system
-- **🧩 Modular Architecture**: Organized into focused modules, each with many topic‑specific generator files
-- **✅ Smart Answer Checking**: Uses math.js to handle equivalent expressions, fractions, and LaTeX input
-- **📊 Thoroughly Tested**: 7,000+ Vitest unit tests, 200+ Rust tests, and a Playwright end-to-end suite (85+ tests) covering all topics, modes, settings, and desktop fallbacks
-- **📴 Offline Ready**: Service worker precaches all assets — the web app works fully offline
+- **📚 204 Math Topics** across 7 subject areas, from place value to divergence and curl
+- **⚡ Instant Feedback**: real-time answer checking with a hint ladder and a worked solution
+- **🧠 Mental Math Mode**: timed sessions with score tracking, pause/skip, unlimited practice, and per-session statistics
+- **✅ Multiple-Choice Mode**: every question presents four options with exactly one correct — never padded with filler to reach a count
+- **🗨️ Topic Finder**: search by topic name *or* category, filter by category chip, and see how many topics are showing
+- **🏅 Daily Challenge**: ten questions, the same for everyone on the same day, with a progress track and a streak
+- **🖨️ Printable Worksheets**: worksheet PDFs with answer keys (appended / separate page / answer-key-only), seeded for reproducibility
+- **🖥️ Native Desktop App**: Tauri 2 with system tray, global shortcuts, Mica window effects, and a Rust SQLite backend
+- **🎯 Adaptive Learning** (desktop only): spaced repetition per topic *and per procedure*, adjusted for how confident you actually were, with the reason shown beside each question
+- **🔒 Privacy**: nothing leaves the device, ever. The web build starts in a private session and keeps nothing until you choose otherwise
+- **📱 Mobile-first**: the topic grid is filterable and searchable rather than a wall of 204 pills
+- **🔢 Math Notation**: MathJax and KaTeX rendering, with a symbol toolbar for typing
+- **📴 Offline Ready**: the service worker precaches every asset; the web app works fully offline
 
-### ❓ Why Not Just Use AI Generated Questions/Answers?
+### ❓ Why not just use AI-generated questions?
 
-- No distractions or potentially hallucinated answers
-- Unlimited structured practice
-- Instant correctness verification
-- Works offline as a desktop app
-- Fully open-source & transparent
+- No distractions, and no hallucinated answers — the key is computed, never guessed
+- Unlimited *structured* practice, not a random stream of plausible-looking text
+- Instant correctness verification from a real evaluator
+- Works offline, as a desktop app, with no account
+- Fully open-source and auditable
 
-## 🖥️ Why a Desktop App?
-
-- Works fully offline
-- No browser distractions
-- Faster startup and lower memory usage than Electron apps
-- Secure sandboxing with Rust + Tauri
-- Modern window effects and system tray integration
-- Global keyboard shortcuts for power users
-- Persistent local database for progress tracking
-- Ideal for focused study sessions
-
-## 📦 Install (No Node.js/Rust environment Required)
+## 📦 Install (no Node.js or Rust needed)
 
 Download the latest installer from **GitHub Releases**:
 
@@ -76,81 +58,66 @@ Download the latest installer from **GitHub Releases**:
 
 ➡️ [https://github.com/richie-rich90454/random-math-question-generator-app/releases](https://github.com/richie-rich90454/random-math-question-generator-app/releases)
 
-### Supported Math Topics (137 Topics)
+## 📚 The Curriculum (204 topics)
 
-| Category | Topics |
-|----------|--------|
-| **Arithmetic** | Addition, Subtraction, Multiplication, Division |
-| **Algebra (Basics)** | Fractions, Percentages, Ratios & Proportions, Unit Conversion, Expression Evaluation, Number Sets, Algebraic Properties, Order of Operations, Linear Word Problems, Radical Simplification, Radical Equations, Rational Exponents, Exponent Rules, Scientific Notation, Complex Numbers, Direct/Inverse Variation, Real Number Operations, Cartesian Plane, Special Linear Equations, Rational Equations, Roots, Logarithms, Exponentials, Factorials, Series, Function Properties, Basic Functions, Function Operations, Inverse Functions, Transformations, Power Function Modeling, Polynomial Inequalities, Polynomial End Behavior, Synthetic Division, Complex Zeros, Rational Graph Analysis, Circle Equations, Logistic Functions, Exponential Modeling, Logarithmic Modeling, Finance |
-| **Algebra (Advanced)** | Linear Equations, Quadratic Equations, Linear Inequalities, Quadratic Inequalities, Rational Inequalities, 2×2 Systems, Polynomial Operations, Polynomial Division, Factoring, Function Concepts, Linear Graphs, Non‑Linear Graphs |
-| **Calculus** | Limits, Derivatives (polynomial, trigonometric, exponential, logarithmic, product, quotient, chain, implicit, higher order, motion), Integrals (polynomial, trigonometric, exponential, logarithmic, substitution, definite, initial value, area, motion), Related Rates (ladder, cone), Limits & Continuity, Applications of Differentiation, Advanced Integration, Graphical Calculus, Parametric/Polar/Vector Calculus, Sequences & Series |
-| **Linear Algebra** | Matrix Operations (add, subtract, multiply, inverse, transpose, scalar multiplication, power, row echelon), 3×3 Systems, Row Echelon Form, Partial Fractions, Linear Programming, 3D Vectors (magnitude, unit, dot, angle, projection), 3D Lines (parametric, point at given t), 3D Planes (distance, equation), Eigenvalues & Eigenvectors (2×2, 3×3, characteristic polynomial, diagonalisation, defective), Orthogonality (dot product, norm, projection, Gram‑Schmidt, orthogonal complement), Cross Product & 3D (cross/scalar triple products, angle in 3D, point‑to‑line and point‑to‑plane distance) |
-| **Trigonometry** | Sine, Cosine, Tangent, Cosecant, Secant, Cotangent, Inverse Trig, Trig Equations, Trig Graphs, Degrees/Radians Conversion, Arc Length, Angular/Linear Speed, Right Triangle Definitions, Special Triangles, Elevation/Depression, Reference Angle, ASTC Signs, Sum/Difference Formulas, Double‑Angle Formulas, Half‑Angle Formulas, Polar/Rectangular Conversion, Polar Distance, Polar Graph Equations, Parametric → Cartesian, Parametric Motion, Complex Polar Form, Complex Multiply/Divide, De Moivre's Theorem, Complex Roots |
-| **Discrete Mathematics** | Permutations (basic, equation, word, circular, identical, with replacement), Combinations (basic, equation, word, complement, paths, multiset), Probability (basic, conditional, independent, mutually exclusive, Bayes, binomial, expected value, complement, permutation/combination, geometric), Statistics (mean, median, mode, range, stem‑and‑leaf, box plot, standard deviation), Divisibility & Factors, GCD & LCM, Modular Arithmetic, Data Analysis, Counting Principles (multiplication/addition rule, restricted permutations and combinations, arrangements with repeats), Probability Rules (conditional table, total probability, Bayes, independence, expected value) |
-| **Geometry** | Area (circle, rectangle, triangle, sector), Volume (sphere, cylinder, cone, pyramid, cube), Surface Area (cube), Triangles (Pythagorean theorem, similar triangles, classification), Perimeter, Arc Length, Distance Formula, Angle Relations, Conic Sections (parabola, ellipse, hyperbola, polar conics), 3D Geometry (distance/midpoint, sphere equations, lines/planes in 3D), Similarity (proportional sides, scale factor, area/perimeter ratio, converse), Rigid Motions (translate/rotate/reflect/dilate a point, compose), Circle Geometry (inscribed vs central angles, arcs & sectors, tangent–radius right angle, chord length, intersecting chords, external secants) |
+Every topic below is generated, graded, and oracle-checked. Counts are the number of registered topics in that subject.
+
+| Category | Topics | What it covers |
+|---|---|---|
+| **Arithmetic** (12) | 12 | Place value, negative numbers, long division, powers of ten, rounding and estimation, prime factorisation, least common multiples, money and change, plus the four operations |
+| **Algebra** (61) | 61 | Fractions, percentages, ratios, unit conversion, expressions, radicals, exponents, scientific notation, complex numbers, logarithms, exponentials, finance, graphs, polynomials, factoring, absolute-value equations and inequalities, quadratic word problems, systems of inequalities, piecewise functions, polynomial theorems, and much more |
+| **Calculus** (19) | 19 | Limits, continuity, derivatives (polynomial, trig, exponential, logarithmic, product, quotient, chain, implicit, higher order, motion), integrals (definite, area, substitution, initial value), related rates, optimisation, L'Hôpital, Taylor series, the fundamental theorem, the mean value theorem, improper integrals, partial derivatives, divergence and curl, parametric curves |
+| **Linear Algebra** (22) | 22 | Matrix operations, row echelon form, systems, partial fractions, linear programming, 3D vectors, lines and planes in 3D, eigenvalues and eigenvectors, orthogonality, cross products, determinants, Cramer's rule, rank, null space, LU decomposition, matrices as transformations, bases and coordinates, linear independence, least squares, symmetric matrices |
+| **Trigonometry** (37) | 37 | The six ratios and their inverses, trig equations, trig graphs, degrees/radians, arc length, angular and linear speed, right-triangle definitions, special triangles, elevation and depression, reference angles, ASTC signs, sum/difference, double-angle, half-angle, polar conversion, parametric motion, complex polar form and De Moivre, exact values, identities, general solutions, the law of sines, the law of cosines, the ambiguous case |
+| **Discrete Mathematics** (29) | 29 | Permutations, combinations, probability, statistics, divisibility, GCD/LCM, modular arithmetic, data analysis, counting principles, probability rules, propositional logic, logic equivalences, set operations, inclusion–exclusion, the pigeonhole principle, graph basics, Euler and Hamilton paths, graph colouring, spanning trees, recurrence relations, Boolean algebra, relations, advanced counting |
+| **Geometry** (24) | 24 | Area and perimeter of circles and polygons, surface area, volume, the Pythagorean theorem, similarity, rigid motions, circle geometry, triangle congruence, the triangle inequality, triangle area, quadrilateral area, polygon angles, regular polygons, midsegments, angle bisectors, composite figures, volumes of solids |
 
 ## 🚀 Quick Start
 
-### Live Demo
-Try it now: **[https://math.richardsblogs.com/](https://math.richardsblogs.com/)**
-
-### Local Installation (Web Version)
+### Web (development)
 
 ```bash
-# Clone the repository
 git clone https://github.com/richie-rich90454/random-math-question-generator-app.git
-cd random_math_question_generator
-
-# Install dependencies
+cd random-math-question-generator-app
 npm install
-
-# Start the development server
 npm run dev
 ```
 
-Then open [http://localhost:1331](http://localhost:1331) in your browser.
+Then open [http://localhost:1331](http://localhost:1331).
 
-### Running the Tests
+### Desktop (development)
 
 ```bash
-npm run test:run    # unit tests (Vitest, 7,000+ cases)
-npm run test:e2e    # end-to-end browser tests (Playwright, uses your installed Chrome)
-npm run lint        # TypeScript type-check (tsc --noEmit)
-npm run check       # type-check + unit tests
+npm install
+npm run tauri dev      # starts the dev server and the native window
 ```
 
-### Desktop App Development
+### Tests and checks
 
 ```bash
-# Install Tauri CLI globally (if not already installed)
-npm install -g @tauri-apps/cli
-
-# Start Tauri development (runs both web dev server and desktop app)
-npm run tauri dev
-
-# Build desktop application for your platform
-npm run tauri build
+npm run typecheck      # tsc --noEmit
+npm run test:unit      # Vitest unit suite (129 files, ~9,950 cases)
+npm run test:oracle    # the invariant gate over all 204 topics
+npm run test:coverage  # unit suite with the enforced coverage floor
+npm run test:e2e       # Playwright, Chromium + WebKit, desktop and mobile projects
+npm run bundle:check   # initial-load budget
+npm run check          # typecheck + unit tests + bundle budget
+cd src-tauri && cargo test   # Rust backend
 ```
 
 ## 🎯 How to Use
 
-1. **Select a Topic**: Choose from 137 math categories organized by subject (filter by search or scope)
-2. **Generate Question**: Click "Generate Question" (or press `Ctrl+G`) to get a new problem
-3. **Enter Answer**: Type your solution in the answer box (use the math toolbar for symbols)
-4. **Check Answer**: Click "Check Answer" or press `Shift+Enter` for instant feedback
-5. **Learn**: Review the correct answer rendered with KaTeX and a plain‑text alternate
+1. **Pick a topic** — search by name or category, or use the category chips to narrow 204 topics to one subject
+2. **Generate** — click Generate (or `Ctrl+G`)
+3. **Answer** — type in the box, or use the symbol toolbar; `Shift+Enter` checks
+4. **Learn** — take the hint ladder one rung at a time, and the worked solution only if you want it
 
-### Modes & Key Features
+### Modes
 
-- **Single Practice**: Focused study on one topic at a time (with optional shuffle across a scope)
-- **Mental Math**: Timed sessions with a question limit or unlimited mode, plus pause, skip, and per-session statistics (accuracy, average time)
-- **Daily Challenge**: Ten questions, the same for everyone on the same day, with a progress track and a streak. Refreshing part way through resumes rather than restarting
-- **Multiple-Choice (MCQ)**: Toggle in the toolbar or settings. Every question presents four options with exactly one correct; a set a generator cannot fill honestly comes back short rather than padded with a placeholder
-- **Hints and solutions**: Every question has a hint ladder revealed one rung at a time, plus a worked solution, with the answer as a separate step you have to choose to take
-- **Adaptive schedule**: Spaced repetition per topic and per procedure, adjusted for how confident you actually were, with the reason shown beside each question
-- **Print Worksheet**: Generate a printable worksheet (5–30 questions) with answer-key options and a reproducible seed
-- **Theme**: System / Light / Dark, toggleable from the toolbar or `Ctrl+Shift+T`
-- **Settings**: 50+ options across Basic and Advanced tabs — theme, font (incl. OpenDyslexic), default mode, scopes, difficulty, timer, performance toggles, sound/vibration, and more
+- **Single Practice** — one topic at a time, with optional shuffle across the scope
+- **Mental Math** — timed sessions, question limit or unlimited, with pause, skip, and per-session accuracy and average time
+- **Daily Challenge** — ten questions, identical for everyone on a given date; refreshing mid-set resumes rather than restarts
+- **Multiple-Choice** — four options, one correct, with the key placed at a random position
 
 ### Keyboard Shortcuts
 
@@ -163,235 +130,110 @@ npm run tauri build
 | `Ctrl+Shift+T` | Toggle theme |
 | `Escape` | Close modals |
 
-### Desktop‑Specific Features
+### Desktop-Only Features
 
-- **System Tray**: Right‑click the tray icon to show the window or quit
-- **Window Effects**: Mica on Windows 11
-- **Graceful Exit**: Closing the window hides it; use the tray "Quit" option to exit cleanly
-- **Native Performance Data**: SQLite-backed scores, per-topic performance stats, and weak-topic analysis (web mode degrades gracefully with notifications)
+Several features depend on the Rust backend and are **hidden rather than disabled** in the web build, so the interface never offers something it cannot do:
+
+- **Adaptive learning** — difficulty adjustment and weak-topic recommendations
+- **Performance data** — per-topic statistics, stored in SQLite
+- **Leaderboard** and **in-app updates**
+
+If you do not see the adaptive toggle in Settings, you are on the web or PWA build. Everything else — all 204 topics, every mode, hints, solutions, worksheets, and the daily challenge — works identically in both builds.
+
+## 🔒 Privacy and Where Your Data Goes
+
+All persistence goes through one module, `src/main/services/Storage.ts`. Nothing else writes to `localStorage` or IndexedDB, and nothing else decides whether a write is durable.
+
+| Mode | What is kept | Where |
+|---|---|---|
+| **Private session** (web default) | Nothing at all after you close the tab | Memory only |
+| **Keep on this device** (web) | Settings, review schedule, streak, records | IndexedDB, this browser only |
+| **Desktop** | The same, plus performance data | SQLite in the app's data directory |
+
+Choosing *Private session* reads and then deletes anything an earlier build left in `localStorage`, so the promise holds even after an upgrade. A versioned learning record can be exported and re-imported from the Data dialog on either build; import is atomic and merges or replaces by choice.
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: HTML5, CSS3 (Custom Properties), TypeScript (strict, ES2020)
-- **Math Rendering**: [MathJax](https://www.mathjax.org/) 4.1.3 and [KaTeX](https://katex.org/) 0.16.28 for beautiful mathematical notation
-- **Build Tool**: [Vite](https://vitejs.dev/) 8.2.0 (oxc minification) for fast development and optimized builds
-- **Math Engine**: [Math.js](https://mathjs.org/) 15.2.0 for complex calculations and equivalence checking
-- **3D / Graph Visualization**: [Three.js](https://threejs.org/) 0.185 for 3D geometry, canvas rendering for trig/polar graphs
-- **Desktop Framework**: [Tauri](https://tauri.app/) v2 (Rust 2021 edition) with plugins for system tray, dialogs, and process control
-- **Database**: [SQLite](https://sqlite.org/) via `sqlx` for persistent score/performance storage
-- **Testing**: [Vitest](https://vitest.dev/) 4.1.10 + jsdom (7,000+ unit tests), [Playwright](https://playwright.dev/) 1.62 (85+ E2E tests), Rust `cargo test` (200+ tests)
-- **Type Safety**: TypeScript 7.0.2 with strict configuration and comprehensive type definitions
-- **Package Manager**: npm with Node.js 20.19+ (22.12+ recommended, per Vite 8)
+- **Frontend**: TypeScript 7.0.2 (strict), vanilla DOM, no framework
+- **Build tool**: Vite 8.3.1
+- **Math rendering**: MathJax 4.1.2 and KaTeX 0.18.9
+- **Math engine**: Math.js 15.2.0, with `fraction.js` for exact rational comparison
+- **3D / graphs**: Three.js 0.186, canvas rendering for trigonometric and polar graphs
+- **Desktop**: Tauri 2.12.1 (Rust 2021) with tray, dialog, process and updater plugins
+- **Database**: SQLite via `sqlx` on the desktop build; IndexedDB in the browser
+- **Testing**: Vitest 5.0.2 + jsdom, Playwright 1.56, `cargo test`
 
-## 📁 Project Structure (Simplified)
+## 📁 Project Structure
 
 ```
-random_math_question_generator/
-├── src/                          # Source code directory
-│   ├── index.html               # Main web application interface
-│   ├── script.ts                # App entry / wiring (TypeScript)
-│   ├── style.css                # Responsive styling (glassmorphism theme)
-│   ├── vitest.setup.ts          # Vitest global mocks (Tauri, three.js, canvas)
-│   ├── types/                   # TypeScript type definitions (global.d.ts)
-│   ├── main/                    # Core application code
-│   │   ├── core/                # StateStore, QuestionState, DomRegistry, QuestionRenderer
-│   │   ├── services/            # TopicRegistry, MathWorkerClient, EventBinder
-│   │   ├── ui/                  # Skeleton, OfflineIndicator, VirtualTopicGrid
-│   │   ├── Settings.ts          # 50+ settings with persistence
-│   │   ├── Generation.ts        # Question orchestration + adaptive learning
-│   │   ├── Answer.ts            # Multi-stage answer-checking pipeline
-│   │   ├── Session.ts           # Mental-math session manager
-│   │   ├── Mcq.ts               # MCQ distractor generation
-│   │   ├── PrintWorksheet.ts    # Printable worksheet generation
-│   │   ├── WeakTopics.ts        # Weak-topic recommendations
-│   │   └── ...                  # Events, Theme, Topics, Ui, DataManagement
-│   ├── modules/                 # Modular math question generators (7 subjects)
-│   │   ├── Algebra/             # 50+ topic‑specific generator files
-│   │   ├── Arithmetic/          # Basic arithmetic generators
-│   │   ├── Calculus/            # Derivative, integral, limit generators
-│   │   ├── LinearAlgebra/       # Matrix & vector generators
-│   │   ├── Trigonometry/        # Trig function generators
-│   │   ├── DiscreteMathematics/ # Combinatorics & probability
-│   │   └── Geometry/            # Area, volume, triangle generators
-│   └── __tests__/               # 7,000+ Vitest unit tests (mirror src structure)
-├── e2e/                         # Playwright end-to-end tests (85+ tests)
-│   ├── helpers.ts               # Shared E2E utilities
-│   ├── all-topics-*.spec.ts     # Full matrix: every topic x easy/medium/hard
-│   └── ...                      # single-mode, mental-mode, mcq, settings, print, ...
-├── src-tauri/                   # Tauri desktop application
-│   ├── src/
-│   │   ├── lib.rs               # Tauri commands (scores, performance, PDF, adaptive)
-│   │   ├── adaptive.rs          # Difficulty + weak-topic recommendation logic
-│   │   ├── pdf.rs               # Rust PDF worksheet engine (printpdf + RaTeX)
-│   │   └── main.rs              # Entry point (calls lib)
-│   ├── Cargo.toml               # Rust dependencies (sqlx, tauri, printpdf, ratex)
-│   └── tauri.conf.json          # Tauri configuration (window effects, tray, etc.)
-├── public/                      # Public assets (fonts, MathJax, KaTeX, service worker)
-├── dist/                        # Build output
-├── .github/workflows/           # CI (typecheck + tests + build) and release pipelines
-├── playwright.config.ts         # Playwright config (system Chrome, dev server on :1331)
-├── vite.config.ts               # Vite build configuration
-├── tsconfig.json                # TypeScript configuration
-├── CONTRIBUTING.md              # Contribution guidelines
-├── SECURITY.md                  # Security policy
-└── README.md                    # This file
+random-math-question-generator-app/
+├── src/
+│   ├── index.html            # the single page
+│   ├── script.ts             # boot sequence
+│   ├── style.css             # responsive styling
+│   ├── utils/envUtils.ts     # the one place that decides which runtime this is
+│   ├── main/
+│   │   ├── core/             # StateStore, QuestionState, DomRegistry, DomVisibility
+│   │   ├── services/         # Storage, ReviewStore, Scheduler, DailyMode, Help, Help.ts
+│   │   ├── Settings.ts       # settings and the persistence decision
+│   │   ├── Topics.ts         # topic grid, search, category filter, scopes
+│   │   ├── Answer.ts         # the single grading pipeline
+│   │   ├── AnswerFormat.ts   # one answer normaliser, shared by all three callers
+│   │   ├── Mcq.ts            # the option-set contract
+│   │   └── Generation.ts     # question orchestration
+│   ├── modules/              # 204 topic generators across 7 subjects
+│   │   └── <Subject>/        # index.ts barrel + RegisterTopics.ts
+│   └── __tests__/            # unit and oracle suites
+├── e2e/                      # Playwright specs, 3 browser projects
+├── src-tauri/                # Rust backend
+│   ├── src/                  # lib.rs, adaptive.rs, pdf.rs, record.rs, main.rs
+│   ├── Cargo.toml            # crate versions pinned with `=`
+│   └── tauri.conf.json
+├── scripts/                  # bundle budget, wrapper checksum pin check
+├── Cargo.toml / Cargo.lock   # the single Rust workspace lock
+├── vite.config.ts            # build config and the coverage floor
+└── playwright.config.ts
 ```
 
-## 🎨 Features in Detail
+## 🧪 How Correctness Is Enforced
 
-### Smart Answer Checking
-- Supports multiple correct answer formats (LaTeX, plain text, fractions, decimals)
-- Handles mathematical equivalences using Math.js (e.g., `2x` ↔ `2*x`, `(x+1)^2` ↔ `x^2+2x+1`)
-- Provides detailed feedback with TypeScript‑safe structures
-- Includes a `display` field for rendering answers in KaTeX, separate from the `alternate` plain‑text representation
-- Vector and matrix notation support (angle brackets) with numeric fallback evaluation
-- One checker for every build, in both single and mental-math mode, so the same question is never graded two different ways
+Two rules are never traded away, and both are checked by CI rather than by review:
 
-### Educational Design
-- Progressive difficulty levels (easy, medium, hard)
-- Clear mathematical notation with MathJax/KaTeX
-- Instant feedback for learning
-- Mental-math timed sessions with statistics (accuracy, average response time)
-- Adaptive difficulty and weak-topic recommendations (Rust-backed)
-- OpenDyslexic font option and reduced-motion support for accessibility
+1. **A question's printed prompt and its graded answer must be the same problem.**
+2. **A multiple-choice question must have four options with exactly one correct.**
 
-### Multiple-Choice Mode
-- Toggle MCQ mode from the toolbar; configure 2–6 choices in Settings
-- Distractors are generated per question via numeric perturbation, pattern variation, or text fallback
-- Works in both Single and Mental modes
+The oracle in `src/__tests__/oracle/` samples every registered topic at every difficulty and asserts the option-set contract, LaTeX validity, well-formedness, and that no distractor is also the key. `scripts/bundle-check.js` and `vite.config.ts` enforce the initial-load budget and the coverage floor, and `scripts/gradle-wrapper-pin-check.js` verifies the Gradle distribution against a pinned SHA-256.
 
-### Printable Worksheets
-- Generate a worksheet (5/10/20/30 questions) with title, student name/date/period header fields
-- Answer-key modes: none, appended (new page), separate page, or answer-key-only
-- Optional page numbers and topic/difficulty metadata
-- Seeded generation for reproducible worksheets (copyable seed)
-- Rust `export_worksheet_pdf` renders LaTeX via RaTeX → PNG for crisp PDFs (browser print fallback in web mode)
+Where a generator's natural question has fewer than four honest answers, **the question is redesigned rather than padded** — "which of these four equations has no solution?" instead of "how many solutions?", for example.
 
-### Performance Optimized
-- Fast server response times (static hosting)
-- Optimized bundle sizes with Vite and TypeScript
-- Efficient math calculations using math.js
-- Responsive design with CSS custom properties
-- **Bundle budget enforcement**: `npm run bundle:check` verifies the initial-load gzipped size stays within budget (JS ≤ 35 kB, CSS ≤ 10 kB, total ≤ 55 kB) — runs automatically in CI
+## 📊 Current State
 
-### Cross-Platform Desktop App
-- Native performance with Tauri
-- Small bundle sizes (10-20 MB)
-- Secure sandboxing (Rust backend)
-- Windows, macOS, and Linux support
-- System tray integration with simple menu
-- Global keyboard shortcuts for quick actions
-- SQLite database for offline persistence
-- Platform-specific window effects (Mica on Windows) and transparency
+| Gate | Result |
+|---|---|
+| Type check | clean |
+| Unit tests | 129 files, 9,956 passed, 6 skipped |
+| Invariant oracle | 23 tests across all 204 topics |
+| Coverage | statements 81.0%, branches 68.2%, functions 69.3%, lines 82.8% (floor enforced) |
+| Rust tests | `cargo test` |
+| Bundle | JS 37.7 kB, CSS 8.6 kB, total 56.5 kB gzipped (budget 38/10/57) |
 
-### TypeScript Benefits
-- **Type Safety**: Catch errors at compile time rather than runtime
-- **Better IDE Support**: Enhanced autocomplete, refactoring, and documentation
-- **Improved Maintainability**: Clear type definitions make code easier to understand
-- **Modern Development**: Leverages latest ECMAScript features with type checking
+## ⚠️ A Note on Tauri Versions
 
-### Modular Architecture
-- **Organized by Subject**: Each math category has its own module directory
-- **Focused Files**: Large modules split into many small, topic‑specific generator files (e.g., `generateFraction.ts`, `generateLogarithm.ts`)
-- **Reusable Utilities**: Common functions extracted into utility files (e.g., `algebraUtils.ts`, `trigUtils.ts`)
-- **Clear Exports**: Each module has an `index.ts` that exports all public functions
+The JavaScript packages and the Rust crates must be on the **same major and minor**, or `npm run tauri dev` refuses to start:
 
-## 🚀 Deployment
-
-### Web Deployment
-The application is ready for deployment on any static hosting platform:
-- Vercel, Netlify, GitHub Pages
-- AWS S3, Google Cloud Storage, Azure Static Websites
-
-### Desktop Application Build
-Build cross-platform desktop apps with Tauri:
-
-```bash
-# Build for current platform
-npm run tauri build
-
-# Build for specific platform (requires cross-compilation setup)
-npm run tauri build -- --target x86_64-pc-windows-msvc
-npm run tauri build -- --target x86_64-apple-darwin
-npm run tauri build -- --target x86_64-unknown-linux-gnu
+```
+Error: Found version mismatched Tauri packages...
 ```
 
-### TypeScript Development
-```bash
-# Type checking (via tsc --noEmit)
-npm run build:typescript
-
-# Development with hot reload
-npm run dev
-
-# Production build
-npm run build
-```
-
-### Automated Releases with GitHub Actions
-The project includes a GitHub Actions workflow that automatically builds and packages the application for all platforms when a new release is created.
-
-**Supported Platforms:**
-- **Windows**: 64-bit (.exe installers)
-- **macOS**: Intel x64 & Apple Silicon (.dmg bundles)
-- **Linux**: 64-bit (.AppImage & .deb packages)
-
-**How to create a release:**
-1. Go to GitHub repository → Releases → Create a new release
-2. Create a tag (e.g., `v1.9.0`)
-3. Add release title and description
-4. Click "Publish release"
-
-The workflow will automatically:
-- Build the web application
-- Build desktop apps for all platforms
-- Generate release notes with download links
-- Upload all artifacts to the release
-
-**Cost**: FREE for public repositories (uses ~30 minutes of GitHub Actions time per release)
+Both sides are pinned to a matching set (`tauri` 2.12.1 with `@tauri-apps/api` 2.12.1, and each plugin likewise), and the Rust requirements use `=` so cargo cannot resolve to a different minor on its own. If you upgrade one side, upgrade the other in the same commit and update the root `Cargo.lock` with `cargo fetch`. There is one workspace lock, at the repository root.
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
-
-Here's how you can help:
-- **Report Bugs**: Open an issue with detailed descriptions
-- **Suggest Features**: Share your ideas for new math topics or features
-- **Improve Documentation**: Help make the project more accessible
-- **Submit Code**: Fork the repo and create pull requests
-
-### Development Setup
-```bash
-git clone https://github.com/richie-rich90454/random-math-question-generator-app.git
-cd random_math_question_generator
-npm install
-
-# For web development
-npm run dev
-
-# For desktop app development
-npm run tauri dev
-
-# For TypeScript type checking
-npm run build:typescript
-```
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines, and [CODE_STYLE.md](CODE_STYLE.md) for the formatting and architecture rules the codebase enforces.
 
 ## 🔒 Security
 
-We take security seriously. Please see our [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
-
-## 📊 Project Stats
-
-- **137** Math topics supported
-- **7** Major math categories (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry)
-- **7,000+** Vitest unit tests (118 files)
-- **85+** Playwright end-to-end tests (including a full matrix — every topic × easy/medium/hard)
-- **200+** Rust tests (`cargo test`)
-- **100+** Module files organized by subject
-- **Unlimited** Question combinations
-- **Instant** Answer verification
-- **Cross-platform** Desktop application
-- **TypeScript (strict)** for robust development
+Please see [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
 
 ## ⭐ Star History
 
@@ -399,7 +241,7 @@ We take security seriously. Please see our [SECURITY.md](SECURITY.md) for report
 
 ## 📄 License
 
-This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
+Apache License 2.0. See [LICENSE](LICENSE).
 
 ## 🔗 Links
 
@@ -413,5 +255,3 @@ This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE
 ---
 
 ⭐ **If you find this project helpful, please consider giving it a star!** ⭐
-
-Your support helps more people discover this valuable learning tool and encourages further development.
