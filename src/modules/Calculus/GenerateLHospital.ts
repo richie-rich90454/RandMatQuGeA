@@ -32,11 +32,11 @@ export function generateLHospital(difficulty?: string, rng: RngFn=Math.random): 
         case "zero_over_zero":{
             // The difference of powers factors, so the quotient reduces to a
             // polynomial whose value at the point of approach is the derivative of
-            // that power. The square root flavour is only reachable at a perfect
+            // that power. The square root flavor is only reachable at a perfect
             // square, which is why the radicand is drawn from squares rather than
             // from an arbitrary integer.
-            let flavour=Math.floor(rng()*3);
-            if (flavour===0){
+            let flavor=Math.floor(rng()*3);
+            if (flavor===0){
                 let a=randInt(rng, 2, wide?11:6);
                 key=2*a;
                 latex=`Evaluate \\( \\lim_{x \\to ${a}} \\frac{x^{2} - ${a*a}}{x - ${a}} \\).`;
@@ -52,7 +52,7 @@ export function generateLHospital(difficulty?: string, rng: RngFn=Math.random): 
                     `So the limit is $ 2(${a}) = ${key} $, and the answer is ${key}.`
                 ];
             }
-            else if (flavour===1){
+            else if (flavor===1){
                 let a=randInt(rng, 1, wide?5:3);
                 key=3*a*a*a;
                 latex=`Evaluate \\( \\lim_{x \\to ${a}} \\frac{x^{3} - ${a*a*a}}{x - ${a}} \\).`;
@@ -92,8 +92,8 @@ export function generateLHospital(difficulty?: string, rng: RngFn=Math.random): 
             // Two shapes: matching degrees, where the limit is the ratio of the
             // leading coefficients, and a numerator of lower degree, where the
             // quotient collapses to zero.
-            let flavour=Math.floor(rng()*2);
-            if (flavour===0){
+            let flavor=Math.floor(rng()*2);
+            if (flavor===0){
                 // The leading coefficients are drawn as a pair whose quotient is
                 // exactly representable at two decimal places, so the key is never a
                 // rounded value. The linear coefficients are adjusted when they would
@@ -149,8 +149,8 @@ export function generateLHospital(difficulty?: string, rng: RngFn=Math.random): 
             // differentiation, so the rule has to be applied a second time. That is
             // the whole content of the branch: a learner who stops after one
             // differentiation has not evaluated anything.
-            let flavour=Math.floor(rng()*4);
-            if (flavour===0){
+            let flavor=Math.floor(rng()*4);
+            if (flavor===0){
                 key=0.5;
                 latex=`Evaluate \\( \\lim_{x \\to 0} \\frac{e^{x} - 1 - x}{x^{2}} \\).`;
                 wrong=[1, -0.5, 2, 0, -1];
@@ -165,7 +165,7 @@ export function generateLHospital(difficulty?: string, rng: RngFn=Math.random): 
                     `The second round gives $ \\dfrac{e^{x}}{2} $, and its limit as $ x \\to 0 $ is $ 1/2 = ${key} $, so the answer is ${key}.`
                 ];
             }
-            else if (flavour===1){
+            else if (flavor===1){
                 key=2;
                 latex=`Evaluate \\( \\lim_{x \\to 0} \\frac{1 - \\cos(2x)}{x^{2}} \\).`;
                 wrong=[1, -2, 4, 0.5, 0];
@@ -180,7 +180,7 @@ export function generateLHospital(difficulty?: string, rng: RngFn=Math.random): 
                     `The second round gives $ \\dfrac{2\\cos(2x)}{1} $, whose limit is $ 2 = ${key} $, so the answer is ${key}.`
                 ];
             }
-            else if (flavour===2){
+            else if (flavor===2){
                 let b=randInt(rng, 2, wide?11:6);
                 let e=randInt(rng, 1, wide?6:4);
                 key=1;
@@ -219,8 +219,8 @@ export function generateLHospital(difficulty?: string, rng: RngFn=Math.random): 
             // answer still exists, and it comes from rewriting: an `infinity minus
             // infinity` becomes a quotient by the conjugate, and a `zero times
             // infinity` becomes a quotient by dividing through.
-            let flavour=Math.floor(rng()*3);
-            if (flavour===0){
+            let flavor=Math.floor(rng()*3);
+            if (flavor===0){
                 let c=randInt(rng, 1, wide?4:3)*2;
                 key=c/2;
                 latex=`Evaluate \\( \\lim_{x \\to \\infty} \\left( \\sqrt{x^{2} + ${c}x} - x \\right) \\).`;
@@ -236,7 +236,7 @@ export function generateLHospital(difficulty?: string, rng: RngFn=Math.random): 
                     `Dividing top and bottom by $ x $ gives $ \\dfrac{${c}}{\\sqrt{1 + ${c}/x} + 1} \\to ${key} $, so the answer is ${key}.`
                 ];
             }
-            else if (flavour===1){
+            else if (flavor===1){
                 let c=randInt(rng, 1, wide?7:4);
                 key=-c;
                 latex=`Evaluate \\( \\lim_{x \\to \\infty} x\\left(e^{-${c}/x} - 1\\right) \\).`;
