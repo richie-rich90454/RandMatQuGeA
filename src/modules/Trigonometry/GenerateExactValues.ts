@@ -148,7 +148,7 @@ export function generateExactValues(difficulty?: string, rng: RngFn=Math.random)
     }
     else{
         rungs=[
-            "Split the angle into two familiar angles and apply the sum or difference identity, then simplify the surd; the value of a composite angle is not something to memorise.",
+            "Split the angle into two familiar angles and apply the sum or difference identity, then simplify the surd; the value of a composite angle is not something to memorize.",
             "Write the angle as a sum or a difference of two angles whose ratios are exact, expand with the identity, and collect the surds."
         ];
         steps=[
