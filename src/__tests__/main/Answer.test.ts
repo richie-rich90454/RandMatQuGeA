@@ -154,6 +154,11 @@ vi.mock('../../main/Settings', () => ({
     // The grader finishes here, so this is the one setting a test has to stub
     // deliberately rather than leave answering everything.
     isAnswerCorrect: vi.fn(),
+    // The checker asks the store it keeps in what mode the session is in before it
+    // writes a performance record, because a record nothing will read back is not
+    // one worth writing. "desktop" is the mode under Tauri, and the harness runs
+    // with the Tauri internals present, so this keeps the desktop path under test.
+    effectivePersistence: () => 'desktop',
 }));
 vi.mock('../../main/Ui', () => ({
     showNotification: vi.fn(),
