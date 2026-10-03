@@ -17,7 +17,7 @@
  * leading `x =` and a factor of pi are stripped, so the options one question produces
  * all compare on the number they denote. Anything else is compared as lower-cased
  * trimmed text, so a matrix, an inequality and a sentence keep the spelling the
- * question gave them while two spellings of the same words are recognised as the one
+ * question gave them while two spellings of the same words are recognized as the one
  * option they are.
  *
  * A set still short of four is topped up deterministically by walking whole steps away
