@@ -9,7 +9,8 @@ import * as answer from"./Answer";
 import * as session from"./Session";
 import{check}from"@tauri-apps/plugin-updater";
 import{relaunch}from"@tauri-apps/plugin-process";
-import{isTauri}from"../utils/envUtils";
+import{isTauri,adaptiveAvailable}from"../utils/envUtils";
+import{effectivePersistence}from"./Settings";
 import type{PersistenceMode}from"./services/Storage";
 import type{Confidence}from"./services/Scheduler";
 import * as dailyMode from"./services/DailyMode";
@@ -355,7 +356,7 @@ export async function setupEventListeners(): Promise<void>{
         button.addEventListener("click",()=>{
             let value=button.dataset.confidence as Confidence|undefined;
             if (!value) return;
-            import("./services/Help").then(h=>h.recordConfidence(value)).catch((err:unknown)=>console.error("confidence failed:",err));
+            import("./services/Help").then(h=>h.recordConfidence(value, adaptiveAvailable(effectivePersistence()))).catch((err:unknown)=>console.error("confidence failed:",err));
         });
     }
     if (dom.buttons.checkUpdatesBtn){
