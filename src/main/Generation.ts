@@ -14,7 +14,7 @@ import{startQuestionTimer}from"./Answer";
 import type{QuestionDto}from"../types/global";
 /** The question most recently generated, kept so its help can be prepared. */
 let lastDto: QuestionDto|undefined;
-import{isTauri}from"../utils/envUtils";
+import{adaptiveAvailable}from"../utils/envUtils";
 async function applyAdaptiveRecommendation(): Promise<boolean>{
     console.log("[Adaptive] Called, adaptive setting =", settings.settings.adaptive);
     if (!settings.settings.adaptive) return false;
@@ -54,7 +54,7 @@ export function debounceGenerate(): void{
     },150);
 }
 async function applyAdaptiveSafe(): Promise<boolean>{
-    if (!isTauri()||!settings.settings.adaptive) return false;
+    if (!adaptiveAvailable()||!settings.settings.adaptive) return false;
     return applyAdaptiveRecommendation();
 }
 export async function generateQuestion(explicitTopicId?: string, rng?: RngFn): Promise<void>{
