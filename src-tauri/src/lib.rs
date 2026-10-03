@@ -387,7 +387,7 @@ struct SkillRow {
 /// Records one answer in full, as well as in the aggregate. The aggregate is what
 /// the recommendations read; the row is what makes the learner's history theirs,
 /// exportable and rebuildable rather than only what the schema happens to
-/// summarise.
+/// summarize.
 #[tauri::command]
 async fn save_attempt(
     state: tauri::State<'_, DbState>,
@@ -603,7 +603,7 @@ pub(crate) async fn create_schema(pool: &SqlitePool) -> Result<(), String> {
     .map_err(|e| format!("DB init error for review_skills: {}", e))?;
     // Every answer is kept, not just the aggregate, so a learner's
     // history can be exported, audited and rebuilt rather than being
-    // only what the current schema happens to summarise.
+    // only what the current schema happens to summarize.
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS attempts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
