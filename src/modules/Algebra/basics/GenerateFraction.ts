@@ -46,7 +46,7 @@ function smallestFactor(g: number): number{
  * Generates a fraction arithmetic question (add, subtract, multiply, divide, simplify, or convert decimal to fraction) with MCQ distractors.
  * @fileoverview Fraction operations. Every answer is reduced, and the wrong
  * answers are the mistakes the drawn fractions invite: adding the numerators to
- * the denominators, cancelling only part of the common factor, or reading the
+ * the denominators, canceling only part of the common factor, or reading the
  * decimal with the wrong number of places. The unreduced form of the answer is
  * never offered, because it is the same value written differently and would give
  * the question two correct options.
@@ -164,7 +164,7 @@ export function generateFraction(difficulty?: string, rng: RngFn=Math.random): Q
             alternate=plain;
             display=latex;
             mathExpression=`Simplify: \\( \\frac{${num}}{${den}} \\)`;
-            // Cancelling by only the smallest common factor, or by that factor on
+            // Canceling by only the smallest common factor, or by that factor on
             // one side alone, is what a learner writes when they stop one step
             // early. With no common factor there is nothing to stop early on, and
             // the ladder carries the set.
