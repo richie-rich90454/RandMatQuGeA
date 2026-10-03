@@ -1,5 +1,5 @@
 import{dom}from"./core/DomRegistry";
-import{setHidden}from"./core/DomVisibility";
+import{applyGates}from"./core/GatedSurfaces";
 import{appState}from"./core/StateStore";
 import{questionState}from"./core/QuestionState";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
@@ -64,8 +64,15 @@ export let settings={
     /** Where the browser build keeps the learner's record. */
     persistence:"zdr" as PersistenceMode
 };
-/** The keys this app has historically kept in localStorage. */
-const LEGACY_KEYS=["appSettings","sessionState","uiPreferences","theme"];
+/**
+ * The keys this app has historically kept in localStorage.
+ *
+ * `sessionState` is an earlier name for the mental session snapshot, and `mentalSessionSnapshot`
+ * is the key in force today. Both are listed because the migration can only remove a key it
+ * knows about, and a live key that is missing from this list is written and never cleaned up:
+ * a private session is supposed to leave nothing behind, and this is the one thing that would.
+ */
+const LEGACY_KEYS=["appSettings","sessionState","uiPreferences","theme","mentalSessionSnapshot"];
 /** Where the settings document is kept, which is whatever store the mode allows. */
 const SETTINGS_KEY="appSettings";
 /**
@@ -112,9 +119,6 @@ export function effectivePersistence(): PersistenceMode{
  */
 export function applyPersistenceVisibility(): void{
     let mode=effectivePersistence();
-    let usable=mode!=="zdr";
-    let eraseGroup=dom.settings.settingEraseData;
-    setHidden(eraseGroup, !usable);
     let persistenceSelect=dom.settings.settingsPersistence;
     if (persistenceSelect){
         // The select reflects the mode in force, which is not always the mode that
@@ -128,47 +132,38 @@ export function applyPersistenceVisibility(): void{
         help.textContent=mode==="zdr"
             ? "A private session keeps nothing after you close the tab."
             : mode==="indexed"
-                ? "Your review schedule and streak are stored in this browser only, and never sent anywhere."
+                ? "Your settings are stored in this browser only, and never sent anywhere."
                 : "Your review schedule and streak are stored on this computer only, and never sent anywhere.";
     }
-    // The adaptive surfaces depend on the mode, so they are decided here rather
-    // than only at start-up. A learner who turns a private session on in the
-    // browser has just removed the record the scheduler reads, and leaving the
-    // switch on screen after that would be offering a button whose only honest
-    // answer is that there is nothing left to learn from.
+    // The gates depend on the mode, so they are decided here rather than only at
+    // start-up. A learner who turns a private session on in the browser has just
+    // removed the record, and leaving the controls for it on screen after that would
+    // be offering a button whose only honest answer is that there is nothing to act on.
     applyAdaptiveVisibility();
 }
 /**
- * Removes every adaptive surface where adaptive learning cannot run, and turns the
+ * Removes every surface that cannot work where it currently is, and turns the adaptive
  * preference off so nothing can act on it.
  *
- * Adaptive learning needs two things, and the desktop app under a private session
- * has only one of them. The scheduler's inputs are performance records written over
- * Tauri IPC, which a browser never holds, so the difficulty would drift on a
- * partial history and the weak-topic list would be confidently wrong. And a
- * private session discards the record when the window closes, so a schedule built
- * from it describes a session that no longer exists. The difficulty adjustment
- * already refused to run outside Tauri, which left the interface offering a switch
- * that changed nothing and a recommendation button that could only report that it
- * was unavailable.
+ * This is the single place a surface is decided. The list lives in `GatedSurfaces`, and the
+ * three gates it names are three different questions: adaptive learning needs the desktop
+ * runtime and a store that will still hold the record tomorrow; anything that exports,
+ * imports, erases or displays a record needs a store at all; the updater needs the desktop
+ * runtime. Deciding each of them where the surface is built is how four of them were missed
+ * while three were hidden.
  *
- * Hiding rather than explaining is the deliberate choice. A disabled switch and a
- * button that notifies on press both leave the learner reading about a feature they
- * cannot use; removing them leaves nothing to explain.
- *
- * The stored preference is forced off as well, not merely hidden. A value that the
- * interface no longer offers must not survive in storage and be read back by code
- * that cannot see why it is meaningless.
+ * The stored adaptive preference is forced off as well, not merely hidden. A value that the
+ * interface no longer offers must not survive in storage and be read back by code that
+ * cannot see why it is meaningless.
  */
 export function applyAdaptiveVisibility(): void{
-    let available=adaptiveAvailable(effectivePersistence());
-    if (!available) settings.adaptive=false;
-    let row=dom.settings.settingAdaptive;
-    setHidden(row, !available);
-    let recommendBtn=dom.buttons.recommendBtn;
-    setHidden(recommendBtn, !available);
-    let modal=dom.modals.weakTopicsModal;
-    setHidden(modal, !available);
+    let mode=effectivePersistence();
+    if (!adaptiveAvailable(mode)) settings.adaptive=false;
+    applyGates({
+        adaptive:adaptiveAvailable(mode),
+        record:mode!=="zdr",
+        tauri:isTauri()
+    });
 }
 export function loadSettings(): Promise<void>{
     // The controls are filled from the defaults immediately so the interface never
