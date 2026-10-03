@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file The place a learner takes their record away from this device, and puts a
  * record from another device into it.
  * @description Export and import carry the whole learning record: the review
@@ -223,7 +223,7 @@ async function importDesktopRecord(path: string, mode: ImportMode): Promise<stri
 /**
  * Writes an imported record into the browser's store, through the storage module.
  * Merging keeps the skills the file does not mention, because a file written
- * after a learner practised one more topic should not erase the earlier work;
+ * after a learner practiced one more topic should not erase the earlier work;
  * replacing makes the file the whole record. Either way the file's own spelling
  * of a skill wins, which is the same rule the desktop applies per key.
  *
@@ -306,7 +306,7 @@ export async function importRecord(mode: ImportMode): Promise<void>{
  * Asks the browser for a file and reads it, without adding a permanent control
  * to the page for something used once.
  *
- * @returns A promise resolving to the file's text, or null when the learner cancelled.
+ * @returns A promise resolving to the file's text, or null when the learner canceled.
  */
 function readChosenFile(): Promise<string|null>{
     return new Promise<string|null>((resolve)=>{
@@ -453,7 +453,7 @@ function renderRows(list: HTMLElement, rows: Array<PerformanceRow>, names: Map<s
 }
 
 /**
- * Erases one record and reloads the list, which is the whole behaviour of the
+ * Erases one record and reloads the list, which is the whole behavior of the
  * per-row delete control.
  *
  * @param topicId - The topic whose record is being erased.
