@@ -10,10 +10,17 @@
  * for a day is stored whole, which is what makes a refresh mid-set resume where it
  * left off rather than restarting, and it is stored through the privacy module, so
  * a private session genuinely forgets the streak when the tab closes.
+ *
+ * The set is derived from the date and needs no record, so it is offered in every
+ * runtime. The streak is a record rather than a count, and the scheduler's reason
+ * describes spacing decided from one, so both are removed where adaptive learning
+ * cannot run rather than shown with a number they cannot stand behind.
  */
 import{setHidden}from"../core/DomVisibility";
 import{dom}from"../core/DomRegistry";
 import{appState}from"../core/StateStore";
+import{effectivePersistence}from"../Settings";
+import{adaptiveAvailable}from"../../utils/envUtils";
 import * as ui from"../Ui";
 import * as generation from"../Generation";
 import * as topics from"../Topics";
@@ -161,7 +168,8 @@ function syncModeButtons(): void{
 }
 
 /**
- * Shows how much of the day is done and what the streak is.
+ * Shows how much of the day is done and, where something is kept, what the streak
+ * is.
  */
 function renderSummary(): void{
     if (!today) return;
@@ -171,10 +179,20 @@ function renderSummary(): void{
     let text=dom.daily.dailySummaryText;
     if (track) track.setAttribute("aria-valuenow", String(Math.round(progress*100)));
     if (fill) fill.style.width=Math.round(progress*100)+"%";
+    let done=answered.size+" of "+today.slots.length+" done";
+    // A streak is a record and not a count. The completed days behind it are read
+    // from memory, so without somewhere to keep them the badge could only ever
+    // report today's own answer and would reset on every reload — a streak the app
+    // cannot stand behind. The set itself is derived from the date, so it works
+    // everywhere and only the streak is removed.
+    if (!adaptiveAvailable(effectivePersistence())){
+        setHidden(dom.daily.dailyStreak, true);
+        if (text) text.textContent=done;
+        return;
+    }
     if (text){
-        let reviewStoreState=streakAfter(today, answered.size, completedDays());
-        text.textContent=answered.size+" of "+today.slots.length+" done"
-            +(reviewStoreState.streak>1?" · "+reviewStoreState.streak+" day streak":"");
+        let state=streakAfter(today, answered.size, completedDays());
+        text.textContent=done+(state.streak>1?" · "+state.streak+" day streak":"");
     }
     let streak=dom.daily.dailyStreak;
     let count=dom.daily.dailyStreakCount;
@@ -249,8 +267,13 @@ export async function next(): Promise<void>{
         return;
     }
     topics.selectTopic(slot.topicId);
-    let reason=slot.reason?slot.reason:"Part of today's set";
-    ui.showNotification("Question "+(current+1)+" of "+today.slots.length+" · "+reason);
+    // The reason is scheduler prose about when a skill is due, which describes
+    // spacing decided from a review record. Where that record cannot exist there is
+    // no schedule running to explain, so only the position in the set is shown.
+    let reason=adaptiveAvailable(effectivePersistence())
+        ?" · "+(slot.reason?slot.reason:"Part of today's set")
+        : "";
+    ui.showNotification("Question "+(current+1)+" of "+today.slots.length+reason);
     await generation.generateQuestion(slot.topicId);
 }
 
