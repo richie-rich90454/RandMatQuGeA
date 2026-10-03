@@ -1,44 +1,126 @@
 import {test, expect} from "@playwright/test";
-import {gotoApp, selectTopic, switchMode} from "./helpers";
+import {gotoApp, waitForAppReady, selectTopic, switchMode} from "./helpers";
 
-test("data modal opens in the browser and reads the browser record", async ({page})=>{
-    // This used to assert a dialog saying performance data was desktop-only. The
-    // browser gained a real record path, so the modal now opens and has something
-    // to show, and the assertion was describing a behavior that had been removed.
+/**
+ * Every surface that cannot work in a browser under a private session.
+ *
+ * The list is written out here rather than imported so that a surface added to
+ * `GatedSurfaces` without a case here is a visible omission in review, and a case
+ * here for a surface that no longer exists fails loudly instead of passing on a
+ * selector that matches nothing.
+ */
+const HIDDEN_WITHOUT_A_RECORD=[
+    "#setting-adaptive",
+    "#settings-adaptive",
+    "#recommend-btn",
+    "#weak-topics-modal",
+    "#confidence-row",
+    "#daily-streak",
+    "#manage-data-btn",
+    "#setting-erase-data",
+];
+
+const RECORD_SURFACES=[
+    "#manage-data-btn",
+    "#export-data-btn",
+    "#import-data-btn",
+    "#import-mode",
+    "#delete-all-btn",
+    "#reset-all-btn",
+];
+
+test("every surface that needs adaptive learning is absent in the browser", async ({page})=>{
+    // Three of these were hidden and four were not, which is what a rule decided at
+    // each call site looks like from the outside: the confidence control, the streak
+    // badge and the data dialog all survived, and the confidence control was the one
+    // a learner is actually asked to answer.
     await gotoApp(page);
+    await waitForAppReady(page);
+    for (const selector of HIDDEN_WITHOUT_A_RECORD){
+        await expect(page.locator(selector)).toBeHidden();
+    }
+    await page.locator("#settings-button").click();
+    await expect(page.locator("#settings-auto-continue")).toBeVisible();
+    await expect(page.locator("#settings-shuffle")).toBeVisible();
+    await page.locator("#settings-close").click();
+});
+
+test("the confidence control never appears after answering in the browser", async ({page})=>{
+    // The question is asked once the answer is graded, so a boot-time check is not
+    // enough to catch it. Its only reader is the scheduler's overconfidence
+    // correction, so in a browser it is collected, stored and read by nothing.
+    await gotoApp(page);
+    await waitForAppReady(page);
+    await selectTopic(page, "add");
+    await page.locator("#genQ").click();
+    await expect(page.locator("#answer-box")).toBeEnabled({timeout: 15000});
+    const answer = await page.evaluate(()=>{
+        const w = window as unknown as { correctAnswer?: { correct?: string } };
+        return w.correctAnswer?.correct ?? "";
+    });
+    await page.locator("#answer-box").fill(answer);
+    await page.locator("#answer-box").press("Shift+Enter");
+    await expect(page.locator(".results-display")).toContainText("Correct");
+    await expect(page.locator("#confidence-row")).toBeHidden();
+});
+
+test("record surfaces appear once a record is actually kept", async ({page})=>{
+    // The gate is not "hide everything in a browser". Choosing to keep a record in
+    // this browser makes these controls meaningful, and a rule that hid them anyway
+    // would be the same bug wearing the opposite sign.
+    await gotoApp(page, {appSettings: {persistence: "indexed"}});
+    await waitForAppReady(page);
     await page.locator("#manage-data-btn").click();
     await expect(page.locator("#data-modal")).toBeVisible();
+    for (const selector of RECORD_SURFACES){
+        await expect(page.locator(selector)).toBeVisible();
+    }
     await page.locator("#data-close").click();
     await expect(page.locator("#data-modal")).toBeHidden();
 });
 
-test("adaptive learning is absent in the browser rather than explained", async ({page})=>{
-    // The recommendation button used to be present and reported itself unavailable
-    // on press. It is now removed: a learner reading about a feature they cannot use
-    // is worse than not being offered it.
-    await gotoApp(page);
-    await expect(page.locator("#recommend-btn")).toBeHidden();
+test("the data modal is absent entirely when nothing is kept", async ({page})=>{
+    // A private session has no record to export, import, erase or refresh, so the
+    // controls are removed rather than left in place to answer that nothing happens.
+    await gotoApp(page, {appSettings: {persistence: "zdr"}});
+    await waitForAppReady(page);
+    await expect(page.locator("#manage-data-btn")).toBeHidden();
+    for (const selector of RECORD_SURFACES){
+        await expect(page.locator(selector)).toBeHidden();
+    }
+});
+
+test("turning a private session on removes the record controls immediately", async ({page})=>{
+    // The mode is the thing that changes what is kept, so the surfaces have to follow
+    // it at the moment it changes rather than at the next restart.
+    await gotoApp(page, {appSettings: {persistence: "indexed"}});
+    await waitForAppReady(page);
     await page.locator("#settings-button").click();
-    await expect(page.locator("#setting-adaptive")).toBeHidden();
-    await expect(page.locator("#settings-adaptive")).toBeHidden();
-    // The weak-topic list is the surface behind the button, and it is hidden too.
-    await expect(page.locator("#weak-topics-modal")).toBeHidden();
+    await page.locator("#settings-persistence").selectOption("zdr");
+    await expect(page.locator("#setting-erase-data")).toBeHidden();
+    await page.locator("#settings-close").click();
+    await expect(page.locator("#manage-data-btn")).toBeHidden();
+});
+
+test("the updates section is absent in the browser rather than explained", async ({page})=>{
+    // It used to be present and answered a press with a toast. A control that can
+    // only report that it is unavailable is a control that should not be there.
+    await gotoApp(page);
+    await page.locator("#settings-button").click();
+    await expect(page.locator("#updates-section")).toBeHidden();
+    await expect(page.locator("#check-updates")).toBeHidden();
     await page.locator("#settings-close").click();
 });
 
-test("the settings around the removed adaptive row still work", async ({page})=>{
-    // Removing one row must not take its neighbors with it: a hiding rule that
-    // took out the wrong element would be invisible in a screenshot of the top of
-    // the modal and obvious in use. The neighbors are named by their checkboxes,
-    // because the rows themselves carry no ids to aim at.
+test("the mode control names the store that is really in force", async ({page})=>{
+    // The desktop build kept everything while this said nothing was stored, which is
+    // what made the adaptive surfaces beside it look like a contradiction.
     await gotoApp(page);
     await page.locator("#settings-button").click();
-    await expect(page.locator("#settings-auto-continue")).toBeVisible();
-    await expect(page.locator("#settings-shuffle")).toBeVisible();
-    // The erase row is hidden here for a different reason, and it is the second
-    // thing the class-based hiding fixes: a browser that keeps nothing has nothing
-    // to erase, and the row was staying on screen with a button that could not work.
-    await expect(page.locator("#setting-erase-data")).toBeHidden();
+    await expect(page.locator("#settings-persistence")).toHaveValue("zdr");
+    await expect(page.locator("#settings-persistence-help")).toContainText("keeps nothing");
+    await page.locator("#settings-persistence").selectOption("indexed");
+    await expect(page.locator("#settings-persistence-help")).toContainText("stored in this browser only");
     await page.locator("#settings-close").click();
 });
 
@@ -58,19 +140,7 @@ test("answering a question in the browser still records a session", async ({page
     await expect(page.locator(".results-display")).toContainText("Correct");
 });
 
-test("check updates tells the learner it needs the desktop app", async ({page})=>{
-    // Also used to wait for a dialog. The message is a toast, not a dialog, and has
-    // been for some time; the test was waiting for an event the app never raised.
-    await gotoApp(page);
-    await page.locator("#settings-button").click();
-    await page.locator("#check-updates").click();
-    await expect(page.locator(".notification-warning")).toContainText(
-        "Updates are only available in the desktop app."
-    );
-    await page.locator("#settings-close").click();
-});
-
-test("leaderboard shows the desktop-only message in web mode", async ({page})=>{
+test("leaderboard stays out of the browser build", async ({page})=>{
     await gotoApp(page);
     await expect(page.locator("#leaderboard-content")).toContainText(
         "Leaderboard is only available in the desktop app."
