@@ -16,7 +16,7 @@
  * The bipartiteness branch asks which of four printed graphs is bipartite rather
  * than asking whether one graph is, because a yes or no answer would leave the
  * option set with two honest options instead of four. Each graph is decided by a
- * two-colouring attempt, so the correct one is correct because it was checked.
+ * two-coloring attempt, so the correct one is correct because it was checked.
  */
 import type{RngFn, QuestionDto}from"../../types/global";
 import{randInt, shuffle}from"../shared/Random";
@@ -47,7 +47,7 @@ function isHamiltonPath(order: number[], graph: Graph): boolean{
 }
 
 /**
- * Reports whether a graph can be two-coloured, which is the same as saying it
+ * Reports whether a graph can be two-colored, which is the same as saying it
  * has no odd cycle.
  *
  * @param graph - The graph.
@@ -55,23 +55,23 @@ function isHamiltonPath(order: number[], graph: Graph): boolean{
  */
 export function isBipartite(graph: Graph): boolean{
     let table=adjacency(graph);
-    let colour=new Array<number>(graph.size).fill(-1);
+    let color=new Array<number>(graph.size).fill(-1);
     for (let start=0; start<graph.size; start++){
-        if (colour[start]!==-1) continue;
-        colour[start]=0;
+        if (color[start]!==-1) continue;
+        color[start]=0;
         let queue:number[]=[start];
         while (queue.length>0){
             let vertex=queue.shift() as number;
             let row=table[vertex] as boolean[];
-            let wanted=(colour[vertex] as number)===0?1:0;
+            let wanted=(color[vertex] as number)===0?1:0;
             for (let other=0; other<graph.size; other++){
                 if (!row[other]) continue;
-                if (colour[other]===-1){
-                    colour[other]=wanted;
+                if (color[other]===-1){
+                    color[other]=wanted;
                     queue.push(other);
                     continue;
                 }
-                if (colour[other]===(colour[vertex] as number)) return false;
+                if (color[other]===(color[vertex] as number)) return false;
             }
         }
     }
@@ -236,7 +236,7 @@ export function generateGraphEuler(difficulty?: string, rng: RngFn=Math.random):
         case "bipartite_by_odd_degree":{
             // Four printed graphs on the same five vertices: one built with no odd
             // cycle and three built around an odd cycle, then all four tested by
-            // a two-colouring attempt. The relabelling keeps the questions from
+            // a two-coloring attempt. The relabelling keeps the questions from
             // repeating without changing which of the four is bipartite.
             let size=5;
             let offset=randInt(rng, 0, size-1);
@@ -266,13 +266,13 @@ export function generateGraphEuler(difficulty?: string, rng: RngFn=Math.random):
             expectedFormat="Choose the edge list of the bipartite graph";
             choices=[correct, ...shuffle(rng, options.filter((_, index)=>index!==winner))];
             steps=[
-                "Two-colour each graph in turn: give one vertex colour 1, force every neighbour to colour 2, and keep going. A graph is bipartite exactly when no vertex is ever forced to the same colour as a neighbour.",
-                `The graph with edges ${correct} colours cleanly around its four-cycle, while each of the other three contains an odd cycle, which cannot be split into two groups.`,
+                "Two-color each graph in turn: give one vertex color 1, force every neighbor to color 2, and keep going. A graph is bipartite exactly when no vertex is ever forced to the same color as a neighbor.",
+                `The graph with edges ${correct} colors cleanly around its four-cycle, while each of the other three contains an odd cycle, which cannot be split into two groups.`,
                 `So the bipartite graph is the one with edges ${correct}.`
             ];
             rungs=[
-                "A graph is bipartite exactly when it has no odd cycle, so look for an odd cycle in each printed graph before colouring anything.",
-                "Two-colour each graph from one vertex outwards; a conflict means an odd cycle, and an odd cycle means the graph is not bipartite."
+                "A graph is bipartite exactly when it has no odd cycle, so look for an odd cycle in each printed graph before coloring anything.",
+                "Two-color each graph from one vertex outwards; a conflict means an odd cycle, and an odd cycle means the graph is not bipartite."
             ];
             break;
         }
