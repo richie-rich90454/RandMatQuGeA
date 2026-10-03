@@ -231,6 +231,11 @@ export async function next(): Promise<void>{
         ui.showNotification("No topics are in scope for today's set.");
         return;
     }
+    // Before the first question of a day `current` is -1, which is how "nothing
+    // answered yet" is recorded, and the first slot to ask is index zero. Without
+    // this the first call indexes slots[-1], which is undefined, and the daily
+    // challenge throws before a question ever reaches the screen.
+    if (current<0) current=0;
     if (current>=today.slots.length){
         await markCompleted();
         renderSummary();
