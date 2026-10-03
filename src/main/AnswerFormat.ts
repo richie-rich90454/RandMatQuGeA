@@ -13,6 +13,35 @@
 import Fraction from "fraction.js";
 
 /**
+ * Rewrites `\frac{a}{b}` as `(a)/(b)`, including when either group itself holds
+ * a braced group.
+ *
+ * Refusing braces inside a group looks safe and is not: the keys this curriculum
+ * prints are mostly of that shape. The half-angle surd is
+ * `\frac{\sqrt{6}-\sqrt{2}}{4}` and a reciprocal of a ratio is
+ * `\frac{1}{\sin(30^{\circ})}`. Both survive a brace-free pattern untouched, and
+ * the checker is then handed a `\frac` command it cannot parse, so a key that
+ * prints perfectly well cannot be graded.
+ *
+ * The rewrite repeats until the string stops changing, bounded by a pass count.
+ * Each pass strictly removes one `\frac` and introduces none, so the loop
+ * terminates; the bound is there so that a string which somehow never settles
+ * costs eight passes rather than the test run.
+ *
+ * @param value - The text to rewrite.
+ * @returns The text with every `\frac` flattened.
+ */
+function flattenFractions(value: string): string{
+    let out=value;
+    for(let pass=0;pass<8;pass++){
+        let next=out.replace(/\\frac\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{[^{}]*\})*)\}/g,"($1)/($2)");
+        if (next===out) return out;
+        out=next;
+    }
+    return out;
+}
+
+/**
  * Rewrites LaTeX into the plain expression a checker can evaluate, so that a key
  * written as a fraction is comparable with the decimal a learner typed. Only the
  * constructs the app actually prints as an answer are handled; anything else
@@ -29,9 +58,8 @@ import Fraction from "fraction.js";
  */
 export function latexToPlain(value: string): string{
     if (typeof value!=="string") return "";
-    return value
+    return flattenFractions(value)
         .replace(/\\(?:left|right|displaystyle|,|;|!)/g,"")
-        .replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,"($1)/($2)")
         .replace(/\\sqrt\{([^{}]*)\}/g,"sqrt($1)")
         // The degree mark and the multiplication dot have to be rewritten before
         // the generic rule below, which would leave "45^(circ)" and "2cdot3" for
