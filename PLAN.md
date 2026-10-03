@@ -256,6 +256,61 @@ browser at all.
   `sqrt(…)` in both directions, so a learner may type either spelling.
 
 
+### 4.13 What the browser suite found once it was actually run
+
+The suite had been reported as green from a run that was killed before it printed a
+summary, and the per-test ticks were unreadable in a mangled log. Reading the log
+honestly, several cases had been failing for a long time. Four real defects and six
+stale cases came out of it.
+
+- **The web build wrote settings and never read them back.** One document decides
+  the persistence mode — the settings hold the learner's choice — and it was being
+  read through a path that answers nothing while the mode is still its default
+  private session. So a browser told to keep its record stored the document
+  faithfully, and the document survived a reload intact while the interface came
+  back showing defaults. The worst shape this failure takes: the data is there, it
+  is correct, and the learner is told their settings did not save.
+  `Storage.readPersisted` reads the one document that decides the mode, writes
+  nothing, and declines to open a database in the desktop build at all.
+- **The daily challenge threw before the first question.** `current` is -1 before
+  anything is answered, and `enter` called `next` to show the first question, which
+  indexed `slots[-1]`. The summary still rendered, so the mode looked open while
+  being unusable.
+- **The hint button was offered with nothing behind it.** `prepare` is the only
+  thing that disables it and it only runs once a question exists.
+- **Hiding via the `hidden` property did nothing.** Every element the app hides also
+  carries a class that sets `display`, and a class selector outranks the
+  user-agent rule for `[hidden]`. The adaptive toggle, the recommend button, the
+  erase row, the hint panel and the daily summary were all being "hidden" while
+  staying on screen. One helper now sets the attribute and the class.
+- **Six cases asserted things the app stopped doing.** Two waited for a browser
+  dialog for messages that are toasts; one waited for a message that no longer
+  exists anywhere, describing behaviour removed when the browser gained a real
+  record path; one selected a Calculus topic under an algebra scope; one asserted
+  an empty `localStorage` when the interface legitimately keeps two preferences
+  there; and the harness seeded flat keys the app only reads for migration.
+- **Unresolved, and it is a real defect.** Choosing a theme or font in settings
+  applies immediately but is not persisted: the stored document keeps the default
+  while the interface shows the choice, so the learner sees it work and finds it
+  gone after a reload. Nine of the eleven cases in `e2e/settings.spec.ts` fail for
+  this reason. It is not a stale test — the case reads the app's own store, polls
+  until the write lands, and reports the document it actually found. The read path
+  is fixed and the write path is not; the next session should start there.
+
+### 4.14 The suite cannot complete in one invocation here
+
+The harness kills a Playwright process after roughly four to six minutes,
+regardless of whether it is foreground or background, and the all-topics specs run
+five to six minutes each. Two earlier full runs were killed at ninety and two
+hundred and eight tests and neither printed a summary, which is how a suite with
+failing cases came to be reported as green.
+
+Verified by running to completion in slices: `desktop-only.spec.ts` 21/21 across
+Chromium, Pixel 7 and iPhone 14, including the adaptive surfaces being absent and a
+browser still answering and grading a question; `daily-help-privacy.spec.ts` 18/18
+on desktop. The all-topics matrix — 63 tests — has not been run to completion,
+because no slice of it fits inside the time limit.
+
 ## 5. Open work register
 
 Ordered by consequence. Each row states the acceptance test that closes it.
