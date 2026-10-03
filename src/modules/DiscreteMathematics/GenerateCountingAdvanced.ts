@@ -124,7 +124,7 @@ export function generateCountingAdvanced(difficulty?: string, rng: RngFn=Math.ra
             latex=`A bag holds ${first} red balls, ${second} blue balls and ${third} green balls. In how many ways can the ${n} balls be drawn in order?`;
             choices=numberOptions(value, [nCr(n, first), nCr(n, second), nCr(n, first)*nCr(n, third), factorial(n), value/first]);
             steps=[
-                "Drawing the balls in order is arranging `n` objects in which the copies of each colour are interchangeable, so the count is the multinomial coefficient `n! / (a! b! c!)`.",
+                "Drawing the balls in order is arranging `n` objects in which the copies of each color are interchangeable, so the count is the multinomial coefficient `n! / (a! b! c!)`.",
                 `Choose the positions of the ${first} red balls in \\(\\binom{${n}}{${first}} = ${nCr(n, first)}\\) ways, then the ${second} blue balls in \\(\\binom{${n-first}}{${second}} = ${nCr(n-first, second)}\\) of what is left.`,
                 `${nCr(n, first)} \\times ${nCr(n-first, second)} = ${value}, so the answer is ${value}.`
             ];
