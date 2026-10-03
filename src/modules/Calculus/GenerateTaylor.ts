@@ -254,7 +254,7 @@ export function generateTaylor(difficulty?: string, rng: RngFn=Math.random): Que
         }
         default:{
             // The truncated series is only worth what its terms are worth, so the
-            // distractors are the neighbouring truncations and the sign slip rather
+            // distractors are the neighboring truncations and the sign slip rather
             // than arbitrary numbers.
             let kinds=["exp","sin","cos"];
             let kind=kinds[Math.floor(rng()*kinds.length)] as "exp"|"sin"|"cos";
