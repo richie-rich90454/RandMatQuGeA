@@ -134,7 +134,7 @@ describe("generateDerivative and generateIntegral",()=>{
         for(let seed=1; seed<=SEEDS*4; seed++){
             let dto=generateIntegral("easy", seededRng(seed));
             // The prompt is the integral, not the antiderivative, so the branch is
-            // recognised by the answer it asks for.
+            // recognized by the answer it asks for.
             if (dto.correct.indexOf("arcsin")<0&&dto.correct.indexOf("arctan")<0) continue;
             checked++;
             expect(dto.choices).toHaveLength(4);
