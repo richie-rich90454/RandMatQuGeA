@@ -142,7 +142,7 @@ export function generateVolumeSolids(difficulty?: string, rng: RngFn=Math.random
             let upper=upperLength*upperWidth*upperHeight;
             let key=lower+upper;
             correct=String(key);
-            latex=`A solid is made of two boxes stacked one on top of the other. The lower box is \\( ${lowerLength} \\) by \\( ${lowerWidth} \\) by \\( ${lowerHeight} \\), and the upper box, which sits centred on it, is \\( ${upperLength} \\) by \\( ${upperWidth} \\) by \\( ${upperHeight} \\). What is the total volume of the solid?`;
+            latex=`A solid is made of two boxes stacked one on top of the other. The lower box is \\( ${lowerLength} \\) by \\( ${lowerWidth} \\) by \\( ${lowerHeight} \\), and the upper box, which sits centerd on it, is \\( ${upperLength} \\) by \\( ${upperWidth} \\) by \\( ${upperHeight} \\). What is the total volume of the solid?`;
             choices=numberOptions(key, [lower, upper, key+lower, lower*upper]);
             rungs=[
                 "Split the solid where the two boxes meet and add the two volumes, rather than trying to read one set of dimensions off a shape that has two.",
