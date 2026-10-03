@@ -55,7 +55,7 @@ const TOPICS:[string, (difficulty?: string, rng?: () => number)=>QuestionDto, st
     ["generateSolvingTrigEquations", generateSolvingTrigEquations, ["linear_in_the_angle", "double_angle", "factored_form", "check_for_extraneous"]],
     ["generateGeneralSolutions", generateGeneralSolutions, ["coterminal_angles", "the_period", "all_solutions", "in_radians"]],
     ["generateExactValues", generateExactValues, ["the_45_degree_family", "quadrant_signs", "half_angles", "building_from_familiar_angles"]],
-    ["generateTrigIdentities", generateTrigIdentities, ["recognise_the_pythagorean_family", "prove_a_basic_one", "simplify_an_expression", "reciprocal_conversion"]],
+    ["generateTrigIdentities", generateTrigIdentities, ["recognize_the_pythagorean_family", "prove_a_basic_one", "simplify_an_expression", "reciprocal_conversion"]],
     ["generateLawOfSines", generateLawOfSines, ["find_a_side", "find_an_angle", "an_application", "choose_the_theorem"]],
     ["generateLawOfCosines", generateLawOfCosines, ["find_the_side", "find_the_angle", "an_application", "compare_with_pythagoras"]],
     ["generateAmbiguousCase", generateAmbiguousCase, ["two_possible_triangles", "one_possible_triangle", "no_possible_triangle", "verify_a_solution"]],
