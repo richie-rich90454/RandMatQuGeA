@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file Builds the four options shown in multiple-choice mode.
  * @description Every option set this produces satisfies one invariant: exactly
  * four options, exactly one of which is correct. That is enforced here rather
@@ -48,7 +48,7 @@ function isUnusable(option: string): boolean{
 
 /**
  * Reports whether two options are the same value, so that "0.50" and "0.5" are
- * recognised as one option rather than two.
+ * recognized as one option rather than two.
  *
  * @param a - The first option.
  * @param b - The second option.
@@ -126,7 +126,7 @@ function numericDistractors(answer: number, count: number, decimals: number): st
 
 /**
  * Builds distractors for an answer that is not a plain number, by looking for
- * structure in it: a coordinate pair, a centre-and-radius description, a
+ * structure in it: a coordinate pair, a center-and-radius description, a
  * quadrant, or an interval. Perturbing the components of a structured answer is
  * always wrong in a way a learner can reason about, whereas appending a
  * character to it is not an answer at all.
@@ -136,11 +136,11 @@ function numericDistractors(answer: number, count: number, decimals: number): st
  * @returns Up to `count` wrong options.
  */
 function structuredDistractors(answer: string, count: number): string[]{
-    let centre=answer.match(/center\s*\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)\s*,\s*radius\s*(-?\d+(?:\.\d+)?)/i);
-    if (centre){
-        let h=Number(centre[1]);
-        let k=Number(centre[2]);
-        let r=Number(centre[3]);
+    let center=answer.match(/center\s*\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)\s*,\s*radius\s*(-?\d+(?:\.\d+)?)/i);
+    if (center){
+        let h=Number(center[1]);
+        let k=Number(center[2]);
+        let r=Number(center[3]);
         return [
             `center (${h+1}, ${k}), radius ${r}`,
             `center (${h-1}, ${k}), radius ${r}`,
