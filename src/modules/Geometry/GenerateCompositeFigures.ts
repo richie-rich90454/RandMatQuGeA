@@ -4,7 +4,7 @@
  * every one of them is an addition or a subtraction of two areas that the learner
  * can read off the prompt separately. The four branches differ in which operation
  * that is: add two rectangles, add a triangle to a rectangle, remove a rectangular
- * hole, or remove the unshaded centre from an outer rectangle to leave a border.
+ * hole, or remove the unshaded center from an outer rectangle to leave a border.
  *
  * The distractor in every branch is the shape that the learner would have if they
  * forgot the join: adding the widths as well as the areas, halving twice, or
