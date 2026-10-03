@@ -143,7 +143,7 @@ function angleQuestion(rng: () => number, wide: boolean): QuestionDto{
 }
 
 /**
- * The applied branch: the cosine rule on a triangle a builder would recognise.
+ * The applied branch: the cosine rule on a triangle a builder would recognize.
  *
  * @param rng - The injected random source.
  * @param wide - Whether the difficulty is hard.
@@ -159,18 +159,18 @@ function applicationQuestion(rng: () => number, wide: boolean): QuestionDto{
     ];
     let steps=[
         `$ c^{2} = ${triangle.a}^{2} + ${triangle.b}^{2} - 2 \\times ${triangle.a} \\times ${triangle.b} \\cos(${triangle.included}^{\\circ}) = ${triangle.a*triangle.a} + ${triangle.b*triangle.b} ${cross} = ${triangle.c*triangle.c} $.`,
-        `$ c = \\sqrt{${triangle.c*triangle.c}} = ${triangle.c} $ metres.`,
-        `So the third side measures ${key} metres, and the answer is ${key}.`
+        `$ c = \\sqrt{${triangle.c*triangle.c}} = ${triangle.c} $ meters.`,
+        `So the third side measures ${key} meters, and the answer is ${key}.`
     ];
     return {
-        latex:`Two straight fence panels of ${triangle.a} m and ${triangle.b} m are hinged together at one end. The far ends are held ${triangle.included} degrees apart by a rope. How long is the rope, in metres?`,
+        latex:`Two straight fence panels of ${triangle.a} m and ${triangle.b} m are hinged together at one end. The far ends are held ${triangle.included} degrees apart by a rope. How long is the rope, in meters?`,
         correct: fmtTrim(key, 2),
-        alternate: fmtTrim(key, 2)+" metres",
+        alternate: fmtTrim(key, 2)+" meters",
         display:`\\sqrt{${triangle.c*triangle.c}} = ${key}`,
         choices: numberOptions(key, [triangle.a+triangle.b, Math.abs(triangle.a-triangle.b), triangle.a*triangle.b, triangle.a*triangle.a, triangle.b*triangle.b], 0),
-        expectedFormat:"Enter a whole number of metres",
+        expectedFormat:"Enter a whole number of meters",
         subskill:"an_application",
-        hints: {rungs, concede: "The answer is "+fmtTrim(key, 2)+" metres."},
+        hints: {rungs, concede: "The answer is "+fmtTrim(key, 2)+" meters."},
         solution: steps
     };
 }
