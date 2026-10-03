@@ -5,7 +5,7 @@
  * the result by counting. Nothing is rounded and nothing is approximated.
  *
  * The rules of divisibility are asked as recognition rather than as a list to
- * memorise, because "which of these is divisible by 9" is a question with a
+ * memorize, because "which of these is divisible by 9" is a question with a
  * defensible wrong answer and "state the rule" is not. The divisor-count and
  * sum-of-divisors work is done from the prime factorisation, which is the only way
  * it should be done at any level, and the digit questions are asked so that the
