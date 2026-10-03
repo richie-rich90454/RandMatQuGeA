@@ -14,13 +14,15 @@ export async function gotoApp(page: Page, seed: SettingsSeed = {}, fresh = false
                 sessionStorage.setItem("__e2e_initialized", "1");
             }
             if (!sessionStorage.getItem("__e2e_seeded")){
-                const merged: Record<string, string> = {onboardingShown: "1"};
-                for (const [key, value] of Object.entries(seed)){
-                    merged[key] = typeof value === "string" ? value : JSON.stringify(value);
-                }
-                for (const [key, value] of Object.entries(merged)){
-                    localStorage.setItem(key, value);
-                }
+            // The app keeps its settings as one document under a single key, and reads
+            // the flat keys only as a migration source for older builds. Seeding flat
+            // keys therefore did almost nothing: only the few that are also legacy
+            // keys were read at all, and a private session then deleted them on the
+            // way past. The blob is what the app actually loads.
+            if (Object.keys(seed).length > 0){
+                localStorage.setItem("appSettings", JSON.stringify(seed));
+            }
+            localStorage.setItem("onboardingShown", "1");
                 if (fresh){
                     localStorage.removeItem("onboardingShown");
                 }
