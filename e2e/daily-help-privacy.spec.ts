@@ -33,11 +33,18 @@ test.describe("daily challenge",()=>{
         await submitAnswer(page, answer);
         await expect(page.locator("#daily-progress")).toHaveAttribute("aria-valuenow", /\d+/);
     });
-    test("shows a streak in the toolbar",async({page})=>{
+    test("keeps the streak badge off a runtime that cannot keep a streak",async({page})=>{
         await setScope(page, "algebra");
         await switchMode(page, "daily");
-        await expect(page.locator("#daily-streak")).toBeVisible();
-        await expect(page.locator("#daily-streak-count")).toHaveText(/\d+/);
+        // The desktop project drives the web build, where adaptive learning cannot
+        // run and no review record exists to count from. The badge used to be shown
+        // anyway, offering a streak that was today's own answer and reset on every
+        // reload. This assertion encoded that; a surface that cannot work is hidden
+        // rather than shown with a number it cannot stand behind.
+        await expect(page.locator("#daily-streak")).toBeHidden();
+        // The daily set is derived from the date and needs no record, so the mode
+        // still works here and the summary still says how much of the day is done.
+        await expect(page.locator("#daily-summary-text")).toContainText("of");
     });
     test("leaving the mode restores the previous one",async({page})=>{
         await switchMode(page, "daily");
@@ -128,7 +135,14 @@ test.describe("the data choice",()=>{
         // hangs or throws, and a privacy case that fails on its own probe is worse
         // than one that checks the keys it can actually read.
     });
-    test("remembering a session stores the record",async({page})=>{
+    test("remembering a session stores the settings, and no review record",async({page})=>{
+        // This used to assert that a browser writes a review record, which was true
+        // and was the wrong promise. The record exists to feed the spaced-repetition
+        // scheduler, and the scheduler needs performance records written over Tauri
+        // IPC, so a browser wrote a record nothing ever read — and the confidence
+        // question was asked to fill it in. The mode now stores what is genuinely kept
+        // here and nothing more, so both halves are asserted: the settings survive,
+        // and the review record is not written.
         await openSettings(page);
         await page.selectOption("#settings-persistence", "indexed");
         await saveSettings(page);
@@ -150,7 +164,12 @@ test.describe("the data choice",()=>{
                 request.onerror=()=>resolve("[]");
             });
         });
-        expect(stored).toContain("reviewRecords");
+        expect(stored).toContain("appSettings");
+        expect(stored).not.toContain("reviewRecords");
+        // And the answer still counted: the learner is told it was right, and the
+        // question control that fed the discarded record is not offered.
+        await expect(page.locator(".results-display")).toContainText("Correct");
+        await expect(page.locator("#confidence-row")).toBeHidden();
     });
     test("the erase control is hidden when nothing is being kept",async({page})=>{
         await openSettings(page);
