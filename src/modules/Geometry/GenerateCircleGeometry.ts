@@ -53,10 +53,10 @@ export function generateCircleGeometry(difficulty?: string, rng: RngFn=Math.rand
                 // which is not what "the central angle" names.
                 let central=randStep(rng, 40, 180, 2);
                 key=central/2;
-                latex=`Points \\( A \\), \\( B \\) and \\( C \\) lie on a circle with centre \\( O \\). The central angle \\( AOC \\) measures \\( ${central}^{\\circ} \\). What is the measure, in degrees, of the inscribed angle \\( ABC \\) subtending the same arc \\( AC \\)?`;
+                latex=`Points \\( A \\), \\( B \\) and \\( C \\) lie on a circle with center \\( O \\). The central angle \\( AOC \\) measures \\( ${central}^{\\circ} \\). What is the measure, in degrees, of the inscribed angle \\( ABC \\) subtending the same arc \\( AC \\)?`;
                 wrong=[central, 360-central, 180-central/2, central*2];
                 rungs=[
-                    "The two angles stand on the same chord, and the one at the centre is twice the one at the circle, so halve the central angle you are given.",
+                    "The two angles stand on the same chord, and the one at the center is twice the one at the circle, so halve the central angle you are given.",
                     "Both angles open onto the same arc AC, which is what makes the relationship hold; an inscribed angle on the other arc is the supplement."
                 ];
                 steps=[
@@ -68,10 +68,10 @@ export function generateCircleGeometry(difficulty?: string, rng: RngFn=Math.rand
             else{
                 let inscribed=randInt(rng, 20, 90);
                 key=inscribed*2;
-                latex=`Points \\( A \\), \\( B \\) and \\( C \\) lie on a circle with centre \\( O \\). The inscribed angle \\( ABC \\) subtending the arc \\( AC \\) measures \\( ${inscribed}^{\\circ} \\). What is the measure, in degrees, of the central angle \\( AOC \\) subtending the same arc \\( AC \\)?`;
+                latex=`Points \\( A \\), \\( B \\) and \\( C \\) lie on a circle with center \\( O \\). The inscribed angle \\( ABC \\) subtending the arc \\( AC \\) measures \\( ${inscribed}^{\\circ} \\). What is the measure, in degrees, of the central angle \\( AOC \\) subtending the same arc \\( AC \\)?`;
                 wrong=[inscribed, 180-inscribed, Math.round(inscribed/2), key-2];
                 rungs=[
-                    "The two angles stand on the same chord, and the one at the centre is twice the one at the circle, so double the inscribed angle you are given.",
+                    "The two angles stand on the same chord, and the one at the center is twice the one at the circle, so double the inscribed angle you are given.",
                     "Both angles open onto the same arc AC, which is what makes the relationship hold."
                 ];
                 steps=[
