@@ -50,7 +50,7 @@ Supporting generator rules, all of which have caused real defects here:
 
 - **One changed file per commit.** Conventional commit messages, American English, with a body
   explaining *why*, not *what*. Recent history contains bundled commits; do not add more.
-- **Update documentation in the same change** as the behaviour it describes.
+- **Update documentation in the same change** as the behavior it describes.
 - **Do not run the full Vitest or Playwright suites while implementation remains.** `npx tsc --noEmit`
   (~5 s) and `cd src-tauri && cargo test` are cheap and are the right checks mid-work. Full suites
   are for the end.
@@ -132,7 +132,7 @@ The desktop and web builds had **two different answer checkers**, and they disag
 
 ### 4.6 Help, hints, and confidence
 - `src/main/services/Help.ts` and `src/modules/shared/Hints.ts`: a rung-at-a-time hint ladder
-  available on every topic, with "concession" (show the answer) as a separate, clearly-labelled
+  available on every topic, with "concession" (show the answer) as a separate, clearly-labeled
   choice. Confidence is captured where it is informative.
 - Generic solution scaffolding is honest about being generic. The eight newest topics now supply
   their own branch-specific ladders and worked solutions — see O12.
@@ -195,7 +195,7 @@ The desktop and web builds had **two different answer checkers**, and they disag
 ### 4.8b Topic selection at 204 topics
 The grid was a flat wrapped list of pills, which is browsable at 137 and is not browsable at 204.
 On a phone it was worse than unwieldy: the mobile rule turns the container into a horizontal strip,
-so 204 topics became 204 unlabelled targets in a scroller with nothing to anchor them. No unit test
+so 204 topics became 204 unlabeled targets in a scroller with nothing to anchor them. No unit test
 can see this, because the grid was doing exactly what it was written to do.
 
 - The grid is **grouped under a heading per category**, and a chip row filters it to one category,
@@ -208,8 +208,8 @@ can see this, because the grid was doing exactly what it was written to do.
   learner has read, and a match on text the learner cannot have seen is a result that cannot be
   explained.
 - A selected topic the filter has hidden is deselected, so pressing Generate can never answer from a
-  topic whose pill is not on screen. An unrecognised category counts as showing everything, because
-  a filter that narrowed the grid to nothing on a value it did not recognise would leave an empty
+  topic whose pill is not on screen. An unrecognized category counts as showing everything, because
+  a filter that narrowed the grid to nothing on a value it did not recognize would leave an empty
   grid and no way out of it.
 - `dom.displays.topicPills` cast every child of the grid to a button, which was true while the grid
   held nothing else. It now filters by class over the grid's own children — no `querySelectorAll`,
@@ -221,12 +221,12 @@ can see this, because the grid was doing exactly what it was written to do.
 - `src/main/Topics.ts`: static `Map`/`Set` indexes, no document scan on the interaction path.
 - `querySelectorAll` no longer appears anywhere in `src/main/` except inside
   `src/main/core/DomRegistry.ts`, which is the registry itself.
-- The 3D graph stopped being a per-frame cost centre: see O8.
+- The 3D graph stopped being a per-frame cost center: see O8.
 
 ### 4.10 Desktop, packaging, updater, CI
 - Tauri review and attempt tables with real schedule commands and full-record erase.
 - Updater: progress accumulation, visible failures, `requireSignedVersion`.
-- Windows fixed-WebView2 Tauri flavour plus a CI job that builds it.
+- Windows fixed-WebView2 Tauri flavor plus a CI job that builds it.
 - CI: separate Vitest `unit` and `oracle` projects; Chromium **and** WebKit installed for Playwright.
 - **Android toolchain upgraded**: Gradle wrapper `8.14.3` → `9.8.0` (wrapper jar, `gradlew`,
   `gradlew.bat` and properties regenerated from the distribution, not hand-edited), Android Gradle
@@ -285,7 +285,7 @@ stale cases came out of it.
   staying on screen. One helper now sets the attribute and the class.
 - **Six cases asserted things the app stopped doing.** Two waited for a browser
   dialog for messages that are toasts; one waited for a message that no longer
-  exists anywhere, describing behaviour removed when the browser gained a real
+  exists anywhere, describing behavior removed when the browser gained a real
   record path; one selected a Calculus topic under an algebra scope; one asserted
   an empty `localStorage` when the interface legitimately keeps two preferences
   there; and the harness seeded flat keys the app only reads for migration.
@@ -389,7 +389,7 @@ scan became one pass over the registry's pills.
 
 ### O8 — 3D efficiency on mobile (CLOSED)
 `src/modules/Geometry/GeometryVisualization.ts` caps the device pixel ratio at 2 and re-applies it when
-the ratio changes, stops the loop when the container leaves the viewport or the tab is hidden, honours
+the ratio changes, stops the loop when the container leaves the viewport or the tab is hidden, honors
 `prefers-reduced-motion` as a live query that disables the loop entirely, and draws on demand at a
 32 ms frame budget — so an untouched 3D question costs one render pass instead of sixty per second.
 Geometry and materials are built once per scene and disposed on teardown, including `Line` and
