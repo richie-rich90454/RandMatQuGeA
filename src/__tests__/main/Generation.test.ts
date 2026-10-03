@@ -120,6 +120,7 @@ vi.mock("../../main/Mcq.js",()=>({
 }));
 vi.mock("../../main/Settings.js",()=>({
     settings:{adaptive:false},
+    effectivePersistence:()=>"desktop",
 }));
 vi.mock("../../main/Answer.js",()=>({
     startQuestionTimer:vi.fn(),
