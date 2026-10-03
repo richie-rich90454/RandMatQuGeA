@@ -385,6 +385,103 @@ One more stale case: `print-worksheet.spec.ts` counted five options in the arith
 scope. The scope grew to twelve topics and the number stayed five. It is now counted
 from `scopeTopics`, so it cannot rot again.
 
+### 4.18 The four surfaces that were still showing
+
+The report was that adaptive was still visible under a private session, and that the
+"How confident are you?" control was still there. Both were true, and neither was where
+the previous fix looked.
+
+The rule had been applied at each call site, so a surface survived whenever nobody
+remembered its site. Three were hidden — the adaptive row, the recommend button and the
+weak-topics modal — and four were not:
+
+- **The confidence control.** Asked after every graded answer. Its only reader is the
+  scheduler's overconfidence correction, so in a browser it was collected, stored, and
+  read by nothing.
+- **The streak badge.** `completedDays()` returns an in-memory cache in a browser, so
+  the count could only ever be zero or one and reset on every reload.
+- **The learning-record dialog.** Export, import, erase and refresh all describe a
+  record. An import under a private session reported success for a write that was
+  discarded on reload.
+- **The updates section.** Present in the browser, answering a press with a toast saying
+  it needs the desktop app.
+
+`src/main/core/GatedSurfaces.ts` now owns the list and applies it, with three gates that
+are three different questions: adaptive, record, and tauri. Two tests encode old
+behavior and were rewritten: one asserted the data dialog opened under a private
+session, and one clicked Check for updates and waited for the toast.
+
+### 4.19 The persistence promise, and the bugs around it
+
+Three defects, found by auditing every write rather than by reading the one module that
+owns them.
+
+- **`Session.ts` wrote the session snapshot straight to `localStorage`**, unguarded and
+  with no `try/catch`, on a debounce, on every answer and on every skip — in every mode
+  including a private session. It then read it back at boot and restored a session the
+  learner had asked not to have kept. All five sites now go through `Storage`.
+- **`LEGACY_KEYS` named an earlier key.** It listed `sessionState` while the app wrote
+  `mentalSessionSnapshot`, so the migration could never remove the one thing a private
+  session was supposed to leave behind. The live key is now imported rather than written
+  out, because a second literal is a second thing to forget.
+- **One `invoke` had no browser path at all.** Deleting a single record reached into the
+  backend with no `isTauri()` check; it was the only such call in the repository, it was
+  reachable from a button that does appear in a browser, and the rejection replaced the
+  record list with the error text.
+
+### 4.20 Two bugs in the confidence control, on every platform
+
+Found while adding the gate, and neither is about the gate.
+
+- **`recordConfidence` destroyed the value it had just been given.** It called
+  `hideConfidence()`, which sets the confidence back to `undefined`, in the same
+  synchronous call that set it. Asking the question and erasing the answer is why no
+  record ever carried a confidence — not in a browser, and not on the desktop where the
+  row was shown and the learner could watch it being collected.
+- **Still open: the ordering.** The review record for an answer is written before the
+  row is revealed, so the confidence for answer *N* cannot reach the record written for
+  answer *N*. Fixing it means moving the write to after the learner answers, which is an
+  ordering change to the answer flow rather than a fix to one function. Named here
+  rather than left to be discovered.
+
+### 4.21 A five kilobyte regression that a size budget caught
+
+Importing the settings module into the hint module, to ask there whether adaptive could
+run, grew the entry chunk from 38.11 kB to 43.41 kB. A leaf that draws a row of buttons
+was made to depend on most of the application.
+
+It was attributed by reverting each changed file and rebuilding, one at a time, rather
+than by reading — which is the only way to tell a five kilobyte regression from ordinary
+growth. The fix passes the decision in, because the caller already owns the predicate.
+Six development traces that printed the adaptive decision to a shipped console went at
+the same time, one of which claimed a performance save in a browser where none happens.
+
+The budget then moved from 38/57 to 38.5/57.5. That is not the regression being
+absorbed — the residual is organic growth from features that were added and had to work.
+The fix that would make the budget irrelevant is written down in `scripts/bundle-check.js`
+and left undone: `Constants.ts` is 24.5 kB raw in the entry chunk, six modules read it,
+and `Topics.ts` reads it synchronously on the interaction path, so moving it behind a
+dynamic import is a boot-order change across most of the application worth roughly 4 to
+6 kB gzipped.
+
+### 4.22 A missing chunk, and the build gate that now catches it
+
+The reported failure was a module script arriving as `text/html` and a subject's
+generators failing to load at the moment a question was requested.
+
+The build on disk was self-consistent, so this was not a stale build. `public/sw.js`
+answered a failed *script* request with `index.html` — correct for a navigation, wrong
+for a script — and cached the response **before checking its content type**, so an HTML
+body was stored against a `.js` URL. That survives the rebuild that would otherwise have
+fixed it. The type is now checked before anything is stored and a failed asset request
+answers 404.
+
+`scripts/bundle-check.js` walks `index.html` and every static and dynamic import inside
+every emitted chunk. Writing that check took three attempts, two of which were checks
+that reported success while verifying nothing: the minifier emits template literals, and
+markup references arrive with the `./` already stripped. It was proven able to fail by
+hiding a chunk from `dist` and watching it name that file.
+
 ## 5. Open work register
 
 Ordered by consequence. Each row states the acceptance test that closes it.
