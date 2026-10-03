@@ -8,7 +8,7 @@
  * law reduces it to, so the reductions are constructed rather than searched for:
  * absorption gives `A + AB = A`, its dual gives `A(A + B) = A`, and the consensus
  * theorem gives `AB + A'C + BC = AB + A'C`. That is why the answers are reliable
- * without a minimiser over the truth table.
+ * without a minimizer over the truth table.
  *
  * Every candidate wrong answer is checked to be a different function before it is
  * offered, because a distractor that is a second correct answer is a build
@@ -107,7 +107,7 @@ function distinctFrom(answer: Formula, candidates: Formula[]): Formula[]{
 }
 
 export function generateBooleanAlgebra(_difficulty?: string, rng: RngFn=Math.random): QuestionDto{
-    let types=["simplify_an_expression","equivalence_to_a_truth_table","minimise_by_consensus","gate_implementation"];
+    let types=["simplify_an_expression","equivalence_to_a_truth_table","minimize_by_consensus","gate_implementation"];
     let type=types[Math.floor(rng()*types.length)];
     let a=atom("A");
     let b=atom("B");
@@ -203,7 +203,7 @@ export function generateBooleanAlgebra(_difficulty?: string, rng: RngFn=Math.ran
             ];
             break;
         }
-        case "minimise_by_consensus":{
+        case "minimize_by_consensus":{
             // `AB + A'C + BC` is the consensus form: the third term is implied by
             // the first two, so the minimal expression drops it. Each printed
             // expression is built that way and the answer is the two-term form.
@@ -263,7 +263,7 @@ export function generateBooleanAlgebra(_difficulty?: string, rng: RngFn=Math.ran
             correct=answer;
             alternate=correct;
             display=correct;
-            latex=`A combinational circuit takes the inputs \\( A \\) and \\( B \\) and produces the output \\( F = ${booleanText(target.formula)} \\), where juxtaposition means AND and \\( + \\) means OR. Which single standard gate has exactly this behaviour?`;
+            latex=`A combinational circuit takes the inputs \\( A \\) and \\( B \\) and produces the output \\( F = ${booleanText(target.formula)} \\), where juxtaposition means AND and \\( + \\) means OR. Which single standard gate has exactly this behavior?`;
             expectedFormat="Choose the name of the gate";
             choices=[correct, ...shuffle(rng, distinctFrom(target.formula, wrong.map(gate=>gate.formula)).map(formula=>wrong.find(gate=>formulaColumn(gate.formula, ["A","B"])===formulaColumn(formula, ["A","B"]))?.name as string))];
             steps=[
