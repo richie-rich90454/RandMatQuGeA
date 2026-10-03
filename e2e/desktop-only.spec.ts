@@ -4,7 +4,7 @@ import {gotoApp, selectTopic, switchMode} from "./helpers";
 test("data modal opens in the browser and reads the browser record", async ({page})=>{
     // This used to assert a dialog saying performance data was desktop-only. The
     // browser gained a real record path, so the modal now opens and has something
-    // to show, and the assertion was describing a behaviour that had been removed.
+    // to show, and the assertion was describing a behavior that had been removed.
     await gotoApp(page);
     await page.locator("#manage-data-btn").click();
     await expect(page.locator("#data-modal")).toBeVisible();
@@ -27,9 +27,9 @@ test("adaptive learning is absent in the browser rather than explained", async (
 });
 
 test("the settings around the removed adaptive row still work", async ({page})=>{
-    // Removing one row must not take its neighbours with it: a hiding rule that
+    // Removing one row must not take its neighbors with it: a hiding rule that
     // took out the wrong element would be invisible in a screenshot of the top of
-    // the modal and obvious in use. The neighbours are named by their checkboxes,
+    // the modal and obvious in use. The neighbors are named by their checkboxes,
     // because the rows themselves carry no ids to aim at.
     await gotoApp(page);
     await page.locator("#settings-button").click();
