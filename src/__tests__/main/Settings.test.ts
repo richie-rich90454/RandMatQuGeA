@@ -2,6 +2,9 @@
 import{describe,it,expect,vi,afterEach,beforeEach}from"vitest";
 let mockAppWindow:any=null;
 vi.mock("../../main/core/DomRegistry",()=>{
+    const adaptiveRow=document.createElement("div");
+    const recommendBtn=document.createElement("button");
+    const weakTopicsModal=document.createElement("div");
     const settings={
         settingsTheme:{value:"system"},
         settingsDefaultMode:{value:"single"},
@@ -25,7 +28,10 @@ vi.mock("../../main/core/DomRegistry",()=>{
         settingsVibration:{checked:false},
         settingsMcqChoices:{value:"4"},
         settingsAdaptive:{checked:true},
-        settingsShowWeakPopup:{checked:true}
+        settingsShowWeakPopup:{checked:true},
+        // The adaptive row is a real element because the visibility rule has to be
+        // asserted against something that can actually be hidden.
+        settingAdaptive:adaptiveRow
     };
     const inputs={
         unlimitedToggle:{checked:false},
@@ -40,10 +46,10 @@ vi.mock("../../main/core/DomRegistry",()=>{
     const dom={
         settings,
         inputs,
-        modals:{settingsModal:null},
+        modals:{settingsModal:null,weakTopicsModal:weakTopicsModal},
         get appWindow(){return mockAppWindow;},
         displays:{previewDiv:null},
-        buttons:{themeToggle:null}
+        buttons:{themeToggle:null,recommendBtn:recommendBtn}
     };
     return{dom};
 });
@@ -70,6 +76,8 @@ vi.mock("mathjs",()=>{
     return{evaluate,default:{evaluate}};
 });
 import*as settings from"../../main/Settings.js";
+import*as domRegistry from"../../main/core/DomRegistry";
+let dom:any=(domRegistry as unknown as{dom:unknown}).dom;
 describe("settings",()=>{
     beforeEach(()=>{
         mockAppWindow=null;
@@ -378,6 +386,47 @@ describe("settings",()=>{
             localStorage.setItem("appSettings",JSON.stringify({font:"nonexistent"}));
             await expect(settings.loadSettings()).resolves.toBeUndefined();
             expect(settings.settings.font).toBe("nonexistent");
+        });
+    });
+    describe('applyAdaptiveVisibility', ()=>{
+        let saved: unknown=(globalThis as Record<string, unknown>).__TAURI_INTERNALS__;
+        beforeEach(()=>{
+            saved=(globalThis as Record<string, unknown>).__TAURI_INTERNALS__;
+        });
+        afterEach(()=>{
+            (globalThis as Record<string, unknown>).__TAURI_INTERNALS__=saved as Record<string, unknown>;
+        });
+        it('leaves every adaptive surface in place in the desktop app',()=>{
+            (globalThis as any).__TAURI_INTERNALS__={};
+            settings.settings.adaptive=true;
+            settings.applyAdaptiveVisibility();
+            expect(dom.settings.settingAdaptive.hidden).toBe(false);
+            expect(dom.buttons.recommendBtn.hidden).toBe(false);
+            expect(dom.modals.weakTopicsModal.hidden).toBe(false);
+            expect(settings.settings.adaptive).toBe(true);
+        });
+        it('hides every adaptive surface in a browser',()=>{
+            delete (globalThis as any).__TAURI_INTERNALS__;
+            settings.settings.adaptive=true;
+            settings.applyAdaptiveVisibility();
+            expect(dom.settings.settingAdaptive.hidden).toBe(true);
+            expect(dom.buttons.recommendBtn.hidden).toBe(true);
+            expect(dom.modals.weakTopicsModal.hidden).toBe(true);
+        });
+        it('turns the preference off where it cannot be honoured',()=>{
+            // Hiding the control is not enough: a stored true would be read back by
+            // the difficulty adjustment and acted on, and nothing on screen would
+            // explain why the learner had no way to turn it off again.
+            delete (globalThis as any).__TAURI_INTERNALS__;
+            settings.settings.adaptive=true;
+            settings.applyAdaptiveVisibility();
+            expect(settings.settings.adaptive).toBe(false);
+        });
+        it('does not re-enable a preference the desktop app had turned off',()=>{
+            (globalThis as any).__TAURI_INTERNALS__={};
+            settings.settings.adaptive=false;
+            settings.applyAdaptiveVisibility();
+            expect(settings.settings.adaptive).toBe(false);
         });
     });
 });
