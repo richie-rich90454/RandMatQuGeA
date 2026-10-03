@@ -178,11 +178,11 @@ export function generateRoundingEstimate(difficulty?: string, rng: RngFn=Math.ra
             let step=Math.pow(10, -decimals);
             let lowerEven=Math.floor(scaled/10)%2===0;
             key=fmt(truncating+(lowerEven?0:step), decimals);
-            latex=`Round \\( ${fmt(value, decimals+1)} \\) to the nearest \\( ${kept} \\). When the digit dropped is exactly a five, round to the even neighbour, which is the rule known as half-to-even.`;
+            latex=`Round \\( ${fmt(value, decimals+1)} \\) to the nearest \\( ${kept} \\). When the digit dropped is exactly a five, round to the even neighbor, which is the rule known as half-to-even.`;
             let keyValue=Number(key);
             choices=numberOptions(keyValue, [truncating+step, truncating, keyValue+1, keyValue-1], decimals);
             rungs=[
-                "Rounding half to even keeps the neighbour that is even: when the digit dropped is exactly a five, the answer is whichever of the two neighbours is an even number.",
+                "Rounding half to even keeps the neighbor that is even: when the digit dropped is exactly a five, the answer is whichever of the two neighbors is an even number.",
                 `The digit dropped from ${fmt(value, decimals+1)} is a five, so compare ${fmt(truncating, decimals)} and ${fmt(truncating+step, decimals)} and keep the even one.`
             ];
             steps=[
