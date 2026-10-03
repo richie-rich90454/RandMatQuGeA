@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Barrel file exporting all arithmetic question generators and utilities.
  *
  * This file aggregates the various arithmetic modules, providing a single import entry point
@@ -24,3 +24,11 @@
 export * from "./ArithmeticUtils.js";
 export * from "./ArithmeticBasic.js";
 export * from "./ArithmeticAdvanced.js";
+export * from "./GenerateLcmPeriods.js";
+export * from "./GenerateLongDivision.js";
+export * from "./GenerateMoneyChange.js";
+export * from "./GenerateNegativeNumbers.js";
+export * from "./GeneratePlaceValue.js";
+export * from "./GeneratePowersOfTen.js";
+export * from "./GeneratePrimeFactorisation.js";
+export * from "./GenerateRoundingEstimate.js";
