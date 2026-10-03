@@ -50,7 +50,7 @@ export function generateQuadraticWordProblems(difficulty?: string, rng: RngFn=Ma
             let length=width+extra;
             let area=width*length;
             key=width;
-            latex=`A rectangular paddock has an area of \\( ${area} \\) square metres, and its length is \\( ${extra} \\) metres more than its width. What is its width, in metres?`;
+            latex=`A rectangular paddock has an area of \\( ${area} \\) square meters, and its length is \\( ${extra} \\) meters more than its width. What is its width, in meters?`;
             wrong=[length, -(width+length), width+1, extra, width+extra+1];
             rungs=[
                 "Write the length in terms of the unknown before you do anything else, so the area becomes one expression to set equal to the number printed in the prompt.",
@@ -59,7 +59,7 @@ export function generateQuadraticWordProblems(difficulty?: string, rng: RngFn=Ma
             steps=[
                 `Let the width be x, so the length is x + ${extra}.`,
                 `The area is x(x + ${extra}) = ${area}, so x squared plus ${extra}x minus ${area} = 0, which factors as (x - ${width})(x + ${width+length}).`,
-                `Only x = ${width} is positive, so the width in metres is x = ${key}`
+                `Only x = ${width} is positive, so the width in meters is x = ${key}`
             ];
             break;
         }
@@ -96,7 +96,7 @@ export function generateQuadraticWordProblems(difficulty?: string, rng: RngFn=Ma
             let hypotenuse=triple[2];
             let extra=longLeg-shortLeg;
             key=shortLeg;
-            latex=`A right-angled triangle has perpendicular legs. The longer leg is \\( ${extra} \\) centimetres longer than the shorter one, and the hypotenuse is \\( ${hypotenuse} \\) centimetres long. How long is the shorter leg, in centimetres?`;
+            latex=`A right-angled triangle has perpendicular legs. The longer leg is \\( ${extra} \\) centimeters longer than the shorter one, and the hypotenuse is \\( ${hypotenuse} \\) centimeters long. How long is the shorter leg, in centimeters?`;
             wrong=[longLeg, shortLeg+1, shortLeg-1, extra, hypotenuse-shortLeg];
             rungs=[
                 "The two legs of a right-angled triangle satisfy the square of the hypotenuse equal to the sum of the squares of the legs, so write both legs in terms of the shorter one before squaring.",
@@ -104,8 +104,8 @@ export function generateQuadraticWordProblems(difficulty?: string, rng: RngFn=Ma
             ];
             steps=[
                 `Let the shorter leg be x, so the longer leg is x + ${extra}.`,
-                `Then x squared plus (x + ${extra}) squared = ${hypotenuse*hypotenuse}, which solves to a shorter leg of ${shortLeg} centimetres.`,
-                `The shorter leg in centimetres is ${key}`
+                `Then x squared plus (x + ${extra}) squared = ${hypotenuse*hypotenuse}, which solves to a shorter leg of ${shortLeg} centimeters.`,
+                `The shorter leg in centimeters is ${key}`
             ];
             break;
         }
