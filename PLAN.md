@@ -289,13 +289,16 @@ stale cases came out of it.
   record path; one selected a Calculus topic under an algebra scope; one asserted
   an empty `localStorage` when the interface legitimately keeps two preferences
   there; and the harness seeded flat keys the app only reads for migration.
-- **Unresolved, and it is a real defect.** Choosing a theme or font in settings
-  applies immediately but is not persisted: the stored document keeps the default
-  while the interface shows the choice, so the learner sees it work and finds it
-  gone after a reload. Nine of the eleven cases in `e2e/settings.spec.ts` fail for
-  this reason. It is not a stale test — the case reads the app's own store, polls
-  until the write lands, and reports the document it actually found. The read path
-  is fixed and the write path is not; the next session should start there.
+- **The theme and font defect is closed, and it was a boot-order bug rather than a
+  missing write.** `initApp` called `loadSettings()` without awaiting it and then
+  applied the persistence choice, so the mode was decided from the default — a
+  private session — before the stored document had been read. Choosing "keep on this
+  device" therefore wrote nothing that survived a restart: the choice was stored
+  correctly, the document survived intact, and the learner was told their settings
+  had been kept. The nine failing cases in `e2e/settings.spec.ts` were all this and
+  nothing else. The theme case was also rewritten to assert that a setting survives a
+  restart rather than that it reached the app's own store, which is what the original
+  was testing.
 
 ### 4.14 The suite cannot complete in one invocation here
 
@@ -303,13 +306,84 @@ The harness kills a Playwright process after roughly four to six minutes,
 regardless of whether it is foreground or background, and the all-topics specs run
 five to six minutes each. Two earlier full runs were killed at ninety and two
 hundred and eight tests and neither printed a summary, which is how a suite with
-failing cases came to be reported as green.
+failing cases came to be reported as green. `console-errors.spec.ts` is a single test
+that exercises the whole app and has not completed in any invocation here, including
+background ones.
 
-Verified by running to completion in slices: `desktop-only.spec.ts` 21/21 across
-Chromium, Pixel 7 and iPhone 14, including the adaptive surfaces being absent and a
-browser still answering and grading a question; `daily-help-privacy.spec.ts` 18/18
-on desktop. The all-topics matrix — 63 tests — has not been run to completion,
-because no slice of it fits inside the time limit.
+Verified by running to completion in slices, all on the desktop project unless
+noted: `settings.spec.ts` 11/11; `desktop-only.spec.ts`, `daily-help-privacy.spec.ts`
+and `smoke.spec.ts` 38/38 together; `mcq.spec.ts` 8/8; `print-worksheet.spec.ts` 9/9;
+`single-mode.spec.ts` 12/12; `mental-mode.spec.ts` 9/9; `onboarding-app-shell.spec.ts`
+8/8. The all-topics matrix — 63 tests — has not been run to completion, because no
+slice of it fits inside the time limit.
+
+### 4.15 Two dead ends in the topic filters, and a desktop mode that lied
+
+Three defects were reported together as "I cannot choose topics beyond basic
+arithmetic, and adaptive is still showing under ZDR". None of them was where it
+looked.
+
+- **The category chips and the search box could be pointed at nothing.** The default
+  scope is the twelve arithmetic topics, and against it every other chip read
+  `Calculus 0` in the dimmed style. That reads as *unavailable*, not as *not in this
+  scope*, so a learner who had just been told there were 204 topics was told by a
+  dimmed zero that there was nothing to see. Typing a topic's name did the same and
+  returned an empty grid, which is worse, because naming a topic is about as
+  unambiguous a request as this interface gets. Both now widen the scope to the
+  narrowest one that holds the target and leave the scope control showing what
+  changed. `scopeLadder` in `Constants.ts` declares the order they widen in.
+- **Adaptive learning was gated on one condition where it needs two.** The rule was
+  asked twice of `adaptiveAvailable` and answered once: the runtime, but not whether
+  anything is kept. The desktop app under a private session has the runtime and no
+  record, so the scheduler was deciding from data that was about to be discarded. It
+  now requires both, and `applyPersistenceVisibility` re-decides it when the mode
+  changes rather than only at start-up.
+- **The desktop build displayed a mode it was not in.** The mode control was filled
+  from the stored *choice* rather than from the mode in force, and it was disabled at
+  the same time, so the desktop app said "nothing is stored" while writing to disk.
+  That false claim is what made the adaptive surfaces look like a contradiction rather
+  than a consequence. `effectivePersistence()` is now the single answer, the control
+  reads it, the adaptive gate reads it, and the select has a third option that names
+  the desktop store truthfully.
+
+### 4.16 American English throughout
+
+535 occurrences across 87 files. The change is mechanical and was verified by
+running everything: 9,967 unit tests, 23 oracle tests across all 204 topics, and 227
+Rust tests. Three things were not mechanical.
+
+- **`aria-labelledby` is a W3C attribute and not an English word.** A plain spelling
+  sweep turns it into `aria-labeledby`, which leaves every dialog in the app
+  unlabeled to a screen reader with no test failing. It is masked out for the length
+  of the sweep.
+- **`graph_colouring` is a topic id.** Renaming the file, the exported generator and
+  the id without each other orphans the topic from the learner's records, so all three
+  moved together, along with the four sub-skill ids.
+- **The style guide was British.** `CODE_STYLE.md` described the house style in the
+  spelling it was correcting.
+
+### 4.17 Two end-to-end cases that could not fail
+
+`mcq.spec.ts` had two cases around grading, and neither asserted what its name said.
+
+- *Clicking the correct MCQ choice shows Correct!* looped over the four choices and
+  put every assertion inside the loop, so it passed whether or not any choice was ever
+  accepted. It now locates the choice from the answer and requires the success.
+- *Exactly one MCQ choice is accepted as correct* clicked position N on each of four
+  fresh questions and counted successes. The key is placed at a random index, so the
+  case passed only when it happened to be drawn first — a quarter of the time — and
+  the original version, which clicked through one question, failed the other three
+  quarters because answering takes the choices away. It now checks both directions on
+  fresh questions: the choice equal to the key is accepted, and a choice that is not
+  is rejected.
+
+Locating the choice also needs the rendered text, not the stored answer. A choice
+rendered through KaTeX carries a thousands separator the stored answer does not, and
+comparing them raw concludes the key is missing when it is on screen.
+
+One more stale case: `print-worksheet.spec.ts` counted five options in the arithmetic
+scope. The scope grew to twelve topics and the number stayed five. It is now counted
+from `scopeTopics`, so it cannot rot again.
 
 ## 5. Open work register
 
