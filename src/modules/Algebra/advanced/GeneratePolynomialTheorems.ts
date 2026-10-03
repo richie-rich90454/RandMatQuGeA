@@ -122,7 +122,7 @@ export function generatePolynomialTheorems(difficulty?: string, rng: RngFn=Math.
             // Each candidate factor is turned into a number and substituted, so an
             // option can only be offered as wrong when the polynomial really is
             // non-zero there. A cubic has at most three roots, so a pool of twenty
-            // four neighbouring numbers always leaves at least three non-roots.
+            // four neighboring numbers always leaves at least three non-roots.
             let pool:number[]=[];
             for(let offset=1; offset<=12; offset++){
                 pool.push(root+offset);
