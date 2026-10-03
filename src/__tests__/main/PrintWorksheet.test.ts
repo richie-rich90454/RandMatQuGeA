@@ -1,4 +1,4 @@
-﻿/** @vitest-environment jsdom */
+/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 const mockInvoke=vi.hoisted(()=>vi.fn().mockResolvedValue(undefined));
 vi.mock("@tauri-apps/api/core",()=>({
@@ -463,7 +463,7 @@ describe("export PDF",()=>{
             expect(showNotification).toHaveBeenCalledWith("PDF exported successfully.","info");
         });
     });
-    it("should not invoke when save dialog is cancelled",async ()=>{
+    it("should not invoke when save dialog is canceled",async ()=>{
         (window as any).__TAURI_INTERNALS__={};
         mockSave.mockResolvedValue(null);
         initPrintModal();
