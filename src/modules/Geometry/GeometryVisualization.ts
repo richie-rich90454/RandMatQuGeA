@@ -474,7 +474,7 @@ function drawFrame(): boolean{
 }
 
 /**
- * Ends the loop by cancelling the frame it has just asked for. Every exit from
+ * Ends the loop by canceling the frame it has just asked for. Every exit from
  * the loop goes through here, so there is exactly one live chain at a time.
  */
 function stopLoop(): void{
@@ -572,7 +572,7 @@ function startRenderLoop(container: HTMLElement): void{
     document.addEventListener("visibilitychange",onVisibilityChange);
     watchResolution();
     // No IntersectionObserver means no offscreen signal, which is the previous
-    // behaviour: keep drawing at the budget.
+    // behavior: keep drawing at the budget.
     if(typeof IntersectionObserver!=="undefined"){
         offscreenObserver=new IntersectionObserver(onIntersection);
         offscreenObserver.observe(container);
