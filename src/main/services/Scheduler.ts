@@ -62,7 +62,7 @@ const CONFIDENCE_VALUE: Record<Confidence, number>={
 
 /** One review, as the learner performed it. */
 export interface ReviewOutcome{
-    /** The topic practised. */
+    /** The topic practiced. */
     topicId: string;
     /** The procedure inside that topic, when the generator named one. */
     subSkill?: string;
@@ -233,7 +233,7 @@ export function decide(state: SkillState|undefined, topicId: string, subSkill: s
             due: 0,
             priority: 1,
             intervalDays: 0,
-            reason: "Not practised yet"
+            reason: "Not practiced yet"
         };
     }
     let target=correctedTarget(state);
@@ -284,7 +284,7 @@ function clampAoa(value: number): number{
 }
 
 /**
- * Picks the next skills to practise from a set of candidates, most urgent first.
+ * Picks the next skills to practice from a set of candidates, most urgent first.
  * Ties are broken by the candidate's own position so the order is deterministic
  * for a given set of states, which is what makes a daily set reproducible.
  *
