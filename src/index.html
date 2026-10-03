@@ -9,7 +9,7 @@
         <title>RandMatQuGeA</title>
         <meta name="application-name" content="RandMatQuGeA">
         <meta name="theme-color" content="#28465C">
-        <meta name="description" content="Practice mathematics across 204 topics with an adaptive review schedule and a daily challenge.">
+        <meta name="description" content="Practice mathematics across 204 topics with worked solutions, printable worksheets and a daily challenge.">
         <meta name="color-scheme" content="light dark">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -703,11 +703,11 @@
                     <button class="icon-button modal-close" id="data-close" aria-label="Close data dialog">✕</button>
                 </div>
                 <div class="modal-body">
-                    <p>Your record is the review history, every recorded answer and the schedule. Export it to keep it, or import a record from another device.</p>
+                    <p id="data-record-intro">Your record is the review history, every recorded answer and the schedule. Export it to keep it, or import a record from another device.</p>
                     <div id="data-list"></div>
                     <button id="export-data-btn" class="secondary-button" style="margin-top: 16px;">Export Data</button>
                     <button id="import-data-btn" class="secondary-button" style="margin-top: 16px; margin-left: 8px;">Import Data</button>
-                    <label for="import-mode" style="display: block; margin-top: 8px;">When importing:</label>
+                    <label id="import-mode-label" for="import-mode" style="display: block; margin-top: 8px;">When importing:</label>
                     <select id="import-mode" class="mode-button">
                         <option value="merge">Merge with what is here</option>
                         <option value="replace">Replace what is here</option>
@@ -732,7 +732,7 @@
                         <button id="settings-tab-advanced" class="mode-button settings-tab">Advanced</button>
                     </div>
                     <div id="settings-basic" class="settings-panel">
-                        <div class="settings-section">
+                        <div class="settings-section" id="updates-section">
                             <h3>Updates</h3>
                             <div class="setting-item">
                                 <label for="check-updates">Check for updates</label>
@@ -774,7 +774,7 @@
                                     <option value="indexed">Remember me (stored in this browser)</option>
                                 </select>
                                 <p class="setting-help" id="settings-persistence-help">A private session keeps nothing after you close the tab.
-                                Remembering lets the review schedule and your streak survive a reload, stored only in this browser.</p>
+                                Remembering lets your settings survive a reload, stored only in this browser.</p>
                             </div>
                             <div class="setting-item" id="setting-erase-data" hidden>
                                 <label>Erase my learning record</label>
