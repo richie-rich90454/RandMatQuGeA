@@ -14,13 +14,15 @@ export async function gotoApp(page: Page, seed: SettingsSeed = {}, fresh = false
                 sessionStorage.setItem("__e2e_initialized", "1");
             }
             if (!sessionStorage.getItem("__e2e_seeded")){
-            // The app keeps its settings as one document under a single key, and reads
-            // the flat keys only as a migration source for older builds. Seeding flat
-            // keys therefore did almost nothing: only the few that are also legacy
-            // keys were read at all, and a private session then deleted them on the
-            // way past. The blob is what the app actually loads.
+            // Seeded both ways on purpose. The blob under `appSettings` is what the
+            // current build reads; the flat keys are what it reads for an older one.
+            // Replacing one with the other broke a suite in a way that had nothing
+            // to do with what those tests were checking, so both are written.
             if (Object.keys(seed).length > 0){
                 localStorage.setItem("appSettings", JSON.stringify(seed));
+                for (const [key, value] of Object.entries(seed)){
+                    localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
+                }
             }
             localStorage.setItem("onboardingShown", "1");
                 if (fresh){
