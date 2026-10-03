@@ -6,6 +6,7 @@ import{generateChoicesForCurrentQuestion}from"./Mcq";
 import{isTauri,adaptiveAvailable}from"../utils/envUtils";
 import type{PersistenceMode}from"./services/Storage";
 import{canonicalNumeric,latexToPlain}from"./AnswerFormat";
+import{SESSION_STORAGE_KEY}from"./Constants";
 /**
  * The storage module, loaded on demand. Nothing is written before the privacy
  * decision is settled, and that decision is settled before the first render is
@@ -67,12 +68,12 @@ export let settings={
 /**
  * The keys this app has historically kept in localStorage.
  *
- * `sessionState` is an earlier name for the mental session snapshot, and `mentalSessionSnapshot`
- * is the key in force today. Both are listed because the migration can only remove a key it
- * knows about, and a live key that is missing from this list is written and never cleaned up:
- * a private session is supposed to leave nothing behind, and this is the one thing that would.
+ * `sessionState` is an earlier name for the mental session snapshot; the live key is
+ * imported from Constants rather than written out here, because a second literal is a
+ * second thing to forget. When it was missing, the migration could not remove the one
+ * key a private session was supposed to leave behind.
  */
-const LEGACY_KEYS=["appSettings","sessionState","uiPreferences","theme","mentalSessionSnapshot"];
+const LEGACY_KEYS=["appSettings","sessionState","uiPreferences","theme",SESSION_STORAGE_KEY];
 /** Where the settings document is kept, which is whatever store the mode allows. */
 const SETTINGS_KEY="appSettings";
 /**
