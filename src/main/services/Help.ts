@@ -12,7 +12,7 @@
  * The second is confidence. The schedule adjusts for the gap between how sure a
  * learner was and how they actually did, which only works if the confidence is
  * captured, and capturing it after every single answer would make it a habit
- * rather than a judgement. It is therefore asked once a question has been thought
+ * rather than a judgment. It is therefore asked once a question has been thought
  * about, on the questions where the answer is informative.
  */
 import{setHidden}from"../core/DomVisibility";
@@ -137,7 +137,7 @@ export function ask(correct: boolean, responseMs: number): void{
 }
 
 /**
- * Appends one labelled line to the help panel.
+ * Appends one labeled line to the help panel.
  *
  * @param panel - The panel to append to.
  * @param label - The label for the line.
