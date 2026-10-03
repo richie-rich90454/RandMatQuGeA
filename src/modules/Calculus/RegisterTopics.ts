@@ -1,4 +1,4 @@
-﻿import{registerTopic}from"../../main/services/TopicRegistry";
+import{registerTopic}from"../../main/services/TopicRegistry";
 registerTopic("deri","calculus","generateDerivative");
 registerTopic("inte","calculus","generateIntegral");
 registerTopic("lim","calculus","generateLimit");
@@ -9,3 +9,12 @@ registerTopic("integration_advanced","calculus","generateIntegrationAdvanced");
 registerTopic("graphical_calculus","calculus","generateGraphicalCalculus");
 registerTopic("parametric_polar","calculus","generateParametricPolarVector");
 registerTopic("sequences_series","calculus","generateSequencesSeries");
+registerTopic("div_curl","calculus","generateDivergenceCurl");
+registerTopic("ftc","calculus","generateFundamentalTheorem");
+registerTopic("improper_integrals","calculus","generateImproperIntegrals");
+registerTopic("lhopital","calculus","generateLHospital");
+registerTopic("mean_value","calculus","generateMeanValueTheorem");
+registerTopic("optimization","calculus","generateOptimization");
+registerTopic("param_curves","calculus","generateParametricCurves");
+registerTopic("partial_derivatives","calculus","generatePartialDerivatives");
+registerTopic("taylor","calculus","generateTaylor");
