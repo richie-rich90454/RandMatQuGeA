@@ -117,8 +117,8 @@ export function generatePlaceValue(difficulty?: string, rng: RngFn=Math.random):
             latex=`The number \\( ${grouped(value)} \\) is written in the decimal system. What is the value of the digit \\( ${digit} \\) in the \\( ${PLACES[place]} \\) place?`;
             let lower=place>0?digit*Math.pow(10, place-1):0;
             let upper=digit*Math.pow(10, place+1);
-            let neighbour=digitAt(value, place+1)*weight;
-            choices=numberOptions(digit*weight, [lower, upper, neighbour, digit], 0);
+            let neighbor=digitAt(value, place+1)*weight;
+            choices=numberOptions(digit*weight, [lower, upper, neighbor, digit], 0);
             rungs=[
                 "The value of a digit is that digit times the factor its place is worth, so name the place first and then multiply.",
                 `The place asked about is the ${PLACES[place]} place, which is worth ${weight}, and the digit sitting in it is ${digit}.`
