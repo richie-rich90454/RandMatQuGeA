@@ -10,17 +10,33 @@ vi.mock("../../main/core/DomRegistry",()=>{
         get innerHTML(){return gridElement.innerHTML;},
         set innerHTML(v:string){gridElement.innerHTML=v;},
         appendChild:vi.fn((node:Node)=>{gridElement.appendChild(node);}),
-        querySelector(selector:string){return gridElement.querySelector(selector);}
+        querySelector(selector:string){return gridElement.querySelector(selector);},
+        querySelectorAll(selector:string){return gridElement.querySelectorAll(selector);}
     };
     const topicSearch={value:""};
     const currentTopicDisplay={textContent:""};
     const generateQuestionButton={disabled:false,setAttribute:vi.fn()};
+    // The category chip row and the count are real elements rather than stubs,
+    // because the behaviour under test is what a click on a chip does to the grid,
+    // and a stub cannot be clicked. The chip row is kept out of the document so
+    // the test drives it directly.
+    const chipElement=document.createElement("div");
+    const topicCategoryFilter={
+        get innerHTML(){return chipElement.innerHTML;},
+        set innerHTML(v:string){chipElement.innerHTML=v;},
+        appendChild:vi.fn((node:Node)=>{chipElement.appendChild(node);}),
+        addEventListener:vi.fn((type:string,fn:(e:Event)=>void)=>{chipElement.addEventListener(type,fn);}),
+        querySelector(selector:string){return chipElement.querySelector(selector);}
+    };
+    const topicCount={textContent:""};
     const dom={
         topicGrid,
         topicSearch,
         currentTopicDisplay,
         generateQuestionButton,
-        displays:{topicGrid,currentTopicDisplay},
+        topicCategoryFilter,
+        topicCount,
+        displays:{topicGrid,currentTopicDisplay,topicCategoryFilter,topicCount},
         inputs:{topicSearch},
         buttons:{generateQuestionButton},
         // The registry grew a help group and a daily group. They are present here
@@ -44,13 +60,14 @@ vi.mock("../../main/core/DomRegistry",()=>{
             dailyStreakCount:null
         }
     };
-    return{dom};
+    return{dom,chipElement};
 });
 vi.mock("../../main/core/StateStore",()=>{
     let selectedTopic:string|null=null;
     let currentMode="single";
     let scope="simple";
     let mentalScope="simple";
+    let topicCategory="all";
     const setSelectedTopic=vi.fn((t:string|null)=>{selectedTopic=t;});
     const setCurrentMode=vi.fn((m:string)=>{currentMode=m;});
     const setScope=vi.fn((s:string)=>{scope=s;});
@@ -61,6 +78,8 @@ vi.mock("../../main/core/StateStore",()=>{
         get currentMode(){return currentMode;},
         get scope(){return scope;},
         get mentalScope(){return mentalScope;},
+        get topicCategory(){return topicCategory;},
+        set topicCategory(value:string){topicCategory=value;},
         setSelectedTopic,
         setCurrentMode,
         setScope,
@@ -93,6 +112,7 @@ import*as stateStore from"../../main/core/StateStore";
 let state:any=stateStore.appState;
 import*as domRegistry from"../../main/core/DomRegistry";
 let dom:any=domRegistry.dom;
+let chipRow:any=(domRegistry as unknown as{chipElement:HTMLElement}).chipElement;
 import*as ui from"../../main/Ui.js";
 describe("topics",()=>{
     afterEach(()=>{
@@ -107,6 +127,7 @@ describe("topics",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
+        state.topicCategory="all";
         dom.topicSearch!.value="";
     });
     it("should export renderTopicGrid",()=>{
@@ -137,6 +158,7 @@ describe("renderTopicGrid",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
+        state.topicCategory="all";
         dom.topicSearch!.value="";
     });
     it("should not throw when called",()=>{
@@ -159,6 +181,114 @@ describe("renderTopicGrid",()=>{
         state.setSelectedTopic(null);
         topics.renderTopicGrid();
         expect(state.setSelectedTopic).toHaveBeenCalledWith("add");
+    });
+    it("should group the grid under a heading per category",()=>{
+        topics.resetTopicGrid();
+        topics.renderTopicGrid();
+        let headings=Array.from(dom.topicGrid!.querySelectorAll(".topic-group-heading") as NodeListOf<HTMLElement>);
+        expect(headings.map(h=>h.textContent)).toEqual(["Arithmetic","Algebra"]);
+    });
+    it("should build one chip per category plus an all chip",()=>{
+        topics.resetTopicGrid();
+        topics.renderTopicGrid();
+        let chips=Array.from(chipRow.querySelectorAll(".topic-chip") as NodeListOf<HTMLElement>);
+        expect(chips.map(c=>c.getAttribute("data-category"))).toEqual(["all","Arithmetic","Algebra"]);
+    });
+    it("should show how many topics the scope allows on the all chip",()=>{
+        topics.resetTopicGrid();
+        topics.renderTopicGrid();
+        let chips=Array.from(chipRow.querySelectorAll(".topic-chip") as NodeListOf<HTMLElement>);
+        // The scope is "simple": three arithmetic topics, none of the algebra one.
+        expect(chips[0]!.textContent).toBe("All 3");
+        expect(chips[1]!.textContent).toBe("Arithmetic 3");
+        expect(chips[2]!.textContent).toBe("Algebra 0");
+    });
+    it("should hide the topics of every category but the one chosen",()=>{
+        topics.resetTopicGrid();
+        state.setScope("algebra");
+        state.topicCategory="Algebra";
+        topics.renderTopicGrid();
+        let hidden=(id:string)=>dom.topicGrid!.querySelector(`[data-topic-id="${id}"]`)!.classList.contains("hidden");
+        expect(hidden("linEq")).toBe(false);
+        expect(hidden("add")).toBe(true);
+    });
+    it("should narrow the grid when a category chip is clicked",()=>{
+        topics.resetTopicGrid();
+        state.setScope("algebra");
+        topics.renderTopicGrid();
+        let chip=chipRow.querySelector('[data-category="Algebra"]') as HTMLElement;
+        chip.click();
+        expect(state.topicCategory).toBe("Algebra");
+        let hidden=(id:string)=>dom.topicGrid!.querySelector(`[data-topic-id="${id}"]`)!.classList.contains("hidden");
+        expect(hidden("linEq")).toBe(false);
+        expect(hidden("add")).toBe(true);
+    });
+    it("should hide the category headings once one category is chosen",()=>{
+        topics.resetTopicGrid();
+        state.setScope("algebra");
+        topics.renderTopicGrid();
+        let headings=Array.from(dom.topicGrid!.querySelectorAll(".topic-group-heading") as NodeListOf<HTMLElement>);
+        expect(headings.every(h=>!h.classList.contains("hidden"))).toBe(true);
+        state.topicCategory="Algebra";
+        topics.renderTopicGrid();
+        expect(headings.every(h=>h.classList.contains("hidden"))).toBe(true);
+    });
+    it("should hide a heading whose category has nothing visible",()=>{
+        topics.resetTopicGrid();
+        state.setScope("algebra");
+        dom.topicSearch!.value="linear";
+        topics.renderTopicGrid();
+        let headings=Array.from(dom.topicGrid!.querySelectorAll(".topic-group-heading") as NodeListOf<HTMLElement>);
+        expect(headings[0]!.classList.contains("hidden")).toBe(true);
+        expect(headings[1]!.classList.contains("hidden")).toBe(false);
+    });
+    it("should find a category by name, since no topic is named after one",()=>{
+        topics.resetTopicGrid();
+        state.setScope("algebra");
+        dom.topicSearch!.value="algebra";
+        topics.renderTopicGrid();
+        let hidden=(id:string)=>dom.topicGrid!.querySelector(`[data-topic-id="${id}"]`)!.classList.contains("hidden");
+        expect(hidden("linEq")).toBe(false);
+        expect(hidden("add")).toBe(true);
+    });
+    it("should report how many topics are showing out of how many the scope allows",()=>{
+        topics.resetTopicGrid();
+        topics.renderTopicGrid();
+        expect(dom.topicCount.textContent).toBe("3 of 3 topics");
+        state.setScope("algebra");
+        topics.renderTopicGrid();
+        expect(dom.topicCount.textContent).toBe("4 of 4 topics");
+        dom.topicSearch!.value="subtrt";
+        topics.renderTopicGrid();
+        expect(dom.topicCount.textContent).toBe("1 of 4 topics");
+    });
+    it("should clear the selection when the filter hides the selected topic",()=>{
+        topics.resetTopicGrid();
+        state.setScope("algebra");
+        topics.renderTopicGrid();
+        expect(state.selectedTopic).toBe("add");
+        state.topicCategory="Algebra";
+        topics.renderTopicGrid();
+        expect(state.selectedTopic).toBeNull();
+        expect(dom.generateQuestionButton.disabled).toBe(true);
+    });
+    it("should not auto-select a topic the filter has hidden",()=>{
+        topics.resetTopicGrid();
+        state.setScope("algebra");
+        state.setSelectedTopic(null);
+        state.topicCategory="Algebra";
+        dom.topicSearch!.value="linear";
+        topics.renderTopicGrid();
+        expect(state.setSelectedTopic).not.toHaveBeenCalledWith("add");
+    });
+    it("should show every topic when the chosen category names none of them",()=>{
+        topics.resetTopicGrid();
+        state.setScope("algebra");
+        state.topicCategory="A Category That No Longer Exists";
+        topics.renderTopicGrid();
+        let hidden=(id:string)=>dom.topicGrid!.querySelector(`[data-topic-id="${id}"]`)!.classList.contains("hidden");
+        expect(hidden("add")).toBe(false);
+        expect(hidden("linEq")).toBe(false);
     });
     it("should select first displayed topic when current selection out of scope",()=>{
         state.setSelectedTopic("linEq");
@@ -190,6 +320,7 @@ describe("selectTopic",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
+        state.topicCategory="all";
         dom.topicSearch!.value="";
     });
     it("should set selected topic in state",()=>{
@@ -237,6 +368,7 @@ describe("pickRandomTopic",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
+        state.topicCategory="all";
         dom.topicSearch!.value="";
     });
     it("should return a valid topic id",()=>{
@@ -285,6 +417,7 @@ describe("renderTopicGrid - edge cases",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
+        state.topicCategory="all";
         dom.topicSearch!.value="";
     });
     it("should handle topics with missing icons",()=>{
@@ -329,6 +462,7 @@ describe("selectTopic - edge cases",()=>{
         state.setCurrentMode("single");
         state.setScope("simple");
         state.setMentalScope("simple");
+        state.topicCategory="all";
         dom.topicSearch!.value="";
     });
     it("should handle clicking same topic twice",()=>{
