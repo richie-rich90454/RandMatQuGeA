@@ -18,7 +18,7 @@ registerTopic("probability_rules","discrete","generateProbabilityRules");
 registerTopic("boolean_algebra","discrete","generateBooleanAlgebra");
 registerTopic("counting_advanced","discrete","generateCountingAdvanced");
 registerTopic("graph_basics","discrete","generateGraphBasics");
-registerTopic("graph_colouring","discrete","generateGraphColouring");
+registerTopic("graph_coloring","discrete","generateGraphColoring");
 registerTopic("graph_euler","discrete","generateGraphEuler");
 registerTopic("inclusion_exclusion","discrete","generateInclusionExclusion");
 registerTopic("logic_equivalences","discrete","generateLogicEquivalences");
