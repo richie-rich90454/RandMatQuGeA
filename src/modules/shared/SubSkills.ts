@@ -15,7 +15,7 @@
  * something other than a topic id is unreachable and is a defect, not a comment.
  *
  * A generator names its chosen sub-skill by returning it in the DTO, which lets
- * the scheduler record exactly which procedure was practised without a second
+ * the scheduler record exactly which procedure was practiced without a second
  * source of truth.
  */
 
@@ -42,12 +42,12 @@ let TABLE: { [topicId: string]: string[] }={
     order_ops:["numeric","variables","parentheses","powers","signed"],
     root:["simplify","nth_root","rationalize"],
     log:["evaluate","change_base","product_rule","solve"],
-    exp:["evaluate","simplify","solve","compare","modelling"],
+    exp:["evaluate","simplify","solve","compare","modeling"],
     fact:["evaluate","word","prime","legendre","last_digit"],
     ser:["nth_term","sum","geometric_sum","convergence","series_shift"],
     real_ops:["distance","absolute","compare","sign"],
     cartesian:["quadrants","ordered_pair","reflection","scale"],
-    circle_eq:["standard","centre_radius","complete_square","intersect"],
+    circle_eq:["standard","center_radius","complete_square","intersect"],
     linear_special:["one_step","two_step","both_sides","parentheses","literal"],
     rational_eq:["simple","variable_denominator","extraneous","domain_restriction"],
     poly_ineq:["linear_factor","quadratic","sign_chart","interval"],
@@ -82,7 +82,7 @@ let TABLE: { [topicId: string]: string[] }={
     poly_ops:["evaluate","add","subtract","multiply","special_forms","construct"],
     poly_div:["monomial","long_division","synthetic","remainder"],
     factoring:["gcf","difference_squares","perfect_square_trinomial","by_grouping","quadratic"],
-    func_concepts:["is_function","domain_from_graph","range_from_graph","end_behaviour","intercepts"],
+    func_concepts:["is_function","domain_from_graph","range_from_graph","end_behavior","intercepts"],
     linear_graph:["equation","slope_intercept","parallel_perpendicular","from_points"],
     nonlinear_graph:["parabola","absolute_value","cube","transform","vertex"],
     sin:["evaluate","unit_circle","period","graph","solve"],
@@ -146,7 +146,7 @@ let TABLE: { [topicId: string]: string[] }={
     vectors_3d:["cross_product","triple_product","angle_3d","point_line_distance","point_plane_distance"],
     // The eighteen topics below declare a single procedure each, so each gets a
     // one-entry row rather than being left out. A topic with no row has no
-    // sub-skills, which means the scheduler cannot record what was practised and
+    // sub-skills, which means the scheduler cannot record what was practiced and
     // review cannot target the weak procedure.
     area_circle:["area"],
     pythag:["hypotenuse"],
@@ -204,10 +204,10 @@ let TABLE: { [topicId: string]: string[] }={
     pigeonhole:["into_the_pigeons","at_least_two","general_form","constructive_count"],
     graph_basics:["degree_of_a_vertex","a_walk_or_path","cycles","connectivity"],
     graph_euler:["euler_path","euler_circuit","hamilton_path","bipartite_by_odd_degree"],
-    graph_colouring:["two_colour_test","three_colouring","four_colour_theorem","bipartite_equals_two_colourable"],
+    graph_coloring:["two_color_test","three_coloring","four_color_theorem","bipartite_equals_two_colorable"],
     spanning_trees:["count_the_trees","kruskal_reasoning","minimum_spanning_tree","removing_a_cycle"],
-    recurrence_relations:["constant_recurrence","first_order_linear","find_an_explicit_form","growth_behaviour"],
-    boolean_algebra:["simplify_an_expression","equivalence_to_a_truth_table","minimise_by_consensus","gate_implementation"],
+    recurrence_relations:["constant_recurrence","first_order_linear","find_an_explicit_form","growth_behavior"],
+    boolean_algebra:["simplify_an_expression","equivalence_to_a_truth_table","minimize_by_consensus","gate_implementation"],
     relations_classes:["check_reflexive","check_symmetric","check_transitive","equivalence_class"],
     counting_advanced:["derangements","catalan_numbers","multinomial_count","stars_and_bars"],
     triangle_congruence:["sss","sas","asa","aas","hypotenuse_leg","not_congruent"],
@@ -234,7 +234,7 @@ let TABLE: { [topicId: string]: string[] }={
     trig_equations:["linear_in_the_angle","double_angle","factored_form","check_for_extraneous"],
     general_solutions:["coterminal_angles","the_period","all_solutions","in_radians"],
     exact_values:["the_45_degree_family","quadrant_signs","half_angles","building_from_familiar_angles"],
-    trig_identities:["recognise_the_pythagorean_family","prove_a_basic_one","simplify_an_expression","reciprocal_conversion"],
+    trig_identities:["recognize_the_pythagorean_family","prove_a_basic_one","simplify_an_expression","reciprocal_conversion"],
     law_of_sines:["find_a_side","find_an_angle","an_application","choose_the_theorem"],
     law_of_cosines:["find_the_side","find_the_angle","an_application","compare_with_pythagoras"],
     ambiguous_case:["two_possible_triangles","one_possible_triangle","no_possible_triangle","verify_a_solution"],
