@@ -8,7 +8,7 @@
  * the side-count branch are exact: the side count is built from divisors of 360 so
  * that 360 divided by the angle is a whole number and nothing is rounded at all.
  *
- * The apothem is the inradius, the distance from the centre to the midpoint of a
+ * The apothem is the inradius, the distance from the center to the midpoint of a
  * side, and half of it spans a right triangle against half a side. That triangle is
  * why the tangent appears rather than the sine.
  */
@@ -49,10 +49,10 @@ export function generateRegularPolygons(difficulty?: string, rng: RngFn=Math.ran
             let apothem=apothemOf(side, n);
             correct=fmt(apothem, 2);
             expectedFormat="Enter a decimal rounded to the nearest hundredth";
-            latex=`A regular polygon has \\( ${n} \\) sides each of length \\( ${side} \\). What is its apothem, that is the perpendicular distance from the centre to the midpoint of a side? Use \\( a = \\frac{s}{2\\tan(\\pi / n)} \\) and round your answer to the nearest hundredth.`;
+            latex=`A regular polygon has \\( ${n} \\) sides each of length \\( ${side} \\). What is its apothem, that is the perpendicular distance from the center to the midpoint of a side? Use \\( a = \\frac{s}{2\\tan(\\pi / n)} \\) and round your answer to the nearest hundredth.`;
             choices=numberOptions(apothem, [side/2, side/(2*Math.sin(Math.PI/n)), side*Math.tan(Math.PI/n)/2, side/(2*Math.tan(2*Math.PI/n)), side], 2);
             rungs=[
-                "The apothem is a half side divided by the tangent of half a central angle, which comes from the right triangle a centre, a vertex and a side midpoint form.",
+                "The apothem is a half side divided by the tangent of half a central angle, which comes from the right triangle a center, a vertex and a side midpoint form.",
                 `Use n = ${n} and s = ${side}: the apothem is ${side} divided by 2 tan(180 / ${n} degrees).`
             ];
             steps=[
