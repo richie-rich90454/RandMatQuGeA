@@ -69,7 +69,7 @@ Every topic below is generated, graded, and oracle-checked. Counts are the numbe
 | **Calculus** (19) | 19 | Limits, continuity, derivatives (polynomial, trig, exponential, logarithmic, product, quotient, chain, implicit, higher order, motion), integrals (definite, area, substitution, initial value), related rates, optimisation, L'Hôpital, Taylor series, the fundamental theorem, the mean value theorem, improper integrals, partial derivatives, divergence and curl, parametric curves |
 | **Linear Algebra** (22) | 22 | Matrix operations, row echelon form, systems, partial fractions, linear programming, 3D vectors, lines and planes in 3D, eigenvalues and eigenvectors, orthogonality, cross products, determinants, Cramer's rule, rank, null space, LU decomposition, matrices as transformations, bases and coordinates, linear independence, least squares, symmetric matrices |
 | **Trigonometry** (37) | 37 | The six ratios and their inverses, trig equations, trig graphs, degrees/radians, arc length, angular and linear speed, right-triangle definitions, special triangles, elevation and depression, reference angles, ASTC signs, sum/difference, double-angle, half-angle, polar conversion, parametric motion, complex polar form and De Moivre, exact values, identities, general solutions, the law of sines, the law of cosines, the ambiguous case |
-| **Discrete Mathematics** (29) | 29 | Permutations, combinations, probability, statistics, divisibility, GCD/LCM, modular arithmetic, data analysis, counting principles, probability rules, propositional logic, logic equivalences, set operations, inclusion–exclusion, the pigeonhole principle, graph basics, Euler and Hamilton paths, graph colouring, spanning trees, recurrence relations, Boolean algebra, relations, advanced counting |
+| **Discrete Mathematics** (29) | 29 | Permutations, combinations, probability, statistics, divisibility, GCD/LCM, modular arithmetic, data analysis, counting principles, probability rules, propositional logic, logic equivalences, set operations, inclusion–exclusion, the pigeonhole principle, graph basics, Euler and Hamilton paths, graph coloring, spanning trees, recurrence relations, Boolean algebra, relations, advanced counting |
 | **Geometry** (24) | 24 | Area and perimeter of circles and polygons, surface area, volume, the Pythagorean theorem, similarity, rigid motions, circle geometry, triangle congruence, the triangle inequality, triangle area, quadrilateral area, polygon angles, regular polygons, midsegments, angle bisectors, composite figures, volumes of solids |
 
 ## 🚀 Quick Start
@@ -178,7 +178,7 @@ random-math-question-generator-app/
 │   │   ├── Settings.ts       # settings and the persistence decision
 │   │   ├── Topics.ts         # topic grid, search, category filter, scopes
 │   │   ├── Answer.ts         # the single grading pipeline
-│   │   ├── AnswerFormat.ts   # one answer normaliser, shared by all three callers
+│   │   ├── AnswerFormat.ts   # one answer normalizer, shared by all three callers
 │   │   ├── Mcq.ts            # the option-set contract
 │   │   └── Generation.ts     # question orchestration
 │   ├── modules/              # 204 topic generators across 7 subjects
