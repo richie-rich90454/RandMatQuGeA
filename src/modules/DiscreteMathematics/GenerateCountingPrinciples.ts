@@ -154,10 +154,10 @@ export function generateCountingPrinciples(difficulty?: string, rng: RngFn=Math.
             // to each other" is its complement, and a stated order between two
             // of them halves the total.
             let n=randInt(rng, 5, difficulty==="easy"?6:difficulty==="hard"?10:8);
-            let flavour=Math.floor(rng()*3);
+            let flavor=Math.floor(rng()*3);
             let value=0;
             let candidates:number[]=[];
-            if (flavour===0){
+            if (flavor===0){
                 // Binding the pair into one block leaves n-1 objects to arrange,
                 // and the two books can sit in either order inside the block, so
                 // the block itself counts twice. Leaving that factor of two out
@@ -176,7 +176,7 @@ export function generateCountingPrinciples(difficulty?: string, rng: RngFn=Math.
                     `The bound pair can read either way, so 2 x ${factorial(n-1)} = ${value} orders, and the count is ${value}.`
                 ];
             }
-            else if (flavour===1){
+            else if (flavor===1){
                 value=factorial(n)-2*factorial(n-1);
                 display=`${n}! - 2 \\times ${n-1}! = ${value}`;
                 latex=`In how many ways can ${n} distinct books stand on a shelf if two particular books must not stand next to each other?`;
