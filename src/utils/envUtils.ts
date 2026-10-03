@@ -21,16 +21,22 @@ export function isTauri(): boolean{
 /**
  * Reports whether the adaptive features can run in this runtime at all.
  *
- * The scheduler's inputs are performance records written over Tauri IPC, so in a
+ * Two things have to be true, and checking only one of them is how the desktop
+ * build came to offer a scheduler with nothing to schedule from.
+ *
+ * The scheduler decides from performance records written over Tauri IPC, so in a
  * plain browser it would be deciding from data the browser never held: the
  * difficulty would drift on a partial history and the weak-topic list would be
- * confidently wrong. The difficulty adjustment already refused to run outside
- * Tauri, which was the right call made in one place; this names the whole feature
- * so the remaining surfaces ask the same question instead of each re-deciding it,
- * and so a surface added later inherits the decision by calling this.
+ * confidently wrong.
  *
- * @returns True when adaptive learning may run, which is the desktop app only.
+ * And a private session keeps nothing, so even in the desktop app a record that
+ * is discarded when the window closes is no basis for a spaced-repetition
+ * schedule. Adaptive learning needs a runtime that can write the record *and* a
+ * store that will still have it tomorrow.
+ *
+ * @param persistence - The store the learner has chosen.
+ * @returns True when adaptive learning may run.
  */
-export function adaptiveAvailable(): boolean{
-    return isTauri();
+export function adaptiveAvailable(persistence: string): boolean{
+    return isTauri()&&persistence!=="zdr";
 }
