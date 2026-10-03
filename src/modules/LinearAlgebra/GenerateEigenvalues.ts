@@ -8,7 +8,7 @@
  * grading a characteristic-polynomial question on a rounded root asks the learner
  * to reproduce an answer that does not follow from the printed matrix.
  *
- * Defective matrices appear only in the branch that asks the learner to recognise
+ * Defective matrices appear only in the branch that asks the learner to recognize
  * one, because everywhere else "find an eigenvector" would have no answer.
  */
 import type{RngFn, QuestionDto}from"../../types/global";
