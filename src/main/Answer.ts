@@ -5,7 +5,8 @@ import * as settings from"./Settings";
 import * as ui from"./Ui";
 import * as generation from"./Generation";
 import{invoke}from"@tauri-apps/api/core";
-import{isTauri}from"../utils/envUtils";
+import{effectivePersistence}from"./Settings";
+import{adaptiveAvailable}from"../utils/envUtils";
 let _audioCtx: AudioContext|null=null;
 export function getAudioContext(): AudioContext{
     if(!_audioCtx){
@@ -441,7 +442,10 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
     // A review is recorded for every answer, correct or not, because the schedule
     // is built from the pattern and a run of correct answers that were never
     // recorded is indistinguishable from a run that never happened.
-    if (appState.selectedTopic){
+    // The record is only written where the scheduler can read it back. A browser
+    // has no performance table and no durable store, so the record it wrote would be
+    // a growing history of a learner that the scheduler never consults.
+    if (appState.selectedTopic&&adaptiveAvailable(effectivePersistence())){
         try{
             // The review store is loaded on demand rather than statically, because
             // the schedule is only needed once someone has actually answered
@@ -459,22 +463,20 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
             console.warn("Could not record the review:",err);
         }
     }
-    console.log("[Adaptive] Saving performance:", {
-        topicId: appState.selectedTopic,
-        difficulty: appState.currentDifficulty,
-        correct: isCorrect,
-        responseTimeMs: responseTime,
-        errorType: errorType
-    });
-    if (isTauri()){
+    // This is a second write of the same command the review store already sends,
+    // and it stays because the review store cannot cover what it holds: a
+    // ReviewOutcome carries no difficulty and no error type, so the store's row
+    // fills those columns with blanks, and the store only writes the aggregate at
+    // all once its records have been loaded from the database. This call is the one
+    // that records the difficulty the learner actually met and the error we
+    // classified, which is what the next-question recommendation reads.
+    if (adaptiveAvailable(effectivePersistence())){
         invoke('save_performance', {
             topicId: appState.selectedTopic,
             difficulty: appState.currentDifficulty,
             correct: isCorrect,
             responseTimeMs: responseTime,
             errorType: errorType
-        }).then(()=>{
-            console.log("[Adaptive] Performance saved successfully");
         }).catch((e)=>{
             console.warn("[Adaptive] Failed to save performance:", e);
         });
@@ -553,7 +555,7 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
     let dailyActive=daily.isActive();
     if (!appState.autocontinue||!appState.mcqMode){
         let help=await import("./services/Help");
-        help.ask(isCorrect, responseTime);
+        help.ask(isCorrect, responseTime, adaptiveAvailable(effectivePersistence()));
     }
     if (dailyActive){
         // The set advances itself, because a daily set that waits to be told to
