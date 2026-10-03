@@ -1,4 +1,4 @@
-﻿import"./style.css";
+import"./style.css";
 import * as settings from"./main/Settings";
 import * as ui from"./main/Ui";
 import * as session from"./main/Session";
@@ -24,7 +24,7 @@ async function initApp(): Promise<void>{
     settings.applyPersistenceVisibility();
     // Settled at boot for the same reason as the storage decision above: a surface
     // that must not exist in this runtime should never be painted and then taken
-    // away, and a preference that cannot be honoured should not be read back.
+    // away, and a preference that cannot be honored should not be read back.
     settings.applyAdaptiveVisibility();
     try{
         // Loaded on demand: the schedule and its storage are only needed once
