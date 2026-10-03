@@ -9,7 +9,7 @@
         <title>RandMatQuGeA</title>
         <meta name="application-name" content="RandMatQuGeA">
         <meta name="theme-color" content="#28465C">
-        <meta name="description" content="Practice mathematics across 125 topics with an adaptive review schedule and a daily challenge.">
+        <meta name="description" content="Practice mathematics across 204 topics with an adaptive review schedule and a daily challenge.">
         <meta name="color-scheme" content="light dark">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -76,7 +76,12 @@
                             <h2 class="toolbar-title" id="topics-heading">Topics</h2>
                             <div class="topic-search-wrapper">
                                 <input type="text" id="topic-search" class="answer-input topic-search"
-                                    placeholder="Search topics..." aria-label="Search topics">
+                                    placeholder="Search topics, categories and skills..." aria-label="Search topics">
+                            </div>
+                            <div class="topic-filter-row">
+                                <div class="topic-category-chips" id="topic-category-filter" role="group"
+                                    aria-label="Filter topics by category"></div>
+                                <span class="topic-count" id="topic-count" role="status" aria-live="polite"></span>
                             </div>
                             <div class="topic-pills-container" id="topic-grid" role="group"
                                 aria-labelledby="topics-heading"></div>
