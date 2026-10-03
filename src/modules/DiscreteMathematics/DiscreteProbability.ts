@@ -140,7 +140,7 @@ export function generateProbability(difficulty?: string, rng: RngFn=Math.random)
             answerAlternate=`C(${n},${k}) \\cdot ${pStr}^{${k}} \\cdot ${qStr}^{${n-k}}`;
             answerDisplay=`\\binom{${n}}{${k}} \\cdot ${pStr}^{${k}} \\cdot ${qStr}^{${n-k}}`;
             hint="Enter a decimal";
-            // The candidates are the neighbouring probabilities, the count with the
+            // The candidates are the neighboring probabilities, the count with the
             // exponents swapped, and the same probability with the combination
             // factor dropped. The candidate that leaves out the (1-p) factor is no
             // longer offered: for a count near the top of the range it comes out
