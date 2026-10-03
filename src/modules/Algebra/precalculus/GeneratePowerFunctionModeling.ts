@@ -50,7 +50,7 @@ export function generatePowerFunctionModeling(difficulty?: string, rng: RngFn = 
             alternate=fmtTrim(y2,2);
             display=ans;
             // Inverse variation is where a learner forgets to invert, so
-            // k*x2 leads and the value at a neighbouring x backs it up.
+            // k*x2 leads and the value at a neighboring x backs it up.
             // The old +/-0.5 perturbation was the same value as the key
             // whenever kInv divided x2 evenly, which is most of the time,
             // so the set could not be relied on.
