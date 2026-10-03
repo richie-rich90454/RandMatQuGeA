@@ -121,12 +121,28 @@ export class DomRegistry{
         return{
             get questionArea(){return self.getElement<HTMLDivElement>("question-area");},
             get topicGrid(){return self.getElement("topic-grid");},
+            get topicCategoryFilter(){return self.getElement("topic-category-filter");},
+            get topicCount(){return self.getElement("topic-count");},
             // Topics.ts appends every pill straight to the grid, so the pills are
             // the grid's own children rather than something the document has to be
-            // searched for.
+            // searched for. The grid also carries a heading per category, so the
+            // children are filtered by class instead of cast: a heading is an
+            // element, not a button, and handing it to a caller that toggles the
+            // active class would make the pill state depend on the group it sits
+            // under. Reading the children directly rather than through
+            // querySelectorAll keeps this off the interaction paths the style
+            // guide forbids it on, and costs one pass over the grid's own
+            // children rather than a document-wide search.
             get topicPills(): HTMLButtonElement[]{
                 let grid=self.getElement("topic-grid");
-                return grid?Array.from(grid.children) as HTMLButtonElement[]:[];
+                if (!grid) return [];
+                let pills:HTMLButtonElement[]=[];
+                for(let child of Array.from(grid.children)){
+                    if (child instanceof HTMLElement&&child.classList.contains("topic-pill")){
+                        pills.push(child as HTMLButtonElement);
+                    }
+                }
+                return pills;
             },
             get currentTopicDisplay(){return self.getElement("current-topic");},
             get answerResults(){return self.getElement("answer-results");},
