@@ -168,10 +168,54 @@ The desktop and web builds had **two different answer checkers**, and they disag
   redesigned** rather than padded: `divisibility`'s recognition branch became "which of these four
   numbers is divisible by n", `poly_end`'s IVT branch became a question about the signs of `f(a)`
   and `f(b)`, and `real_ops`'s ordering branch became a choice between four relations.
-- The oracle now samples **all 137 topics** with an empty failure list, and the eight trigonometry
+- The oracle now samples **all 204 topics** with an empty failure list, and the trigonometry
   topics are additionally swept at 120 seeds per difficulty in
   `src/__tests__/modules/Trigonometry/TrigOptionSets.test.ts`, because the gate's own eight seeds once
   hid a defect for twenty-six of them.
+- **The second expansion, 137 → 204.** Sixty-seven topics of genuine gap rather than repetition,
+  chosen from an inventory of what the 137 did not have: Arithmetic 8, Algebra 8, Calculus 9,
+  Discrete Mathematics 13, Geometry 11, Linear Algebra 10, Trigonometry 8. Every one is a distinct
+  procedure, not another instance of a procedure already present — determinants before Cramer's rule,
+  degree before Euler, triangle inequality before triangle area, exact values before identities.
+  `topics`, the `registerTopic` calls and the `SubSkills.ts` rows are 204 = 204 = 204 in both
+  directions.
+- **What the option-set contract cost at this size.** Every one of the 67 new generators reaches
+  four honest options on every branch, and the branches whose natural question was yes/no were
+  redesigned rather than padded: `absolute_value_equation/no_solution` became "which of these four
+  equations has no solution", `graph_euler/euler_path` became "which pair of vertices are the
+  odd-degree ones", `relations/*` each became a count the learner can read off the printed pair
+  list. The unit suite grew from 7,556 to **9,944** with the sweep tests that prove each branch is
+  reachable and each option set holds.
+- **One ambiguity the generators refused.** The law-of-sines brief stated the ambiguous-case rule
+  as "two solutions when `h < b < a`", which is inverted: for SSA with `A` acute, `b < a` gives one
+  triangle. The correct rule (`h < a < b`) is implemented, and rather than assert it the generator
+  computes both candidate angles, keeps those leaving a positive third angle, and verifies each
+  against the cosine rule before offering it.
+
+### 4.8b Topic selection at 204 topics
+The grid was a flat wrapped list of pills, which is browsable at 137 and is not browsable at 204.
+On a phone it was worse than unwieldy: the mobile rule turns the container into a horizontal strip,
+so 204 topics became 204 unlabelled targets in a scroller with nothing to anchor them. No unit test
+can see this, because the grid was doing exactly what it was written to do.
+
+- The grid is **grouped under a heading per category**, and a chip row filters it to one category,
+  each chip carrying how many topics the current scope has in it. `Algebra 0` is printed rather than
+  a bare "Algebra", because a category that exists and is empty is a different message from one
+  that is not there.
+- The category is now part of the searchable text. No topic is named after a category, so typing
+  "trig" or "geometry" previously answered "nothing matches" to a query naming something the grid
+  is full of. The sub-skill names are deliberately **not** indexed: they are internal identifiers no
+  learner has read, and a match on text the learner cannot have seen is a result that cannot be
+  explained.
+- A selected topic the filter has hidden is deselected, so pressing Generate can never answer from a
+  topic whose pill is not on screen. An unrecognised category counts as showing everything, because
+  a filter that narrowed the grid to nothing on a value it did not recognise would leave an empty
+  grid and no way out of it.
+- `dom.displays.topicPills` cast every child of the grid to a button, which was true while the grid
+  held nothing else. It now filters by class over the grid's own children — no `querySelectorAll`,
+  so no interaction path gained a document search.
+- Cost: 0.55 kB of the JavaScript budget and 0.27 kB of the CSS budget. The page description also
+  still said "125 topics", which had been true when written.
 
 ### 4.9 Performance
 - `src/main/Topics.ts`: static `Map`/`Set` indexes, no document scan on the interaction path.
@@ -346,12 +390,13 @@ Last full green baseline after this session's work:
 | Gate | Result |
 |---|---|
 | `tsc --noEmit` | clean |
-| unit | 124 files, 7,556 passed, 6 skipped |
-| oracle | 4 files, 23 passed, including the raw-option gate over all 137 topics |
-| coverage | statements 74.48, branches 58.70, functions 58.76, lines 76.87, floor enforced |
+| unit | 128 files, 9,944 passed, 6 skipped |
+| oracle | 4 files, 23 passed, including the raw-option gate over all 204 topics |
+| coverage | statements 81.0, branches 68.2, functions 69.27, lines 82.82, floor enforced |
 | `cargo test` | 227 passed |
-| `npm run build:web` | built in 12.4 s |
-| bundle | JS 37.01 kB, CSS 8.30 kB, total 55.55 kB against 38/10/57 |
+| `npm run build:web` | built green |
+| bundle | JS 37.56 kB, CSS 8.57 kB, total 56.43 kB against 38/10/57 |
+| commits | 228, one file per commit |
 | Playwright | see section 7 |
 
 Any change to a generator is incomplete until the oracle passes. Any change to a service is
