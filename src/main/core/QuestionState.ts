@@ -15,7 +15,7 @@ export class QuestionState{
         window.hasQuestion=this._hasQuestion;
     }
     /**
-     * The procedure within the topic that this question practised, when the
+     * The procedure within the topic that this question practiced, when the
      * generator named one. The scheduler needs it to record the review against
      * the skill rather than against the topic as a whole.
      */
