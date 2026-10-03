@@ -11,6 +11,7 @@
  * left off rather than restarting, and it is stored through the privacy module, so
  * a private session genuinely forgets the streak when the tab closes.
  */
+import{setHidden}from"../core/DomVisibility";
 import{dom}from"../core/DomRegistry";
 import{appState}from"../core/StateStore";
 import * as ui from"../Ui";
@@ -101,7 +102,7 @@ export async function enter(): Promise<void>{
     appState.currentMode="single";
     syncModeButtons();
     let summary=dom.daily.dailySummary;
-    if (summary) summary.hidden=false;
+    setHidden(summary, false);
     renderSummary();
     await next();
 }
@@ -114,7 +115,7 @@ export function leave(): void{
     current=-1;
     answered=new Set();
     let summary=dom.daily.dailySummary;
-    if (summary) summary.hidden=true;
+    setHidden(summary, true);
     syncModeButtons();
     void persist();
     appState.currentMode=previousMode;
@@ -177,7 +178,7 @@ function renderSummary(): void{
     }
     let streak=dom.daily.dailyStreak;
     let count=dom.daily.dailyStreakCount;
-    if (streak) streak.hidden=false;
+    setHidden(streak, false);
     if (count){
         let state=streakAfter(today, answered.size, completedDays());
         count.textContent=String(state.streak);
