@@ -1,4 +1,5 @@
 import{dom}from"./core/DomRegistry";
+import{setHidden}from"./core/DomVisibility";
 import{appState}from"./core/StateStore";
 import{questionState}from"./core/QuestionState";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
@@ -96,7 +97,7 @@ export async function applyPersistence(chosen: PersistenceMode): Promise<void>{
 export function applyPersistenceVisibility(): void{
     let usable=settings.persistence!=="zdr"||isTauri();
     let eraseGroup=dom.settings.settingEraseData;
-    if (eraseGroup) eraseGroup.hidden=!usable;
+    setHidden(eraseGroup, !usable);
     let persistenceSelect=dom.settings.settingsPersistence;
     if (persistenceSelect){
         // The select reflects the mode in force, which is not always the mode that
@@ -136,11 +137,11 @@ export function applyAdaptiveVisibility(): void{
     let available=adaptiveAvailable();
     if (!available) settings.adaptive=false;
     let row=dom.settings.settingAdaptive;
-    if (row) row.hidden=!available;
+    setHidden(row, !available);
     let recommendBtn=dom.buttons.recommendBtn;
-    if (recommendBtn) recommendBtn.hidden=!available;
+    setHidden(recommendBtn, !available);
     let modal=dom.modals.weakTopicsModal;
-    if (modal) modal.hidden=!available;
+    setHidden(modal, !available);
 }
 export function loadSettings(): Promise<void>{
     // The controls are filled from the defaults immediately so the interface never
