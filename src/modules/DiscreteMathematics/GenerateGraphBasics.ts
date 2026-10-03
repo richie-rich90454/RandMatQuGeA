@@ -3,7 +3,7 @@
  * @description Every graph here is printed as an explicit edge list, because a
  * graph a learner cannot see is a graph they can do nothing with: the degree of
  * a vertex is the number of printed edges that name it, and both the Euler and
- * the colouring questions are decided by counting those names.
+ * the coloring questions are decided by counting those names.
  *
  * This file also owns the graph arithmetic the other graph generators need:
  * degrees, adjacency, girth and component count. Those are exported rather than
