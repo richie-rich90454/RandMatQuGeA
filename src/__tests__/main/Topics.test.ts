@@ -17,7 +17,7 @@ vi.mock("../../main/core/DomRegistry",()=>{
     const currentTopicDisplay={textContent:""};
     const generateQuestionButton={disabled:false,setAttribute:vi.fn()};
     // The category chip row and the count are real elements rather than stubs,
-    // because the behaviour under test is what a click on a chip does to the grid,
+    // because the behavior under test is what a click on a chip does to the grid,
     // and a stub cannot be clicked. The chip row is kept out of the document so
     // the test drives it directly.
     const chipElement=document.createElement("div");
@@ -77,7 +77,9 @@ vi.mock("../../main/core/StateStore",()=>{
         set selectedTopic(v:string|null){selectedTopic=v;setSelectedTopic(v);},
         get currentMode(){return currentMode;},
         get scope(){return scope;},
+        set scope(v:string){scope=v;},
         get mentalScope(){return mentalScope;},
+        set mentalScope(v:string){mentalScope=v;},
         get topicCategory(){return topicCategory;},
         set topicCategory(value:string){topicCategory=value;},
         setSelectedTopic,
@@ -106,6 +108,9 @@ vi.mock("../../main/Constants.js",()=>({
         empty:[],
         one:["add"],
     },
+    // The order the scope control lists them in, which is also the order a question
+    // is answered in when a category can only be reached by widening.
+    scopeLadder:["simple","algebra","precalc","calc","all"],
 }));
 import*as topics from"../../main/Topics.js";
 import*as stateStore from"../../main/core/StateStore";
@@ -280,6 +285,51 @@ describe("renderTopicGrid",()=>{
         dom.topicSearch!.value="linear";
         topics.renderTopicGrid();
         expect(state.setSelectedTopic).not.toHaveBeenCalledWith("add");
+    });
+    it("should widen the scope so a chosen category is not a dead end",()=>{
+        // A chip reading "Algebra 0" against the default arithmetic scope reads as
+        // unavailable, and a filter that can be pointed at nothing is a dead end.
+        topics.resetTopicGrid();
+        state.setScope("simple");
+        topics.renderTopicGrid();
+        expect(dom.topicCount.textContent).toBe("3 of 3 topics");
+        dom.topicCategoryFilter!.querySelector('[data-category="Algebra"]')!.click();
+        expect(state.scope).toBe("algebra");
+        expect(dom.topicCount.textContent).toBe("1 of 4 topics in Algebra");
+    });
+    it("should widen the scope for All, because All means every category",()=>{
+        topics.resetTopicGrid();
+        state.setScope("simple");
+        topics.renderTopicGrid();
+        dom.topicCategoryFilter!.querySelector('[data-category="all"]')!.click();
+        expect(state.scope).toBe("all");
+        expect(dom.topicCount.textContent).toBe("4 of 4 topics");
+    });
+    it("should leave the scope alone when the category is already in it",()=>{
+        topics.resetTopicGrid();
+        state.setScope("algebra");
+        topics.renderTopicGrid();
+        dom.topicCategoryFilter!.querySelector('[data-category="Arithmetic"]')!.click();
+        expect(state.scope).toBe("algebra");
+    });
+    it("should find a topic by name that the scope excludes",()=>{
+        // Typing the name of a topic is about as unambiguous a request as this
+        // interface gets. Answering it with an empty grid because an unrelated scope
+        // excluded the topic is the same dead end as a chip reading zero.
+        topics.resetTopicGrid();
+        state.setScope("simple");
+        dom.topicSearch!.value="linear";
+        topics.renderTopicGrid();
+        expect(state.scope).toBe("algebra");
+        expect(dom.topicCount.textContent).toBe("1 of 4 topics");
+    });
+    it("should not widen the scope for a search the current scope already answers",()=>{
+        topics.resetTopicGrid();
+        state.setScope("algebra");
+        dom.topicSearch!.value="add";
+        topics.renderTopicGrid();
+        expect(state.scope).toBe("algebra");
+        expect(dom.topicCount.textContent).toBe("1 of 4 topics");
     });
     it("should show every topic when the chosen category names none of them",()=>{
         topics.resetTopicGrid();
