@@ -17,22 +17,15 @@ import type{QuestionDto}from"../types/global";
 let lastDto: QuestionDto|undefined;
 import{adaptiveAvailable}from"../utils/envUtils";
 async function applyAdaptiveRecommendation(): Promise<boolean>{
-    console.log("[Adaptive] Called, adaptive setting =", settings.settings.adaptive);
     if (!settings.settings.adaptive) return false;
     let adjusted:boolean=false;
     try{
-        console.log("[Adaptive] Invoking get_next_question_recommendation with:", {
-            currentTopic: appState.selectedTopic,
-            currentDifficulty: appState.currentDifficulty
-        });
         let rec=await invoke('get_next_question_recommendation', {
             currentTopic: appState.selectedTopic,
             currentDifficulty: appState.currentDifficulty
         }) as { difficulty: string; weak_topic: string | null };
-        console.log("[Adaptive] Received recommendation:", rec);
         if (!appState.userPickedDifficulty){
             if (rec.difficulty&&rec.difficulty !== appState.currentDifficulty){
-                console.log(`[Adaptive] Changing difficulty from ${appState.currentDifficulty} to ${rec.difficulty}`);
                 appState.currentDifficulty=rec.difficulty;
                 if (dom.inputs.difficultySelect) dom.inputs.difficultySelect.value=rec.difficulty;
                 settings.settings.difficulty=rec.difficulty;
