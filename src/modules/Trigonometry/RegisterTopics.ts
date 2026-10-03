@@ -1,4 +1,4 @@
-﻿import{registerTopic}from"../../main/services/TopicRegistry";
+import{registerTopic}from"../../main/services/TopicRegistry";
 registerTopic("sin","trigonometry","generateSin");
 registerTopic("cos","trigonometry","generateCosine");
 registerTopic("tan","trigonometry","generateTangent");
@@ -28,3 +28,11 @@ registerTopic("complex_polar","trigonometry","generateComplexPolarForm");
 registerTopic("complex_mult_div","trigonometry","generateComplexMultiplyDivide");
 registerTopic("demoivre","trigonometry","generateDeMoivre");
 registerTopic("complex_roots","trigonometry","generateComplexRoots");
+registerTopic("ambiguous_case","trigonometry","generateAmbiguousCase");
+registerTopic("exact_values","trigonometry","generateExactValues");
+registerTopic("general_solutions","trigonometry","generateGeneralSolutions");
+registerTopic("inverse_trig","trigonometry","generateInverseTrigonometry");
+registerTopic("law_of_cosines","trigonometry","generateLawOfCosines");
+registerTopic("law_of_sines","trigonometry","generateLawOfSines");
+registerTopic("trig_equations","trigonometry","generateSolvingTrigEquations");
+registerTopic("trig_identities","trigonometry","generateTrigIdentities");
