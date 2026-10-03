@@ -648,6 +648,40 @@ describe('checkAnswer', () => {
             await checkAnswer();
             expect(dom.answerResults!.className).toBe('results-display correct');
         });
+        it('grades a key whose fraction holds a braced group', async () => {
+            // The half-angle surd is the shape the curriculum actually prints, and
+            // it is the common case rather than an edge: a rewrite that refuses
+            // braces inside a fraction group leaves the whole command standing and
+            // the checker is handed something it cannot parse, so the learner is
+            // told a right answer is wrong.
+            dom.userAnswer!.value='(sqrt(6)-sqrt(2))/4';
+            window.correctAnswer.correct='\\frac{\\sqrt{6}-\\sqrt{2}}{4}';
+            await checkAnswer();
+            expect(dom.answerResults!.className).toBe('results-display correct');
+            dom.userAnswer!.value='sqrt(3)/2';
+            window.correctAnswer.correct='\\frac{\\sqrt{3}}{2}';
+            await checkAnswer();
+            expect(dom.answerResults!.className).toBe('results-display correct');
+            dom.userAnswer!.value='-sqrt(3)/2';
+            window.correctAnswer.correct='-\\frac{\\sqrt{3}}{2}';
+            await checkAnswer();
+            expect(dom.answerResults!.className).toBe('results-display correct');
+        });
+        it('grades a fraction whose denominator holds a degree mark', async () => {
+            // The reciprocal of a ratio: the denominator is the one part of a
+            // printed key most likely to carry a degree mark, and the mark is a
+            // braced group of its own.
+            dom.userAnswer!.value='1/sin(30)';
+            window.correctAnswer.correct='\\frac{1}{\\sin(30^{\\circ})}';
+            await checkAnswer();
+            expect(dom.answerResults!.className).toBe('results-display correct');
+        });
+        it('still grades a fraction that holds no braces', async () => {
+            dom.userAnswer!.value='1/2';
+            window.correctAnswer.correct='\\frac{1}{2}';
+            await checkAnswer();
+            expect(dom.answerResults!.className).toBe('results-display correct');
+        });
     });
     describe('checkAnswer - timer and performance', () => {
         it('should record response time', async () => {
