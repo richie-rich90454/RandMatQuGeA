@@ -1,5 +1,5 @@
 /**
- * @file The learner's record of what they have practised and when it is due.
+ * @file The learner's record of what they have practiced and when it is due.
  * @description This is the only module that reads or writes review history, so
  * the scheduler's model and the storage module's privacy rule meet in one place.
  *
