@@ -66,7 +66,7 @@ export function generateStatistics(difficulty?: string, rng: RngFn=Math.random):
             }
             else{
                 answer=modes.join(", ");
-                // The neighbours of the mode are the wrong modes a learner picks
+                // The neighbors of the mode are the wrong modes a learner picks
                 // when they read one digit off the wrong entry, and the mean and
                 // median are the two summary statistics this question is not
                 // asking for. The median is no longer offered on its own, because
