@@ -32,20 +32,29 @@ export interface GateState{
 }
 
 /**
- * Surfaces that need adaptive learning, by element id. The confidence control belongs here
- * because its only reader is the scheduler's overconfidence correction: in a browser it is
- * collected, stored and never looked at, which is a question asked for nothing.
+ * Surfaces that need adaptive learning, by element id.
+ *
+ * The confidence control belongs here because its only reader is the scheduler's
+ * overconfidence correction: in a browser it is collected, stored and never looked at,
+ * which is a question asked for nothing.
+ *
+ * The streak badge belongs here rather than under the record gate, which is the
+ * weaker of the two and would have been wrong. "Something is kept" is not the same as
+ * "there is a record to keep": a browser asked to remember writes settings, and the
+ * review record that a streak counts is only written where adaptive can read it back.
+ * Gating the badge on the weaker condition would have shown a number that is always
+ * zero, which is worse than showing nothing.
  */
 const ADAPTIVE_SURFACES: string[]=[
     "setting-adaptive",
     "recommend-btn",
     "weak-topics-modal",
     "confidence-row",
+    "daily-streak",
 ];
 
 /** Surfaces that need a kept record, by element id. */
 const RECORD_SURFACES: string[]=[
-    "daily-streak",
     "manage-data-btn",
     "data-record-intro",
     "data-list",
