@@ -6,7 +6,7 @@
  * when it should have been subtracted twice, so it is added back. Every quantity
  * printed here is derived from the same seven disjoint regions, which is what
  * makes the printed figures and the graded count the same problem: a pair of
- * cardinalities that no set could realise would leave the learner with numbers
+ * cardinalities that no set could realize would leave the learner with numbers
  * to work on and no question they could answer.
  *
  * `counting_neither` is the complement of a union and its most common wrong
