@@ -11,7 +11,12 @@ questionState.correctAnswer={correct:"",alternate:"",display:""};
 questionState.expectedFormat="";
 questionState.hasQuestion=false;
 async function initApp(): Promise<void>{
-    settings.loadSettings();
+    // The stored settings are read before the persistence choice is applied, and
+    // that order is the whole fix. The choice is itself one of the stored settings,
+    // so applying it from a document that has not arrived yet means applying the
+    // default: a learner who chose to keep their record came back to a private
+    // session every time, and nothing was written after that point.
+    await settings.loadSettings();
     // The persistence decision is settled before anything is written, because the
     // rule is about what leaves the device and a write that happens first cannot
     // be taken back.
@@ -80,6 +85,13 @@ async function initApp(): Promise<void>{
             // SW registration failed - app still works
         });
     }
+    // Start-up is over. The attribute is the only honest signal that it is: boot
+    // reads stored settings and a review record before anything is interactive,
+    // so a test that starts acting on the first thing it can see is acting on a
+    // half-built app. It is set last, after every step above, and it is set even
+    // if some of those steps failed, because a partly working app is still an app
+    // and waiting forever for a flag that never arrives is worse than proceeding.
+    document.documentElement.setAttribute("data-app-ready","true");
 }
 function startApp(): void{
     ready=initApp().catch((err: unknown)=>console.error("initApp failed:",err));
