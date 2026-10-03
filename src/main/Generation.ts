@@ -10,6 +10,7 @@ import{generateChoicesForCurrentQuestion}from"./Mcq";
 import type{RngFn}from"../types/global";
 import{invoke}from"@tauri-apps/api/core";
 import * as settings from "./Settings";
+import{effectivePersistence}from"./Settings";
 import{startQuestionTimer}from"./Answer";
 import type{QuestionDto}from"../types/global";
 /** The question most recently generated, kept so its help can be prepared. */
@@ -54,7 +55,7 @@ export function debounceGenerate(): void{
     },150);
 }
 async function applyAdaptiveSafe(): Promise<boolean>{
-    if (!adaptiveAvailable()||!settings.settings.adaptive) return false;
+    if (!adaptiveAvailable(effectivePersistence())||!settings.settings.adaptive) return false;
     return applyAdaptiveRecommendation();
 }
 export async function generateQuestion(explicitTopicId?: string, rng?: RngFn): Promise<void>{
