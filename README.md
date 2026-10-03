@@ -96,7 +96,7 @@ npm run tauri dev      # starts the dev server and the native window
 
 ```bash
 npm run typecheck      # tsc --noEmit
-npm run test:unit      # Vitest unit suite (129 files, 9,967 cases)
+npm run test:unit      # Vitest unit suite (130 files, 9,992 cases)
 npm run test:oracle    # the invariant gate over all 204 topics
 npm run test:coverage  # unit suite with the enforced coverage floor
 npm run test:e2e       # Playwright, Chromium + WebKit, desktop and mobile projects
@@ -135,10 +135,13 @@ cd src-tauri && cargo test   # Rust backend
 Several features depend on the Rust backend and are **hidden rather than disabled** in the web build, so the interface never offers something it cannot do:
 
 - **Adaptive learning** — difficulty adjustment and weak-topic recommendations
+- **The confidence question** — its only reader is the scheduler's overconfidence correction
 - **Performance data** — per-topic statistics, stored in SQLite
-- **Leaderboard** and **in-app updates**
+- **Leaderboard**, **in-app updates**, and the **learning-record dialog**
 
-If you do not see the adaptive toggle in Settings, adaptive learning cannot run where you are, and that is now decided by two things rather than one. It needs the desktop runtime, because the scheduler's inputs are performance records written over Tauri IPC, and it needs a store that will still have the record tomorrow, because a private session discards it when the window closes. Both conditions are re-checked whenever the mode changes, so turning a private session on in the desktop app removes the adaptive surfaces at that moment rather than at the next restart.
+If you do not see the adaptive toggle in Settings, adaptive learning cannot run where you are, and that is now decided by two things rather than one. It needs the desktop runtime, because the scheduler's inputs are performance records written over Tauri IPC, and it needs a store that will still have the record tomorrow, because a private session discards it when the window closes. Both conditions are re-checked whenever the mode changes, so turning a private session on removes the adaptive surfaces at that moment rather than at the next restart.
+
+Every one of those surfaces is listed in one table, `src/main/core/GatedSurfaces.ts`, and applied in one place. Deciding each surface where it is built is how four of them were missed while three were hidden — the confidence control, the streak badge, the record dialog and the updates section all survived that way. The confidence control was the worst of them: it is asked after every graded answer, and its one reader is the scheduler, which cannot run in a browser, so it was being collected, stored, and read by nothing.
 
 Everything else — all 204 topics, every mode, hints, solutions, worksheets, and the daily challenge — works identically in both builds.
 
@@ -224,11 +227,11 @@ Where a generator's natural question has fewer than four honest answers, **the q
 | Gate | Result |
 |---|---|
 | Type check | clean |
-| Unit tests | 129 files, 9,967 passed, 6 skipped |
+| Unit tests | 130 files, 9,986 passed, 6 skipped |
 | Invariant oracle | 23 tests across all 204 topics |
 | Coverage | statements 81.0%, branches 68.2%, functions 69.3%, lines 82.8% (floor enforced) |
 | Rust tests | 227 passed (`cargo test -p random_math_question_generator`) |
-| Bundle | JS 38.0 kB, CSS 8.6 kB, total 56.9 kB gzipped (budget 38/10/57) |
+| Bundle | JS 38.1 kB, CSS 8.6 kB, total 57.0 kB gzipped (budget 38.5/10/57.5) |
 
 ## ⚠️ A Note on Tauri Versions
 
