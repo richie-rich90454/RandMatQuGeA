@@ -108,7 +108,7 @@ Double quotes. Single quotes only when the string itself contains a double quote
 
 | Thing | Convention | Example |
 |---|---|---|
-| Files | PascalCase for components, modules and classes; camelCase for behaviour modules | `StateStore.ts`, `Topics.ts` |
+| Files | PascalCase for components, modules and classes; camelCase for behavior modules | `StateStore.ts`, `Topics.ts` |
 | Classes, interfaces, types | PascalCase | `QuestionDto`, `AppState` |
 | Functions, methods, variables | camelCase | `generateAddition`, `renderTopicGrid` |
 | Constants | camelCase (not SCREAMING_CASE) | `SESSION_STORAGE_KEY` is the one legacy exception; do not add more |
@@ -174,7 +174,7 @@ responsibility, and does not reach past it.
 ```
 index.html            static shell; every element the app manipulates has an id
   └── script.ts       entry point; boot sequence only
-        └── main/     behaviour, grouped by concern
+        └── main/     behavior, grouped by concern
               ├── core/       AppState, QuestionState, DomRegistry, renderer, Rng
               ├── services/   TopicRegistry, backend seam, storage
               ├── ui/         small self-contained widgets
@@ -272,7 +272,7 @@ docblocks accurate; they are the only description a topic has.
 ## CSS
 
 - 4-space indent.
-- Custom properties for all colours, spacing, radii, shadows and transitions, defined
+- Custom properties for all colors, spacing, radii, shadows and transitions, defined
   once on `:root` and overridden by `.light` and `.dark`.
 - Class names are `kebab-case`.
 - No `!important` except in a genuine escape hatch, which must carry a comment.
@@ -336,13 +336,13 @@ logic and the pure functions, not the Tauri plumbing.
 
 ### Conventions
 
-- Name tests for the behaviour, not the function: `"rejects an answer that omits the
+- Name tests for the behavior, not the function: `"rejects an answer that omits the
   domain restriction"`, not `"calls checkAnswer"`.
-- One behaviour per test.
+- One behavior per test.
 - `vi.clearAllMocks()` in `beforeEach` where a suite needs isolation.
 - Mock the platform seam, never `localStorage` or `document` directly.
-- A test that pins behaviour the product has deliberately rejected is wrong and gets
-  rewritten, not the behaviour. Padding an option set with a placeholder is such a
+- A test that pins behavior the product has deliberately rejected is wrong and gets
+  rewritten, not the behavior. Padding an option set with a placeholder is such a
   case: the test asserting the padding is what has to change, and the commit message
   must say so.
 - No snapshot tests for values a human should read. Snapshots are for the rendered
@@ -457,9 +457,9 @@ that sum is accumulated by repeated addition.
 ## Documentation
 
 Documentation is part of the change, not a follow-up. A change is incomplete if the
-docs describe the old behaviour.
+docs describe the old behavior.
 
-**When you change behaviour, update in the same commit:**
+**When you change behavior, update in the same commit:**
 
 | Change | Update |
 |---|---|
