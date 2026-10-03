@@ -118,7 +118,7 @@ export function generateSolvingTrigEquations(difficulty?: string, rng: RngFn=Mat
             wrong=row.wrong;
             display=`x = ${row.answer}^{\\circ}`;
             rungs=[
-                "Recognise the ratio before solving: a quotient of sine and cosine is a named tangent or cotangent, and the value on the right then identifies the exact angle.",
+                "Recognize the ratio before solving: a quotient of sine and cosine is a named tangent or cotangent, and the value on the right then identifies the exact angle.",
                 `The left-hand side is a named ratio whose value in the first quadrant is \\( ${row.answer} \\), and that is the one angle on \\( ${row.span} \\).`
             ];
             steps=[
