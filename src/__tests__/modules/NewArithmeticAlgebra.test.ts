@@ -6,7 +6,7 @@
  *
  * 1. Every declared sub-skill is reachable, and nothing else is. This is the test
  *    that catches a branch that was written but never selected, because a branch no
- *    seed reaches is a branch nobody practises and nobody notices is broken.
+ *    seed reaches is a branch nobody practices and nobody notices is broken.
  * 2. The option set is four options with the key among them and no two denoting the
  *    same value. Two spellings of one number are one option to a learner and two to
  *    a string comparison, which is how a four-option question silently becomes a
