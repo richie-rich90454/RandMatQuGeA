@@ -21,7 +21,7 @@ import{generateInclusionExclusion}from"../../modules/DiscreteMathematics/Generat
 import{generatePigeonhole}from"../../modules/DiscreteMathematics/GeneratePigeonhole";
 import{generateGraphBasics, degreeSequence, edgeCount, girth, componentCount, type Graph}from"../../modules/DiscreteMathematics/GenerateGraphBasics";
 import{generateGraphEuler, isBipartite}from"../../modules/DiscreteMathematics/GenerateGraphEuler";
-import{generateGraphColouring, chromaticNumber}from"../../modules/DiscreteMathematics/GenerateGraphColouring";
+import{generateGraphColoring, chromaticNumber}from"../../modules/DiscreteMathematics/GenerateGraphColoring";
 import{generateSpanningTrees}from"../../modules/DiscreteMathematics/GenerateSpanningTrees";
 import{generateRecurrenceRelations}from"../../modules/DiscreteMathematics/GenerateRecurrenceRelations";
 import{generateBooleanAlgebra}from"../../modules/DiscreteMathematics/GenerateBooleanAlgebra";
@@ -57,10 +57,10 @@ const TOPICS: {id: string, generate: (difficulty?: string, rng?: ()=>number)=>Qu
     {id:"pigeonhole", generate:generatePigeonhole, branches:["into_the_pigeons","at_least_two","general_form","constructive_count"]},
     {id:"graph_basics", generate:generateGraphBasics, branches:["degree_of_a_vertex","a_walk_or_path","cycles","connectivity"]},
     {id:"graph_euler", generate:generateGraphEuler, branches:["euler_path","euler_circuit","hamilton_path","bipartite_by_odd_degree"]},
-    {id:"graph_colouring", generate:generateGraphColouring, branches:["two_colour_test","three_colouring","four_colour_theorem","bipartite_equals_two_colourable"]},
+    {id:"graph_coloring", generate:generateGraphColoring, branches:["two_color_test","three_coloring","four_color_theorem","bipartite_equals_two_colorable"]},
     {id:"spanning_trees", generate:generateSpanningTrees, branches:["count_the_trees","kruskal_reasoning","minimum_spanning_tree","removing_a_cycle"]},
-    {id:"recurrence_relations", generate:generateRecurrenceRelations, branches:["constant_recurrence","first_order_linear","find_an_explicit_form","growth_behaviour"]},
-    {id:"boolean_algebra", generate:generateBooleanAlgebra, branches:["simplify_an_expression","equivalence_to_a_truth_table","minimise_by_consensus","gate_implementation"]},
+    {id:"recurrence_relations", generate:generateRecurrenceRelations, branches:["constant_recurrence","first_order_linear","find_an_explicit_form","growth_behavior"]},
+    {id:"boolean_algebra", generate:generateBooleanAlgebra, branches:["simplify_an_expression","equivalence_to_a_truth_table","minimize_by_consensus","gate_implementation"]},
     {id:"relations", generate:generateRelations, branches:["check_reflexive","check_symmetric","check_transitive","equivalence_class"]},
     {id:"counting_advanced", generate:generateCountingAdvanced, branches:["derangements","catalan_numbers","multinomial_count","stars_and_bars"]}
 ];
@@ -454,13 +454,13 @@ describe("generateGraphEuler states the parity of the printed edge list",()=>{
     }, 60000);
 });
 
-describe("generateGraphColouring reports the chromatic number of the printed graph",()=>{
+describe("generateGraphColoring reports the chromatic number of the printed graph",()=>{
     it("agrees with the search over the printed edges",()=>{
         let failures:string[]=[];
         let checked=0;
         for(let seed=1; seed<=SEEDS; seed++){
-            let dto=generateGraphColouring("medium", seededRng(seed));
-            if (dto.latex.indexOf("smallest number of colours")<0) continue;
+            let dto=generateGraphColoring("medium", seededRng(seed));
+            if (dto.latex.indexOf("smallest number of colors")<0) continue;
             checked++;
             let edges=printedEdges(dto.latex);
             let graph=graphFrom(dto.latex);
@@ -471,16 +471,16 @@ describe("generateGraphColouring reports the chromatic number of the printed gra
         expect(failures).toEqual([]);
         expect(checked).toBeGreaterThan(0);
     }, 60000);
-    it("reaches both the two-colourable and the three-colour branches",()=>{
+    it("reaches both the two-colorable and the three-color branches",()=>{
         let bipartite=0;
-        let threeColour=0;
+        let threeColor=0;
         for(let seed=1; seed<=SEEDS; seed++){
-            let dto=generateGraphColouring("medium", seededRng(seed));
-            if (dto.subskill==="two_colour_test") bipartite++;
-            if (dto.subskill==="three_colouring") threeColour++;
+            let dto=generateGraphColoring("medium", seededRng(seed));
+            if (dto.subskill==="two_color_test") bipartite++;
+            if (dto.subskill==="three_coloring") threeColor++;
         }
         expect(bipartite).toBeGreaterThan(0);
-        expect(threeColour).toBeGreaterThan(0);
+        expect(threeColor).toBeGreaterThan(0);
     }, 60000);
 });
 
