@@ -19,15 +19,19 @@ test("MCQ mode generates choices instead of a text input", async ({page})=>{
 test("exactly one MCQ choice is accepted as correct", async ({page})=>{
     await gotoApp(page, {appSettings: {mcqMode: true, decimalPlaces: 3}});
     await selectTopic(page, "add");
-    await generateQuestion(page);
     const choices = page.locator(MCQLOC);
-    const count = await countChoices(page);
     let correctCount = 0;
-    for (let i = 0; i < count; i++){
+    // One fresh question per choice. Clicking through a single question looked
+    // equivalent and was not: answering disables the choices, so every click after
+    // the first did nothing and the case only passed when the key happened to be
+    // drawn first, which is a quarter of the time.
+    for (let i = 0; i < 4; i++){
+        await generateQuestion(page);
+        const count = await countChoices(page);
+        expect(count).toBe(4);
         await choices.nth(i).click();
         await page.waitForTimeout(350);
-        const isCorrect = (await page.locator("#answer-results .result-success").count()) > 0;
-        if (isCorrect) correctCount++;
+        if ((await page.locator("#answer-results .result-success").count()) > 0) correctCount++;
     }
     expect(correctCount).toBe(1);
 });
