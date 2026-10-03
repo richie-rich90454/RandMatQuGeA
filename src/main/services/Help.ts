@@ -121,9 +121,22 @@ export function revealSolution(): void{
  *
  * @param correct - Whether the answer just given was correct.
  * @param responseMs - How long the question was on screen.
+ * @param adaptive - Whether adaptive learning can run here. The value is passed in
+ *   because the caller owns that decision, and looking it up from here cost five
+ *   kilobytes of initial chunk.
  */
-export function ask(correct: boolean, responseMs: number): void{
+export function ask(correct: boolean, responseMs: number, adaptive: boolean): void{
+    // Whether adaptive can run is passed in rather than looked up. Asking it here
+    // meant importing Settings, and Settings reaches most of the application, so a
+    // leaf that draws a row of buttons was made to depend on the whole graph: the
+    // initial chunk grew by five kilobytes and the budget gate failed. The caller
+    // already knows the answer, because it is the module that owns the predicate.
+    if (!adaptive) return;
     if (responseMs<MIN_RESPONSE_MS) return;
+    // The confidence has exactly one reader: the scheduler's overconfidence
+    // correction, and the scheduler cannot run without a store that outlives the
+    // session. Asking in a browser would collect a judgment the learner has no way
+    // to know is discarded, so the row stays hidden there.
     let row=dom.help.confidenceRow;
     if (!row) return;
     for(let button of dom.help.confidenceButtons){
@@ -169,11 +182,23 @@ export function hideConfidence(): void{
  * Records the confidence the learner reported, so the next review can use it.
  *
  * @param value - What they said.
+ * @param adaptive - Whether adaptive learning can run here, for the same reason it is
+ *   passed to `ask` rather than looked up.
  */
-export function recordConfidence(value: Confidence): void{
+export function recordConfidence(value: Confidence, adaptive: boolean): void{
+    // A button still on screen is not evidence that adaptive can run: the learner
+    // can switch to a private session after the row was revealed. Hiding the row is
+    // not enough on its own, because a click that has already been bound would
+    // still write a confidence no scheduler will ever read.
+    if (!adaptive) return;
     questionState.confidence=value;
     for(let button of dom.help.confidenceButtons){
         button.classList.toggle("selected", button.dataset.confidence===value);
     }
-    hideConfidence();
+    // The row is hidden directly rather than through hideConfidence, because that
+    // function clears the value and this call had just set it. Asking the question and
+    // then destroying the answer inside one synchronous call is why the confidence
+    // never reached a record on any platform: not in a browser, where it is now
+    // hidden, and not on the desktop, where it was shown.
+    setHidden(dom.help.confidenceRow, true);
 }
