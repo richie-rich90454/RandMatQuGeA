@@ -1,5 +1,5 @@
 /**
- * @file Showing and hiding elements, in the one way this stylesheet honours.
+ * @file Showing and hiding elements, in the one way this stylesheet honors.
  * @description The app has a `.hidden` class carrying `display: none !important`, and
  * every element it hides also has a class of its own that sets a `display` value. That
  * combination makes the `hidden` property useless: an attribute selector has lower
@@ -15,7 +15,7 @@
  *
  * Both are set on purpose and they are not redundant. The attribute carries the
  * semantics assistive technology reads, and the class is what the stylesheet
- * actually honours. Setting only the attribute is the defect this function exists
+ * actually honors. Setting only the attribute is the defect this function exists
  * to fix; setting only the class would leave the accessibility tree claiming an
  * element is present when it is not.
  *
