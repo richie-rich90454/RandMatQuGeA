@@ -12,7 +12,7 @@ export * from "./GenerateProbabilityRules.js";
 export * from "./GenerateBooleanAlgebra.js";
 export * from "./GenerateCountingAdvanced.js";
 export * from "./GenerateGraphBasics.js";
-export * from "./GenerateGraphColouring.js";
+export * from "./GenerateGraphColoring.js";
 export * from "./GenerateGraphEuler.js";
 export * from "./GenerateInclusionExclusion.js";
 export * from "./GenerateLogicEquivalences.js";
