@@ -677,6 +677,73 @@ describe("the data modal controls",()=>{
             await storage.clear();
         }
     });
+    it("should not print an average time the browser never measured",async()=>{
+        let restoreDesktop=useBrowserBuild();
+        try{
+            await storage.setPersistenceMode("indexed");
+            // A record with both a due date and a last review, which is what the
+            // old code divided to manufacture a response time. The two dates are
+            // a scheduling interval, not how long any answer took.
+            await storage.write("reviewRecords",{
+                version:2,
+                records:{"linear_eq/two_step":{stability:2.5,difficulty:5,lastReview:1700000000000,due:1700600000000,reviews:4,correctReviews:3,aoa:0}}
+            });
+            await openDataModal();
+            expect(dataList.innerHTML).toContain("Attempts: 4");
+            expect(dataList.innerHTML).toContain("75.0%");
+            expect(dataList.innerHTML).not.toContain("Avg time");
+        }
+        finally{
+            restoreDesktop();
+            await storage.clear();
+        }
+    });
+    it("should say plainly that a browser with no record is keeping none",async()=>{
+        let restoreDesktop=useBrowserBuild();
+        try{
+            await storage.setPersistenceMode("indexed");
+            await storage.clear();
+            await openDataModal();
+            expect(dataList.innerHTML).toContain("No record is being kept in this browser.");
+        }
+        finally{
+            restoreDesktop();
+            await storage.clear();
+        }
+    });
+    it("should erase a browser record through the storage module, not the desktop command",async()=>{
+        let restoreDesktop=useBrowserBuild();
+        try{
+            await storage.setPersistenceMode("indexed");
+            await storage.write("reviewRecords",{
+                version:2,
+                records:{
+                    "linear_eq/two_step":{stability:2.5,difficulty:5,reviews:4,correctReviews:3,aoa:0},
+                    "geometry":{stability:1,difficulty:5,reviews:1,correctReviews:1,aoa:0}
+                }
+            });
+            vi.mocked(invoke).mockReset();
+            const confirmSpy=vi.spyOn(window,"confirm").mockReturnValue(true);
+            const consoleErrSpy=vi.spyOn(console,"error").mockImplementation(()=>{});
+            await openDataModal();
+            const deleteBtn=dataList.querySelector(".delete-record") as HTMLElement;
+            expect(deleteBtn).not.toBeNull();
+            deleteBtn.click();
+            await new Promise<void>((r)=>setTimeout(r,0));
+            // Only the row that was clicked goes: the other topic's record is not
+            // collateral of erasing one skill.
+            const stored=await storage.read<{records: {[key: string]: unknown}}>("reviewRecords");
+            expect(Object.keys(stored!.records)).toEqual(["geometry"]);
+            expect(invoke).not.toHaveBeenCalled();
+            expect(dataList.innerHTML).not.toContain("Error");
+            confirmSpy.mockRestore();
+            consoleErrSpy.mockRestore();
+        }
+        finally{
+            restoreDesktop();
+            await storage.clear();
+        }
+    });
     it("should wire a delete button without searching the document for it",async()=>{
         vi.mocked(invoke).mockResolvedValue([{topic_id:"add",difficulty:"easy",accuracy:0.8,attempts:5,avg_time_ms:1200}]);
         const confirmSpy=vi.spyOn(window,"confirm").mockReturnValue(false);
