@@ -657,7 +657,7 @@ export async function setupEventListeners(): Promise<void>{
     if (results[2].status==="fulfilled"){
         try{
             let weakTopics=results[2].value;
-            let recommendBtn=document.getElementById("recommend-btn");
+            let recommendBtn=dom.buttons.recommendBtn;
             if (recommendBtn) recommendBtn.addEventListener("click", ()=>{
                 weakTopics.checkAndShowWeakTopicsPopup().catch(console.warn);
             });
