@@ -15,6 +15,7 @@
  * rather than a judgement. It is therefore asked once a question has been thought
  * about, on the questions where the answer is informative.
  */
+import{setHidden}from"../core/DomVisibility";
 import{dom}from"../core/DomRegistry";
 import{questionState}from"../core/QuestionState";
 import type{Confidence}from"./Scheduler";
@@ -55,7 +56,7 @@ export function prepare(dto: QuestionDto): void{
     solution=buildSolution(dto);
     questionState.subSkill=dto.subskill;
     if (dom.help.hintPanel){
-        dom.help.hintPanel.hidden=true;
+        setHidden(dom.help.hintPanel, true);
         dom.help.hintPanel.innerHTML="";
     }
     if (dom.help.showHintBtn){
@@ -63,10 +64,10 @@ export function prepare(dto: QuestionDto): void{
         dom.help.showHintBtn.textContent="Hint";
     }
     if (dom.help.showSolutionBtn){
-        dom.help.showSolutionBtn.hidden=solution===null;
+        setHidden(dom.help.showSolutionBtn, solution===null);
     }
     let row=dom.help.confidenceRow;
-    if (row) row.hidden=true;
+    setHidden(row, true);
     questionState.confidence=undefined;
 }
 
@@ -81,7 +82,7 @@ export function reveal(): void{
         let text=ladder.rungs[revealed];
         revealed++;
         appendPanelRow(panel, "Hint "+revealed, text);
-        panel.hidden=false;
+        setHidden(panel, false);
         let button=dom.help.showHintBtn;
         if (button){
             let rungsLeft=Math.min(MAX_RUNGS, ladder.rungs.length)-revealed;
@@ -105,13 +106,13 @@ export function revealSolution(): void{
     if (!panel) return;
     if (!solution){
         appendPanelRow(panel, "Solution", "This question has one step, so the answer above is the whole of it.");
-        panel.hidden=false;
+        setHidden(panel, false);
         return;
     }
     for(let step of solution){
         appendPanelRow(panel, "Step", step);
     }
-    panel.hidden=false;
+    setHidden(panel, false);
 }
 
 /**
@@ -129,10 +130,10 @@ export function ask(correct: boolean, responseMs: number): void{
         let value=button.dataset.confidence as Confidence|undefined;
         // After a correct answer the two extremes are the informative ones, so the
         // middle one is removed rather than shown and ignored.
-        button.hidden=value!==undefined&&confidenceChoices(correct).indexOf(value)<0;
+        setHidden(button, value!==undefined&&confidenceChoices(correct).indexOf(value)<0);
         button.classList.remove("selected");
     }
-    row.hidden=false;
+    setHidden(row, false);
 }
 
 /**
@@ -160,7 +161,7 @@ function appendPanelRow(panel: HTMLElement, label: string, text: string): void{
  */
 export function hideConfidence(): void{
     let row=dom.help.confidenceRow;
-    if (row) row.hidden=true;
+    setHidden(row, true);
     questionState.confidence=undefined;
 }
 
