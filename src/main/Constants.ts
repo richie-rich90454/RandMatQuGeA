@@ -179,7 +179,7 @@ export let topics: Topic[]=[
     {id: "pigeonhole", name: "Pigeonhole Principle", icon: "⌈n/m⌉", category: "Discrete Math"},
     {id: "graph_basics", name: "Graph Basics", icon: "○—○", category: "Discrete Math"},
     {id: "graph_euler", name: "Euler & Hamiltonian", icon: "E=3", category: "Discrete Math"},
-    {id: "graph_colouring", name: "Graph Colouring", icon: "4χ", category: "Discrete Math"},
+    {id: "graph_coloring", name: "Graph Coloring", icon: "4χ", category: "Discrete Math"},
     {id: "spanning_trees", name: "Spanning Trees", icon: "T", category: "Discrete Math"},
     {id: "recurrence_relations", name: "Recurrence Relations", icon: "aₙ=kaₙ₋₁", category: "Discrete Math"},
     {id: "boolean_algebra", name: "Boolean Algebra", icon: "A+AB", category: "Discrete Math"},
@@ -218,6 +218,17 @@ export let topics: Topic[]=[
     {id: "ambiguous_case", name: "SSA Ambiguous Case", icon: "SSA", category: "Trigonometry"},
     {id: "inverse_trig", name: "Inverse Trig Functions", icon: "arcsin", category: "Trigonometry"},
 ];
+
+/**
+ * The scopes from narrowest to widest, which is the order the scope control lists
+ * them in.
+ *
+ * Declared beside the scopes rather than read from the control's options because
+ * it is also the order a question is answered in: when a category can only be
+ * reached by widening the scope, the narrowest scope that reaches it is the one to
+ * widen to, and that is the first entry here containing one of its topics.
+ */
+export const scopeLadder=["simple","algebra","precalc","calc","all"];
 
 export let scopeTopics = {
     simple: ["add","subtrt","mult","divid","place_value","negative_numbers","long_division","powers_of_ten","rounding_est","prime_factorisation","lcm_periods","money_change"],
@@ -258,7 +269,7 @@ export let scopeTopics = {
         "counting_principles","probability_rules","similarity","rigid_transformations","circle_geometry",
         "eigenvalues","orthogonality","vectors_3d",
         "abs_eq","abs_ineq","quadratic_word","system_ineq","log_eq","exp_eq","polynomial_theorems","piecewise",
-        "propositional_logic","logic_equivalences","set_operations","inclusion_exclusion","pigeonhole","graph_basics","graph_euler","graph_colouring","spanning_trees","recurrence_relations","boolean_algebra","relations_classes","counting_advanced","triangle_congruence","triangle_inequality","triangle_area","quadrilateral_area","polygon_angles","surface_area","composite_figures","regular_polygons","midsegment","angle_bisector","volume_solids","determinants","cramers_rule","rank","null_space","lu_decomposition","matrix_transformations","basis_coordinates","linear_independence","least_squares","symmetric_matrices","trig_equations","general_solutions","exact_values","trig_identities","law_of_sines","law_of_cosines","ambiguous_case","inverse_trig",
+        "propositional_logic","logic_equivalences","set_operations","inclusion_exclusion","pigeonhole","graph_basics","graph_euler","graph_coloring","spanning_trees","recurrence_relations","boolean_algebra","relations_classes","counting_advanced","triangle_congruence","triangle_inequality","triangle_area","quadrilateral_area","polygon_angles","surface_area","composite_figures","regular_polygons","midsegment","angle_bisector","volume_solids","determinants","cramers_rule","rank","null_space","lu_decomposition","matrix_transformations","basis_coordinates","linear_independence","least_squares","symmetric_matrices","trig_equations","general_solutions","exact_values","trig_identities","law_of_sines","law_of_cosines","ambiguous_case","inverse_trig",
     ],
     calc: [
         "add","subtrt","mult","divid","root","log","exp","fact","ser",
