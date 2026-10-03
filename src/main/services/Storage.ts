@@ -218,7 +218,7 @@ export async function write(key: string, value: unknown): Promise<void>{
     }
     catch{
         // A failed durable write is not fatal. The value is still readable for
-        // this session, which is the behaviour a learner would expect.
+        // this session, which is the behavior a learner would expect.
     }
 }
 
@@ -296,7 +296,7 @@ export async function isPersistenceUsableHere(): Promise<boolean>{
 /**
  * Moves anything already held in localStorage into the store the current mode
  * uses, then removes it from localStorage. This is what makes the switch from
- * the previous behaviour real rather than cosmetic: a record that was written
+ * the previous behavior real rather than cosmetic: a record that was written
  * before the choice was made is either carried over into IndexedDB or dropped,
  * and it is never left behind in localStorage where a zero-retention promise
  * would be broken by data the app had already written.
