@@ -84,6 +84,12 @@ describe("DomRegistry",()=>{
         second.dataset.topicId="sub";
         grid.appendChild(first);
         grid.appendChild(second);
+        // The grid carries a heading per category alongside the pills, so the
+        // children are not all pills. Returning the heading would hand a caller
+        // that toggles the active class an element with no topic on it.
+        let heading=document.createElement("div");
+        heading.className="topic-group-heading";
+        grid.appendChild(heading);
         document.body.appendChild(grid);
         expect(registry.displays.topicPills).toEqual([first,second]);
         document.body.removeChild(grid);
