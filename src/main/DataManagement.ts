@@ -338,15 +338,19 @@ function readChosenFile(): Promise<string|null>{
 
 /**
  * One row of the list, in the shape both builds produce. The desktop sends its
- * aggregate's own field names; the browser derives the same six numbers from the
- * review record, so the list has one shape to render rather than two.
+ * aggregate's own field names; the browser derives what the review record can
+ * honestly answer from it, so the list has one shape to render rather than two.
+ * The average time is absent rather than zero where nothing measured one: a
+ * review record holds a schedule and not response times, so any figure taken
+ * from it is one this module made up, and the row would be claiming it is a
+ * measured one.
  */
 interface PerformanceRow{
     topic_id: string;
     difficulty: string;
     accuracy: number;
     attempts: number;
-    avg_time_ms: number;
+    avg_time_ms?: number;
 }
 
 /**
@@ -359,11 +363,16 @@ interface PerformanceRow{
 async function loadData(){
     if(!dataList)return;
     try{
-        let stats: Array<PerformanceRow>=isTauri()
+        let desktop=isTauri();
+        let stats: Array<PerformanceRow>=desktop
             ?await invoke<Array<PerformanceRow>>("get_performance_stats",{difficulty:null,days:null})
             :await browserSummary();
         if(!stats||stats.length===0){
-            dataList.innerHTML="<p>No performance data yet. Answer some questions first.</p>";
+            // An empty desktop list means nothing has been answered yet, and the
+            // list can say what would fill it. An empty browser list means there
+            // is no record to show at all, and telling that learner to answer
+            // some questions would promise a record the browser may never write.
+            dataList.innerHTML=desktop?"<p>No performance data yet. Answer some questions first.</p>":"<p>No record is being kept in this browser.</p>";
         }
         else{
             let names=new Map<string,string>();
@@ -379,8 +388,28 @@ async function loadData(){
 }
 
 /**
+ * Builds the key one review record is stored under, which is the topic alone or
+ * the topic and the named procedure joined by a slash. The list derives a row's
+ * topic and procedure by taking this key apart and the per-row erase puts them
+ * back together, so the two halves have to agree or the row that erases is not
+ * the row that was shown.
+ *
+ * @param topicId - The topic.
+ * @param subSkill - The procedure within the topic, when there is one.
+ * @returns The storage key.
+ */
+function reviewRecordKey(topicId: string, subSkill: string): string{
+    return subSkill?topicId+"/"+subSkill:topicId;
+}
+
+/**
  * Builds the rows a browser can honestly show, which is the review record rather
- * than the aggregate the recommendations read.
+ * than the aggregate the recommendations read. Accuracy and attempts are counts
+ * the record really holds. An average time is not, because the record stores
+ * when a skill was last reviewed and when it is next due rather than how long
+ * any answer took, so the row leaves the figure out instead of publishing a
+ * number derived from scheduling fields under a label that promises a response
+ * time.
  *
  * @returns A promise resolving to rows in the same shape the desktop produces.
  */
@@ -395,13 +424,11 @@ async function browserSummary(): Promise<Array<PerformanceRow>>{
         let subSkill=split<0?"":key.slice(split+1);
         let attempts=state.reviews;
         let accuracy=attempts>0?state.correctReviews/attempts:0;
-        let avg=state.due&&state.lastReview?Math.round((state.due-state.lastReview)/attempts):0;
         rows.push({
             topic_id: topicId,
             difficulty: subSkill||"all",
             accuracy: accuracy,
-            attempts: attempts,
-            avg_time_ms: avg
+            attempts: attempts
         });
     }
     return rows;
@@ -436,7 +463,8 @@ function renderRows(list: HTMLElement, rows: Array<PerformanceRow>, names: Map<s
         label.textContent=` (${difficulty})`;
         let lineBreak=document.createElement("br");
         let numbers=document.createElement("span");
-        numbers.textContent=`Accuracy: ${acc}% | Attempts: ${s.attempts} | Avg time: ${Math.round(s.avg_time_ms)}ms`;
+        numbers.textContent=`Accuracy: ${acc}% | Attempts: ${s.attempts}`;
+        if(typeof s.avg_time_ms==="number"&&isFinite(s.avg_time_ms)) numbers.textContent+=` | Avg time: ${Math.round(s.avg_time_ms)}ms`;
         info.append(heading,label,lineBreak,numbers);
         let btn=document.createElement("button");
         btn.className="secondary-button delete-record";
@@ -453,6 +481,33 @@ function renderRows(list: HTMLElement, rows: Array<PerformanceRow>, names: Map<s
 }
 
 /**
+ * Erases one skill from the browser's review record, through the storage module
+ * that owns where data goes. The whole document is rewritten without that one
+ * key, because the store has no command for removing a single skill, and the
+ * in-memory copy is reloaded so the scheduler stops offering a skill the learner
+ * has just erased.
+ *
+ * @param topicId - The topic whose record is being erased.
+ * @param difficulty - The difficulty whose record is being erased, which a
+ *                     browser row carries the named procedure in, or "all".
+ * @returns A promise resolving once the erasure is complete.
+ */
+async function forgetBrowserRecord(topicId: string, difficulty: string): Promise<void>{
+    let reviewStore=await import("./services/ReviewStore");
+    let stored=await reviewStore.readDocument();
+    if(!stored||typeof stored.records!=="object"||stored.records===null) return;
+    let key=reviewRecordKey(topicId,difficulty==="all"?"":difficulty);
+    if(!Object.prototype.hasOwnProperty.call(stored.records,key)) return;
+    let records: { [key: string]: ExportedReviewRecord }={};
+    for(let existing of Object.keys(stored.records)){
+        if(existing===key) continue;
+        records[existing]=stored.records[existing];
+    }
+    await reviewStore.writeDocument({version: stored.version??EXPORT_VERSION, records});
+    await reviewStore.loadRecords();
+}
+
+/**
  * Erases one record and reloads the list, which is the whole behavior of the
  * per-row delete control.
  *
@@ -463,7 +518,17 @@ function renderRows(list: HTMLElement, rows: Array<PerformanceRow>, names: Map<s
 async function deleteRecord(topicId: string, difficulty: string): Promise<void>{
     if(!confirm(`Delete all records for ${topicId} (${difficulty})?`)) return;
     try{
-        await invoke("delete_performance_record",{topicId, difficulty});
+        // Two erases for one promise, because the record lives somewhere else in
+        // each build. The guard matters more here than anywhere else in the
+        // module: a browser that reaches for a command it does not have rejects,
+        // and the catch below writes the rejection text over the list, so the
+        // learner loses the very record they came to erase.
+        if(isTauri()){
+            await invoke("delete_performance_record",{topicId, difficulty});
+        }
+        else{
+            await forgetBrowserRecord(topicId, difficulty);
+        }
         ui.showNotification(`Deleted ${topicId} (${difficulty})`,"info");
         await loadData();
     }
