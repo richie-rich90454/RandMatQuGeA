@@ -44,9 +44,9 @@ export function generateGraphicalCalculus(difficulty?: string, rng: RngFn=Math.r
             plainCorrectAnswer=holeY.toString();
             latexAnswer=plainCorrectAnswer;
             expectedFormat="Enter a number";
-            // The two neighbouring values of x are the limits a learner reads off a
+            // The two neighboring values of x are the limits a learner reads off a
             // graph at the wrong point, and the two quadratic values are the limits
-            // at the neighbouring points. At a limit of zero and a coefficient of
+            // at the neighboring points. At a limit of zero and a coefficient of
             // one the last two collapse onto the first, so a fifth candidate is
             // needed to leave three options standing.
             choices=fourOptions(plainCorrectAnswer, [
