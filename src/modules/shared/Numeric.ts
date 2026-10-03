@@ -9,12 +9,12 @@
 
 /**
  * Rounds a value to a fixed number of decimal places, returning a number.
- * Negative zero is normalised to zero so that two equal values never format
+ * Negative zero is normalized to zero so that two equal values never format
  * differently, which would create duplicate multiple-choice options.
  *
  * @param value - The value to round.
  * @param decimals - Decimal places to keep. Defaults to 2.
- * @returns The rounded value, with -0 normalised to 0.
+ * @returns The rounded value, with -0 normalized to 0.
  */
 export function roundTo(value: number, decimals: number=2): number{
     if (!Number.isFinite(value)) return value;
