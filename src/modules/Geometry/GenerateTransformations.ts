@@ -8,9 +8,9 @@
  * than restating them. A step therefore cannot print one transformation and grade
  * another, which is the same rule the prompt-versus-answer agreement rests on.
  *
- * Coordinates stay whole numbers because the centres, vectors and quarter turns
+ * Coordinates stay whole numbers because the centers, vectors and quarter turns
  * are whole numbers: a quarter turn and a reflection are integer maps, and a
- * dilation about a whole-number centre by a whole-number factor is one too. No
+ * dilation about a whole-number center by a whole-number factor is one too. No
  * answer is ever rounded.
  */
 import type{RngFn, QuestionDto}from"../../types/global";
@@ -34,7 +34,7 @@ interface StepValues{
 }
 
 /**
- * Draws the values every step may use, scaled by difficulty. The centre of a
+ * Draws the values every step may use, scaled by difficulty. The center of a
  * rotation and of a dilation is the origin at easy and a drawn point above it,
  * and the scale factor never reaches one because a factor of one moves nothing.
  *
@@ -67,7 +67,7 @@ function drawValues(rng: RngFn, difficulty: string|undefined, limit: number): St
 /**
  * Draws a point that is neither the origin nor its own image. Nothing moves the
  * origin, and a point that maps to itself would print the answer in the prompt.
- * The drawn vector and centre are printed in the same parenthesised form as an
+ * The drawn vector and center are printed in the same parenthesised form as an
  * answer, so an image that coincides with either of them is rejected too.
  *
  * @param rng - The injected random source.
@@ -93,7 +93,7 @@ function drawPoint(rng: RngFn, limit: number, run: (x: number, y: number)=>[numb
 
 /**
  * Turns a point a whole number of quarter turns counterclockwise about the origin.
- * The centre of rotation is moved to the origin, turned, and moved back, which is
+ * The center of rotation is moved to the origin, turned, and moved back, which is
  * what keeps every coordinate a whole number, and the same turn is used by the
  * question and by its worked solution.
  *
@@ -111,7 +111,7 @@ function quarterTurn(degrees: number, a: number, b: number): [number, number]{
 
 /**
  * Builds a step from the drawn values. The rotation is a quarter turn about the
- * drawn centre: the point is moved into a frame centred on that point, turned,
+ * drawn center: the point is moved into a frame centerd on that point, turned,
  * and moved back, which keeps every coordinate whole.
  *
  * @param kind - Which transformation to build.
@@ -209,7 +209,7 @@ export function generateGeometricTransformations(difficulty?: string, rng: RngFn
         }
         else if (kind==="rotate"){
             rungs=[
-                "To turn a point about a centre that is not the origin, move the centre of rotation to the origin, turn the point there, and move the centre back.",
+                "To turn a point about a center that is not the origin, move the center of rotation to the origin, turn the point there, and move the center back.",
                 "A quarter turn swaps the two coordinates and negates one of them; the third and fourth quarter turns repeat the swap with the other sign."
             ];
         }
@@ -221,8 +221,8 @@ export function generateGeometricTransformations(difficulty?: string, rng: RngFn
         }
         else{
             rungs=[
-                "A dilation about a point leaves that point fixed and multiplies every distance from it by the scale factor, so the centre has to be taken out of the picture first.",
-                "Subtract the centre of dilation from P, multiply what is left by the scale factor, then add the centre back."
+                "A dilation about a point leaves that point fixed and multiplies every distance from it by the scale factor, so the center has to be taken out of the picture first.",
+                "Subtract the center of dilation from P, multiply what is left by the scale factor, then add the center back."
             ];
         }
     }
@@ -239,9 +239,9 @@ export function generateGeometricTransformations(difficulty?: string, rng: RngFn
     }
     else if (type==="rotate_point"){
         steps=[
-            `P is (${x}, ${y}) and the centre of rotation is (${values.cx}, ${values.cy}).`,
-            `Move the centre to the origin: (${x} - ${values.cx}, ${y} - ${values.cy}) = (${x-values.cx}, ${y-values.cy}).`,
-            `Turn that by ${values.degrees} degrees to get (${quarterTurn(values.degrees, x-values.cx, y-values.cy)[0]}, ${quarterTurn(values.degrees, x-values.cx, y-values.cy)[1]}), then add the centre back: ${keyText}.`
+            `P is (${x}, ${y}) and the center of rotation is (${values.cx}, ${values.cy}).`,
+            `Move the center to the origin: (${x} - ${values.cx}, ${y} - ${values.cy}) = (${x-values.cx}, ${y-values.cy}).`,
+            `Turn that by ${values.degrees} degrees to get (${quarterTurn(values.degrees, x-values.cx, y-values.cy)[0]}, ${quarterTurn(values.degrees, x-values.cx, y-values.cy)[1]}), then add the center back: ${keyText}.`
         ];
     }
     else if (type==="reflect_point"){
@@ -253,9 +253,9 @@ export function generateGeometricTransformations(difficulty?: string, rng: RngFn
     }
     else if (type==="dilate_point"){
         steps=[
-            `P is (${x}, ${y}) and the centre of dilation is (${values.cx}, ${values.cy}).`,
-            `Take the centre out: (${x} - ${values.cx}, ${y} - ${values.cy}) = (${x-values.cx}, ${y-values.cy}).`,
-            `Multiply by the scale factor ${values.scale} to get (${(x-values.cx)*values.scale}, ${(y-values.cy)*values.scale}), then add the centre back: ${keyText}.`
+            `P is (${x}, ${y}) and the center of dilation is (${values.cx}, ${values.cy}).`,
+            `Take the center out: (${x} - ${values.cx}, ${y} - ${values.cy}) = (${x-values.cx}, ${y-values.cy}).`,
+            `Multiply by the scale factor ${values.scale} to get (${(x-values.cx)*values.scale}, ${(y-values.cy)*values.scale}), then add the center back: ${keyText}.`
         ];
     }
     else{
