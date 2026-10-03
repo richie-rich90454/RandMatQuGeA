@@ -7,7 +7,7 @@ import {subSkillsFor, subSkillCount} from "../../modules/shared/SubSkills";
  * The sub-skill table is the authoritative description of a topic's internal
  * branches, because a generator does not return which branch it chose. A topic
  * that is missing from the table therefore has no sub-skills, which means the
- * scheduler cannot record which procedure was practised and review cannot target
+ * scheduler cannot record which procedure was practiced and review cannot target
  * the weak one.
  */
 describe("sub-skill table",()=>{
