@@ -121,7 +121,7 @@ function angleQuestion(rng: () => number, wide: boolean): QuestionDto{
 
 /**
  * The applied branch: the same exact arithmetic in a triangle a surveyor or a
- * builder would recognise.
+ * builder would recognize.
  *
  * @param rng - The injected random source.
  * @param wide - Whether the difficulty is hard.
@@ -131,7 +131,7 @@ function applicationQuestion(rng: () => number, wide: boolean): QuestionDto{
     let hyp=randInt(rng, 4, wide?12:8)*6;
     let key=hyp/2;
     let rungs=[
-        "Recognise the right triangle first: a right angle makes the side the prompt names the hypotenuse, and the law of sines then relates it to the short leg through the sines of 30 and 90 degrees.",
+        "Recognize the right triangle first: a right angle makes the side the prompt names the hypotenuse, and the law of sines then relates it to the short leg through the sines of 30 and 90 degrees.",
         "The triangle has angles 30, 60 and 90 degrees, and the side of the stated length is opposite the right angle, so it is the hypotenuse."
     ];
     let steps=[
@@ -140,14 +140,14 @@ function applicationQuestion(rng: () => number, wide: boolean): QuestionDto{
         `So $ a = ${key} $, and the answer is ${key}.`
     ];
     return {
-        latex:`A surveyor measures a triangular plot with a right angle at \\( C \\), an angle of \\( 30^{\\circ} \\) at \\( A \\), and the side \\( c = AB = ${hyp} \\) metres. Find the length of side \\( a = BC \\) in metres.`,
+        latex:`A surveyor measures a triangular plot with a right angle at \\( C \\), an angle of \\( 30^{\\circ} \\) at \\( A \\), and the side \\( c = AB = ${hyp} \\) meters. Find the length of side \\( a = BC \\) in meters.`,
         correct: fmtTrim(key, 2),
-        alternate: fmtTrim(key, 2)+" metres",
+        alternate: fmtTrim(key, 2)+" meters",
         display:`a = ${hyp} \\times \\sin(30^{\\circ})`,
         choices: numberOptions(key, [hyp*3/2, hyp/3, hyp*2, hyp/4, hyp/6], 0),
-        expectedFormat:"Enter a whole number of metres",
+        expectedFormat:"Enter a whole number of meters",
         subskill:"an_application",
-        hints: {rungs, concede: "The answer is "+fmtTrim(key, 2)+" metres."},
+        hints: {rungs, concede: "The answer is "+fmtTrim(key, 2)+" meters."},
         solution: steps
     };
 }
