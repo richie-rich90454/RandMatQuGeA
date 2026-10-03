@@ -346,6 +346,75 @@ body.font-opendyslexic{
     padding-top: 0.4rem;
     padding-bottom: 0.4rem;
 }
+/*
+ * The category filter row is the primary way into 204 topics. It sits above the
+ * pills because the pills are no longer browsable by scrolling: at this size a
+ * wrapped column of pills is a wall, and on a phone it was a horizontal strip of
+ * 204 unlabelled targets.
+ */
+.topic-filter-row{
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-top: 0.35rem;
+    min-width: 0;
+}
+.topic-category-chips{
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    min-width: 0;
+}
+.topic-category-chips::-webkit-scrollbar{
+    display: none;
+}
+.topic-chip{
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    font-size: 0.6rem;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--text-secondary);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+.topic-chip:hover{
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+}
+.topic-chip.active{
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--text-on-primary);
+}
+.topic-chip.empty{
+    opacity: 0.45;
+}
+.topic-count{
+    flex: 0 0 auto;
+    margin-left: auto;
+    font-size: 0.58rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+.topic-group-heading{
+    flex: 1 0 100%;
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    padding-top: 0.35rem;
+    padding-bottom: 0.1rem;
+    opacity: 0.8;
+}
 .topic-pill{
     padding: 5px var(--spacing-sm);
     background: var(--surface);
@@ -1194,6 +1263,23 @@ input[type="checkbox"]:hover{
     .topic-pills-container::after{
         content: "";
         flex: 0 0 var(--spacing-sm);
+    }
+    /*
+     * In the horizontal strip a heading that took a full row would push every
+     * pill off the right edge, so on a phone the heading becomes a narrow divider
+     * between two runs of pills instead. The category chips above are what a
+     * phone user actually navigates by; the headings are a second route, not the
+     * only one.
+     */
+    .topic-group-heading{
+        flex: 0 0 auto;
+        padding: 0 0.5rem 0 0.2rem;
+        margin-right: 2px;
+        border-right: 1px solid var(--border);
+        align-self: center;
+    }
+    .topic-count{
+        font-size: 0.55rem;
     }
     .topic-pill{
         margin-bottom: .5dvh;
