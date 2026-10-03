@@ -177,6 +177,33 @@ let state:any=stateStore.appState;
 import * as ui from "../../main/Ui.js";
 import * as settings from "../../main/Settings.js";
 import * as questionGenerator from "../../main/QuestionGenerator.js";
+import * as storage from "../../main/services/Storage.js";
+import{SESSION_STORAGE_KEY}from"../../main/Constants.js";
+let SESSION_KEY=SESSION_STORAGE_KEY;
+/**
+ * Makes this build look like a browser for the duration of a test, which is what
+ * selects the storage path rather than the desktop commands. The global is what
+ * the environment check reads, so removing it is the seam.
+ *
+ * @returns A function that puts the desktop environment back.
+ */
+function useBrowserBuild(): ()=>void{
+    let saved=(globalThis as Record<string, unknown>).__TAURI_INTERNALS__;
+    delete (globalThis as Record<string, unknown>).__TAURI_INTERNALS__;
+    return ()=>{
+        (globalThis as Record<string, unknown>).__TAURI_INTERNALS__=saved;
+    };
+}
+/**
+ * Lets the storage module finish loading and the write behind it settle. A
+ * snapshot is saved without being awaited by design, so a test that asserted in
+ * the same tick would be asserting nothing.
+ *
+ * @returns A promise resolving once the pending writes have had their turn.
+ */
+async function settleStorage(): Promise<void>{
+    for(let i=0;i<5;i++) await new Promise<void>(resolve=>setTimeout(resolve,0));
+}
 describe("session",()=>{
     window.correctAnswer={correct:"42",alternate:"42",display:"42"};
     window.hasQuestion=true;
@@ -309,12 +336,25 @@ describe("session",()=>{
         });
     });
     describe("saveSessionSnapshot",()=>{
-        it("should save to sessionStorage",()=>{
-            const setItemSpy=vi.spyOn(Storage.prototype,"setItem");
-            state.setSessionActive(true);
-            saveSessionSnapshot();
-            expect(setItemSpy).toHaveBeenCalled();
-            setItemSpy.mockRestore();
+        it("keeps a private session out of localStorage",async()=>{
+            // The promise a private session makes is that closing the tab erases
+            // every trace of it, and localStorage outlives the tab. A snapshot
+            // written straight to it would keep the score, the timer and the
+            // topic of a session the learner asked not to have kept.
+            let restoreBuild=useBrowserBuild();
+            let setItemSpy=vi.spyOn(Storage.prototype,"setItem");
+            try{
+                storage.setPersistenceMode("zdr");
+                state.setSessionActive(true);
+                saveSessionSnapshot();
+                await settleStorage();
+                let snapshot=setItemSpy.mock.calls.find((c: string[])=>c[0]==="mentalSessionSnapshot");
+                expect(snapshot).toBeUndefined();
+            }
+            finally{
+                setItemSpy.mockRestore();
+                restoreBuild();
+            }
         });
         it("should not throw when called",()=>{
             expect(()=>saveSessionSnapshot()).not.toThrow();
@@ -324,8 +364,8 @@ describe("session",()=>{
         it("should be a function",()=>{
             expect(typeof restoreSessionSnapshot).toBe("function");
         });
-        it("should not throw when called",()=>{
-            expect(()=>restoreSessionSnapshot()).not.toThrow();
+        it("should not throw when called",async()=>{
+            await expect(restoreSessionSnapshot()).resolves.not.toThrow();
         });
     });
     describe("updateLeaderboard",()=>{
@@ -491,44 +531,48 @@ describe("session",()=>{
         });
     });
     describe("session snapshot",()=>{
-        beforeEach(()=>{
+        beforeEach(async()=>{
             vi.clearAllMocks();
+            storage.setPersistenceMode("zdr");
+            await storage.remove(SESSION_KEY);
         });
-        it("should save topic to snapshot",()=>{
+        afterEach(async()=>{
+            // A restore resumes the session, which starts a timer and generates
+            // a question. Neither is awaited by the restore, so both are given a
+            // turn to finish here rather than landing inside the next test.
+            await settleStorage();
+            await storage.remove(SESSION_KEY);
+        });
+        async function readSnapshot(): Promise<any>{
+            await settleStorage();
+            return await storage.read<any>(SESSION_KEY);
+        }
+        it("should save topic to snapshot",async()=>{
             state.setSessionActive(true);
             state.setSelectedTopic("subtract");
-            let setItemSpy=vi.spyOn(Storage.prototype,"setItem");
             saveSessionSnapshot();
-            let savedCall=setItemSpy.mock.calls.find((c: string[])=>c[0]==="mentalSessionSnapshot");
-            expect(savedCall).toBeDefined();
-            let parsed=JSON.parse(savedCall![1]);
-            expect(parsed.selectedTopic).toBe("subtract");
-            setItemSpy.mockRestore();
+            let saved=await readSnapshot();
+            expect(saved).toBeTruthy();
+            expect(saved.selectedTopic).toBe("subtract");
         });
-        it("should save score to snapshot",()=>{
+        it("should save score to snapshot",async()=>{
             state.setSessionActive(true);
             state.setSessionScore({correct:3,total:7});
-            let setItemSpy=vi.spyOn(Storage.prototype,"setItem");
             saveSessionSnapshot();
-            let savedCall=setItemSpy.mock.calls.find((c: string[])=>c[0]==="mentalSessionSnapshot");
-            expect(savedCall).toBeDefined();
-            let parsed=JSON.parse(savedCall![1]);
-            expect(parsed.sessionScore).toEqual({correct:3,total:7});
-            setItemSpy.mockRestore();
+            let saved=await readSnapshot();
+            expect(saved).toBeTruthy();
+            expect(saved.sessionScore).toEqual({correct:3,total:7});
         });
-        it("should save time remaining to snapshot",()=>{
+        it("should save time remaining to snapshot",async()=>{
             state.setSessionActive(true);
             state.setTimeLeft(15);
-            let setItemSpy=vi.spyOn(Storage.prototype,"setItem");
             saveSessionSnapshot();
-            let savedCall=setItemSpy.mock.calls.find((c: string[])=>c[0]==="mentalSessionSnapshot");
-            expect(savedCall).toBeDefined();
-            let parsed=JSON.parse(savedCall![1]);
-            expect(parsed.timeLeft).toBe(15);
-            setItemSpy.mockRestore();
+            let saved=await readSnapshot();
+            expect(saved).toBeTruthy();
+            expect(saved.timeLeft).toBe(15);
         });
-        it("should restore topic from snapshot",()=>{
-            let snapshot={
+        it("should restore topic from snapshot",async()=>{
+            await storage.write(SESSION_KEY,{
                 sessionScore:{correct:2,total:4},
                 timeLeft:20,
                 maxQuestions:5,
@@ -537,14 +581,12 @@ describe("session",()=>{
                 mentalScope:"simple",
                 selectedTopic:"mult",
                 timestamp:Date.now()
-            };
-            localStorage.setItem("mentalSessionSnapshot",JSON.stringify(snapshot));
-            restoreSessionSnapshot();
+            });
+            await restoreSessionSnapshot();
             expect(state.setSelectedTopic).toHaveBeenCalledWith("mult");
-            localStorage.removeItem("mentalSessionSnapshot");
         });
-        it("should restore score from snapshot",()=>{
-            let snapshot={
+        it("should restore score from snapshot",async()=>{
+            await storage.write(SESSION_KEY,{
                 sessionScore:{correct:4,total:6},
                 timeLeft:10,
                 maxQuestions:5,
@@ -553,23 +595,25 @@ describe("session",()=>{
                 mentalScope:"simple",
                 selectedTopic:"add",
                 timestamp:Date.now()
-            };
-            localStorage.setItem("mentalSessionSnapshot",JSON.stringify(snapshot));
-            restoreSessionSnapshot();
+            });
+            await restoreSessionSnapshot();
             expect(state.setSessionScore).toHaveBeenCalledWith({correct:4,total:6});
-            localStorage.removeItem("mentalSessionSnapshot");
         });
-        it("should handle corrupted snapshot",()=>{
-            localStorage.setItem("mentalSessionSnapshot","not-valid-json{{{");
-            expect(()=>restoreSessionSnapshot()).not.toThrow();
-            localStorage.removeItem("mentalSessionSnapshot");
+        it("should handle corrupted snapshot",async()=>{
+            // A stored value is untrusted whatever wrote it, and a value that is
+            // not a snapshot at all is the shape corruption takes now that the
+            // snapshot is a structured record rather than a JSON string.
+            await storage.write(SESSION_KEY,"not-a-snapshot");
+            await expect(restoreSessionSnapshot()).resolves.not.toThrow();
+            expect(state.setSessionActive).not.toHaveBeenCalled();
         });
-        it("should handle missing snapshot",()=>{
-            localStorage.removeItem("mentalSessionSnapshot");
-            expect(()=>restoreSessionSnapshot()).not.toThrow();
+        it("should handle missing snapshot",async()=>{
+            await storage.remove(SESSION_KEY);
+            await expect(restoreSessionSnapshot()).resolves.not.toThrow();
+            expect(state.setSessionActive).not.toHaveBeenCalled();
         });
-        it("should clear snapshot after restore",()=>{
-            let snapshot={
+        it("should clear snapshot after restore",async()=>{
+            await storage.write(SESSION_KEY,{
                 sessionScore:{correct:1,total:3},
                 timeLeft:25,
                 maxQuestions:5,
@@ -578,11 +622,42 @@ describe("session",()=>{
                 mentalScope:"simple",
                 selectedTopic:"add",
                 timestamp:Date.now()
-            };
-            localStorage.setItem("mentalSessionSnapshot",JSON.stringify(snapshot));
-            restoreSessionSnapshot();
-            let remaining=localStorage.getItem("mentalSessionSnapshot");
-            expect(remaining).toBeNull();
+            });
+            await restoreSessionSnapshot();
+            expect(await storage.read(SESSION_KEY)).toBeUndefined();
+        });
+        it("should discard a snapshot older than an hour",async()=>{
+            await storage.write(SESSION_KEY,{
+                sessionScore:{correct:1,total:3},
+                timeLeft:25,
+                maxQuestions:5,
+                currentDifficulty:"medium",
+                mentalShuffle:false,
+                mentalScope:"simple",
+                selectedTopic:"add",
+                timestamp:Date.now()-(2*60*60*1000)
+            });
+            await restoreSessionSnapshot();
+            expect(state.setSessionActive).not.toHaveBeenCalled();
+            expect(await storage.read(SESSION_KEY)).toBeUndefined();
+        });
+        it("keeps a snapshot out of localStorage in a private session",async()=>{
+            // The key this app reads is not one of the legacy keys the migration
+            // moves, so nothing else will ever clear a snapshot a build wrote
+            // straight to localStorage. It has to be stopped at the source.
+            let restoreBuild=useBrowserBuild();
+            let setItemSpy=vi.spyOn(Storage.prototype,"setItem");
+            try{
+                state.setSessionActive(true);
+                saveSessionSnapshot();
+                await settleStorage();
+                let written=setItemSpy.mock.calls.find((c: string[])=>c[0]===SESSION_KEY);
+                expect(written).toBeUndefined();
+            }
+            finally{
+                setItemSpy.mockRestore();
+                restoreBuild();
+            }
         });
     });
 });
