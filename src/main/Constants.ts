@@ -143,10 +143,84 @@ export let topics: Topic[]=[
     {id: "similarity", name: "Similarity", icon: "△∽△", category: "Geometry"},
     {id: "rigid_transformations", name: "Rigid Motions", icon: "↻", category: "Geometry"},
     {id: "circle_geometry", name: "Circle Geometry", icon: "◯ ∠", category: "Geometry"},
+    // Arithmetic foundations the four operations alone never covered
+    {id: "place_value", name: "Place Value", icon: "1,234", category: "Arithmetic"},
+    {id: "negative_numbers", name: "Negative Numbers", icon: "±3", category: "Arithmetic"},
+    {id: "long_division", name: "Long Division", icon: "÷…r", category: "Arithmetic"},
+    {id: "powers_of_ten", name: "Powers of Ten", icon: "10ⁿ", category: "Arithmetic"},
+    {id: "rounding_est", name: "Rounding & Estimate", icon: "≈", category: "Arithmetic"},
+    {id: "prime_factorisation", name: "Prime Factorisation", icon: "p^a q^b", category: "Arithmetic"},
+    {id: "lcm_periods", name: "LCM & Periods", icon: "lcm", category: "Arithmetic"},
+    {id: "money_change", name: "Money & Change", icon: "$↔", category: "Arithmetic"},
+    // Algebra procedures the existing topics stop short of
+    {id: "abs_eq", name: "Absolute Value Equations", icon: "|x|=k", category: "Algebra"},
+    {id: "abs_ineq", name: "Absolute Value Inequalities", icon: "|x|>k", category: "Algebra"},
+    {id: "quadratic_word", name: "Quadratic Word Problems", icon: "x²=n", category: "Algebra"},
+    {id: "system_ineq", name: "Systems of Inequalities", icon: "{x+y<k}", category: "Algebra"},
+    {id: "log_eq", name: "Logarithmic Equations", icon: "log=x", category: "Algebra"},
+    {id: "exp_eq", name: "Exponential Equations", icon: "e^x=k", category: "Algebra"},
+    {id: "polynomial_theorems", name: "Remainder & Factor Theorem", icon: "P(a)=0", category: "Algebra"},
+    {id: "piecewise", name: "Piecewise Functions", icon: "f(x)={", category: "Algebra"},
+    // Calculus the ten existing topics never reach
+    {id: "optimization", name: "Optimization", icon: "max f", category: "Calculus"},
+    {id: "lhopital", name: "L'Hôpital's Rule", icon: "0/0", category: "Calculus"},
+    {id: "taylor", name: "Taylor Series", icon: "Σ aₙxⁿ", category: "Calculus"},
+    {id: "ftc", name: "Fundamental Theorem", icon: "∫=F", category: "Calculus"},
+    {id: "mean_value", name: "Mean Value Theorems", icon: "f′(c)=m", category: "Calculus"},
+    {id: "improper_integrals", name: "Improper Integrals", icon: "∫₀^∞", category: "Calculus"},
+    {id: "partial_derivatives", name: "Partial Derivatives", icon: "∂f/∂x", category: "Calculus"},
+    {id: "div_curl", name: "Divergence & Curl", icon: "∇×F", category: "Calculus"},
+    {id: "param_curves", name: "Parametric Curves", icon: "(x,y)′", category: "Calculus"},
+    // Discrete mathematics: logic, sets and graphs
+    {id: "propositional_logic", name: "Propositional Logic", icon: "p∧q", category: "Discrete Math"},
+    {id: "logic_equivalences", name: "Logic Equivalences", icon: "p⇒q", category: "Discrete Math"},
+    {id: "set_operations", name: "Set Operations", icon: "A∪B", category: "Discrete Math"},
+    {id: "inclusion_exclusion", name: "Inclusion-Exclusion", icon: "|A∪B|", category: "Discrete Math"},
+    {id: "pigeonhole", name: "Pigeonhole Principle", icon: "⌈n/m⌉", category: "Discrete Math"},
+    {id: "graph_basics", name: "Graph Basics", icon: "○—○", category: "Discrete Math"},
+    {id: "graph_euler", name: "Euler & Hamiltonian", icon: "E=3", category: "Discrete Math"},
+    {id: "graph_colouring", name: "Graph Colouring", icon: "4χ", category: "Discrete Math"},
+    {id: "spanning_trees", name: "Spanning Trees", icon: "T", category: "Discrete Math"},
+    {id: "recurrence_relations", name: "Recurrence Relations", icon: "aₙ=kaₙ₋₁", category: "Discrete Math"},
+    {id: "boolean_algebra", name: "Boolean Algebra", icon: "A+AB", category: "Discrete Math"},
+    {id: "relations_classes", name: "Relations & Equivalence", icon: "a~b", category: "Discrete Math"},
+    {id: "counting_advanced", name: "Advanced Counting", icon: "Dₙ", category: "Discrete Math"},
+    // Geometry below circles and above coordinates
+    {id: "triangle_congruence", name: "Triangle Congruence", icon: "≅", category: "Geometry"},
+    {id: "triangle_inequality", name: "Triangle Inequality", icon: "a+b>c", category: "Geometry"},
+    {id: "triangle_area", name: "Area of a Triangle", icon: "½bh", category: "Geometry"},
+    {id: "quadrilateral_area", name: "Quadrilaterals", icon: "▱", category: "Geometry"},
+    {id: "polygon_angles", name: "Polygon Angles", icon: "(n-2)180", category: "Geometry"},
+    {id: "surface_area", name: "Surface Areas", icon: "SA", category: "Geometry"},
+    {id: "composite_figures", name: "Composite Figures", icon: "▦", category: "Geometry"},
+    {id: "regular_polygons", name: "Regular Polygons", icon: "⬠", category: "Geometry"},
+    {id: "midsegment", name: "Midsegments", icon: "‖", category: "Geometry"},
+    {id: "angle_bisector", name: "Angle Bisector Theorem", icon: "∠B=", category: "Geometry"},
+    {id: "volume_solids", name: "Volumes of Solids", icon: "V=Bh", category: "Geometry"},
+    // Linear algebra beyond eigenvalues
+    {id: "determinants", name: "Determinants", icon: "det", category: "Linear Algebra"},
+    {id: "cramers_rule", name: "Cramer's Rule", icon: "|A′|/|A|", category: "Linear Algebra"},
+    {id: "rank", name: "Rank & Pivot Columns", icon: "rank", category: "Linear Algebra"},
+    {id: "null_space", name: "Null Space", icon: "ker A", category: "Linear Algebra"},
+    {id: "lu_decomposition", name: "LU Factorisation", icon: "PA=LU", category: "Linear Algebra"},
+    {id: "matrix_transformations", name: "Matrices as Transformations", icon: "Av", category: "Linear Algebra"},
+    {id: "basis_coordinates", name: "Basis & Coordinates", icon: "{v1,v2}", category: "Linear Algebra"},
+    {id: "linear_independence", name: "Span & Independence", icon: "span", category: "Linear Algebra"},
+    {id: "least_squares", name: "Least Squares", icon: "min‖r‖", category: "Linear Algebra"},
+    {id: "symmetric_matrices", name: "Symmetric Matrices", icon: "A=Aᵀ", category: "Linear Algebra"},
+    // Trigonometry beyond the ratios and identities
+    {id: "trig_equations", name: "Trig Equations", icon: "sinθ=k", category: "Trigonometry"},
+    {id: "general_solutions", name: "General Solutions", icon: "θ+2πn", category: "Trigonometry"},
+    {id: "exact_values", name: "Exact Values", icon: "sin(π/4)", category: "Trigonometry"},
+    {id: "trig_identities", name: "Trig Identities", icon: "sin²+cos²=1", category: "Trigonometry"},
+    {id: "law_of_sines", name: "Law of Sines", icon: "a/sinA", category: "Trigonometry"},
+    {id: "law_of_cosines", name: "Law of Cosines", icon: "c²=a²+b²", category: "Trigonometry"},
+    {id: "ambiguous_case", name: "SSA Ambiguous Case", icon: "SSA", category: "Trigonometry"},
+    {id: "inverse_trig", name: "Inverse Trig Functions", icon: "arcsin", category: "Trigonometry"},
 ];
 
 export let scopeTopics = {
-    simple: ["add","subtrt","mult","divid"],
+    simple: ["add","subtrt","mult","divid","place_value","negative_numbers","long_division","powers_of_ten","rounding_est","prime_factorisation","lcm_periods","money_change"],
     algebra: [
         "add","basic_funcs","cartesian","circle_eq","comb","complex_mult_div","complex_polar","complex_roots","complex_zeros","coord3d","cos","demoivre","divid","elev_dep","exp","exp_model","fact","finance","func_ops","func_props","inverse_funcs","line3d","line_plane_3d","linear_special","log","mult","parabola","perm","plane3d","poly_ineq","polar_to_rect","power_model","prob","pythag","rational_analysis","rational_eq","rect_to_polar","right_triangle_defs","root","ser","sin","special_triangle","sphere_eq","stats","subtrt","tan","transformations","volume_sphere",
         "fraction","percent","ratio","unit_conv","expr_eval","number_sets","properties","order_ops",
@@ -154,7 +228,8 @@ export let scopeTopics = {
         // New algebra topics
         "linear_eq","quadratic_eq","linear_ineq","quadratic_ineq","rational_ineq","system2x2","poly_ops","poly_div","factoring","func_concepts","linear_graph","nonlinear_graph",
         // Counting, similarity, circle geometry and rigid motions
-        "counting_principles","probability_rules","similarity","rigid_transformations","circle_geometry"
+        "counting_principles","probability_rules","similarity","rigid_transformations","circle_geometry",
+        "abs_eq","abs_ineq","quadratic_word","system_ineq","log_eq","exp_eq","polynomial_theorems","piecewise",
     ],
     precalc: [
         "add","subtrt","mult","divid","root","log","exp","fact","ser",
@@ -181,14 +256,17 @@ export let scopeTopics = {
         "linear_eq","quadratic_eq","linear_ineq","quadratic_ineq","rational_ineq","system2x2","poly_ops","poly_div","factoring","func_concepts","linear_graph","nonlinear_graph",
         // Counting, similarity, circle geometry, rigid motions and linear algebra
         "counting_principles","probability_rules","similarity","rigid_transformations","circle_geometry",
-        "eigenvalues","orthogonality","vectors_3d"
+        "eigenvalues","orthogonality","vectors_3d",
+        "abs_eq","abs_ineq","quadratic_word","system_ineq","log_eq","exp_eq","polynomial_theorems","piecewise",
+        "propositional_logic","logic_equivalences","set_operations","inclusion_exclusion","pigeonhole","graph_basics","graph_euler","graph_colouring","spanning_trees","recurrence_relations","boolean_algebra","relations_classes","counting_advanced","triangle_congruence","triangle_inequality","triangle_area","quadrilateral_area","polygon_angles","surface_area","composite_figures","regular_polygons","midsegment","angle_bisector","volume_solids","determinants","cramers_rule","rank","null_space","lu_decomposition","matrix_transformations","basis_coordinates","linear_independence","least_squares","symmetric_matrices","trig_equations","general_solutions","exact_values","trig_identities","law_of_sines","law_of_cosines","ambiguous_case","inverse_trig",
     ],
     calc: [
         "add","subtrt","mult","divid","root","log","exp","fact","ser",
         "perm","comb","prob","deri","inte","lim","relRates","limits_continuity",
         "applications_diff","integration_advanced","graphical_calculus",
         "parametric_polar","sequences_series","mtrx","vctr","area_circle",
-        "pythag","volume_sphere"
+        "pythag","volume_sphere",
+        "optimization","lhopital","taylor","ftc","mean_value","improper_integrals","partial_derivatives","div_curl","param_curves",
     ],
     all: topics.map(t=>t.id)
 };
