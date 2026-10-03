@@ -1,4 +1,4 @@
-﻿import{registerTopic}from"../../main/services/TopicRegistry";
+import{registerTopic}from"../../main/services/TopicRegistry";
 registerTopic("fraction","algebra","generateFraction");
 registerTopic("percent","algebra","generatePercent");
 registerTopic("ratio","algebra","generateRatioProportion");
@@ -52,3 +52,11 @@ registerTopic("factoring","algebra","generateFactoring");
 registerTopic("func_concepts","algebra","generateFunctionConcepts");
 registerTopic("linear_graph","algebra","generateLinearGraphing");
 registerTopic("nonlinear_graph","algebra","generateNonLinearGraphing");
+registerTopic("abs_eq","algebra","generateAbsoluteValueEquation");
+registerTopic("abs_ineq","algebra","generateAbsoluteValueInequality");
+registerTopic("exp_eq","algebra","generateExponentialEquations");
+registerTopic("log_eq","algebra","generateLogarithmicEquations");
+registerTopic("piecewise","algebra","generatePiecewiseFunctions");
+registerTopic("polynomial_theorems","algebra","generatePolynomialTheorems");
+registerTopic("quadratic_word","algebra","generateQuadraticWordProblems");
+registerTopic("system_ineq","algebra","generateSystemsOfInequalities");
