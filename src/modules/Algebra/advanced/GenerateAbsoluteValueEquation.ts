@@ -87,8 +87,8 @@ export function generateAbsoluteValueEquation(difficulty?: string, rng: RngFn=Ma
             // The constant inside the bars is drawn as a multiple of the slope, so
             // the two solutions are whole numbers and their sum is a whole number too.
             let slope=randInt(rng, 1, slopeMax);
-            let centre=randInt(rng, 1, 6);
-            let constant=slope*centre;
+            let center=randInt(rng, 1, 6);
+            let constant=slope*center;
             let whole=randInt(rng, 1, difficulty==="hard"?14:9);
             let target=whole*slope;
             let above=(constant+target)/slope;
@@ -98,7 +98,7 @@ export function generateAbsoluteValueEquation(difficulty?: string, rng: RngFn=Ma
             choices=numberOptions(above+below, [above, below, above+below+1, above+below-1, -(above+below)+1], 0);
             rungs=[
                 "The two cases are symmetric about the point where the expression inside the bars is zero, so the two solutions add up to twice that point rather than being solved for one at a time.",
-                `The inside of the bars is zero at x = ${centre}, so the two solutions add up to 2 x ${centre}.`
+                `The inside of the bars is zero at x = ${center}, so the two solutions add up to 2 x ${center}.`
             ];
             steps=[
                 `Split into two cases: ${inside(slope, -constant)} = ${target} or ${inside(slope, -constant)} = ${-target}.`,
@@ -111,16 +111,16 @@ export function generateAbsoluteValueEquation(difficulty?: string, rng: RngFn=Ma
             // Three of the four equations have solutions, so the learner has to
             // decide which one is impossible rather than pick the only option with no
             // answer to it.
-            let centre=randInt(rng, 2, 12);
+            let center=randInt(rng, 2, 12);
             let impossible=randInt(rng, 1, 9);
             let firstTarget=randInt(rng, 1, 9);
             let secondSlope=randInt(rng, 2, 4);
             let secondOffset=randInt(rng, 1, 9);
             let thirdSlope=randInt(rng, 2, 4);
             let thirdTarget=randInt(rng, 1, 9);
-            key=`| ${inside(1, centre)} | = ${-impossible}`;
+            key=`| ${inside(1, center)} | = ${-impossible}`;
             let others=[
-                `| ${inside(1, centre)} | = ${firstTarget}`,
+                `| ${inside(1, center)} | = ${firstTarget}`,
                 `| ${inside(secondSlope, secondOffset)} | = 0`,
                 `| ${inside(thirdSlope, thirdTarget)} | = ${firstTarget+secondOffset}`
             ];
