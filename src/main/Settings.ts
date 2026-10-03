@@ -2,7 +2,7 @@ import{dom}from"./core/DomRegistry";
 import{appState}from"./core/StateStore";
 import{questionState}from"./core/QuestionState";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
-import{isTauri}from"../utils/envUtils";
+import{isTauri,adaptiveAvailable}from"../utils/envUtils";
 import type{PersistenceMode}from"./services/Storage";
 import{canonicalNumeric,latexToPlain}from"./AnswerFormat";
 /**
@@ -111,6 +111,36 @@ export function applyPersistenceVisibility(): void{
             ? "A private session keeps nothing after you close the tab."
             : "Your review schedule and streak are stored in this browser only, and never sent anywhere.";
     }
+}
+/**
+ * Removes every adaptive surface where adaptive learning cannot run, and turns the
+ * preference off so nothing can act on it.
+ *
+ * The rule the style guide states is that a feature either works in every
+ * environment or is hidden where it cannot. Adaptive learning cannot work in a
+ * plain browser: the scheduler's inputs are performance records written over Tauri
+ * IPC, so the difficulty would drift on a partial history and the weak-topic list
+ * would be confidently wrong. The difficulty adjustment already refused to run
+ * there, which left the interface offering a switch that changed nothing and a
+ * recommendation button that could only report that it was unavailable.
+ *
+ * Hiding rather than explaining is the deliberate choice. A disabled switch and a
+ * button that notifies on press both leave the learner reading about a feature they
+ * cannot use; removing them leaves nothing to explain.
+ *
+ * The stored preference is forced off as well, not merely hidden. A value that the
+ * interface no longer offers must not survive in storage and be read back by code
+ * that cannot see why it is meaningless.
+ */
+export function applyAdaptiveVisibility(): void{
+    let available=adaptiveAvailable();
+    if (!available) settings.adaptive=false;
+    let row=dom.settings.settingAdaptive;
+    if (row) row.hidden=!available;
+    let recommendBtn=dom.buttons.recommendBtn;
+    if (recommendBtn) recommendBtn.hidden=!available;
+    let modal=dom.modals.weakTopicsModal;
+    if (modal) modal.hidden=!available;
 }
 export function loadSettings(): Promise<void>{
     // The controls are filled from the defaults immediately so the interface never
