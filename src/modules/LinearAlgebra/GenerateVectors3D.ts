@@ -186,7 +186,7 @@ function perpendicular(rng: RngFn, v: number[]): number[]{
 /**
  * Two perpendicular vectors whose lengths are both whole numbers, which is what lets a
  * distance to a line be exact: the learner divides one whole number by another rather
- * than cancelling two irrationals.
+ * than canceling two irrationals.
  *
  * @param rng - The injected random source.
  * @param scale - The largest scale factor allowed for the displacement.
