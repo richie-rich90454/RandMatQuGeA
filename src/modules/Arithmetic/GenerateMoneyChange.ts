@@ -1,5 +1,5 @@
 /**
- * @file Money: totalling a cost, change from a note, unit price, and splitting a
+ * @file Money: totaling a cost, change from a note, unit price, and splitting a
  * bill.
  * @description Every amount is held as a whole number of cents and divided by one
  * hundred only when it is rendered, so a price is never stored as a decimal that
