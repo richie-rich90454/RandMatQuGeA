@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Barrel file exporting all calculus question generators and utilities.
  *
  * This file aggregates the various calculus modules, providing a single import entry point
@@ -36,3 +36,12 @@ export * from "./CalculusIntegrationAdvanced.js";
 export * from "./CalculusGraphical.js";
 export * from "./CalculusParametricPolarVector.js";
 export * from "./CalculusSequencesSeries.js";
+export * from "./GenerateDivergenceCurl.js";
+export * from "./GenerateFundamentalTheorem.js";
+export * from "./GenerateImproperIntegrals.js";
+export * from "./GenerateLHospital.js";
+export * from "./GenerateMeanValueTheorem.js";
+export * from "./GenerateOptimization.js";
+export * from "./GenerateParametricCurves.js";
+export * from "./GeneratePartialDerivatives.js";
+export * from "./GenerateTaylor.js";
