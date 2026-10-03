@@ -433,7 +433,7 @@ export function generateTrigGraphs(difficulty?: string, rng: RngFn=Math.random):
                 alternateAnswerStr=period.toFixed(2);
                 displayAnswerStr=`\\${correctAnswerStr}`;
                 hint="Enter an exact value like π/2";
-                // As above: a neighbouring frequency, the halved period, and the sine period the
+                // As above: a neighboring frequency, the halved period, and the sine period the
                 // learner reaches for when they forget that tangent repeats twice as fast.
                 let wrongPeriods: number[]=[];
                 for(let other=1; other<=6; other++){
