@@ -5,6 +5,7 @@ vi.mock("../../main/core/DomRegistry",()=>{
     const adaptiveRow=document.createElement("div");
     const recommendBtn=document.createElement("button");
     const weakTopicsModal=document.createElement("div");
+    const elementsById: Map<string,HTMLElement>=new Map();
     const settings={
         settingsTheme:{value:"system"},
         // The persistence control and its help text are real elements, with real
@@ -59,7 +60,19 @@ vi.mock("../../main/core/DomRegistry",()=>{
         modals:{settingsModal:null,weakTopicsModal:weakTopicsModal},
         get appWindow(){return mockAppWindow;},
         displays:{previewDiv:null},
-        buttons:{themeToggle:null,recommendBtn:recommendBtn}
+        buttons:{themeToggle:null,recommendBtn:recommendBtn},
+        // The gated surfaces are resolved by id rather than through a named accessor,
+        // and they are real elements so that hiding them is asserted against something
+        // that can actually be hidden. The registry in the app caches lookups; this
+        // stands in for that one method and nothing else.
+        getElement(id:string){
+            let existing=elementsById.get(id);
+            if (!existing){
+                existing=document.createElement("div");
+                elementsById.set(id,existing);
+            }
+            return existing;
+        }
     };
     return{dom};
 });
@@ -88,6 +101,16 @@ vi.mock("mathjs",()=>{
 import*as settings from"../../main/Settings.js";
 import*as domRegistry from"../../main/core/DomRegistry";
 let dom:any=(domRegistry as unknown as{dom:unknown}).dom;
+/**
+ * The element a gated surface resolves to.
+ *
+ * Surfaces are hidden through the central table rather than through a named accessor,
+ * so the cases assert on what the table actually reaches. Reading the old accessor
+ * instead would pass while the real element stayed on screen.
+ */
+function gated(id: string): HTMLElement{
+    return dom.getElement(id) as HTMLElement;
+}
 describe("settings",()=>{
     beforeEach(()=>{
         mockAppWindow=null;
@@ -410,18 +433,18 @@ describe("settings",()=>{
             (globalThis as any).__TAURI_INTERNALS__={};
             settings.settings.adaptive=true;
             settings.applyAdaptiveVisibility();
-            expect(dom.settings.settingAdaptive.classList.contains("hidden")).toBe(false);
-            expect(dom.buttons.recommendBtn.classList.contains("hidden")).toBe(false);
-            expect(dom.modals.weakTopicsModal.classList.contains("hidden")).toBe(false);
+            expect(gated("setting-adaptive").classList.contains("hidden")).toBe(false);
+            expect(gated("recommend-btn").classList.contains("hidden")).toBe(false);
+            expect(gated("weak-topics-modal").classList.contains("hidden")).toBe(false);
             expect(settings.settings.adaptive).toBe(true);
         });
         it('hides every adaptive surface in a browser',()=>{
             delete (globalThis as any).__TAURI_INTERNALS__;
             settings.settings.adaptive=true;
             settings.applyAdaptiveVisibility();
-            expect(dom.settings.settingAdaptive.classList.contains("hidden")).toBe(true);
-            expect(dom.buttons.recommendBtn.classList.contains("hidden")).toBe(true);
-            expect(dom.modals.weakTopicsModal.classList.contains("hidden")).toBe(true);
+            expect(gated("setting-adaptive").classList.contains("hidden")).toBe(true);
+            expect(gated("recommend-btn").classList.contains("hidden")).toBe(true);
+            expect(gated("weak-topics-modal").classList.contains("hidden")).toBe(true);
         });
         it('turns the preference off where it cannot be honored',()=>{
             // Hiding the control is not enough: a stored true would be read back by
@@ -478,8 +501,8 @@ describe("settings",()=>{
             (globalThis as any).__TAURI_INTERNALS__={};
             settings.settings.adaptive=true;
             settings.applyPersistenceVisibility();
-            expect(dom.settings.settingAdaptive.classList.contains('hidden')).toBe(false);
-            expect(dom.buttons.recommendBtn.classList.contains('hidden')).toBe(false);
+            expect(gated('setting-adaptive').classList.contains('hidden')).toBe(false);
+            expect(gated('recommend-btn').classList.contains('hidden')).toBe(false);
         });
         it('re-decides the adaptive surfaces when the mode changes',()=>{
             // Turning a private session on is the moment the record the scheduler
@@ -489,16 +512,62 @@ describe("settings",()=>{
             settings.settings.persistence='indexed';
             settings.settings.adaptive=true;
             settings.applyPersistenceVisibility();
-            expect(dom.settings.settingAdaptive.classList.contains('hidden')).toBe(true);
+            expect(gated('setting-adaptive').classList.contains('hidden')).toBe(true);
         });
         it('offers the erase control wherever something is kept',()=>{
             delete (globalThis as any).__TAURI_INTERNALS__;
             settings.settings.persistence='indexed';
             settings.applyPersistenceVisibility();
-            expect(dom.settings.settingEraseData.classList.contains('hidden')).toBe(false);
+            expect(gated('setting-erase-data').classList.contains('hidden')).toBe(false);
             settings.settings.persistence='zdr';
             settings.applyPersistenceVisibility();
-            expect(dom.settings.settingEraseData.classList.contains('hidden')).toBe(true);
+            expect(gated('setting-erase-data').classList.contains('hidden')).toBe(true);
+        });
+        it('removes the confidence control, whose answer nothing would read',()=>{
+            // Asked after every graded answer, stored, and read only by the scheduler's
+            // overconfidence correction. Where adaptive cannot run it is a question the
+            // learner is asked for nothing.
+            delete (globalThis as any).__TAURI_INTERNALS__;
+            settings.applyAdaptiveVisibility();
+            expect(gated('confidence-row').classList.contains('hidden')).toBe(true);
+            (globalThis as any).__TAURI_INTERNALS__={};
+            settings.applyAdaptiveVisibility();
+            expect(gated('confidence-row').classList.contains('hidden')).toBe(false);
+        });
+        it('removes the record surfaces where nothing is kept',()=>{
+            // Export, import, erase and refresh all describe a record. A private session
+            // has none, and an import there reports success for a write that is discarded
+            // on reload, which is the worst of the four.
+            delete (globalThis as any).__TAURI_INTERNALS__;
+            settings.settings.persistence='zdr';
+            settings.applyPersistenceVisibility();
+            for (const id of ['manage-data-btn','export-data-btn','import-data-btn','import-mode','delete-all-btn','reset-all-btn','data-refresh']){
+                expect(gated(id).classList.contains('hidden')).toBe(true);
+            }
+            settings.settings.persistence='indexed';
+            settings.applyPersistenceVisibility();
+            for (const id of ['manage-data-btn','export-data-btn','import-data-btn','delete-all-btn']){
+                expect(gated(id).classList.contains('hidden')).toBe(false);
+            }
+        });
+        it('removes the streak badge where no streak is kept',()=>{
+            delete (globalThis as any).__TAURI_INTERNALS__;
+            settings.settings.persistence='zdr';
+            settings.applyPersistenceVisibility();
+            expect(gated('daily-streak').classList.contains('hidden')).toBe(true);
+            settings.settings.persistence='indexed';
+            settings.applyPersistenceVisibility();
+            expect(gated('daily-streak').classList.contains('hidden')).toBe(false);
+        });
+        it('removes the updates section in a browser and keeps it on the desktop',()=>{
+            delete (globalThis as any).__TAURI_INTERNALS__;
+            settings.applyPersistenceVisibility();
+            expect(gated('updates-section').classList.contains('hidden')).toBe(true);
+            expect(gated('check-updates').classList.contains('hidden')).toBe(true);
+            (globalThis as any).__TAURI_INTERNALS__={};
+            settings.applyPersistenceVisibility();
+            expect(gated('updates-section').classList.contains('hidden')).toBe(false);
+            expect(gated('check-updates').classList.contains('hidden')).toBe(false);
         });
     });
 });
