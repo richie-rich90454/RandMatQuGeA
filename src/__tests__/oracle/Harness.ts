@@ -175,7 +175,7 @@ export async function observedPrompts(topicId: string, difficulty: string, seeds
 }
 
 /**
- * Reports whether a topic honours its difficulty parameter, by comparing the
+ * Reports whether a topic honors its difficulty parameter, by comparing the
  * prompts it produces at easy and hard. A topic that ignores the parameter
  * produces an identical prompt set at both ends.
  *
