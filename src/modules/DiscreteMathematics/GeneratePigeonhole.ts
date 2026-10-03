@@ -55,25 +55,25 @@ export function generatePigeonhole(difficulty?: string, rng: RngFn=Math.random):
             break;
         }
         case "at_least_two":{
-            // One sock of each colour can always be drawn without a pair, so the
-            // next sock forces one. The number of socks of each colour is stated
-            // because a colour with one sock would make the pair impossible.
-            let colours=randInt(rng, 3, cap+2);
-            let socks=randInt(rng, colours*2+2, colours*2+6);
-            let value=colours+1;
+            // One sock of each color can always be drawn without a pair, so the
+            // next sock forces one. The number of socks of each color is stated
+            // because a color with one sock would make the pair impossible.
+            let colors=randInt(rng, 3, cap+2);
+            let socks=randInt(rng, colors*2+2, colors*2+6);
+            let value=colors+1;
             correct=String(value);
             alternate=correct;
-            display=`${colours} + 1 = ${value}`;
-            latex=`A drawer holds \\( ${socks} \\) socks in \\( ${colours} \\) distinct colours, with at least two socks of every colour. How many socks must be taken out, without looking, to be certain of a matching pair?`;
-            choices=numberOptions(value, [colours, value+1, 2, socks, colours*2]);
+            display=`${colors} + 1 = ${value}`;
+            latex=`A drawer holds \\( ${socks} \\) socks in \\( ${colors} \\) distinct colors, with at least two socks of every color. How many socks must be taken out, without looking, to be certain of a matching pair?`;
+            choices=numberOptions(value, [colors, value+1, 2, socks, colors*2]);
             steps=[
-                `It is possible to draw one sock of each of the ${colours} colours and still have no pair, which is ${colours} socks.`,
-                `The next sock has to repeat one of those colours, so the ${colours} + 1 = ${value}-th sock forces a pair.`,
+                `It is possible to draw one sock of each of the ${colors} colors and still have no pair, which is ${colors} socks.`,
+                `The next sock has to repeat one of those colors, so the ${colors} + 1 = ${value}-th sock forces a pair.`,
                 `The answer is ${value}.`
             ];
             rungs=[
-                "Ask what is the most you can draw and still have no match: that is one of each colour, and the sock after that forces a pair.",
-                `There are ${colours} colours, so ${colours} socks can all be different and ${colours} + 1 forces a repeat.`
+                "Ask what is the most you can draw and still have no match: that is one of each color, and the sock after that forces a pair.",
+                `There are ${colors} colors, so ${colors} socks can all be different and ${colors} + 1 forces a repeat.`
             ];
             break;
         }
