@@ -111,7 +111,7 @@ export const PHASE_SHIFTS: number[]=[0.39, 0.79, 1.18, 1.57, 1.96, 2.36, 2.75, 3
  * Prints a special angle as the exact fraction of pi a prompt should show, so an
  * evaluate question names `\frac{\pi}{6}` rather than the decimal `0.52` while its key
  * is graded to two places. The fraction is exact and reduced, so the learner is never
- * asked to recognise a rounded value and never sees a numerator they would have to
+ * asked to recognize a rounded value and never sees a numerator they would have to
  * simplify.
  *
  * `formatPiFraction` writes a bare Unicode pi and a denominator in plain text, which is
@@ -206,7 +206,7 @@ export function definedDegrees(ratio: (radians: number) => number): number[]{
  * A period question goes wrong in three identifiable ways, and each is an honest
  * option: the learner reads a different frequency off the graph, halves the period
  * by forgetting the factor of two, or multiplies where the formula divides. The
- * neighbouring frequencies are what the first mistake produces, and they are drawn
+ * neighboring frequencies are what the first mistake produces, and they are drawn
  * from a table that never contains zero, which is what stops a frequency of one from
  * yielding a period of `2π/0`.
  *
