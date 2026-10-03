@@ -17,6 +17,10 @@ async function initApp(): Promise<void>{
     // be taken back.
     await settings.applyPersistence(settings.settings.persistence);
     settings.applyPersistenceVisibility();
+    // Settled at boot for the same reason as the storage decision above: a surface
+    // that must not exist in this runtime should never be painted and then taken
+    // away, and a preference that cannot be honoured should not be read back.
+    settings.applyAdaptiveVisibility();
     try{
         // Loaded on demand: the schedule and its storage are only needed once
         // there is a record to restore, and keeping them out of the initial
