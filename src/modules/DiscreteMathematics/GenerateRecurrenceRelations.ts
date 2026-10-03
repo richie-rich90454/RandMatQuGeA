@@ -68,7 +68,7 @@ function secondOrderTerm(first: number, second: number, firstCoefficient: number
 }
 
 export function generateRecurrenceRelations(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
-    let types=["constant_recurrence","first_order_linear","find_an_explicit_form","growth_behaviour"];
+    let types=["constant_recurrence","first_order_linear","find_an_explicit_form","growth_behavior"];
     let type=types[Math.floor(rng()*types.length)];
     let cap=difficulty==="easy"?3:difficulty==="hard"?6:4;
     let correct="";
@@ -173,7 +173,7 @@ export function generateRecurrenceRelations(difficulty?: string, rng: RngFn=Math
             ];
             break;
         }
-        case "growth_behaviour":{
+        case "growth_behavior":{
             // Growth is a yes or no question with three honest answers rather
             // than four, so it is asked as four statements about the sequence and
             // exactly one of them is a true statement about the printed numbers.
