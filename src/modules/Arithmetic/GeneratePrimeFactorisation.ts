@@ -1,6 +1,6 @@
 /**
  * @file Prime factorisation: writing a number as a product of primes, evaluating
- * a product of prime powers, counting divisors, and totalling the exponents.
+ * a product of prime powers, counting divisors, and totaling the exponents.
  * @description A prime factorisation is exact integer work, so nothing in this file
  * introduces a float on the way to a printed value. The exponents are read off the
  * factor list rather than tracked separately, because an exponent kept alongside
