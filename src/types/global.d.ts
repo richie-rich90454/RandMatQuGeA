@@ -32,7 +32,7 @@ export interface QuestionDto{
     choices?: string[];
     expectedFormat?: string;
     hint?: string;
-    /** The sub-skill within the topic that was actually practised, used for per-skill scheduling. */
+    /** The sub-skill within the topic that was actually practiced, used for per-skill scheduling. */
     subskill?: string;
     /** A worked solution shown on request, separate from the hint ladder. */
     solution?: string[];
