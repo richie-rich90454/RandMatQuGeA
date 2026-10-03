@@ -1,4 +1,4 @@
-﻿/** @vitest-environment jsdom */
+/** @vitest-environment jsdom */
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 vi.mock("../../main/Topics.js",()=>({
     selectTopic:vi.fn(),
@@ -28,6 +28,23 @@ describe("checkAndShowWeakTopicsPopup",()=>{
     });
     it("should be a function",()=>{
         expect(typeof checkAndShowWeakTopicsPopup).toBe("function");
+    });
+    it('does nothing at all in a browser',async()=>{
+        // The whole unit suite runs with the Tauri internals present, so without
+        // this case the guard that hides weak topics outside the desktop app is
+        // never executed by any test. It asserts the absence of the command call,
+        // not merely that nothing threw, because a function that quietly returned
+        // early for an unrelated reason would satisfy the weaker claim.
+        let saved=(globalThis as Record<string, unknown>).__TAURI_INTERNALS__;
+        delete (globalThis as any).__TAURI_INTERNALS__;
+        try{
+            vi.mocked(invoke).mockResolvedValue([{topic_id:"algebra",accuracy:0.5,attempts:5}]);
+            await expect(checkAndShowWeakTopicsPopup()).resolves.toBeUndefined();
+            expect(invoke).not.toHaveBeenCalled();
+        }
+        finally{
+            (globalThis as Record<string, unknown>).__TAURI_INTERNALS__=saved;
+        }
     });
     it("should not throw when called",async()=>{
         vi.mocked(invoke).mockResolvedValue([]);
