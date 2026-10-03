@@ -132,8 +132,8 @@ export function generateOptimization(difficulty?: string, rng: RngFn=Math.random
             break;
         }
         default:{
-            let flavour=Math.floor(rng()*2);
-            if (flavour===0){
+            let flavor=Math.floor(rng()*2);
+            if (flavor===0){
                 // Two quarters plus the width against a wall: the width that maximises
                 // the area is a quarter of the fencing, and the area is then one
                 // eighth of its square. Drawing the total as a multiple of four makes
@@ -141,7 +141,7 @@ export function generateOptimization(difficulty?: string, rng: RngFn=Math.random
                 let quarters=randInt(rng, 2, wide?14:7);
                 let total=quarters*4;
                 key=2*quarters*quarters;
-                latex=`A farmer has ${total} metres of fencing for a rectangular field that runs along a straight wall, so only the two ends and one long side need fencing. Let \\( x \\) be the side perpendicular to the wall. What is the largest possible area of the field, in square metres?`;
+                latex=`A farmer has ${total} meters of fencing for a rectangular field that runs along a straight wall, so only the two ends and one long side need fencing. Let \\( x \\) be the side perpendicular to the wall. What is the largest possible area of the field, in square meters?`;
                 wrong=[key*2, total*total/4, total*total/16, total*total/2, total];
                 display=`A(x) = x(${total} - 2x),\\ A(${quarters}) = ${key}`;
                 rungs=[
@@ -151,7 +151,7 @@ export function generateOptimization(difficulty?: string, rng: RngFn=Math.random
                 steps=[
                     `The fenced sides use $ 2x + y = ${total} $, so $ y = ${total} - 2x $ and the area is $ A(x) = x(${total} - 2x) $.`,
                     `$ A'(x) = ${total} - 4x $, so $ A'(x) = 0 $ at $ x = ${quarters} $, which lies in $ 0 < x < ${total/2} $ and is where $ A $ is largest.`,
-                    `$ A(${quarters}) = ${quarters} \\times ${total} - 2\\times ${quarters}^{2} = ${total*quarters} - ${2*quarters*quarters} = ${key} $, so the largest area is ${key} square metres.`
+                    `$ A(${quarters}) = ${quarters} \\times ${total} - 2\\times ${quarters}^{2} = ${total*quarters} - ${2*quarters*quarters} = ${key} $, so the largest area is ${key} square meters.`
                 ];
             }
             else{
@@ -162,7 +162,7 @@ export function generateOptimization(difficulty?: string, rng: RngFn=Math.random
                 let sixths=randInt(rng, 1, wide?6:3);
                 let side=sixths*6;
                 key=16*sixths*sixths*sixths;
-                latex=`A ${side} cm by ${side} cm square of card is cut into an open box by cutting squares of side \\( x \\) from each corner and folding up the sides. What is the largest possible volume of the box, in cubic centimetres?`;
+                latex=`A ${side} cm by ${side} cm square of card is cut into an open box by cutting squares of side \\( x \\) from each corner and folding up the sides. What is the largest possible volume of the box, in cubic centimeters?`;
                 wrong=[key*2, side*side*side/27, side*side*side/8, side*side*side/4, side*side*side];
                 display=`V(x) = x(${side} - 2x)^{2},\\ V(${sixths}) = ${key}`;
                 rungs=[
@@ -172,7 +172,7 @@ export function generateOptimization(difficulty?: string, rng: RngFn=Math.random
                 steps=[
                     `Cutting squares of side $ x $ leaves a base of $ (${side} - 2x) $ by $ (${side} - 2x) $, so $ V(x) = x(${side} - 2x)^{2} $.`,
                     `$ V'(x) = (${side} - 2x)(${side} - 6x) $, so the critical points are $ x = ${side/2} $ and $ x = ${side/6} = ${sixths} $. The first gives a zero base, so the maximum is at $ x = ${sixths} $.`,
-                    `$ V(${sixths}) = ${sixths} \\times (${side} - ${2*sixths})^{2} = ${sixths} \\times ${4*sixths}^{2} = ${key} $, so the largest volume is ${key} cubic centimetres.`
+                    `$ V(${sixths}) = ${sixths} \\times (${side} - ${2*sixths})^{2} = ${sixths} \\times ${4*sixths}^{2} = ${key} $, so the largest volume is ${key} cubic centimeters.`
                 ];
             }
             expectedFormat="Enter a whole number";
