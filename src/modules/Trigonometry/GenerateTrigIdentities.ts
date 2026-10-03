@@ -199,7 +199,7 @@ const RECIPROCALS:Reciprocal[]=[
 ];
 
 export function generateTrigIdentities(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
-    let types=["recognise_the_pythagorean_family","prove_a_basic_one","simplify_an_expression","reciprocal_conversion"];
+    let types=["recognize_the_pythagorean_family","prove_a_basic_one","simplify_an_expression","reciprocal_conversion"];
     let type=types[Math.floor(rng()*types.length)];
     let tier=difficulty==="easy"?1:difficulty==="hard"?3:2;
     let key="";
@@ -209,7 +209,7 @@ export function generateTrigIdentities(difficulty?: string, rng: RngFn=Math.rand
     let display="";
     let rungs:string[]=[];
     let steps:string[]=[];
-    if (type==="recognise_the_pythagorean_family"){
+    if (type==="recognize_the_pythagorean_family"){
         let group=pickTiered(PYTHAGOREAN, tier, rng);
         key=group.truth;
         wrong=group.false;
