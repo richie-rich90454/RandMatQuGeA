@@ -1,19 +1,21 @@
-﻿import{invoke}from"@tauri-apps/api/core";
+import{invoke}from"@tauri-apps/api/core";
 import{selectTopic}from"./Topics";
 import{topics}from"./Constants";
 import{generateQuestion}from"./Generation";
 import*as settings from"./Settings";
 import*as ui from"./Ui";
 import{appState}from"./core/StateStore";
-import{isTauri}from"../utils/envUtils";
+import{adaptiveAvailable}from"../utils/envUtils";
 let weakTopicsModal:HTMLElement|null=null;
 let weakTopicsList:HTMLElement|null=null;
 export async function checkAndShowWeakTopicsPopup(){
     if(!settings.settings.showWeakTopicsPopup)return;
-    if(!isTauri()){
-        ui.showNotification("Weak topic analysis is only available in the desktop app.","info");
-        return;
-    }
+    // The surface is already hidden where adaptive learning cannot run, so this
+    // guard is not redundant: the button that opens this is removed at boot but the
+    // function is also reachable from a session ending, and a hidden entry point is
+    // still an entry point. It also means the desktop-only notice this used to show
+    // on press is gone with the press.
+    if(!adaptiveAvailable())return;
     try{
         let weakTopics=await invoke("get_weak_topics",{limit:5})as Array<{topic_id:string,accuracy:number,attempts:number}>;
         if(!weakTopics||weakTopics.length===0){ui.showNotification("No weak topics yet — answer more questions to get recommendations.","info");return;}
