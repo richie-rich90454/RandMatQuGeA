@@ -23,8 +23,21 @@
  * ships, with about 2.5% of headroom so the next topic bites rather than passes.
  *
  * Override via env vars, e.g. BUNDLE_JS_BUDGET_KB=35 node scripts/bundle-check.js
+ *
+ * It also checks that the build is referentially whole: every asset named by
+ * index.html, and every chunk named by an import inside an emitted chunk, has to
+ * exist on disk. That check exists because of a failure mode a size budget cannot
+ * see. `dist` is emptied and rewritten on every build and every filename in it
+ * carries a content hash, so a browser or a static server holding the previous
+ * index.html asks for chunks that no longer exist. A server configured to fall back
+ * to index.html for unknown paths — which is the correct thing to do for a single
+ * page app and the wrong thing to do for a missing script — answers with HTML, and
+ * the browser's only complaint is that a module script came back as text/html. The
+ * application then fails to load a subject's generators at the moment a learner asks
+ * for a question, which is the worst possible moment and the least informative
+ * message. Checking the graph here means the build that breaks it never ships.
  */
-import{readFileSync,existsSync}from"node:fs";
+import{readFileSync,existsSync,readdirSync}from"node:fs";
 import{gzipSync}from"node:zlib";
 import{join,dirname}from"node:path";
 import{fileURLToPath}from"node:url";
@@ -36,6 +49,70 @@ let CSS_BUDGET=Number(process.env.BUNDLE_CSS_BUDGET_KB||10);
 let TOTAL_BUDGET=Number(process.env.BUNDLE_TOTAL_BUDGET_KB||57);
 function gzipKb(buf){
 	return gzipSync(buf).length/1024;
+}
+/**
+ * Collects every asset the build says it needs and reports the ones that are absent.
+ *
+ * @returns {{missing: string[], checked: number}} The missing asset paths, relative
+ *   to `dist`, and how many references were followed.
+ */
+function checkReferentialIntegrity(){
+	let missing=[];
+	let checked=0;
+	let seen=new Set();
+	let queue=[{file:"index.html",depth:0}];
+	while(queue.length>0){
+		let{file,depth}=queue.shift();
+		if(seen.has(file))continue;
+		seen.add(file);
+		let full=join(distDir,file);
+		if(!existsSync(full)){
+			missing.push(file);
+			continue;
+		}
+		let text=readFileSync(full,"utf8");
+		// Attribute references in markup, and every static or dynamic import in a
+		// chunk. Vite emits dynamic imports as plain string literals, so one pattern
+		// covers both `import("...")` and the preload helper's argument.
+		let refs=[];
+		if(file.endsWith(".html")){
+			for(let m of text.matchAll(/(?:src|href)="\.?\/?([^"]+\.(?:js|css|woff2?|ttf|png|ico|webmanifest))"/g)){
+				refs.push(m[1]);
+			}
+		}
+		if(file.endsWith(".js")){
+			// The minifier rewrites every module specifier to a template literal, so
+			// matching only ' and " walks none of the graph at all. That is a check
+			// that reports success while verifying nothing, which is worse than having
+			// no check.
+			for(let m of text.matchAll(/(?:^|[^.\w])\bimport\s*\(\s*["'`]([^"'`]+)["'`]\s*\)/g)){
+				refs.push(m[1]);
+			}
+			for(let m of text.matchAll(/(?:^|[^.\w])import\s+[^;]*?from\s*["'`]([^"'`]+)["'`]/g)){
+				refs.push(m[1]);
+			}
+			// Vite's preload helper names its chunks in an array of string literals.
+			for(let m of text.matchAll(/__vitePreload\s*\(\s*[^,]*,\s*\[([^\]]*)\]/g)){
+				for(let s of m[1].matchAll(/["'`]([^"'`]+)["'`]/g)){
+					refs.push(s[1]);
+				}
+			}
+		}
+		for(let ref of refs){
+			if(/^(https?:)?\/\//.test(ref)||ref.startsWith("data:"))continue;
+			// What makes a reference a file rather than a package name is the
+			// extension, not the prefix: a minified chunk names its neighbours
+			// `./Foo-abc123.js`, and markup captured through an optional `./` can
+			// arrive as plain `Foo-abc123.js`. Filtering on the prefix therefore
+			// rejects the whole graph while reporting success.
+			if(!/\.(?:js|mjs|cjs|css|woff2?|ttf|otf|png|jpe?g|gif|svg|ico|webmanifest|json|wasm)$/i.test(ref))continue;
+			let rel=ref.replace(/^\.\//,"").replace(/^\//,"");
+			if(!rel)continue;
+			checked++;
+			queue.push({file:rel,depth:depth+1});
+		}
+	}
+	return{missing:[...new Set(missing)],checked,walked:seen.size};
 }
 function extractMainAsset(regex){
 	let html=readFileSync(indexHtmlPath,"utf8");
@@ -78,6 +155,21 @@ function main(){
 	pass("Initial JS budget",jsAsset.gzipKb,JS_BUDGET);
 	pass("Initial CSS budget",cssAsset.gzipKb,CSS_BUDGET);
 	pass("Total initial-load budget",totalGzip,TOTAL_BUDGET);
+	// The graph is walked before the budgets are reported so a build that ships a
+	// missing chunk fails even when every size is inside budget, which is the whole
+	// reason this check is here.
+	let integrity=checkReferentialIntegrity();
+	console.log("");
+	if(integrity.missing.length>0){
+		console.error(`FAIL: ${integrity.missing.length} asset(s) referenced by the build are missing from dist:`);
+		for(let m of integrity.missing){
+			console.error(`  ${m}`);
+		}
+		console.error("A server that falls back to index.html will answer these with HTML, and the");
+		console.error("browser will report a MIME type error instead of a missing file.");
+		process.exit(3);
+	}
+	console.log(`  [PASS] Build is referentially whole (${integrity.checked} references, ${integrity.walked} files)`);
 	console.log("");
 	if(failures.length>0){
 		console.error(`FAIL: ${failures.length} budget(s) exceeded: ${failures.join(", ")}`);
