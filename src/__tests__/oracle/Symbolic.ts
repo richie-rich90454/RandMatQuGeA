@@ -38,7 +38,7 @@ export type EquivalenceVerdict="equal"|"different"|"inconclusive";
 
 /**
  * Converts the LaTeX subset the generators emit into mathjs syntax. Deliberately
- * narrow: an unrecognised construct is left alone so that parsing fails loudly
+ * narrow: an unrecognized construct is left alone so that parsing fails loudly
  * rather than silently mis-evaluating.
  *
  * @param latex - The LaTeX body.
