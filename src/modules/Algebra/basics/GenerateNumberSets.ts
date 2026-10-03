@@ -29,7 +29,7 @@ export function generateNumberSets(_difficulty?: string, rng: RngFn=Math.random)
     switch(type){
         case "identify":{
             // The value is rounded first and the rounded value is both printed
-            // and classified. Classifying the unrounded value labelled 3.001 as
+            // and classified. Classifying the unrounded value labeled 3.001 as
             // irrational while printing 3.00, which the same question defines as
             // a natural number.
             let num=roundTo(rng()*10, 2);
