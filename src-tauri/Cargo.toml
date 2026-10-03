@@ -12,11 +12,11 @@ tauri-build = { version = "^2", features = [] }
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "^2", features = ["tray-icon", "image-png"] }
+tauri = { version = "=2.12.1", features = ["tray-icon", "image-png"] }
 tauri-utils = { version = "^2", features = [] }
 tauri-plugin-shell = "^2"
-tauri-plugin-updater = { version = "2.10.0" }
-tauri-plugin-process = "2.3.1"
+tauri-plugin-updater = { version = "=2.13.1" }
+tauri-plugin-process = "=2.4.0"
 tokio = { version = "1.50.0", features = ["macros", "rt-multi-thread"] }
 reqwest = { version = "0.13", default-features = false, features = ["rustls", "json"] }
 sqlx = { version = "0.8", features = ["sqlite", "runtime-tokio", "macros", "migrate"] }
@@ -27,7 +27,7 @@ strum = "0.26"
 strum_macros = "0.26"
 rand = "0.9"
 printpdf = { version = "0.7", features = ["embedded_images"] }
-tauri-plugin-dialog = "2"
+tauri-plugin-dialog = "=2.8.0"
 # Pure-Rust KaTeX-compatible LaTeX math rendering. Used to rasterize each
 # math expression to a PNG which is then embedded in the worksheet PDF,
 # giving perfect LaTeX rendering (fractions, matrices, integrals, etc.)
