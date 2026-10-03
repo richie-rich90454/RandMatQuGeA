@@ -6,7 +6,7 @@ import{fourOptions}from"../../shared/Options.js";
  * @fileoverview Generates root simplification questions with MCQ distractors. The
  * radicand is a perfect power of a whole base, so the key is exact and the prompt
  * needs no rounding instruction. The wrong answers are the mistakes this form
- * produces: a neighbouring whole number, the base doubled, the index instead of
+ * produces: a neighboring whole number, the base doubled, the index instead of
  * the root, and the radicand left unextracted. The option filter drops whichever
  * of them coincides with the key, which is what a base of one used to do.
  * @date 2026-04-18
