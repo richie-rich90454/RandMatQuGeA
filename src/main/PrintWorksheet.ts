@@ -1,7 +1,6 @@
 ﻿import{topics,scopeTopics}from"./Constants";
 import{generateQuestionDto}from"./QuestionGenerator";
-import{invoke}from"@tauri-apps/api/core";
-import{save}from"@tauri-apps/plugin-dialog";
+import{generateWorksheetSeed,exportWorksheetPdf,saveFileDialog}from"./services/Backend";
 import{seededRng}from"./core/Rng";
 import{showNotification}from"./Ui";
 import{isTauri}from"../utils/envUtils";
@@ -123,7 +122,7 @@ async function resolveSeed(): Promise<number>{
     }
     if (isTauri()){
         try{
-            let seed = await invoke<number>("generate_worksheet_seed");
+            let seed = await generateWorksheetSeed();
             if (typeof seed === "number" && seed > 0) return seed;
         }
         catch (err){
@@ -313,12 +312,12 @@ async function exportToPdf(opts: WorksheetOptions, dtos: QuestionDto[]): Promise
     if (isTauri()){
         try{
             let filename=(opts.title || "worksheet").replace(/[^a-zA-Z0-9_-]/g, "_")+".pdf";
-            let filepath=await save({
+            let filepath=await saveFileDialog({
                 defaultPath: filename,
                 filters: [{ name: "PDF", extensions: ["pdf"] }]
             });
             if (!filepath) return;
-            await invoke("export_worksheet_pdf", { questions: dtos, opts, filepath });
+            await exportWorksheetPdf(dtos, opts, filepath);
             showNotification("PDF exported successfully.", "info");
             return;
         }
