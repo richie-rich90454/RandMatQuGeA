@@ -3,6 +3,16 @@ import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 vi.mock("../../main/Ui.js",()=>({
     showNotification:vi.fn(),
 }));
+vi.mock("../../main/Topics.js",()=>({
+    // The names resolve through the topic module, whose tables arrive through the
+    // loader boot awaits. The fixture names the topics this suite writes records
+    // for, so the suite asserts naming rather than the loader.
+    allTopics:vi.fn(()=>[
+        {id:"linear_eq",name:"Linear Equations",icon:"=",category:"Algebra"},
+    ]),
+    topicName:vi.fn((id:string)=>id==="linear_eq"?"Linear Equations":id),
+    scopeIds:vi.fn(()=>["linear_eq"]),
+}));
 vi.mock("../../main/Session.js",()=>({
     updateLeaderboard:vi.fn(),
 }));
