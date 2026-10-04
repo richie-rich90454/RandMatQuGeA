@@ -1,4 +1,4 @@
-﻿import{topics,scopeTopics}from"./Constants";
+﻿import{scopeIds,topicName,allTopics}from"./Topics";
 import{generateQuestionDto}from"./QuestionGenerator";
 import{generateWorksheetSeed,exportWorksheetPdf,saveFileDialog}from"./services/Backend";
 import{seededRng}from"./core/Rng";
@@ -65,8 +65,8 @@ export function wrapLatexIfNeeded(text: string): string{
 function updateTopicDropdown(): void{
     if (!topicSelect || !scopeSelect) return;
     let scope = scopeSelect.value;
-    let allowedIds = scopeTopics[scope as keyof typeof scopeTopics] || scopeTopics.all;
-    let filteredTopics = topics.filter(t=>allowedIds.includes(t.id));
+    let allowed=new Set<string>(scopeIds(scope,"all"));
+    let filteredTopics = allTopics().filter(t=>allowed.has(t.id));
     topicSelect.innerHTML = "<option value=\"all\">All topics (from selected scope)</option>";
     for (let t of filteredTopics){
         let opt = document.createElement("option");
@@ -109,8 +109,7 @@ function pickTopic(topicList: string[], rng: RngFn): string{
 }
 function buildTopicList(opts: WorksheetOptions): string[]{
     if (opts.topic === "all"){
-        let allowedIds = scopeTopics[opts.scope as keyof typeof scopeTopics] || scopeTopics.all;
-        return allowedIds;
+        return scopeIds(opts.scope,"all");
     }
     return [opts.topic];
 }
@@ -140,7 +139,7 @@ async function generateQuestions(opts: WorksheetOptions, rng: RngFn): Promise<Ge
     for (let i = 0; i < opts.count; i++){
         let selectedTopic = pickTopic(topicList, rng);
         let diff = pickDifficulty(opts.difficulty, rng);
-        let topicName = topics.find(t=>t.id === selectedTopic)?.name || selectedTopic;
+        let selectedName = topicName(selectedTopic);
         try{
             let dto = await generateQuestionDto(selectedTopic, diff, rng);
             dtos.push(dto);
@@ -148,7 +147,7 @@ async function generateQuestions(opts: WorksheetOptions, rng: RngFn): Promise<Ge
                 html: dto.latex,
                 answerDisplay: wrapLatexIfNeeded(dto.display || dto.correct || ""),
                 topicId: selectedTopic,
-                topicName,
+                topicName: selectedName,
                 difficulty: diff
             });
         }
@@ -159,7 +158,7 @@ async function generateQuestions(opts: WorksheetOptions, rng: RngFn): Promise<Ge
                 html: "\\text{[Error generating question]}",
                 answerDisplay: "",
                 topicId: selectedTopic,
-                topicName,
+                topicName: selectedName,
                 difficulty: diff
             });
         }
@@ -179,7 +178,7 @@ function buildHeaderHtml(opts: WorksheetOptions): string{
         lines.push(`<div class="ws-header-row">${metaRow.join("")}</div>`);
     }
     if (opts.showMetadata){
-        let scopeDisplay = opts.topic === "all" ? opts.scope : (topics.find(t=>t.id === opts.topic)?.name || opts.topic);
+        let scopeDisplay = opts.topic === "all" ? opts.scope : topicName(opts.topic);
         lines.push(`<div class="ws-meta"><span>Topic: ${escapeHtml(scopeDisplay)}</span><span>Difficulty: ${escapeHtml(opts.difficulty)}</span></div>`);
     }
     lines.push("<hr class=\"ws-divider\">");
