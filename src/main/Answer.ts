@@ -4,7 +4,7 @@ import{questionState}from"./core/QuestionState";
 import * as settings from"./Settings";
 import * as ui from"./Ui";
 import * as generation from"./Generation";
-import{invoke}from"@tauri-apps/api/core";
+import{savePerformance}from"./services/Backend";
 import{effectivePersistence}from"./Settings";
 import{adaptiveAvailable}from"../utils/envUtils";
 let _audioCtx: AudioContext|null=null;
@@ -439,47 +439,19 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
     let isCorrect=await gradeAnswer(answer, correct, alternate);
     let responseTime=getResponseTime();
     let errorType=!isCorrect ? detectErrorType(answer, correct, appState.selectedTopic || '') : null;
-    // A review is recorded for every answer, correct or not, because the schedule
-    // is built from the pattern and a run of correct answers that were never
-    // recorded is indistinguishable from a run that never happened.
-    // The record is only written where the scheduler can read it back. A browser
-    // has no performance table and no durable store, so the record it wrote would be
-    // a growing history of a learner that the scheduler never consults.
-    if (appState.selectedTopic&&adaptiveAvailable(effectivePersistence())){
-        try{
-            // The review store is loaded on demand rather than statically, because
-            // the schedule is only needed once someone has actually answered
-            // something and it is a substantial part of the initial payload.
-            let reviewStore=await import("./services/ReviewStore");
-            await reviewStore.recordReview({
-                topicId: appState.selectedTopic,
-                subSkill: questionState.subSkill,
-                correct: isCorrect,
-                responseMs: responseTime,
-                confidence: questionState.confidence
-            });
-        }
-        catch(err){
-            console.warn("Could not record the review:",err);
-        }
-    }
-    // This is a second write of the same command the review store already sends,
-    // and it stays because the review store cannot cover what it holds: a
-    // ReviewOutcome carries no difficulty and no error type, so the store's row
-    // fills those columns with blanks, and the store only writes the aggregate at
-    // all once its records have been loaded from the database. This call is the one
-    // that records the difficulty the learner actually met and the error we
-    // classified, which is what the next-question recommendation reads.
-    if (adaptiveAvailable(effectivePersistence())){
-        invoke('save_performance', {
-            topicId: appState.selectedTopic,
-            difficulty: appState.currentDifficulty,
-            correct: isCorrect,
-            responseTimeMs: responseTime,
-            errorType: errorType
-        }).catch((e)=>{
+    let topicId=appState.selectedTopic;
+    let adaptive=adaptiveAvailable(effectivePersistence());
+    // The review waits for the confidence judgment rather than racing it. The
+    // record is queued here and written once the learner answers the confidence
+    // question, dismisses it, starts the next question, or a short timeout
+    // expires, so answer N carries confidence N instead of nothing. The write
+    // still only happens where the scheduler can read it back.
+    // The aggregate below carries no confidence, so it is written at once.
+    if(topicId&&adaptive){
+        savePerformance(topicId,appState.currentDifficulty,isCorrect,responseTime,errorType).catch((e)=>{
             console.warn("[Adaptive] Failed to save performance:", e);
         });
+        (await import("./services/Help")).queueReview({topicId:topicId,subSkill:questionState.subSkill,correct:isCorrect,responseMs:responseTime},adaptive);
     }
     if (settings.settings.sound){
         let audioCtx=getAudioContext();
