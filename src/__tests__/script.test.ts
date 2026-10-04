@@ -20,6 +20,7 @@ vi.mock("../main/Ui.js",()=>({
 }));
 vi.mock("../main/Topics.js",()=>({
     renderTopicGrid:vi.fn(),
+    ensureTopicData:vi.fn(()=>Promise.resolve()),
 }));
 vi.mock("../main/Session.js",()=>({
     restoreSessionSnapshot:vi.fn(),
