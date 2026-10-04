@@ -1,6 +1,5 @@
 import{getWeakTopics}from"./services/Backend";
-import{selectTopic}from"./Topics";
-import{topics}from"./Constants";
+import{selectTopic,topicName}from"./Topics";
 import{generateQuestion}from"./Generation";
 import*as settings from"./Settings";
 import{effectivePersistence}from"./Settings";
@@ -25,13 +24,13 @@ export async function checkAndShowWeakTopicsPopup(){
         if(!weakTopicsModal||!weakTopicsList)return;
         weakTopicsList.innerHTML="";
         for(const topic of weakTopics){
-            let topicName=topics.find((t:{id:string,name:string})=>t.id===topic.topic_id)?.name||topic.topic_id;
+            let name=topicName(topic.topic_id);
             let accuracyPercent=Math.round(topic.accuracy*100);
             let item=document.createElement("div");
             item.className="weak-topic-item";
             item.innerHTML=`
                 <div class="weak-topic-info">
-                    <div class="weak-topic-name">${topicName}</div>
+                    <div class="weak-topic-name">${name}</div>
                     <div class="weak-topic-stats">Accuracy: ${accuracyPercent}% (${topic.attempts} attempts)</div>
                 </div>
                 <button class="secondary-button practice-topic-btn" data-topic="${topic.topic_id}">Practice</button>
