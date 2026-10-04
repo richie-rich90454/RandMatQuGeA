@@ -14,6 +14,7 @@
 import type{QuestionDto} from"../../types/global";
 import{canonicaliseNumeric, equalNumeric, isPlainNumber, parseExact} from"./Exact";
 import{equivalentExpressions} from"./Symbolic";
+import{canonicalWordSet, equivalentWordAnswers} from"../../main/AnswerFormat";
 
 /** One reason a multiple-choice question is invalid. */
 export interface McqFinding{
@@ -62,9 +63,10 @@ function isUnusableOption(option: string): boolean{
 
 /**
  * Reports whether two options denote the same value, comparing plain numbers
- * exactly and everything else by trimmed text. `0.50` and `0.5` are the same
- * option, which is how a four-option question silently becomes a three-option
- * one.
+ * exactly, word answers after canonicalisation, and everything else by
+ * trimmed text. `0.50` and `0.5` are the same option, which is how a
+ * four-option question silently becomes a three-option one, and "Whole
+ * Numbers" and "whole number" are the same answer the same way.
  *
  * @param a - The first option.
  * @param b - The second option.
@@ -72,6 +74,7 @@ function isUnusableOption(option: string): boolean{
  */
 function sameOption(a: string, b: string): boolean{
     if (a.trim()===b.trim()) return true;
+    if (equivalentWordAnswers(a, b)) return true;
     let ca=canonicaliseNumeric(a);
     let cb=canonicaliseNumeric(b);
     if (ca===cb) return true;
@@ -104,6 +107,38 @@ function truncate(value: string, limit: number=48): string{
  */
 function looksMathematical(option: string): boolean{
     return /[0-9]|[+\-*/^_=<>(){}]|\\frac|\\sqrt|\\pi/.test(option);
+}
+
+/**
+ * Reads the exhaustive number sets of the value a number-sets prompt asks
+ * about, under the convention the generators use: zero is whole but not
+ * natural. A distractor that names exactly these sets is the answer the prompt
+ * asks for even when it spells no word the key spells, which is how
+ * classifying zero once offered the whole-number list as a wrong answer. The
+ * check is confined to prompts that name the sets and answers that list them,
+ * and returns null anywhere else rather than guessing.
+ *
+ * @param latex - The prompt as printed.
+ * @returns The exhaustive set list, or null when the prompt is not a
+ *          number-sets classify/identify question.
+ */
+function numberSetsTruth(latex: string): string|null{
+    if(typeof latex!=="string") return null;
+    if(latex.indexOf("natural")<0||latex.indexOf("whole")<0) return null;
+    let shown:string|null=null;
+    let classify=latex.match(/Classify\s*\\?\(\s*(-?\d+)\s*\\?\)/);
+    if(classify) shown=classify[1];
+    else{
+        let identify=latex.match(/for\s*\\?\(\s*(-?\d+(?:\.\d+)?)\s*\\?\)/);
+        if(identify) shown=identify[1];
+    }
+    if(shown===null) return null;
+    let n=Number(shown);
+    if(!Number.isFinite(n)) return null;
+    if(Number.isInteger(n)&&n>0) return "natural, whole, integer, rational, real";
+    else if(Number.isInteger(n)&&n===0) return "whole, integer, rational, real";
+    else if(Number.isInteger(n)) return "integer, rational, real";
+    else return "rational, real";
 }
 
 /**
@@ -167,6 +202,18 @@ export async function validateMcq(dto: QuestionDto): Promise<McqFinding[]>{
         });
     }
     for(let i=1; i<choices.length; i++){
+        // An option spelled exactly like the key is a duplicate, reported as
+        // one; a numeric respelling is one too. Only a restatement in
+        // different words reaches the word tier below, so this gate keeps the
+        // verdicts it always gave for everything else.
+        if(choices[i].trim()===dto.correct.trim()) continue;
+        if (equivalentWordAnswers(choices[i], dto.correct)){
+            findings.push({
+                code:MCQ_CODES.alsoCorrect,
+                message:"Option "+i+" ("+JSON.stringify(choices[i])+") is the key in different words ("+JSON.stringify(canonicalWordSet(choices[i]))+"), so the question has more than one answer."
+            });
+            continue;
+        }
         if (sameOption(choices[i], dto.correct)) continue;
         if (!looksMathematical(choices[i])||!looksMathematical(dto.correct)) continue;
         let verdict=await equivalentExpressions(choices[i], dto.correct);
@@ -175,6 +222,23 @@ export async function validateMcq(dto: QuestionDto): Promise<McqFinding[]>{
                 code:MCQ_CODES.alsoCorrect,
                 message:"Option "+i+" ("+JSON.stringify(choices[i])+") is also mathematically correct, so the question has more than one answer."
             });
+        }
+    }
+    // A number-sets distractor that names the exhaustive sets of the prompted
+    // value is the asked-for answer even when it shares no spelling with a
+    // wrong key, which string comparison alone cannot see. Only options after
+    // the key are judged here; the key itself is the question/answer agreement
+    // invariant's business, not this gate's.
+    let truth=numberSetsTruth(dto.latex);
+    if(truth!==null&&dto.correct.indexOf(",")>=0&&!equivalentWordAnswers(dto.correct, truth)){
+        for(let i=1; i<choices.length; i++){
+            if (equivalentWordAnswers(choices[i], dto.correct)) continue;
+            if (equivalentWordAnswers(choices[i], truth)){
+                findings.push({
+                    code:MCQ_CODES.alsoCorrect,
+                    message:"Option "+i+" ("+JSON.stringify(choices[i])+") names the number sets of the prompted value, so the question has more than one answer."
+                });
+            }
         }
     }
     return findings;
