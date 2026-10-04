@@ -357,3 +357,32 @@ describe("help ladders",()=>{
         expect(failures).toEqual([]);
     }, 300000);
 });
+describe("word-level distractor equivalence",()=>{
+    it("flags a distractor that restates the key in different words",async()=>{
+        let dto={
+            latex:"Classify \\( 0 \\) as natural, whole, integer, rational, irrational, or real.",
+            correct:"whole, integer, rational, real",
+            choices:["whole, integer, rational, real","Whole numbers, integers, rational, real","irrational, real","real"]
+        } as QuestionDto;
+        let findings=await validateMcq(dto);
+        expect(findings.some(f=>f.code===MCQ_CODES.alsoCorrect)).toBe(true);
+    });
+    it("flags the historical number_sets zero set that offered the whole-number list",async()=>{
+        let dto={
+            latex:"Classify \\( 0 \\) as natural, whole, integer, rational, irrational, or real.",
+            correct:"integer, rational, real",
+            choices:["integer, rational, real","natural, whole, integer, rational, real","whole, integer, rational, real","real"]
+        } as QuestionDto;
+        let findings=await validateMcq(dto);
+        expect(findings.some(f=>f.code===MCQ_CODES.alsoCorrect)).toBe(true);
+    });
+    it("accepts the fixed number_sets zero set",async()=>{
+        let dto={
+            latex:"Classify \\( 0 \\) as natural, whole, integer, rational, irrational, or real.",
+            correct:"whole, integer, rational, real",
+            choices:["whole, integer, rational, real","integer, rational, real","irrational, real","natural, integer, rational, real"]
+        } as QuestionDto;
+        let findings=await validateMcq(dto);
+        expect(findings.filter(f=>f.code===MCQ_CODES.alsoCorrect)).toEqual([]);
+    });
+});
