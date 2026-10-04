@@ -110,4 +110,12 @@ describe("generateApplicationsDiff",()=>{
         const dto2=generateApplicationsDiff("medium", seededRng(42));
         expect(dto1).toEqual(dto2);
     });
+    it("prints the box prompt with ascii hyphens only",()=>{
+        const rng=vi.fn()
+            .mockReturnValueOnce(0.8)
+            .mockReturnValueOnce(0.3);
+        const dto=generateApplicationsDiff("medium", rng);
+        expect(dto.latex).toContain("open-top box");
+        expect(/[^ -~]/.test(dto.latex)).toBe(false);
+    });
 });
