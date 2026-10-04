@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
+import{describe,it,expect,vi,beforeAll,beforeEach,afterEach}from"vitest";
 const mockInvoke=vi.hoisted(()=>vi.fn().mockResolvedValue(undefined));
 vi.mock("@tauri-apps/api/core",()=>({
     invoke: mockInvoke,
@@ -22,6 +22,13 @@ vi.mock("@tauri-apps/plugin-dialog",()=>({
     save: mockSave,
 }));
 import{initPrintModal,openPrintModal,closePrintModal,renderKatexInElement,wrapLatexIfNeeded}from"../../main/PrintWorksheet.js";
+import{ensureTopicData}from"../../main/Topics.js";
+// The worksheet reads scopes and names through the topic module, whose tables
+// arrive through the loader boot awaits. Loading them once here is what makes
+// the dropdown and the topic list real instead of empty.
+beforeAll(async()=>{
+    await ensureTopicData();
+});
 import{generateQuestionDto}from"../../main/QuestionGenerator.js";
 import{showNotification}from"../../main/Ui.js";
 function createPrintModal():HTMLElement{
