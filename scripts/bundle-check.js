@@ -3,9 +3,9 @@
  * and CSS chunks, calculates gzipped sizes, and fails if any budget is exceeded.
  *
  * Budgets (gzipped):
- *   - Initial JS entry chunk:  BUNDLE_JS_BUDGET_KB   (default 38.5)
+ *   - Initial JS entry chunk:  BUNDLE_JS_BUDGET_KB   (default 36)
  *   - Initial CSS chunk:       BUNDLE_CSS_BUDGET_KB  (default 10)
- *   - Total initial load:      BUNDLE_TOTAL_BUDGET_KB (default 57.5)
+ *   - Total initial load:      BUNDLE_TOTAL_BUDGET_KB (default 55.5)
  *
  * The JavaScript and total budgets moved a second time, from 38/57 to 38.5/57.5, and
  * the reason belongs here rather than in a commit message.
@@ -31,9 +31,15 @@
  * dynamic import. Six modules read it, `Topics.ts` reads it synchronously on the
  * interaction path, and making that await is a boot-order change across the topic grid,
  * the event wiring, generation, the worksheet, the session and the data dialog. It is
- * worth roughly 4 to 6 kB gzipped. Attempting it without room to verify it in a browser
- * would trade a visible budget line for an invisible boot failure, so it stays open and
- * is written down here rather than forgotten.
+ * worth roughly 4 to 6 kB gzipped. That paragraph is now history: the split happened.
+ * The tables left the entry chunk for their own chunk behind a dynamic import boot
+ * awaits, and the entry fell from 38.10 kB to 34.17 kB gzipped, which measured
+ * within a tenth of the estimate.
+ *
+ * The budgets moved a third time on the back of it, from 38.5/57.5 down to 36/55.5.
+ * A budget keeps the headroom it needs and no more: 1.8 kB on the entry still bites
+ * on a regression the size of the settings-import one, and still leaves room for
+ * roughly two hundred more topics before it bites on growth.
  *
  * Override via env vars, e.g. BUNDLE_JS_BUDGET_KB=35 node scripts/bundle-check.js
  *
@@ -57,9 +63,9 @@ import{fileURLToPath}from"node:url";
 let __dirname=dirname(fileURLToPath(import.meta.url));
 let distDir=join(__dirname,"..","dist");
 let indexHtmlPath=join(distDir,"index.html");
-let JS_BUDGET=Number(process.env.BUNDLE_JS_BUDGET_KB||38.5);
+let JS_BUDGET=Number(process.env.BUNDLE_JS_BUDGET_KB||36);
 let CSS_BUDGET=Number(process.env.BUNDLE_CSS_BUDGET_KB||10);
-let TOTAL_BUDGET=Number(process.env.BUNDLE_TOTAL_BUDGET_KB||57.5);
+let TOTAL_BUDGET=Number(process.env.BUNDLE_TOTAL_BUDGET_KB||55.5);
 function gzipKb(buf){
 	return gzipSync(buf).length/1024;
 }
