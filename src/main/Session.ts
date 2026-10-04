@@ -3,7 +3,7 @@ import * as ui from"./Ui";
 import * as topicsModule from"./Topics";
 import{topics as topicList,scopeTopics,SESSION_STORAGE_KEY}from"./Constants";
 import{generateQuestion as callGenerator}from"./QuestionGenerator";
-import{invoke}from"@tauri-apps/api/core";
+import{saveScore,loadScores,deleteScore}from"./services/Backend";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
 import{getAudioContext,gradeAnswer}from"./Answer";
 import{appState}from"./core/StateStore";
@@ -482,7 +482,8 @@ export async function endMentalSession(): Promise<void>{
     }
 }
 export async function promptSaveScore(): Promise<void>{
-    if(!appState.selectedTopic){
+    let topic=appState.selectedTopic;
+    if(!topic){
         ui.showNotification("No topic selected. Score not saved.","warning");
         return;
     }
@@ -491,14 +492,12 @@ export async function promptSaveScore(): Promise<void>{
         return;
     }
     try{
-        await invoke("save_score",{
-            entry:{
-                topic:appState.selectedTopic,
-                score:appState.sessionScore.correct,
-                total:appState.sessionScore.total,
-                difficulty:appState.currentDifficulty,
-                date:new Date().toISOString()
-            }
+        await saveScore({
+            topic:topic,
+            score:appState.sessionScore.correct,
+            total:appState.sessionScore.total,
+            difficulty:appState.currentDifficulty,
+            date:new Date().toISOString()
         });
         ui.showNotification("Score saved!","info");
         await updateLeaderboard();
@@ -518,7 +517,7 @@ export async function updateLeaderboard(): Promise<void>{
         return;
     }
     try{
-        let scores: any[] = await invoke("load_scores");
+        let scores=await loadScores();
         if(!scores||scores.length===0){
             dom.displays.leaderboardContent.innerHTML='<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/></svg><p>No scores yet. Complete a mental session to see your results.</p></div>';
             if(dom.session.leaderboardCard)dom.session.leaderboardCard.classList.add("hidden");
@@ -539,7 +538,7 @@ export async function updateLeaderboard(): Promise<void>{
             let id=parseInt(target.getAttribute("data-id")||"0");
             if(id && confirm("Delete this score entry?")){
                 try{
-                    await invoke("delete_score",{id});
+                    await deleteScore(id);
                     ui.showNotification("Score deleted","info");
                     await updateLeaderboard();
                 }
