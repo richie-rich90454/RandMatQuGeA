@@ -69,19 +69,28 @@ test.describe("hints and solutions",()=>{
         await hintButton.click();
         const panel=page.locator("#hint-panel");
         await expect(panel).toBeVisible();
-        let rows=await panel.locator(".hint-row").count();
-        expect(rows).toBe(1);
+        // Counted with a retrying assertion rather than a bare count. The button
+        // reaches the reveal through a dynamic import, so the row lands a task
+        // after the click resolves, and a single count reads whatever has arrived
+        // by then rather than what the click will produce.
+        await expect(panel.locator(".hint-row")).toHaveCount(1);
         await hintButton.click();
-        rows=await panel.locator(".hint-row").count();
-        expect(rows).toBe(2);
+        await expect(panel.locator(".hint-row")).toHaveCount(2);
     });
     test("reaching the end gives the answer rather than stalling",async({page})=>{
         await selectTopic(page, "linear_eq");
         await generateQuestion(page);
         const hintButton=page.locator("#show-hint");
+        const panel=page.locator("#hint-panel");
         for(let i=0; i<6; i++){
             if (await hintButton.isDisabled()) break;
+            // Each click is answered through a dynamic import, so its row lands
+            // after the click resolves. Waiting for it keeps the next click from
+            // racing a reveal that disables the button mid-click and times out a
+            // click that was enabled when it started.
+            let before=await panel.locator(".hint-row").count();
             await hintButton.click();
+            await expect(panel.locator(".hint-row")).toHaveCount(before+1);
         }
         await expect(page.locator("#hint-panel")).toContainText("The answer");
         await expect(hintButton).toBeDisabled();
