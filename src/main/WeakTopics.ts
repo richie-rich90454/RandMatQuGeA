@@ -1,4 +1,4 @@
-import{invoke}from"@tauri-apps/api/core";
+import{getWeakTopics}from"./services/Backend";
 import{selectTopic}from"./Topics";
 import{topics}from"./Constants";
 import{generateQuestion}from"./Generation";
@@ -18,7 +18,7 @@ export async function checkAndShowWeakTopicsPopup(){
     // on press is gone with the press.
     if(!adaptiveAvailable(effectivePersistence()))return;
     try{
-        let weakTopics=await invoke("get_weak_topics",{limit:5})as Array<{topic_id:string,accuracy:number,attempts:number}>;
+        let weakTopics=await getWeakTopics(5);
         if(!weakTopics||weakTopics.length===0){ui.showNotification("No weak topics yet — answer more questions to get recommendations.","info");return;}
         weakTopicsModal=document.getElementById("weak-topics-modal");
         weakTopicsList=document.getElementById("weak-topics-list");
