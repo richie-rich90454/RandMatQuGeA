@@ -57,6 +57,14 @@ describe("generateBasicFunctions", ()=>{
         const dto=generateBasicFunctions("hard", rng);
         expect(dto.latex).not.toBe("");
     });
+    it("prints the square root with sqrt rather than a bare radical", ()=>{
+        const rng=vi.fn()
+            .mockReturnValueOnce(0.34)
+            .mockReturnValueOnce(0.0);
+        const dto=generateBasicFunctions("medium", rng);
+        expect(dto.correct).toBe("square root");
+        expect(dto.latex).toBe("Identify the function: \\( f(x)=\\sqrt{x} \\). (Enter name)");
+    });
     it("returns deterministic output for same seed", ()=>{
         const dto1=generateBasicFunctions("medium", seededRng(42));
         const dto2=generateBasicFunctions("medium", seededRng(42));
