@@ -8,7 +8,7 @@ import * as topics from "./Topics";
 import{generateQuestion as callGenerator}from"./QuestionGenerator";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
 import type{RngFn}from"../types/global";
-import{invoke}from"@tauri-apps/api/core";
+import{getNextQuestionRecommendation}from"./services/Backend";
 import * as settings from "./Settings";
 import{effectivePersistence}from"./Settings";
 import{startQuestionTimer}from"./Answer";
@@ -20,10 +20,7 @@ async function applyAdaptiveRecommendation(): Promise<boolean>{
     if (!settings.settings.adaptive) return false;
     let adjusted:boolean=false;
     try{
-        let rec=await invoke('get_next_question_recommendation', {
-            currentTopic: appState.selectedTopic,
-            currentDifficulty: appState.currentDifficulty
-        }) as { difficulty: string; weak_topic: string | null };
+        let rec=await getNextQuestionRecommendation(appState.selectedTopic,appState.currentDifficulty);
         if (!appState.userPickedDifficulty){
             if (rec.difficulty&&rec.difficulty !== appState.currentDifficulty){
                 appState.currentDifficulty=rec.difficulty;
