@@ -1,7 +1,7 @@
 ﻿import * as settings from"./Settings";
 import * as ui from"./Ui";
 import * as topicsModule from"./Topics";
-import{topics as topicList,scopeTopics,SESSION_STORAGE_KEY}from"./Constants";
+import{SESSION_STORAGE_KEY}from"./Constants";
 import{generateQuestion as callGenerator}from"./QuestionGenerator";
 import{saveScore,loadScores,deleteScore}from"./services/Backend";
 import{generateChoicesForCurrentQuestion}from"./Mcq";
@@ -71,8 +71,8 @@ export async function restoreSessionSnapshot(): Promise<void>{
         appState.mentalScope=snap.mentalScope;
         appState.currentDifficulty=snap.currentDifficulty;
         let restoredScope: string=snap.mentalScope;
-        let allowedIds: string[]=scopeTopics[restoredScope as keyof typeof scopeTopics]||scopeTopics.simple;
-        if(typeof snap.selectedTopic==="string"&&allowedIds.includes(snap.selectedTopic)){
+        let allowed=new Set<string>(topicsModule.scopeIds(restoredScope,"simple"));
+        if(typeof snap.selectedTopic==="string"&&allowed.has(snap.selectedTopic)){
             appState.selectedTopic=snap.selectedTopic;
         }
         else{
@@ -180,9 +180,8 @@ export async function generateNextMentalQuestion(): Promise<void>{
             for(let pill of dom.displays.topicPills){
                 pill.classList.toggle("active",pill.dataset.topicId===appState.selectedTopic);
             }
-            let topic=topicList.find(t=>t.id===appState.selectedTopic);
             if(dom.displays.currentTopicDisplay){
-                dom.displays.currentTopicDisplay.textContent=topic?topic.name:"Topic";
+                dom.displays.currentTopicDisplay.textContent=appState.selectedTopic?topicsModule.topicName(appState.selectedTopic):"Topic";
             }
         }
         else{
@@ -526,8 +525,8 @@ export async function updateLeaderboard(): Promise<void>{
         let recent=scores.slice(0,10);
         let html='<div style="display:flex; flex-direction:column; gap:var(--spacing-xs);">';
         for(const s of recent){
-            let topicName=topicList.find(t=>t.id===s.topic)?.name||s.topic;
-            html+='<div class="leaderboard-item" data-id="' + s.id + '"><span>' + topicName + ' (' + s.difficulty + ')</span><div style="display:flex; gap:8px; align-items:center;"><span class="leaderboard-score">' + s.score + '/' + s.total + '</span><button class="icon-button delete-score-btn" data-id="' + s.id + '" style="width:20px; height:20px;">✕</button></div></div>';
+            let name=topicsModule.topicName(s.topic);
+            html+='<div class="leaderboard-item" data-id="' + s.id + '"><span>' + name + ' (' + s.difficulty + ')</span><div style="display:flex; gap:8px; align-items:center;"><span class="leaderboard-score">' + s.score + '/' + s.total + '</span><button class="icon-button delete-score-btn" data-id="' + s.id + '" style="width:20px; height:20px;">✕</button></div></div>';
         }
         html+='</div>';
         dom.displays.leaderboardContent.innerHTML=html;
