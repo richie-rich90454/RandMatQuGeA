@@ -1,4 +1,5 @@
-import{getCurrentWindow,type Window}from"@tauri-apps/api/window";
+import{getAppWindow}from"../services/Backend";
+import type{Window}from"@tauri-apps/api/window";
 export class DomRegistry{
     private cache: Map<string,HTMLElement|null>=new Map();
     private _appWindow: Window|null=null;
@@ -62,10 +63,12 @@ export class DomRegistry{
         if(this.appWindowChecked) return this._appWindow;
         if(!this._appWindow){
             try{
-                this._appWindow=getCurrentWindow();
+                this._appWindow=getAppWindow();
             }
             catch(e){
-                this.appWindowChecked=true;
+                this._appWindow=null;
+            }
+            if(!this._appWindow){
                 console.log("Not running in Tauri environment, theme sync disabled.");
             }
         }
