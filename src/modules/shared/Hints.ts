@@ -15,7 +15,7 @@
  *
  * A generator that knows something better can still supply its own `hints` or
  * `solution` on the DTO, and those always win. This exists so that every one of
- * the 137 topics has a usable ladder rather than only the ones whose author had
+ * the 204 topics has a usable ladder rather than only the ones whose author had
  * time to write one.
  */
 import type{HintLadder, QuestionDto}from"../../types/global";
