@@ -29,6 +29,12 @@ let lastScroll=0;
 
 /** Whether the viewport has been narrowed by anything, keyboard included. */
 let narrowed=false;
+/** The deferred reveal scheduled after a focus event, null when none is pending. */
+let pendingFrame: number|null=null;
+/** The follow-up reveal scheduled after the keyboard settles, null when none is pending. */
+let pendingTimer: ReturnType<typeof setTimeout>|null=null;
+/** Whether a pointer is down; scrolling now would move the page under an in-flight tap. */
+let pointerDown=false;
 
 /** The focusable controls that must stay visible, most important first. */
 const KEEP_VISIBLE="input, textarea, button, select, [tabindex]";
@@ -89,6 +95,23 @@ function revealAnswerArea(): void{
     if (input) bringIntoView(input);
     let check=dom.buttons.checkAnswerButton;
     if (check) bringIntoView(check);
+}
+
+/**
+ * Cancels a reveal deferred by a focus event. A tap that arrives after focus
+ * cancels the scroll that would otherwise move the page under it: the press and
+ * the release would land on different points, the tap becomes a scroll, and no
+ * click event fires.
+ */
+function cancelPendingReveal(): void{
+    if(pendingFrame!==null){
+        cancelAnimationFrame(pendingFrame);
+        pendingFrame=null;
+    }
+    if(pendingTimer!==null){
+        clearTimeout(pendingTimer);
+        pendingTimer=null;
+    }
 }
 
 /**
@@ -153,12 +176,35 @@ export async function watchVisualViewport(): Promise<void>{
         if (!target.matches(KEEP_VISIBLE)) return;
         // The focus event arrives before the keyboard has resized the viewport, so
         // the reveal is deferred to the next frame and repeated once more after the
-        // keyboard settles.
-        requestAnimationFrame(()=>{
-            revealAnswerArea();
-            setTimeout(revealAnswerArea, 250);
+        // keyboard settles. Either deferred scroll is cancelled by a tap that arrives
+        // first and skipped while a pointer is down, so the page never moves under an
+        // in-flight tap. bringIntoView already skips elements that are visible, so a
+        // reveal that does fire only scrolls for something the keyboard would cover.
+        cancelPendingReveal();
+        pendingFrame=requestAnimationFrame(()=>{
+            pendingFrame=null;
+            if(!pointerDown) revealAnswerArea();
+            pendingTimer=setTimeout(()=>{
+                pendingTimer=null;
+                if(!pointerDown) revealAnswerArea();
+            }, 250);
         });
     });
+    // A tap landing while a reveal is still pending cancels it; moving the page
+    // between the press and the release turns the tap into a scroll with no click.
+    document.addEventListener("pointerdown", ()=>{
+        pointerDown=true;
+        cancelPendingReveal();
+    }, true);
+    document.addEventListener("pointerup", ()=>{
+        pointerDown=false;
+    }, true);
+    document.addEventListener("pointercancel", ()=>{
+        pointerDown=false;
+    }, true);
+    document.addEventListener("click", ()=>{
+        cancelPendingReveal();
+    }, true);
     document.addEventListener("focusout", ()=>{
         setTimeout(restoreScroll, 120);
     });
