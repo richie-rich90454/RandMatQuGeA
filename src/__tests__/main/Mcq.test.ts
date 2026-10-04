@@ -35,8 +35,8 @@ vi.mock("mathjs",()=>{
     });
     return{evaluate,default:{evaluate}};
 });
-import{generateDistractors,generateChoicesForCurrentQuestion}from"../../main/Mcq.js";
-import{isFiniteNumberText, sameNumericValue, canonicalNumeric}from"../../main/AnswerFormat";
+import{generateDistractors,generateChoicesForCurrentQuestion,buildChoiceSet}from"../../main/Mcq.js";
+import{isFiniteNumberText, sameNumericValue, canonicalNumeric, equivalentWordAnswers}from"../../main/AnswerFormat";
 import*as stateStore from"../../main/core/StateStore";
 import* as ui from"../../main/Ui.js";
 import* as settings from"../../main/Settings.js";
@@ -374,5 +374,24 @@ describe("generateDistractors - string patterns",()=>{
     it("should handle answer with comma",async()=>{
         const result=await generateDistractors("a, b",4);
         expectValidOptionSet(result, "a, b", 4);
+    });
+});
+describe("buildChoiceSet - word equivalence",()=>{
+    it("should drop a supplied distractor that restates the key in different words",()=>{
+        const options=buildChoiceSet("whole, integer, rational, real",["whole, integer, rational, real","Whole Numbers, Integers, Rational, Real","irrational, real","real"],()=>0);
+        expect(options).toHaveLength(4);
+        expect(options.filter(o=>equivalentWordAnswers(o, "whole, integer, rational, real"))).toHaveLength(1);
+        expect(options).not.toContain("Whole Numbers, Integers, Rational, Real");
+    });
+    it("should drop a plural restatement of a single-word key",()=>{
+        const options=buildChoiceSet("even",["even","Evens","odd","neither"],()=>0);
+        expect(options).toHaveLength(4);
+        expect(options.filter(o=>equivalentWordAnswers(o, "even"))).toHaveLength(1);
+        expect(options).not.toContain("Evens");
+    });
+    it("should keep the honest distractors of the number_sets zero key",()=>{
+        const options=buildChoiceSet("whole, integer, rational, real",["whole, integer, rational, real","integer, rational, real","irrational, real","real"],()=>0);
+        expect(options).toHaveLength(4);
+        expect(options.filter(o=>equivalentWordAnswers(o, "whole, integer, rational, real"))).toHaveLength(1);
     });
 });
