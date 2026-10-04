@@ -23,7 +23,11 @@ vi.mock("../../main/core/DomRegistry",()=>{
 vi.mock("../../main/core/QuestionState",()=>({
     questionState:{subSkill:undefined, confidence:undefined}
 }));
+vi.mock("../../main/services/ReviewStore",()=>({
+    recordReview:vi.fn(()=>Promise.resolve({topicId:"t",due:0,priority:1,intervalDays:0,reason:"not practiced"})),
+}));
 import*as help from"../../main/services/Help.js";
+import{recordReview}from"../../main/services/ReviewStore";
 import*as domRegistry from"../../main/core/DomRegistry";
 import{questionState}from"../../main/core/QuestionState";
 let dom:any=(domRegistry as unknown as{dom:unknown}).dom;
@@ -84,6 +88,56 @@ describe("help confidence",()=>{
             help.ask(true, LONG_ENOUGH_MS, true);
             help.recordConfidence("low", false);
             expect(questionState.confidence).toBeUndefined();
+        });
+    });
+    describe("deferred review",()=>{
+        beforeEach(()=>{
+            help.discardPendingReview();
+            vi.mocked(recordReview).mockClear();
+            questionState.confidence=undefined;
+        });
+        it('holds the review until confidence is answered',async()=>{
+            help.queueReview({topicId:"add",correct:true,responseMs:LONG_ENOUGH_MS},true);
+            expect(recordReview).not.toHaveBeenCalled();
+            help.ask(true, LONG_ENOUGH_MS, true);
+            help.recordConfidence("high", true);
+            await new Promise<void>(resolve=>setTimeout(resolve,0));
+            expect(recordReview).toHaveBeenCalledTimes(1);
+            expect(recordReview).toHaveBeenCalledWith(expect.objectContaining({topicId:"add",correct:true,confidence:"high"}));
+        });
+        it('writes without confidence when the next question arrives',async()=>{
+            help.queueReview({topicId:"add",correct:false,responseMs:LONG_ENOUGH_MS},true);
+            help.prepare({latex:"x",correct:"1"});
+            await new Promise<void>(resolve=>setTimeout(resolve,0));
+            expect(recordReview).toHaveBeenCalledTimes(1);
+            expect(vi.mocked(recordReview).mock.calls[0][0].confidence).toBeUndefined();
+        });
+        it('writes without confidence on a short timeout',async()=>{
+            vi.useFakeTimers();
+            try{
+                help.queueReview({topicId:"add",correct:true,responseMs:LONG_ENOUGH_MS},true);
+                expect(recordReview).not.toHaveBeenCalled();
+                await vi.advanceTimersByTimeAsync(6000);
+                expect(recordReview).toHaveBeenCalledTimes(1);
+            }
+            finally{
+                vi.useRealTimers();
+            }
+        });
+        it('writes exactly once per answer',async()=>{
+            help.queueReview({topicId:"add",correct:true,responseMs:LONG_ENOUGH_MS},true);
+            help.ask(true, LONG_ENOUGH_MS, true);
+            help.recordConfidence("low", true);
+            await new Promise<void>(resolve=>setTimeout(resolve,0));
+            help.prepare({latex:"x",correct:"1"});
+            await new Promise<void>(resolve=>setTimeout(resolve,0));
+            expect(recordReview).toHaveBeenCalledTimes(1);
+        });
+        it('queues nothing where adaptive cannot run',async()=>{
+            help.queueReview({topicId:"add",correct:true,responseMs:LONG_ENOUGH_MS},false);
+            help.prepare({latex:"x",correct:"1"});
+            await new Promise<void>(resolve=>setTimeout(resolve,0));
+            expect(recordReview).not.toHaveBeenCalled();
         });
     });
 });
