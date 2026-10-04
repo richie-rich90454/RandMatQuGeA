@@ -163,6 +163,8 @@ vi.mock("../../main/Ui.js",()=>({
 vi.mock("../../main/Topics.js",()=>({
     pickRandomTopic:vi.fn(()=>"add"),
     selectTopic:vi.fn(),
+    scopeIds:vi.fn(()=>["add","subtrt","mult","divid"]),
+    topicName:vi.fn((id:string)=>id),
     default:{},
 }));
 vi.mock("../../main/QuestionGenerator.js",()=>({
