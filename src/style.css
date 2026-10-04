@@ -1507,6 +1507,17 @@ input[type="checkbox"]:hover{
 .answer-card.focused .math-toolbar{
     display: flex;
 }
+/*
+ * On touch screens the toolbar stays visible whether or not the answer card
+ * reports focus: a WebKit touch tap carries a null relatedTarget on blur, which
+ * drops the focused class mid-tap and hides the button under the finger. Fine
+ * pointers keep the focus-gated behavior above.
+ */
+@media (pointer: coarse){
+    .answer-card .math-toolbar{
+        display: flex;
+    }
+}
 #pause-session, #skip-question{
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
