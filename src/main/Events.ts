@@ -553,6 +553,11 @@ export async function setupEventListeners(): Promise<void>{
             if (dom.modals.answerCard) dom.modals.answerCard.classList.add("focused");
         });
         dom.inputs.userAnswer?.addEventListener("blur", (e)=>{
+            // A WebKit touch tap reports a null related target, which is not evidence
+            // the learner left the card: dropping focus on it hides the toolbar under
+            // the finger. Touch pointers keep focus until something outside the card
+            // takes it.
+            if(e.relatedTarget===null&&window.matchMedia?.("(pointer: coarse)").matches) return;
             if (dom.modals.answerCard&&e.relatedTarget instanceof Node&&dom.modals.answerCard.contains(e.relatedTarget)){
                 return;
             }
