@@ -93,6 +93,11 @@ vi.mock("../../main/Ui.js",()=>({
     updateUIState:vi.fn(),
 }));
 vi.mock("../../main/Constants.js",()=>({
+    // The order the scope control lists them in, which is also the order a question
+    // is answered in when a category can only be reached by widening.
+    scopeLadder:["simple","algebra","precalc","calc","all"],
+}));
+vi.mock("../../main/TopicData.js",()=>({
     topics:[
         {id:"add",name:"Addition",icon:"+",category:"Arithmetic"},
         {id:"subtrt",name:"Subtraction",icon:"-",category:"Arithmetic"},
@@ -108,9 +113,6 @@ vi.mock("../../main/Constants.js",()=>({
         empty:[],
         one:["add"],
     },
-    // The order the scope control lists them in, which is also the order a question
-    // is answered in when a category can only be reached by widening.
-    scopeLadder:["simple","algebra","precalc","calc","all"],
 }));
 import*as topics from"../../main/Topics.js";
 import*as stateStore from"../../main/core/StateStore";
@@ -126,7 +128,8 @@ describe("topics",()=>{
         // index pointing at detached elements.
         topics.resetTopicGrid();
     });
-    beforeEach(()=>{
+    beforeEach(async()=>{
+        await topics.ensureTopicData();
         vi.clearAllMocks();
         state.setSelectedTopic(null);
         state.setCurrentMode("single");
@@ -156,7 +159,8 @@ describe("renderTopicGrid",()=>{
         // index pointing at detached elements.
         topics.resetTopicGrid();
     });
-    beforeEach(()=>{
+    beforeEach(async()=>{
+        await topics.ensureTopicData();
         vi.clearAllMocks();
         topics.resetTopicGrid();
         state.setSelectedTopic(null);
@@ -364,7 +368,8 @@ describe("selectTopic",()=>{
         // index pointing at detached elements.
         topics.resetTopicGrid();
     });
-    beforeEach(()=>{
+    beforeEach(async()=>{
+        await topics.ensureTopicData();
         vi.clearAllMocks();
         state.setSelectedTopic(null);
         state.setCurrentMode("single");
@@ -412,7 +417,8 @@ describe("selectTopic",()=>{
     });
 });
 describe("pickRandomTopic",()=>{
-    beforeEach(()=>{
+    beforeEach(async()=>{
+        await topics.ensureTopicData();
         vi.clearAllMocks();
         state.setSelectedTopic(null);
         state.setCurrentMode("single");
@@ -460,7 +466,8 @@ describe("renderTopicGrid - edge cases",()=>{
         // index pointing at detached elements.
         topics.resetTopicGrid();
     });
-    beforeEach(()=>{
+    beforeEach(async()=>{
+        await topics.ensureTopicData();
         vi.clearAllMocks();
         topics.resetTopicGrid();
         state.setSelectedTopic(null);
@@ -506,7 +513,8 @@ describe("selectTopic - edge cases",()=>{
         // index pointing at detached elements.
         topics.resetTopicGrid();
     });
-    beforeEach(()=>{
+    beforeEach(async()=>{
+        await topics.ensureTopicData();
         vi.clearAllMocks();
         state.setSelectedTopic(null);
         state.setCurrentMode("single");
