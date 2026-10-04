@@ -13,7 +13,7 @@
 import {describe,it,expect} from "vitest";
 import {seededRng} from "../../../main/core/Rng";
 import * as Trigonometry from "../../../modules/Trigonometry/index.js";
-import {topics} from "../../../main/Constants";
+import {topics} from "../../../main/TopicData";
 import {topicRegistry} from "../../../main/services/TopicRegistry";
 import "../../../modules/Trigonometry/RegisterTopics";
 
