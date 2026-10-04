@@ -13,20 +13,57 @@
 import Fraction from "fraction.js";
 
 /**
- * Rewrites `\frac{a}{b}` as `(a)/(b)`, including when either group itself holds
- * a braced group.
+ * Reads the braced group that opens at `open`, balancing nested braces, so
+ * that `\frac{1}{\sin(30^{\circ})}` yields its full denominator rather than
+ * stopping at the first inner brace. The scan is bounded by the string length,
+ * so a malformed group costs one pass rather than the test run.
  *
- * Refusing braces inside a group looks safe and is not: the keys this curriculum
- * prints are mostly of that shape. The half-angle surd is
- * `\frac{\sqrt{6}-\sqrt{2}}{4}` and a reciprocal of a ratio is
- * `\frac{1}{\sin(30^{\circ})}`. Both survive a brace-free pattern untouched, and
- * the checker is then handed a `\frac` command it cannot parse, so a key that
- * prints perfectly well cannot be graded.
+ * @param text - The text being rewritten.
+ * @param open - The index of the opening brace.
+ * @returns The group content and the index of its closing brace, or null when
+ *          no balanced close exists.
+ */
+function readBraced(text: string, open: number): {content: string, close: number}|null{
+    if(open<0||open>=text.length||text[open]!=="{") return null;
+    let depth=0;
+    for(let i=open;i<text.length;i++){
+        if(text[i]==="{") depth++;
+        else if(text[i]==="}"){
+            depth--;
+            if(depth===0) return {content:text.slice(open+1, i), close:i};
+        }
+    }
+    return null;
+}
+
+/**
+ * Reads the bracketed root index that opens at `open`, for `\sqrt[3]{x}`.
  *
- * The rewrite repeats until the string stops changing, bounded by a pass count.
- * Each pass strictly removes one `\frac` and introduces none, so the loop
- * terminates; the bound is there so that a string which somehow never settles
- * costs eight passes rather than the test run.
+ * @param text - The text being rewritten.
+ * @param open - The index of the opening bracket.
+ * @returns The bracket content and the index of its closing bracket, or null
+ *          when no close exists.
+ */
+function readBracketed(text: string, open: number): {content: string, close: number}|null{
+    if(open<0||open>=text.length||text[open]!=="[") return null;
+    let end=text.indexOf("]", open+1);
+    if(end<0) return null;
+    return {content:text.slice(open+1, end), close:end};
+}
+
+/**
+ * Rewrites `\frac{a}{b}` as `(a)/(b)`, parsing both groups with balanced
+ * braces so that plainly nested forms convert: the half-angle surd
+ * `\frac{\sqrt{6}-\sqrt{2}}{4}`, a reciprocal of a ratio such as
+ * `\frac{1}{\sin(30^{\circ})}`, and a fraction nested inside a fraction.
+ * A brace-free pattern survives all three untouched and hands the checker a
+ * `\frac` command it cannot parse, so a key that prints perfectly well cannot
+ * be graded.
+ *
+ * The rewrite repeats until the string stops changing, bounded by a pass
+ * count. Each pass strictly removes one `\frac` and introduces none, so the
+ * loop terminates; the bound is there so that a string which somehow never
+ * settles costs eight passes rather than the test run.
  *
  * @param value - The text to rewrite.
  * @returns The text with every `\frac` flattened.
@@ -34,8 +71,100 @@ import Fraction from "fraction.js";
 function flattenFractions(value: string): string{
     let out=value;
     for(let pass=0;pass<8;pass++){
-        let next=out.replace(/\\frac\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{[^{}]*\})*)\}/g,"($1)/($2)");
-        if (next===out) return out;
+        if(out.indexOf("\\frac")<0) return out;
+        let next="";
+        let cursor=0;
+        let changed=false;
+        while(cursor<out.length){
+            let found=out.indexOf("\\frac", cursor);
+            if(found<0){
+                next+=out.slice(cursor);
+                break;
+            }
+            let argOpen=found+5;
+            if(out[argOpen]!=="{"){
+                next+=out.slice(cursor, argOpen);
+                cursor=argOpen;
+                continue;
+            }
+            let first=readBraced(out, argOpen);
+            if(!first){
+                next+=out.slice(cursor);
+                break;
+            }
+            let secondOpen=first.close+1;
+            if(out[secondOpen]!=="{"){
+                next+=out.slice(cursor, secondOpen);
+                cursor=secondOpen;
+                continue;
+            }
+            let second=readBraced(out, secondOpen);
+            if(!second){
+                next+=out.slice(cursor);
+                break;
+            }
+            next+=out.slice(cursor, found)+"("+first.content+")/("+second.content+")";
+            cursor=second.close+1;
+            changed=true;
+        }
+        if(!changed) return out;
+        if(next===out) return out;
+        out=next;
+    }
+    return out;
+}
+
+/**
+ * Rewrites `\sqrt{...}` as `sqrt(...)` and `\sqrt[n]{...}` as
+ * `(..)^(1/(n))`, parsing the braced group with balanced braces so that a
+ * radicand holding a fraction or a nested root converts. Repeats until the
+ * string stops changing, bounded by a pass count; each pass strictly removes
+ * one `\sqrt` and introduces none.
+ *
+ * @param value - The text to rewrite.
+ * @returns The text with every `\sqrt` flattened.
+ */
+function flattenRoots(value: string): string{
+    let out=value;
+    for(let pass=0;pass<8;pass++){
+        if(out.indexOf("\\sqrt")<0) return out;
+        let next="";
+        let cursor=0;
+        let changed=false;
+        while(cursor<out.length){
+            let found=out.indexOf("\\sqrt", cursor);
+            if(found<0){
+                next+=out.slice(cursor);
+                break;
+            }
+            let argOpen=found+5;
+            let root="";
+            if(out[argOpen]==="["){
+                let bracket=readBracketed(out, argOpen);
+                if(!bracket){
+                    next+=out.slice(cursor);
+                    break;
+                }
+                root=bracket.content;
+                argOpen=bracket.close+1;
+            }
+            if(out[argOpen]!=="{"){
+                next+=out.slice(cursor, argOpen);
+                cursor=argOpen;
+                continue;
+            }
+            let body=readBraced(out, argOpen);
+            if(!body){
+                next+=out.slice(cursor);
+                break;
+            }
+            if(root==="") next+=out.slice(cursor, found)+"sqrt("+body.content+")";
+            else next+=out.slice(cursor, found)+"("+body.content+")^(1/("+root+"))";
+            cursor=body.close+1;
+            changed=true;
+        }
+        if(!changed) return out;
+        if(next===out) return out;
         out=next;
     }
     return out;
@@ -58,9 +187,8 @@ function flattenFractions(value: string): string{
  */
 export function latexToPlain(value: string): string{
     if (typeof value!=="string") return "";
-    return flattenFractions(value)
+    return flattenRoots(flattenFractions(value))
         .replace(/\\(?:left|right|displaystyle|,|;|!)/g,"")
-        .replace(/\\sqrt\{([^{}]*)\}/g,"sqrt($1)")
         // The degree mark and the multiplication dot have to be rewritten before
         // the generic rule below, which would leave "45^(circ)" and "2cdot3" for
         // the checker to read as two symbols multiplied together.
@@ -74,6 +202,149 @@ export function latexToPlain(value: string): string{
         .replace(/√\s*([A-Za-z][A-Za-z0-9]*)/g,"sqrt($1)")
         .replace(/\\([a-zA-Z]+)/g,"$1")
         .replace(/[{}]/g,"");
+}
+
+/**
+ * The plural spellings of the closed vocabulary this curriculum grades as
+ * words, mapped to their singular stems. The map is explicit rather than a
+ * rule that strips every trailing "s", because that rule would turn "class"
+ * into "clas" on the first prose answer that is not about number sets.
+ */
+let wordSingulars=new Map<string,string>([
+    ["naturals", "natural"],
+    ["wholes", "whole"],
+    ["integers", "integer"],
+    ["rationals", "rational"],
+    ["irrationals", "irrational"],
+    ["reals", "real"],
+    ["primes", "prime"],
+    ["composites", "composite"],
+    ["evens", "even"],
+    ["odds", "odd"]
+]);
+
+/**
+ * The singular stems a trailing "s" may be stripped to reach. A word outside
+ * this set keeps its spelling, so "class" never becomes a stem the curriculum
+ * does not grade.
+ */
+let wordBases=new Set<string>(["natural", "whole", "integer", "rational", "irrational", "real", "prime", "composite", "even", "odd", "positive", "negative", "converges", "diverges", "convergent", "divergent", "increasing", "decreasing"]);
+
+/**
+ * Reduces one word answer to one spelling, so that "Whole Numbers",
+ * "whole-number" and "whole" compare equal. Case, hyphen/underscore/space
+ * differences and the plural forms of the closed vocabulary above are all
+ * removed; anything outside that vocabulary is only lowercased and spaced
+ * normally, never stemmed.
+ *
+ * @param token - One answer or one comma-separated element of an answer.
+ * @returns The canonical spelling.
+ */
+export function canonicalWordToken(token: string): string{
+    if(typeof token!=="string") return "";
+    let t=token.trim().toLowerCase();
+    t=t.replace(/([A-Za-z])[-_]+([A-Za-z])/g, "$1 $2");
+    t=t.replace(/\s+/g, " ").trim();
+    let m=t.match(/^(whole|natural|integer|rational|irrational|real|prime|composite|even|odd)\s+numbers?$/);
+    if(m) t=m[1];
+    let mapped=wordSingulars.get(t);
+    if(mapped) return mapped;
+    if(t.length>1&&t[t.length-1]==="s"){
+        let singular=t.slice(0, -1);
+        if(wordBases.has(singular)) return singular;
+    }
+    return t;
+}
+
+/**
+ * Splits a possibly multi-part word answer into canonical tokens, keeping
+ * their order. The answer is split on commas, semicolons and the word "and",
+ * and each element is canonicalised, because "Whole Numbers, integers" and
+ * "whole-number, integer" are the same two names.
+ *
+ * @param value - The word answer, single or comma-separated.
+ * @returns The canonical tokens in prompt order.
+ */
+function wordTokens(value: string): string[]{
+    let chunks=value.split(/[,;]/);
+    let tokens:string[]=[];
+    for(let chunk of chunks){
+        let parts=chunk.split(/\s+and\s+/i);
+        for(let piece of parts){
+            let t=canonicalWordToken(piece);
+            if(t!=="") tokens.push(t);
+        }
+    }
+    return tokens;
+}
+
+/**
+ * Reduces a possibly multi-part word answer to one spelling, so that
+ * "whole, integer, rational, real" and "Whole Numbers, Integers, Rational,
+ * Real" compare equal. The elements are sorted, because a set of names in a
+ * different order is the same answer; answers whose elements are not all in
+ * the closed vocabulary above are compared in prompt order by
+ * `equivalentWordAnswers` instead, because a Hamilton-path order is not a set.
+ *
+ * @param value - The word answer, single or comma-separated.
+ * @returns The canonical spelling, or "" when it holds no word.
+ */
+export function canonicalWordSet(value: string): string{
+    if(typeof value!=="string") return "";
+    let tokens=wordTokens(value);
+    tokens.sort();
+    return tokens.join(",");
+}
+
+/**
+ * Reports whether two answers are the same words after canonicalisation, so
+ * that a case or plural variant of the key is recognised as a second correct
+ * option rather than a wrong one. Numbers are never words: a digit string and
+ * a word are different answers, and two digit strings are compared numerically
+ * elsewhere. Mathematical notation is never words either: anything carrying a
+ * digit, a backslash or a symbol outside prose punctuation takes the trimmed,
+ * numeric and symbolic comparisons instead, because treating "-" as a word
+ * separator turns "-4.10" into "4.10".
+ *
+ * @param a - The first answer.
+ * @param b - The second answer.
+ * @returns True when the two are the same words.
+ */
+export function equivalentWordAnswers(a: string, b: string): boolean{
+    if(typeof a!=="string"||typeof b!=="string") return false;
+    if(a.trim()===""||b.trim()==="") return false;
+    if(a.trim()===b.trim()) return true;
+    if(isNumericText(a)||isNumericText(b)) return false;
+    if(isFiniteNumberText(a)||isFiniteNumberText(b)) return false;
+    if(/[0-9\\]/.test(a)||/[0-9\\]/.test(b)) return false;
+    if(/[^A-Za-z\s,;\-']/.test(a)||/[^A-Za-z\s,;\-']/.test(b)) return false;
+    let at=wordTokens(a);
+    let bt=wordTokens(b);
+    if(at.length===0||bt.length===0) return false;
+    if(at.length!==bt.length) return false;
+    // Only a list drawn entirely from the graded vocabulary is a set, where
+    // order carries no meaning. A vertex order such as "A, B, D, C" is a
+    // route, and sorting it into "A, B, C, D" manufactures a duplicate out of
+    // a genuine alternative, so anything else compares in prompt order.
+    let closedA=true;
+    for(let t of at){
+        if(!wordBases.has(t)){
+            closedA=false;
+            break;
+        }
+    }
+    let closedB=true;
+    for(let t of bt){
+        if(!wordBases.has(t)){
+            closedB=false;
+            break;
+        }
+    }
+    if(closedA&&closedB){
+        at.sort();
+        bt.sort();
+    }
+    return at.join(",")===bt.join(",");
 }
 
 /**
