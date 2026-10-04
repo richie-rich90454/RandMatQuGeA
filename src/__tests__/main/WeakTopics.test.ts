@@ -2,6 +2,7 @@
 import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
 vi.mock("../../main/Topics.js",()=>({
     selectTopic:vi.fn(),
+    topicName:vi.fn((id:string)=>id),
 }));
 vi.mock("../../main/Generation.js",()=>({
     generateQuestion:vi.fn().mockResolvedValue(undefined),
