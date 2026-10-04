@@ -1,6 +1,6 @@
 import {test, expect} from "@playwright/test";
 import {gotoApp} from "./helpers";
-import {scopeTopics} from "../src/main/Constants";
+import {scopeTopics} from "../src/main/TopicData";
 
 const PREVIEW = "#print-preview .ws-document";
 
