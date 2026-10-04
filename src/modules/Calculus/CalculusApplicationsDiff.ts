@@ -3,7 +3,7 @@ import {getMaxCoeff} from "./CalculusUtils.js";
 import {fourOptions} from "../shared/Options.js";
 /**
  * Generates and displays a random "applications of derivatives" question in the global `questionArea`.
- * Includes custom multiple‑choice options for MCQ mode.
+ * Includes custom multiple-choice options for MCQ mode.
  *
  * @param difficulty - Optional difficulty level (`"easy"`, `"medium"`, or `"hard"`).
  *                     Influences the maximum coefficient value used in generated expressions
@@ -15,7 +15,7 @@ import {fourOptions} from "../shared/Options.js";
  * The function performs the following steps:
  * 1. Clears `questionArea.innerHTML`.
  * 2. Randomly selects a question type from a predefined list.
- * 3. Constructs a LaTeX expression and a plain‑text correct answer based on the selected type.
+ * 3. Constructs a LaTeX expression and a plain-text correct answer based on the selected type.
  * 4. Generates plausible incorrect answers (distractors) for MCQ mode.
  * 5. Appends a `<div>` containing the LaTeX to `questionArea`.
  * 6. Triggers MathJax (if available) to render the math.
@@ -36,7 +36,7 @@ import {fourOptions} from "../shared/Options.js";
  * - `optimization`             – maximize the product of two numbers given their sum.
  * - `implicitBehavior`         – find the slope of a tangent line to an implicitly defined curve.
  * - `rectangleOptimization`    – maximize area of rectangle subdivided by a fence (fixed perimeter).
- * - `boxOptimization`          – maximize volume of an open‑top box from a square sheet.
+ * - `boxOptimization`          – maximize volume of an open-top box from a square sheet.
  * - `cylinderOptimization`     – minimize surface area of a cylinder with fixed volume.
  * - `fencingOptimization`      – maximize area of a rectangular pasture along a river.
  * - `ladderOptimization`       – find the shortest ladder that reaches over a fence to a building.
@@ -297,7 +297,7 @@ export function generateApplicationsDiff(difficulty?: string, rng: RngFn=Math.ra
         }
         case "boxOptimization":{
             let side=Math.floor(rng()*maxCoeff*10)+10;
-            mathExpression=`\\[ \\text{An open‑top box is made from a ${side}-in by ${side}-in square by cutting equal squares from each corner and folding up. Find the cut‑out side length that maximizes volume.} \\]`;
+            mathExpression=`\\[ \\text{An open-top box is made from a ${side}-in by ${side}-in square by cutting equal squares from each corner and folding up. Find the cut-out side length that maximizes volume.} \\]`;
             let optimalCut=side/6;
             let maxVol=2*Math.pow(side,3)/27;
             plainCorrectAnswer=`cut=${optimalCut.toFixed(2)} in, volume=${maxVol.toFixed(2)} cubic in`;
