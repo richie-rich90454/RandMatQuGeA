@@ -1,8 +1,61 @@
 import{dom}from"./core/DomRegistry";
 import{appState}from"./core/StateStore";
 import * as ui from"./Ui";
-import{topics,scopeTopics,scopeLadder}from"./Constants";
+import{scopeLadder}from"./Constants";
 import type{Topic}from"../types/global";
+/** The topic definitions, arriving through a dynamic import boot awaits. */
+let topicList: Topic[]=[];
+/** The scope lists by scope name, arriving with the topic definitions. */
+let scopeTable: Record<string,string[]>={};
+/** Whether the tables have landed, so a second call is a no-op. */
+let dataLoaded=false;
+/**
+ * Loads the curriculum tables, which travel in their own chunk rather than the
+ * entry chunk. Boot awaits this before the first render; every reader below runs
+ * after boot, so they read the cached tables synchronously instead of awaiting
+ * on the interaction path.
+ *
+ * @returns A promise resolving once the tables are indexed.
+ */
+export async function ensureTopicData(): Promise<void>{
+    if(dataLoaded) return;
+    let data=await import("./TopicData");
+    topicList=data.topics;
+    scopeTable=data.scopeTopics;
+    buildIndexes();
+    dataLoaded=true;
+}
+/**
+ * Reports the display name of a topic, or the id itself when it is unknown.
+ * State can outlive a release that renamed a topic, and a lookup that threw on
+ * an unknown id would break every surface that names one.
+ *
+ * @param topicId - The topic to name.
+ * @returns The display name, or the id when no topic carries it.
+ */
+export function topicName(topicId: string): string{
+    let topic=topicById.get(topicId);
+    return topic?topic.name:topicId;
+}
+/**
+ * Reports the topic ids in a scope, falling back the way the caller already did.
+ *
+ * @param scope - The scope name.
+ * @param fallback - The scope to use when the name is unknown.
+ * @returns A copy of the scope list, so no caller can reorder the tables.
+ */
+export function scopeIds(scope: string, fallback: string="simple"): string[]{
+    let ids=scopeTable[scope]||scopeTable[fallback]||[];
+    return ids.slice();
+}
+/**
+ * Reports every topic definition, in curriculum order.
+ *
+ * @returns A copy of the topic list, so no caller can reorder the tables.
+ */
+export function allTopics(): Topic[]{
+    return topicList.slice();
+}
 /** The category value that means "do not narrow by category". */
 const ALL_CATEGORIES="all";
 let gridInitialized=false;
@@ -38,7 +91,7 @@ let searchTextById: Map<string, string>=new Map();
  */
 function buildIndexes(): void{
     if (topicById.size>0) return;
-    for(let topic of topics){
+    for(let topic of topicList){
         topicById.set(topic.id, topic);
         let category=topic.category;
         let group=topicsByCategory.get(category);
@@ -55,8 +108,8 @@ function buildIndexes(): void{
         // text they cannot have read would be a result that cannot be explained.
         searchTextById.set(topic.id, `${topic.name} ${topic.id} ${category}`.toLowerCase());
     }
-    for(let key of Object.keys(scopeTopics)){
-        let ids=scopeTopics[key as keyof typeof scopeTopics];
+    for(let key of Object.keys(scopeTable)){
+        let ids=scopeTable[key];
         scopeSets.set(key, new Set<string>(ids));
     }
 }
@@ -418,7 +471,7 @@ export function renderTopicGrid(): void{
 function firstVisibleId(): string{
     let allowed=scopeSets.get(currentScope())||scopeSets.get("simple")||new Set<string>();
     let searchTerm=(dom.inputs.topicSearch?.value||"").toLowerCase().trim();
-    for(let topic of topics){
+    for(let topic of topicList){
         if (allowed.has(topic.id)&&inCategory(topic.id)&&matchesSearch(topic.id, searchTerm)) return topic.id;
     }
     return "";
@@ -444,7 +497,7 @@ export function selectTopic(topicId: string): void{
 }
 export function pickRandomTopic(): string|null{
     let scope=currentScope();
-    let allowed=scopeTopics[scope as keyof typeof scopeTopics]||scopeTopics.simple;
+    let allowed=scopeTable[scope]||scopeTable.simple||[];
     if (allowed.length===0) return null;
     return allowed[Math.floor(Math.random()*allowed.length)];
 }
@@ -469,6 +522,5 @@ export function isTopicInScope(topicId: string): boolean{
  * @returns The topic ids, which may be empty for an unknown scope.
  */
 export function scopeTopicIds(scope: string): string[]{
-    let ids=scopeTopics[scope as keyof typeof scopeTopics]||scopeTopics.simple;
-    return ids.slice();
+    return scopeIds(scope,"simple");
 }
