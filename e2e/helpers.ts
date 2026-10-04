@@ -1,5 +1,5 @@
 import {Page, expect, test} from "@playwright/test";
-import {topics} from "../src/main/Constants";
+import {topics} from "../src/main/TopicData";
 
 export const BASE_URL = "http://localhost:1331";
 export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
