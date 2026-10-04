@@ -1,6 +1,6 @@
 import {test, expect} from "@playwright/test";
 import {gotoApp, selectTopic, generateQuestion, getCorrectAnswer, submitAnswer, switchMode} from "./helpers";
-import {topics} from "../src/main/Constants";
+import {topics} from "../src/main/TopicData";
 
 test("no runtime errors while exercising the whole app", async ({page})=>{
     test.setTimeout(900000);
