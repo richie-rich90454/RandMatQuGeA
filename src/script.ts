@@ -17,6 +17,17 @@ async function initApp(): Promise<void>{
     // default: a learner who chose to keep their record came back to a private
     // session every time, and nothing was written after that point.
     await settings.loadSettings();
+    try{
+        // The curriculum tables travel in their own chunk rather than the entry
+        // chunk, so they are awaited before anything renders: the grid, the scope
+        // restore, and the mode switches below all read them, and a render that ran
+        // first would show an empty grid with no way back to a full one.
+        let topics=await import("./main/Topics");
+        await topics.ensureTopicData();
+    }
+    catch(err){
+        console.error("loadTopicData failed:",err);
+    }
     // The persistence decision is settled before anything is written, because the
     // rule is about what leaves the device and a write that happens first cannot
     // be taken back.
