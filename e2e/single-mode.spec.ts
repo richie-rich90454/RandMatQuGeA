@@ -96,7 +96,10 @@ test("math dropdown shows more symbols and inserts one", async ({page})=>{
     await expect(box).toHaveValue("\\forall");
 });
 
-test("copy correct answer copies the expected value to the clipboard", async ({page})=>{
+test("copy correct answer copies the expected value to the clipboard", async ({page, browserName})=>{
+    // WebKit rejects the clipboard-write permission grant, so this clipboard
+    // assertion only runs where the grant is accepted.
+    test.skip(browserName==="webkit", "WebKit does not support the clipboard-write permission");
     await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
     await gotoApp(page);
     await selectTopic(page, "add");
