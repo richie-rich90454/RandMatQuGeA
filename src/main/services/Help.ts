@@ -18,7 +18,7 @@
 import{setHidden}from"../core/DomVisibility";
 import{dom}from"../core/DomRegistry";
 import{questionState}from"../core/QuestionState";
-import type{Confidence}from"./Scheduler";
+import type{Confidence,ReviewOutcome}from"./Scheduler";
 import{buildHintLadder, buildSolution}from"../../modules/shared/Hints";
 import type{QuestionDto}from"../../types/global";
 
@@ -36,6 +36,12 @@ let ladder: { rungs: string[]; concede: string }|null=null;
 
 /** The solution steps for the question on screen. */
 let solution: string[]|null=null;
+/** A review waiting for the confidence judgment, written exactly once. */
+let pendingReview: {outcome: ReviewOutcome}|null=null;
+/** The backstop that writes a pending review the learner never answers. */
+let pendingTimer: ReturnType<typeof setTimeout>|null=null;
+/** How long a review waits for its confidence before it is written without one. */
+const PENDING_TIMEOUT_MS=5000;
 
 /**
  * Reports the confidence levels worth offering for an outcome. A learner who was
@@ -51,6 +57,10 @@ export function confidenceChoices(correct: boolean): Confidence[]{
     return correct?["low","high"]:["low","medium","high"];
 }
 export function prepare(dto: QuestionDto): void{
+    // A new question dismisses the confidence prompt, which is one of the
+    // moments the previous answer's review is written, so it is flushed before
+    // the value it needs is cleared below.
+    void flushPendingReview();
     revealed=0;
     ladder=buildHintLadder(dto);
     solution=buildSolution(dto);
@@ -173,6 +183,10 @@ function appendPanelRow(panel: HTMLElement, label: string, text: string): void{
  * Hides the confidence prompt, which is what happens on a new question.
  */
 export function hideConfidence(): void{
+    // Dismissing the prompt is one of the moments the waiting review is
+    // written. The flush runs first because it reads the value this clears,
+    // and its synchronous prefix captures it before the clearing below lands.
+    void flushPendingReview();
     let row=dom.help.confidenceRow;
     setHidden(row, true);
     questionState.confidence=undefined;
@@ -187,10 +201,13 @@ export function hideConfidence(): void{
  */
 export function recordConfidence(value: Confidence, adaptive: boolean): void{
     // A button still on screen is not evidence that adaptive can run: the learner
-    // can switch to a private session after the row was revealed. Hiding the row is
-    // not enough on its own, because a click that has already been bound would
-    // still write a confidence no scheduler will ever read.
-    if (!adaptive) return;
+    // can switch to a private session after the row was revealed. A click that
+    // arrives after the mode changed writes nothing, so the waiting review is
+    // discarded rather than written with a confidence no scheduler will read.
+    if(!adaptive){
+        discardPendingReview();
+        return;
+    }
     questionState.confidence=value;
     for(let button of dom.help.confidenceButtons){
         button.classList.toggle("selected", button.dataset.confidence===value);
@@ -201,4 +218,59 @@ export function recordConfidence(value: Confidence, adaptive: boolean): void{
     // never reached a record on any platform: not in a browser, where it is now
     // hidden, and not on the desktop, where it was shown.
     setHidden(dom.help.confidenceRow, true);
+    // Answering the prompt is the moment the waiting review is written, so the
+    // confidence just set reaches the record for the answer just given.
+    void flushPendingReview();
+}
+/**
+ * Queues the review for an answer, to be written once the confidence question
+ * has been answered, dismissed, or timed out.
+ *
+ * @param outcome - What the learner did, without the confidence they have not
+ *   reported yet.
+ * @param adaptive - Whether adaptive learning can run here, for the same reason it is
+ *   passed to `ask` rather than looked up.
+ */
+export function queueReview(outcome: ReviewOutcome, adaptive: boolean): void{
+    if(!adaptive) return;
+    // A review still waiting when the next answer lands belongs to that earlier
+    // answer, so it is written before it is replaced rather than dropped.
+    void flushPendingReview();
+    pendingReview={outcome:{topicId:outcome.topicId,subSkill:outcome.subSkill,correct:outcome.correct,responseMs:outcome.responseMs,at:outcome.at??Date.now()}};
+    if(pendingTimer) clearTimeout(pendingTimer);
+    pendingTimer=setTimeout(()=>{void flushPendingReview();},PENDING_TIMEOUT_MS);
+}
+/**
+ * Writes the waiting review, if there is one. The confidence is read at the
+ * moment of the write, so a judgment reported after the answer still reaches
+ * the record for that answer. Safe to call when nothing is waiting.
+ *
+ * @returns A promise resolving once the write has been attempted.
+ */
+export async function flushPendingReview(): Promise<void>{
+    if(pendingTimer){clearTimeout(pendingTimer);pendingTimer=null;}
+    let current=pendingReview;
+    pendingReview=null;
+    if(!current) return;
+    let outcome: ReviewOutcome={topicId:current.outcome.topicId,subSkill:current.outcome.subSkill,correct:current.outcome.correct,responseMs:current.outcome.responseMs,at:current.outcome.at};
+    if(questionState.confidence!==undefined) outcome.confidence=questionState.confidence;
+    try{
+        // The review store is loaded on demand rather than statically, because
+        // the schedule is only needed once someone has actually answered
+        // something and it is a substantial part of the initial payload.
+        let reviewStore=await import("./ReviewStore");
+        await reviewStore.recordReview(outcome);
+    }
+    catch(err){
+        console.warn("Could not record the review:",err);
+    }
+}
+/**
+ * Drops the waiting review without writing it, which is what happens when the
+ * mode changes to one where adaptive learning cannot run before the review is
+ * written. Test and mode-change code uses this; answering never does.
+ */
+export function discardPendingReview(): void{
+    if(pendingTimer){clearTimeout(pendingTimer);pendingTimer=null;}
+    pendingReview=null;
 }
