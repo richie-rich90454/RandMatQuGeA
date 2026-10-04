@@ -5,7 +5,7 @@ import type {RngFn, QuestionDto} from "../../../types/global";
  * @date 2026-04-18
  */
 export function generateBasicFunctions(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
-    void difficulty;
+    let level=difficulty||"medium";
     const functions=[
         {name:"identity",expr:"f(x)=x",props:"linear, odd, increasing"},
         {name:"squaring",expr:"f(x)=x^2",props:"even, decreasing then increasing, vertex at (0,0)"},
@@ -20,8 +20,23 @@ export function generateBasicFunctions(difficulty?: string, rng: RngFn = Math.ra
         {name:"absolute value",expr:"f(x)=|x|",props:"even, V-shape, decreasing then increasing"},
         {name:"greatest integer",expr:"f(x)=⌊x⌋",props:"step function, constant on intervals [n,n+1)"}
     ];
-    const chosen=functions[Math.floor(rng()*functions.length)];
-    const types=["identify","properties"];
+    // Difficulty is real: easy names familiar shapes, medium mixes naming with
+    // properties over a wider pool, and hard leans on properties across the full
+    // pool including the reciprocal, logarithmic, logistic, and step families.
+    // Every branch draws from the injected rng, so a seed reproduces its question.
+    let pool=functions;
+    let types=["identify","properties"];
+    if(level==="easy"){
+        pool=[functions[0],functions[1],functions[2],functions[8],functions[9],functions[10]];
+        types=["identify"];
+    }
+    else if(level==="hard"){
+        types=["properties","properties","identify"];
+    }
+    else{
+        pool=[functions[0],functions[1],functions[2],functions[3],functions[4],functions[8],functions[9],functions[10]];
+    }
+    let chosen=pool[Math.floor(rng()*pool.length)];
     const type=types[Math.floor(rng()*types.length)];
     let expectedFormat="";
     let correct="";
@@ -35,7 +50,7 @@ export function generateBasicFunctions(difficulty?: string, rng: RngFn = Math.ra
         alternate=chosen.name;
         display=chosen.name;
         choices=[correct];
-        for(let f of functions){
+        for(let f of pool){
             if(f.name!==chosen.name){
                 choices.push(f.name);
                 if(choices.length>=4) break;
@@ -49,7 +64,7 @@ export function generateBasicFunctions(difficulty?: string, rng: RngFn = Math.ra
         alternate=chosen.props;
         display=chosen.props;
         let wrongProps: string[]=[];
-        for(let f of functions){
+        for(let f of pool){
             if(f.name!==chosen.name){
                 let firstProp=f.props.split(", ")[0];
                 if(!wrongProps.includes(firstProp)) wrongProps.push(firstProp);
