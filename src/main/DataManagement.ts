@@ -21,7 +21,7 @@
  */
 
 import{exportLearningRecord as exportDesktopRecord,importLearningRecord as importDesktopCommand,getPerformanceStats,deletePerformanceRecord,clearPerformance,resetAllData,openFileDialog,saveFileDialog}from"./services/Backend";
-import{topics}from"./Constants";
+import{allTopics}from"./Topics";
 import * as ui from"./Ui";
 import{updateLeaderboard}from"./Session";
 import{isTauri}from"../utils/envUtils";
@@ -375,7 +375,7 @@ async function loadData(){
         }
         else{
             let names=new Map<string,string>();
-            for(let t of topics) names.set(t.id,t.name);
+            for(let t of allTopics()) names.set(t.id,t.name);
             renderRows(dataList,stats,names);
         }
         wireModalActions();
