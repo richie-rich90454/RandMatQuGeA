@@ -20,8 +20,7 @@
  *   before a single value is written.
  */
 
-import{invoke}from"@tauri-apps/api/core";
-import{open,save}from"@tauri-apps/plugin-dialog";
+import{exportLearningRecord as exportDesktopRecord,importLearningRecord as importDesktopCommand,getPerformanceStats,deletePerformanceRecord,clearPerformance,resetAllData,openFileDialog,saveFileDialog}from"./services/Backend";
 import{topics}from"./Constants";
 import * as ui from"./Ui";
 import{updateLeaderboard}from"./Session";
@@ -131,7 +130,7 @@ function isExportDocument(value: unknown): value is ExportDocument{
  * @returns A promise resolving to the record this device holds.
  */
 async function readDesktopRecord(): Promise<ExportDocument>{
-    return await invoke<ExportDocument>("export_learning_record",{path:null});
+    return await exportDesktopRecord(null);
 }
 
 /**
@@ -177,12 +176,12 @@ export async function readRecord(): Promise<ExportDocument>{
 export async function exportRecord(): Promise<void>{
     try{
         if(isTauri()){
-            let path=await save({
+            let path=await saveFileDialog({
                 defaultPath: EXPORT_FILE_NAME,
                 filters: [{ name: "Learning record", extensions: ["json"] }]
             });
             if(!path) return;
-            let written=await invoke<ExportDocument>("export_learning_record",{path});
+            let written=await exportDesktopRecord(path);
             ui.showNotification(`Exported ${written.attempts.length} recorded answers and ${written.skills.length} scheduled skills.`,"info");
             return;
         }
@@ -216,7 +215,7 @@ export async function exportRecord(): Promise<void>{
  * @returns A promise resolving to what was written.
  */
 async function importDesktopRecord(path: string, mode: ImportMode): Promise<string>{
-    let summary=await invoke<{mode: ImportMode; attempts: number; skills: number; stats: number; records: number}>("import_learning_record",{path, mode});
+    let summary=await importDesktopCommand(path,mode);
     return `Imported ${summary.attempts} recorded answers and ${summary.skills} scheduled skills (${summary.mode}).`;
 }
 
@@ -263,7 +262,7 @@ async function importBrowserRecord(read: ExportDocument, mode: ImportMode): Prom
 export async function importRecord(mode: ImportMode): Promise<void>{
     try{
         if(isTauri()){
-            let chosen=await open({
+            let chosen=await openFileDialog({
                 multiple: false,
                 filters: [{ name: "Learning record", extensions: ["json"] }]
             });
@@ -365,7 +364,7 @@ async function loadData(){
     try{
         let desktop=isTauri();
         let stats: Array<PerformanceRow>=desktop
-            ?await invoke<Array<PerformanceRow>>("get_performance_stats",{difficulty:null,days:null})
+            ?await getPerformanceStats(null,null)
             :await browserSummary();
         if(!stats||stats.length===0){
             // An empty desktop list means nothing has been answered yet, and the
@@ -524,7 +523,7 @@ async function deleteRecord(topicId: string, difficulty: string): Promise<void>{
         // and the catch below writes the rejection text over the list, so the
         // learner loses the very record they came to erase.
         if(isTauri()){
-            await invoke("delete_performance_record",{topicId, difficulty});
+            await deletePerformanceRecord(topicId,difficulty);
         }
         else{
             await forgetBrowserRecord(topicId, difficulty);
@@ -568,7 +567,7 @@ function wireModalActions(){
                     // that quietly does nothing in one build is worse than no
                     // button at all.
                     if(isTauri()){
-                        await invoke("clear_performance");
+                        await clearPerformance();
                     }
                     else{
                         let storage=await import("./services/Storage");
@@ -594,7 +593,7 @@ function wireModalActions(){
             if(confirm("HARD RESET: This will delete ALL scores and performance data. This cannot be undone. Are you sure?")){
                 try{
                     if(isTauri()){
-                        await invoke("reset_all_data");
+                        await resetAllData();
                     }
                     else{
                         let storage=await import("./services/Storage");
