@@ -17,17 +17,34 @@ test("MCQ mode generates choices instead of a text input", async ({page})=>{
 });
 
 /**
+ * Normalizes rendered choice text for comparison with the stored key. KaTeX
+ * renders its minus as U+2212 rather than the ASCII hyphen the key uses, and
+ * annotation nodes can repeat the text, so both are normalized before comparing.
+ * A test that forgets either concludes the key is missing when it is on screen.
+ */
+const plain=(s:string)=>{
+    let t=s.replace(/−/g,"-").replace(/[\s,]/g,"");
+    for(let reps of [3,2]){
+        if(t.length%reps===0){
+            let part=t.slice(0,t.length/reps);
+            if(part.repeat(reps)===t) return part;
+        }
+    }
+    return t;
+};
+
+/**
  * Reads the current question's key and the text of each rendered choice, waiting for
  * the choices to be rebuilt. The choices are rendered after the answer is set, so
  * reading them immediately after generating can catch the previous question's.
  *
- * Both sides are stripped of the separators a renderer adds. A choice rendered
- * through KaTeX carries a thousands separator the stored answer does not, and a test
- * that forgets that concludes the key is missing when it is on screen.
+ * Both sides are compared with `plain`, which strips the separators a renderer
+ * adds. A choice rendered through KaTeX carries a thousands separator the stored
+ * answer does not, and a test that forgets that concludes the key is missing when
+ * it is on screen.
  */
 async function readKeyAndChoices(page: import("@playwright/test").Page): Promise<{key: string; texts: string[]; keyAt: number}>{
     let seen: {key: string; texts: string[]; keyAt: number}={key: "", texts: [], keyAt: -1};
-    const plain=(s:string)=>s.replace(/[\s,]/g,"");
     await expect.poll(async ()=>{
         seen=await page.evaluate(()=>{
             const w=window as unknown as{correctAnswer?:{correct?:string}};
@@ -39,8 +56,6 @@ async function readKeyAndChoices(page: import("@playwright/test").Page): Promise
     }, {timeout: 10000}).toBe(true);
     return seen;
 }
-
-const plain=(s:string)=>s.replace(/[\s,]/g,"");
 
 /**
  * Empties the results area. A correct answer leaves its mark on screen, so a case
