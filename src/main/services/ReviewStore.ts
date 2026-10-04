@@ -18,7 +18,7 @@ import * as storage from"./Storage";
 import{applyReview, decide, selectNext}from"./Scheduler";
 import type{ReviewOutcome, ScheduleDecision, SkillState}from"./Scheduler";
 import{isTauri}from"../../utils/envUtils";
-import{invoke}from"@tauri-apps/api/core";
+import{loadSkillSchedule,savePerformance,saveAttempt,saveSkillSchedule,clearPerformance}from"./Backend";
 
 /** Where the records live. */
 const RECORD_KEY="reviewRecords";
@@ -88,22 +88,6 @@ export async function writeDocument(document: RecordDocument): Promise<void>{
 }
 
 /**
- * A row as the desktop database returns it, which is snake_case and partial
- * because an older database may predate any given column.
- */
-interface DesktopSkillRow{
-    topic_id?: string;
-    sub_skill?: string;
-    stability?: number;
-    difficulty?: number;
-    last_review?: number|null;
-    due?: number|null;
-    reviews?: number;
-    correct_reviews?: number;
-    aoa?: number;
-}
-
-/**
  * Loads the records from wherever this build keeps them, preferring the desktop
  * database when there is one and falling back to the storage module otherwise.
  *
@@ -113,7 +97,7 @@ export async function loadRecords(): Promise<void>{
     records=new Map();
     if (isTauri()){
         try{
-            let rows=await invoke<DesktopSkillRow[]>("load_skill_schedule");
+            let rows=await loadSkillSchedule();
             for(let row of rows){
                 let topicId=row.topic_id;
                 if (!topicId) continue;
@@ -174,46 +158,29 @@ export async function recordReview(outcome: ReviewOutcome): Promise<ScheduleDeci
         try{
             // Both writes happen: the aggregate the recommendations already read,
             // and the full attempt that makes the history exportable.
-            await invoke("save_performance", {
-                topicId: outcome.topicId,
-                difficulty: outcome.responseMs===undefined?"":String(outcome.responseMs),
-                correct: outcome.correct,
-                responseTimeMs: outcome.responseMs??0,
-                errorType: outcome.confidence??""
-            });
+            await savePerformance(outcome.topicId,outcome.responseMs===undefined?"":String(outcome.responseMs),outcome.correct,outcome.responseMs??0,outcome.confidence??"");
         }
         catch(e){
             console.warn("Could not write the desktop aggregate:",e);
         }
         try{
-            await invoke("save_attempt", {
-                topicId: outcome.topicId,
-                subSkill: outcome.subSkill??"",
-                difficulty: "",
-                correct: outcome.correct,
-                responseMs: outcome.responseMs??0,
-                confidence: outcome.confidence??null,
-                errorType: null,
-                answeredAt: at
-            });
+            await saveAttempt(outcome.topicId,outcome.subSkill??"", "",outcome.correct,outcome.responseMs??0,outcome.confidence??null,null,at);
         }
         catch(e){
             console.warn("Could not write the recorded attempt:",e);
         }
         try{
-            await invoke("save_skill_schedule", {
-                skills: [{
-                    topicId: outcome.topicId,
-                    subSkill: outcome.subSkill??"",
-                    stability: next.stability,
-                    difficulty: next.difficulty,
-                    lastReview: next.lastReview??null,
-                    due: next.due??null,
-                    reviews: next.reviews,
-                    correctReviews: next.correctReviews,
-                    aoa: next.aoa
-                }]
-            });
+            await saveSkillSchedule([{
+                topicId: outcome.topicId,
+                subSkill: outcome.subSkill??"",
+                stability: next.stability,
+                difficulty: next.difficulty,
+                lastReview: next.lastReview??null,
+                due: next.due??null,
+                reviews: next.reviews,
+                correctReviews: next.correctReviews,
+                aoa: next.aoa
+            }]);
         }
         catch(e){
             console.warn("Could not write the desktop schedule:",e);
@@ -257,7 +224,7 @@ export async function forgetEverything(): Promise<void>{
     await storage.remove(RECORD_KEY);
     if (isTauri()){
         try{
-            await invoke("clear_performance");
+            await clearPerformance();
         }
         catch(e){
             console.warn("Could not clear the desktop review record:",e);
