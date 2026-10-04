@@ -7,8 +7,7 @@ import * as topics from"./Topics";
 import * as generation from"./Generation";
 import * as answer from"./Answer";
 import * as session from"./Session";
-import{check}from"@tauri-apps/plugin-updater";
-import{relaunch}from"@tauri-apps/plugin-process";
+import{checkForUpdate,relaunchApp}from"./services/Backend";
 import{isTauri,adaptiveAvailable}from"../utils/envUtils";
 import{effectivePersistence}from"./Settings";
 import type{PersistenceMode}from"./services/Storage";
@@ -370,7 +369,7 @@ export async function setupEventListeners(): Promise<void>{
             let originalText=button.textContent;
             button.textContent="Checking...";
             try{
-                let update=await check();
+                let update=await checkForUpdate();
                 if (!update){
                     ui.showNotification("You are already using the latest version.");
                     return;
@@ -410,7 +409,7 @@ export async function setupEventListeners(): Promise<void>{
                     }
                 });
                 ui.showNotification("Update installed. The app will now restart.");
-                await relaunch();
+                await relaunchApp();
             } catch (err) {
                 // A failed update must be visible. Silently returning here left
                 // a user whose install failed with no indication of why, and the
