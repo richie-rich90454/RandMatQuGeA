@@ -19,7 +19,7 @@ import{dom}from"./core/DomRegistry";
 import * as settings from"./Settings";
 import * as ui from"./Ui";
 import type{RngFn}from"../types/global";
-import{canonicalNumeric, isFiniteNumberText, sameNumericValue}from"./AnswerFormat";
+import{canonicalNumeric, isFiniteNumberText, sameNumericValue, equivalentWordAnswers}from"./AnswerFormat";
 
 /** The number of options a multiple-choice question always offers. */
 const OPTION_COUNT=4;
@@ -48,7 +48,8 @@ function isUnusable(option: string): boolean{
 
 /**
  * Reports whether two options are the same value, so that "0.50" and "0.5" are
- * recognized as one option rather than two.
+ * recognized as one option rather than two, and "Whole Numbers" and "whole
+ * number" are recognized as one answer rather than a right one and a wrong one.
  *
  * @param a - The first option.
  * @param b - The second option.
@@ -56,6 +57,7 @@ function isUnusable(option: string): boolean{
  */
 function sameOption(a: string, b: string): boolean{
     if (a.trim()===b.trim()) return true;
+    if (equivalentWordAnswers(a, b)) return true;
     if (canonicalNumeric(a)===canonicalNumeric(b)) return true;
     if (isFiniteNumberText(a)&&isFiniteNumberText(b)&&sameNumericValue(a, b)) return true;
     return false;
@@ -136,12 +138,13 @@ function numericDistractors(answer: number, count: number, decimals: number): st
  * @returns Up to `count` wrong options.
  */
 function structuredDistractors(answer: string, count: number): string[]{
+    let raw:string[]=[];
     let center=answer.match(/center\s*\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)\s*,\s*radius\s*(-?\d+(?:\.\d+)?)/i);
     if (center){
         let h=Number(center[1]);
         let k=Number(center[2]);
         let r=Number(center[3]);
-        return [
+        raw=[
             `center (${h+1}, ${k}), radius ${r}`,
             `center (${h-1}, ${k}), radius ${r}`,
             `center (${h}, ${k+1}), radius ${r}`,
@@ -150,44 +153,49 @@ function structuredDistractors(answer: string, count: number): string[]{
             `center (${h}, ${k}), radius ${r-1}`,
             `center (${h+1}, ${k+1}), radius ${r}`,
             `center (${h-1}, ${k-1}), radius ${r}`
-        ].slice(0, count);
+        ];
     }
-    let pair=answer.match(/^\(?\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)?$/);
-    if (pair){
-        let x=Number(pair[1]);
-        let y=Number(pair[2]);
-        let wrap=answer.trim().startsWith("(");
-        let fmt=(a: number, b: number)=>wrap?`(${a}, ${b})`:`${a}, ${b}`;
-        return [
-            fmt(x+1, y),
-            fmt(x-1, y),
-            fmt(x, y+1),
-            fmt(x, y-1),
-            fmt(x+1, y+1),
-            fmt(x-1, y-1),
-            fmt(x+0.5, y),
-            fmt(x, y+0.5)
-        ].slice(0, count);
+    else {
+        let pair=answer.match(/^\(?\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)?$/);
+        if (pair){
+            let x=Number(pair[1]);
+            let y=Number(pair[2]);
+            let wrap=answer.trim().startsWith("(");
+            let fmt=(a: number, b: number)=>wrap?`(${a}, ${b})`:`${a}, ${b}`;
+            raw=[
+                fmt(x+1, y),
+                fmt(x-1, y),
+                fmt(x, y+1),
+                fmt(x, y-1),
+                fmt(x+1, y+1),
+                fmt(x-1, y-1),
+                fmt(x+0.5, y),
+                fmt(x, y+0.5)
+            ];
+        }
+        else if (/^(I|II|III|IV)$/i.test(answer.trim())){
+            raw=["I", "II", "III", "IV"].filter(q=>q.toLowerCase()!==answer.trim().toLowerCase());
+        }
+        else if (/^(positive|negative)$/i.test(answer.trim())){
+            raw=answer.trim().toLowerCase()==="positive"?["negative", "zero", "undefined", "not defined"]:["positive", "zero", "undefined", "not defined"];
+        }
+        else if (/^(converges|diverges|convergent|divergent)$/i.test(answer.trim())){
+            let word=/^diverg/i.test(answer.trim());
+            raw=word?["converges", "converges absolutely", "converges conditionally", "converges by the root test"]:["diverges", "converges absolutely", "converges conditionally", "diverges to -infinity"];
+        }
+        else if (/^(even|odd|neither)$/i.test(answer.trim())){
+            let word=answer.trim().toLowerCase();
+            raw=word==="even"?["odd", "neither", "even and odd", "undefined"]:word==="odd"?["even", "neither", "even and odd", "undefined"]:["even", "odd", "even and odd", "undefined"];
+        }
+        else if (/^(increasing|decreasing)$/i.test(answer.trim())){
+            let word=answer.trim().toLowerCase();
+            raw=word==="increasing"?["decreasing", "constant", "not defined", "discontinuous"]:["increasing", "constant", "not defined", "discontinuous"];
+        }
     }
-    if (/^(I|II|III|IV)$/i.test(answer.trim())){
-        return ["I", "II", "III", "IV"].filter(q=>q.toLowerCase()!==answer.trim().toLowerCase()).slice(0, count);
-    }
-    if (/^(positive|negative)$/i.test(answer.trim())){
-        return answer.trim().toLowerCase()==="positive"?["negative", "zero", "undefined", "not defined"]:["positive", "zero", "undefined", "not defined"];
-    }
-    if (/^(converges|diverges|convergent|divergent)$/i.test(answer.trim())){
-        let word=/^diverg/i.test(answer.trim());
-        return word?["converges", "converges absolutely", "converges conditionally", "converges by the root test"]:["diverges", "converges absolutely", "converges conditionally", "diverges to -infinity"];
-    }
-    if (/^(even|odd|neither)$/i.test(answer.trim())){
-        let word=answer.trim().toLowerCase();
-        return word==="even"?["odd", "neither", "even and odd", "undefined"]:word==="odd"?["even", "neither", "even and odd", "undefined"]:["even", "odd", "even and odd", "undefined"];
-    }
-    if (/^(increasing|decreasing)$/i.test(answer.trim())){
-        let word=answer.trim().toLowerCase();
-        return word==="increasing"?["decreasing", "constant", "not defined", "discontinuous"]:["increasing", "constant", "not defined", "discontinuous"];
-    }
-    return [];
+    // A curated candidate that is the key in different words is a second correct
+    // option, not a wrong one, so it is dropped here rather than offered. The
+    // builder's own check agrees, because it compares through the same rule.
+    return raw.filter(c=>!equivalentWordAnswers(c, answer)).slice(0, count);
 }
 
 /**
