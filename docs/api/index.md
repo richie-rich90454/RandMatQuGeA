@@ -15,6 +15,12 @@ interface QuestionDto {
     choices?: string[];      // MCQ distractor options
     expectedFormat?: string; // Format hint (e.g. "fraction")
     hint?: string;           // Optional hint text
+    subskill?: string;       // Procedure within the topic, for scheduling
+    solution?: string;       // Worked solution steps
+    misconception?: string;  // The wrong turn this question guards against
+    hints?: string[];        // Branch-specific hint ladder
+    skippable?: boolean;     // Whether the learner may skip
+    visualization?: object;  // 3D figure parameters, when there is one
 }
 ```
 
@@ -396,6 +402,7 @@ let settings = {
     mcqChoicesCount: number, // 2-6
     adaptive: boolean,
     showWeakTopicsPopup: boolean,
+    persistence: "zdr" | "indexed" | "desktop",
 };
 ```
 
@@ -406,7 +413,9 @@ function saveSettings(): void;
 
 ## Tauri Commands (Rust)
 
-Invoked via `@tauri-apps/api/core` `invoke()`:
+Reached through `src/main/services/Backend.ts`, never invoked directly from a UI
+module. The parameters below are written in the caller (camelCase) form the seam
+passes; responses keep the backend's snake_case keys:
 
 | Command | Parameters | Returns |
 |---|---|---|
@@ -414,11 +423,16 @@ Invoked via `@tauri-apps/api/core` `invoke()`:
 | `save_score` | `{ entry: { topic, score, total, difficulty, date } }` | `void` |
 | `load_scores` | — | `ScoreEntry[]` |
 | `delete_score` | `{ id }` | `void` |
-| `save_performance` | `{ topic_id, difficulty, correct, response_time_ms, error_type? }` | `void` |
+| `save_performance` | `{ topicId, difficulty, correct, responseTimeMs, errorType? }` | `void` |
 | `get_performance_stats` | `{ difficulty?, days? }` | `{ topic_id, difficulty, attempts, correct, accuracy, avg_time_ms }[]` |
-| `delete_performance_record` | `{ topic_id, difficulty }` | `void` |
+| `delete_performance_record` | `{ topicId, difficulty }` | `void` |
 | `delete_all_performance_records` | — | `void` |
-| `get_next_question_recommendation` | `{ current_topic, current_difficulty }` | `{ difficulty, weak_topic? }` |
+| `clear_performance` | — | `void` |
+| `save_attempt` | `{ topicId, subSkill, difficulty, correct, responseMs, confidence?, errorType?, answeredAt }` | row id |
+| `load_attempts` | `{ topicId?, limit? }` | `AttemptRow[]` |
+| `save_skill_schedule` | `{ skills }` | `void` |
+| `load_skill_schedule` | — | `SkillRow[]` |
+| `get_next_question_recommendation` | `{ currentTopic, currentDifficulty }` | `{ difficulty, weak_topic? }` |
 | `get_weak_topics` | `{ limit? }` | `{ topic_id, accuracy, attempts }[]` |
 | `generate_worksheet_seed` | — | `number` |
 | `export_worksheet_pdf` | `{ questions, opts, filepath }` | `void` |
