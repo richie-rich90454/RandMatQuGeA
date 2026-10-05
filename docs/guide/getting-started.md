@@ -44,7 +44,7 @@ npm run tauri dev
 npm run tauri build
 ```
 
-The Rust backend provides SQLite persistence, adaptive learning, and PDF export. Without it, the app degrades gracefully: scores and settings save to localStorage, and question generation still works.
+The Rust backend provides SQLite persistence, adaptive learning, and PDF export. Without it, the app degrades gracefully: settings persist through the Storage module (IndexedDB, memory-only in private sessions), and question generation still works.
 
 ## Project Structure
 
@@ -57,7 +57,7 @@ RandMatQuGeA/
 │   ├── vitest.setup.ts     # Vitest global mocks
 │   ├── main/               # Core modules
 │   │   ├── core/           # StateStore, DomRegistry, QuestionRenderer
-│   │   ├── services/       # TopicRegistry, EventBinder, MathWorkerClient
+│   │   ├── services/       # Storage, Scheduler, ReviewStore, TopicRegistry, EventBinder, MathWorkerClient, DailyChallenge, DailyMode, Help, Backend
 │   │   ├── ui/             # Skeleton, OfflineIndicator, VirtualTopicGrid
 │   │   ├── Settings.ts     # 50+ settings with persistence
 │   │   ├── Generation.ts   # Question orchestration + adaptive
@@ -71,12 +71,12 @@ RandMatQuGeA/
 │   │   ├── Algebra/
 │   │   ├── Calculus/
 │   │   ├── ...
-│   ├── __tests__/          # 7,000+ Vitest unit tests
+│   ├── __tests__/          # 10,000+ Vitest unit tests
 │   └── types/              # TypeScript type definitions
-├── e2e/                    # Playwright end-to-end tests (85+ tests)
+├── e2e/                    # Playwright end-to-end tests (390 tests)
 ├── src-tauri/              # Rust backend (SQLite, PDF, adaptive)
 ├── public/                 # Static assets (fonts, MathJax, KaTeX, service worker)
-├── playwright.config.ts    # E2E config (system Chrome, dev server on :1331)
+├── playwright.config.ts    # E2E config (bundled Chromium + WebKit, dev server on :1331)
 └── vite.config.ts          # Vite build config
 ```
 
