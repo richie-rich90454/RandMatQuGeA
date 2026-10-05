@@ -11,7 +11,7 @@ npm install
 npm run dev        # Web dev server on :1331
 npm run typecheck  # TypeScript check
 npm run test:run   # Unit tests (Vitest)
-npm run test:e2e   # End-to-end tests (Playwright, system Chrome)
+npm run test:e2e   # End-to-end tests (Playwright, bundled Chromium + WebKit)
 ```
 
 ## Project Conventions
@@ -75,9 +75,11 @@ Every generator must return a valid `QuestionDto`:
     expectedFormat?: string,  // Input format hint, matching the actual answer shape
     subskill?: string,        // Sub-skill within the topic, used for per-skill scheduling
     misconception?: string,   // The wrong turn this question is designed to catch
-    hints?: HintLadder,       // Overrides the derived ladder when you can do better
-    solution?: string[],      // Worked steps; the derived scaffold is used when absent
-    visualization?: { shape: string; params?: Record<string, unknown> }
+    hints?: HintLadder,       // Overrides the derived ladder when you can do better 
+    solution?: string[],      // Worked steps; the derived scaffold is used when absent 
+    hint?: string,            // Single hint text, when one rung is enough
+    skippable?: boolean,      // Whether the learner may skip
+    visualization?: { shape: string; params?: Record<string, unknown> } 
 }
 ```
 
@@ -101,14 +103,14 @@ Two invariants are enforced in CI and are never traded away:
 
 ### Testing
 
-- **Unit tests**: Vitest with jsdom environment. Tests mirror the `src/` structure under `src/__tests__/` — run with `npm run test:run` (7,000+ cases) or `npm run test:coverage`.
-- **E2E tests**: Playwright in `e2e/` — `npm run test:e2e`. Uses your installed Chrome (`channel: "chrome"`, no browser download) and auto-starts the Vite dev server on port 1331. A full matrix spec exercises every topic × difficulty.
-- **Rust tests**: `cargo test` in `src-tauri/` (200+ cases).
+- **Unit tests**: Vitest with jsdom environment. Tests mirror the `src/` structure under `src/__tests__/` — run with `npm run test:unit` (10,000+ cases) or `npm run test:coverage`. 
+- **E2E tests**: Playwright in `e2e/` — `npm run test:e2e`. Uses bundled Chromium + WebKit (desktop, Pixel 7, iPhone 14 projects) and auto-starts the Vite dev server on port 1331. A full matrix spec exercises every topic × difficulty.
+- **Rust tests**: `cargo test` in `src-tauri/` (227 cases).
 
 ## Pull Request Process
 
 1. Fork the repo and create a feature branch
-2. Ensure `npm run check` passes (typecheck + unit tests) and `npm run test:e2e` is green for UI changes
+2. Ensure `npm run check` passes (typecheck + full Vitest run + bundle check) and `npm run test:e2e` is green for UI changes
 3. Open a PR against `main` with a clear description
 4. Keep changes focused — one feature per PR
 5. Include tests for new functionality
