@@ -3,7 +3,7 @@ layout: home
 hero:
     name: RandMatQuGeA
     text: Random Math Question Generator Algorithm
-    tagline: 137 topics across 7 subjects — Tauri v2 desktop app + web fallback
+    tagline: 204 topics across 7 subjects — Tauri v2 desktop app + web fallback
     actions:
         - theme: brand
           text: Get Started
@@ -30,9 +30,9 @@ features:
     - title: Cross-Platform
       details: Tauri v2 desktop app (Windows, macOS, Linux) + full web build via Vite 8
     - title: Offline Ready
-      details: Service worker, cached MathJax/KaTeX assets, localStorage settings persistence
+      details: Service worker, cached MathJax/KaTeX assets, IndexedDB/SQLite persistence via the Storage module
     - title: Thoroughly Tested
-      details: 7,000+ Vitest unit tests, 200+ Rust tests, and a Playwright E2E suite covering all topics and modes
+      details: 10,000+ Vitest unit tests, 227 Rust tests, and a 390-test Playwright E2E suite covering all topics and modes
     - title: Accessibility
       details: OpenDyslexic font support, keyboard navigation, reduced motion, ARIA labels
 ---
