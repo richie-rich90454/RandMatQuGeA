@@ -77,7 +77,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 │   │   ├── services/       # TopicRegistry, EventBinder, MathWorkerClient
 │   │   ├── ui/             # Skeleton, OfflineIndicator, VirtualTopicGrid
 │   │   └── ...             # Settings, Generation, Answer, Session, Mcq, PrintWorksheet, ...
-│   ├── modules/            # Question generation modules (7 subjects, 137 topics)
+│   ├── modules/            # Question generation modules (7 subjects, 204 topics)
 │   │   ├── Algebra/
 │   │   ├── Arithmetic/
 │   │   ├── Calculus/
@@ -85,9 +85,9 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 │   │   ├── Geometry/
 │   │   ├── LinearAlgebra/
 │   │   └── Trigonometry/
-│   ├── __tests__/          # 7,000+ Vitest unit tests (mirror src structure)
+│   ├── __tests__/          # 10,000+ Vitest unit tests (mirror src structure)
 │   └── types/              # TypeScript type definitions (global.d.ts)
-├── e2e/                    # Playwright end-to-end tests (85+ tests)
+├── e2e/                    # Playwright end-to-end tests (390 tests across desktop, Pixel 7, and iPhone 14 projects)
 ├── src-tauri/              # Rust backend (Tauri v2)
 │   ├── src/
 │   │   ├── lib.rs          # Tauri commands (scores, performance, PDF, adaptive)
@@ -97,7 +97,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 │   ├── Cargo.toml          # Rust dependencies (sqlx, tauri, printpdf, ratex)
 │   └── tauri.conf.json     # Tauri configuration (window, tray, updater)
 ├── public/                 # Public assets (fonts, MathJax, KaTeX, service worker)
-├── playwright.config.ts    # E2E config (system Chrome, dev server on :1331)
+├── playwright.config.ts    # E2E config (bundled Chromium + WebKit, dev server on :1331)
 ├── package.json            # Node dependencies and scripts
 ├── vite.config.ts          # Vite build configuration
 ├── tsconfig.json           # TypeScript configuration
@@ -151,9 +151,9 @@ npm run bundle:check
 ```
 
 This checks the gzipped sizes of the initial entry chunks against the budgets:
-- Initial JS entry chunk: ≤ 35 kB gzipped
+- Initial JS entry chunk: ≤ 36 kB gzipped
 - Initial CSS chunk: ≤ 10 kB gzipped
-- Total initial load (HTML + JS + CSS): ≤ 55 kB gzipped
+- Total initial load (HTML + JS + CSS): ≤ 55.5 kB gzipped
 
 Override budgets via env vars (useful for testing): `BUNDLE_JS_BUDGET_KB=40 npm run bundle:check`
 
@@ -170,7 +170,7 @@ In summary:
 - **4-space indentation**, enforced by `.editorconfig` and `rustfmt.toml`. Never tabs.
 - **Dense style**: no blank lines inside function bodies, no spaces around operators, no space between a keyword and its opening paren, `let` for all bindings, semicolons on every statement.
 - **Named exports only**; no default exports; `import type` for type-only imports.
-- **No framework.** This is a vanilla-DOM application with module-level singletons, and the 35 kB gzipped initial-JS budget in `scripts/bundle-check.js` depends on that. Do not add React, Vue or Svelte.
+- **No framework.** This is a vanilla-DOM application with module-level singletons, and the 36 kB gzipped initial-JS budget in `scripts/bundle-check.js` depends on that. Do not add React, Vue or Svelte.
 - **Two invariants CI enforces**: a generator's printed question and its claimed answer must be the same problem, and a multiple choice question must have four options of which exactly one is correct.
 - **JSDoc on exported functions and non-obvious logic**, with `@param` and `@returns`.
 
@@ -195,17 +195,17 @@ sends camelCase; `docs/guide/architecture.md` omits three delete commands).
 
 The project uses a three-layer test strategy:
 
-- **Unit tests** — Vitest + jsdom, colocated under `src/__tests__/` (7,000+ cases):
+- **Unit tests** — Vitest + jsdom, colocated under `src/__tests__/` (10,000+ cases):
   ```bash
   npm test            # watch mode (local development)
   npm run test:run    # single non-watch run (CI / one-shot)
-  npm run check       # typecheck + non-watch unit tests
+  npm run check       # typecheck + full Vitest run (unit + oracle) + bundle check
   ```
-- **End-to-end tests** — Playwright in `e2e/` (85+ tests). Uses your installed Chrome (`channel: "chrome"`, no browser download) and auto-starts the Vite dev server on port 1331:
+- **End-to-end tests** — Playwright in `e2e/` (390 tests across desktop, Pixel 7, and iPhone 14 projects). Uses bundled Chromium + WebKit (desktop, Pixel 7, iPhone 14 projects) and auto-starts the Vite dev server on port 1331:
   ```bash
   npm run test:e2e
   ```
-- **Rust tests** — `cargo test` in `src-tauri/` (200+ cases for scores, performance, adaptive logic, and PDF export).
+- **Rust tests** — `cargo test` in `src-tauri/` (227 cases for scores, performance, adaptive logic, and PDF export).
 
 Write tests for new features and bug fixes when applicable. Aim to cover edge cases, especially in answer‑checking logic.
 
