@@ -58,6 +58,12 @@ RandMatQuGeA is a **Tauri v2** application with a TypeScript frontend and a Rust
         choices?: string[];      // MCQ options
         expectedFormat?: string; // Format hint
         hint?: string;           // Optional hint text
+        subskill?: string;       // Procedure within the topic, for scheduling
+        solution?: string;       // Worked solution steps
+        misconception?: string;  // The wrong turn this question guards against
+        hints?: string[];        // Branch-specific hint ladder
+        skippable?: boolean;     // Whether the learner may skip
+        visualization?: object;  // 3D figure parameters, when there is one
     }
     ```
 5. **`QuestionRenderer.applyQuestionDto()`** — renders DTO to DOM, triggers MathJax typesetting
@@ -179,6 +185,8 @@ Built with Tauri v2, the backend provides:
 | `save_attempt` / `load_attempts` | Every answer, kept in full with its confidence and error type |
 | `save_skill_schedule` / `load_skill_schedule` | Memory stability, difficulty and due date per topic and sub-skill |
 | `clear_performance` | Erases the schedule, the answers and the aggregate together |
+| `delete_performance_record` | Erases one aggregate row |
+| `delete_all_performance_records` | Erases every aggregate row |
 | `export_learning_record` | Writes the whole record — schedule, answers, aggregate — to a versioned JSON file |
 | `import_learning_record` | Applies such a file, merging or replacing, in one transaction |
 | `get_performance_stats` | Aggregate performance queries |
@@ -245,15 +253,15 @@ src/modules/
 
 All generators follow the same signature: `(difficulty: string, rng?: RngFn) => QuestionDto`.
 
-There are **137 topics** across 7 subject modules (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry). The count is asserted rather than written down: the oracle test compares the registered topic ids against the sub-skill table in both directions, so a topic that is registered without a row, or a row whose key is not a registered topic, is a build failure rather than a note.
+There are **204 topics** across 7 subject modules (Arithmetic, Algebra, Calculus, Linear Algebra, Trigonometry, Discrete Math, Geometry). The count is asserted rather than written down: the oracle test compares the registered topic ids against the sub-skill table in both directions, so a topic that is registered without a row, or a row whose key is not a registered topic, is a build failure rather than a note. The tables themselves travel in their own chunk behind a dynamic import boot awaits, so they cost nothing in the initial payload; only the scope order and the storage key load with the entry chunk.
 
 ## Testing
 
 The project uses a three-layer test strategy:
 
-1. **Unit tests (Vitest + jsdom)** — `src/__tests__/` mirrors the `src/` structure. 7,000+ cases cover generator integrity (every topic × difficulty × seeds), math regression values, answer-checking edge cases, settings persistence, and session logic. `src/vitest.setup.ts` mocks the Tauri API, three.js, and canvas. These run in the `unit` Vitest project.
+1. **Unit tests (Vitest + jsdom)** — `src/__tests__/` mirrors the `src/` structure. 10,000+ cases cover generator integrity (every topic × difficulty × seeds), math regression values, answer-checking edge cases, settings persistence, and session logic. `src/vitest.setup.ts` mocks the Tauri API, three.js, and canvas. These run in the `unit` Vitest project.
 2. **The generator oracle** — a separate Vitest project, because a red correctness gate should not take the unit suite down with it and because it is slow enough to deserve its own timeout. It samples every registered topic across difficulties and seeds and asserts four invariants: every topic produces a well-formed question, every prompt renders as valid LaTeX, every multiple-choice question presents four usable options with exactly one correct, and no distractor is also correct. `src/__tests__/oracle/vectorPrompts.test.ts` additionally proves a question is answerable from the numbers it prints.
 2. **End-to-end tests (Playwright)** — `e2e/` drives the real app against the Vite dev server (`:1331`) in three projects: desktop, mobile Chrome and mobile Safari. The mobile Safari project runs on WebKit, so continuous integration installs both engines. The `all-topics-*.spec.ts` files run a full matrix (every topic × easy/medium/hard) and assert each generator accepts its own correct answer; other specs cover Single/Mental/Daily modes, MCQ, settings, print worksheets, keyboard shortcuts, and graceful desktop-only fallbacks. A console-error sweep asserts zero runtime errors across the whole app.
-3. **Rust tests (`cargo test`)** — 200+ tests in `src-tauri/src` cover the score/perf/adaptive SQL logic, `check_math`, models, and PDF export.
+3. **Rust tests (`cargo test`)** — 227 tests in `src-tauri/src` cover the score/perf/adaptive SQL logic, `check_math`, models, and PDF export.
 
-`npm run check` runs the TypeScript type-check plus the Vitest suite; `npm run test:e2e` runs Playwright.
+`npm run check` runs the TypeScript type-check plus the full Vitest run (unit + oracle) plus the bundle check; `npm run test:e2e` runs Playwright.
