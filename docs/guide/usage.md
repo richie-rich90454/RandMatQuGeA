@@ -53,6 +53,9 @@ session rather than pretending to keep a record it cannot. The **Erase my
 learning record** control is only shown when something is actually being kept,
 and it removes the schedule, every recorded answer and your streak together.
 
+On the desktop build the choice is the computer itself: the record lives in the
+app's database on disk, so there is no private session to choose.
+
 If you were using an earlier build that stored preferences in `localStorage`,
 choosing either option moves them: into the browser store, or out of it entirely.
 A private session never leaves anything behind.
@@ -182,6 +185,6 @@ Configure the number of choices (2–6) in Advanced settings.
 
 The project has a three-layer test suite:
 
-- **Unit tests** (Vitest + jsdom): `npm run test:run` — 7,000+ cases, including per-topic generator integrity and regression tests
-- **End-to-end tests** (Playwright, system Chrome): `npm run test:e2e` — 85+ tests covering all topics × difficulties, both modes, MCQ, settings, print worksheets, and desktop fallbacks
-- **Rust tests**: `cargo test` in `src-tauri/` — 200+ tests for scores, performance, adaptive logic, and PDF export
+- **Unit tests** (Vitest + jsdom): `npm run test:unit` — 10,000+ cases, including per-topic generator integrity and regression tests
+- **End-to-end tests** (Playwright, bundled Chromium + WebKit): `npm run test:e2e` — 390 tests covering all topics × difficulties, both modes, MCQ, settings, print worksheets, and desktop fallbacks
+- **Rust tests**: `cargo test` in `src-tauri/` — 227 tests for scores, performance, adaptive logic, and PDF export
