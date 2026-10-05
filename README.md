@@ -96,12 +96,12 @@ npm run tauri dev      # starts the dev server and the native window
 
 ```bash
 npm run typecheck      # tsc --noEmit
-npm run test:unit      # Vitest unit suite (130 files, 9,992 cases)
+npm run test:unit      # Vitest unit suite (132 files, 10,007 cases)
 npm run test:oracle    # the invariant gate over all 204 topics
 npm run test:coverage  # unit suite with the enforced coverage floor
 npm run test:e2e       # Playwright, Chromium + WebKit, desktop and mobile projects
 npm run bundle:check   # initial-load budget
-npm run check          # typecheck + unit tests + bundle budget
+npm run check          # typecheck + full Vitest run (unit + oracle) + bundle check
 cd src-tauri && cargo test   # Rust backend
 ```
 
@@ -190,9 +190,9 @@ random-math-question-generator-app/
 │   ├── utils/envUtils.ts     # the one place that decides which runtime this is
 │   ├── main/
 │   │   ├── core/             # StateStore, QuestionState, DomRegistry, DomVisibility
-│   │   ├── services/         # Storage, ReviewStore, Scheduler, DailyMode, Help, Help.ts
+│   │   ├── services/         # Storage, ReviewStore, Scheduler, DailyMode, Help, Backend (the Tauri seam)
 │   │   ├── Settings.ts       # settings and the persistence decision
-│   │   ├── Topics.ts         # topic grid, search, category filter, scopes
+│   │   ├── Topics.ts         # topic grid, search, category filter, scopes, on-demand table loader
 │   │   ├── Answer.ts         # the single grading pipeline
 │   │   ├── AnswerFormat.ts   # one answer normalizer, shared by all three callers
 │   │   ├── Mcq.ts            # the option-set contract
@@ -227,11 +227,12 @@ Where a generator's natural question has fewer than four honest answers, **the q
 | Gate | Result |
 |---|---|
 | Type check | clean |
-| Unit tests | 130 files, 9,986 passed, 6 skipped |
-| Invariant oracle | 23 tests across all 204 topics |
+| Unit tests | 132 files, 10,007 passed, 6 skipped |
+| Invariant oracle | 26 tests across all 204 topics |
+| End-to-end | 390 tests in 17 files; desktop project verified in full, mobile projects for interaction specs |
 | Coverage | statements 81.0%, branches 68.2%, functions 69.3%, lines 82.8% (floor enforced) |
 | Rust tests | 227 passed (`cargo test -p random_math_question_generator`) |
-| Bundle | JS 38.1 kB, CSS 8.6 kB, total 57.0 kB gzipped (budget 38.5/10/57.5) |
+| Bundle | JS 34.2 kB, CSS 8.6 kB, total 53.1 kB gzipped (budget 36/10/55.5) |
 
 ## ⚠️ A Note on Tauri Versions
 
