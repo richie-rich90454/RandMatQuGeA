@@ -25,7 +25,7 @@ npm run typecheck
 # Run unit tests (Vitest)
 npm run test:run
 
-# Run end-to-end tests (Playwright, uses your installed Chrome)
+# Run end-to-end tests (Playwright, bundled Chromium + WebKit)
 npm run test:e2e
 ```
 
