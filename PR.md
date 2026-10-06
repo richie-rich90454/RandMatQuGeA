@@ -73,8 +73,8 @@ The two headings that matter most for a reviewer:
   record, or the updater cannot run, the surface is removed, not disabled. One
   module (`GatedSurfaces.ts`) owns the list, and one predicate decides.
 - **Every claim in the documentation is a number a gate produced.** The README
-  and `PLAN.md` carry measured counts, and `PLAN.md` section 5 lists every open
-  item with its acceptance test — all closed.
+  carries measured counts, and every open item from the branch register was
+  closed against its acceptance test before merge — none remain.
 
 ---
 
@@ -807,7 +807,7 @@ export/import document.
   before being trusted.
 - **Nothing is reported as passing that was not run to completion.** Two earlier
   runs had been reported green from logs that were never printed to a summary;
-  the correction is recorded in `PLAN.md` section 4.14.
+  the correction is recorded in the commit that re-ran them to completion.
 
 ---
 
@@ -938,13 +938,13 @@ next person will find it.
 
 | Decision | Where | Why |
 |---|---|---|
-| `looksMathematical` cannot judge prose distractors | `PLAN.md` O4 | A word-level rule is shared by product and oracle; the one case strings cannot catch is caught by a semantic oracle tier |
-| UI actions are covered end to end, not by unit test | `PLAN.md` O6 | Mocking the DOM harder would test the mocks; the Playwright suite drives the real app |
-| `body { overflow-x: hidden }` stays | `PLAN.md` 4.29 | It is the backstop now that each overflow has its own fix |
-| Three theme blocks are not merged | `PLAN.md` 4.29 | Merging them risks every color at once |
-| One id keeps its British spelling: `prime_factorisation` | `PLAN.md` 4.16, 4.30 | Ids are what a learner's records are keyed by and are not prose; the display name is American |
+| `looksMathematical` cannot judge prose distractors | oracle semantic tier, `AnswerFormat.ts` comment | A word-level rule is shared by product and oracle; the one case strings cannot catch is caught by a semantic oracle tier |
+| UI actions are covered end to end, not by unit test | `vite.config.ts` coverage floor, `e2e/` | Mocking the DOM harder would test the mocks; the Playwright suite drives the real app |
+| `body { overflow-x: hidden }` stays | `src/style.css` | It is the backstop now that each overflow has its own fix |
+| Three theme blocks are not merged | `src/style.css` | Merging them risks every color at once |
+| One id keeps its British spelling: `prime_factorisation` | `src/main/TopicData.ts`, sub-skill rows | Ids are what a learner's records are keyed by and are not prose; the display name is American |
 | Two `Cargo.lock` files became one | commit, `README.md` | Two locks for one workspace is two answers to which crates ship |
-| The oracle stresses 120 seeds on trigonometry only | `PLAN.md` 4.8 | Eight seeds once hid a defect in 26 of them; the rest of the curriculum is sampled by the main gate |
+| The oracle stresses 120 seeds on trigonometry only | `src/__tests__/oracle/` | Eight seeds once hid a defect in 26 of them; the rest of the curriculum is sampled by the main gate |
 
 ---
 
@@ -966,9 +966,7 @@ In this order, if the goal is to understand the branch rather than verify it:
    — the two small modules that exist because of bugs: hiding that does not work
    when it only sets an attribute, and a typeset-complete signal that exists
    because a click landed on a moving button.
-7. **`PLAN.md`** section 4 — the audit trail. Every phase, including the bugs
-   found by running the suite, with the reasoning recorded beside the fix.
-8. **`scripts/bundle-check.js`** — the budgets and their history, and the
+7. **`scripts/bundle-check.js`** — the budgets and their history, and the
    build-integrity check that was proven able to fail.
 
 ---
