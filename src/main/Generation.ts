@@ -1,0 +1,170 @@
+import{dom}from"./core/DomRegistry";
+import{appState}from"./core/StateStore";
+import{questionState}from"./core/QuestionState";
+import{renderer}from"./core/QuestionRenderer";
+import{showQuestionSkeleton,hideQuestionSkeleton}from"./ui/Skeleton";
+import * as ui from "./Ui";
+import * as topics from "./Topics";
+import{generateQuestion as callGenerator}from"./QuestionGenerator";
+import{generateChoicesForCurrentQuestion}from"./Mcq";
+import type{RngFn}from"../types/global";
+import{getNextQuestionRecommendation}from"./services/Backend";
+import * as settings from "./Settings";
+import{effectivePersistence}from"./Settings";
+import{startQuestionTimer}from"./Answer";
+import type{QuestionDto}from"../types/global";
+/** The question most recently generated, kept so its help can be prepared. */
+let lastDto: QuestionDto|undefined;
+import{adaptiveAvailable}from"../utils/envUtils";
+async function applyAdaptiveRecommendation(): Promise<boolean>{
+    if (!settings.settings.adaptive) return false;
+    let adjusted:boolean=false;
+    try{
+        let rec=await getNextQuestionRecommendation(appState.selectedTopic,appState.currentDifficulty);
+        if (!appState.userPickedDifficulty){
+            if (rec.difficulty&&rec.difficulty !== appState.currentDifficulty){
+                appState.currentDifficulty=rec.difficulty;
+                if (dom.inputs.difficultySelect) dom.inputs.difficultySelect.value=rec.difficulty;
+                settings.settings.difficulty=rec.difficulty;
+                settings.saveSettings();
+                ui.showNotification(`Difficulty adjusted to ${rec.difficulty} based on your performance`, 'info');
+                adjusted=true;
+            }
+        }
+        appState.userPickedDifficulty=false;
+    }catch(e){
+        console.error("[Adaptive] Recommendation failed:", e);
+    }
+    return adjusted;
+}
+export function debounceGenerate(): void{
+    if (appState.generateDebounceTimeout) clearTimeout(appState.generateDebounceTimeout);
+    appState.generateDebounceTimeout=setTimeout(()=>{
+        generateQuestion().catch((err: unknown)=>console.error("generateQuestion failed:",err));
+        appState.generateDebounceTimeout=null;
+    },150);
+}
+async function applyAdaptiveSafe(): Promise<boolean>{
+    if (!adaptiveAvailable(effectivePersistence())||!settings.settings.adaptive) return false;
+    return applyAdaptiveRecommendation();
+}
+export async function generateQuestion(explicitTopicId?: string, rng?: RngFn): Promise<void>{
+    if (appState.isGenerating) return;
+    appState.isGenerating=true;
+    try{
+    if(!explicitTopicId&&appState.weakTopicQueue.length>0){
+        explicitTopicId=appState.weakTopicQueue.shift()||undefined;
+    }
+    let hasExplicitTopic=typeof explicitTopicId==="string"&&explicitTopicId.length>0;
+    let adaptiveActive=false;
+    if(hasExplicitTopic){
+        if(appState.selectedTopic!==explicitTopicId){
+            topics.selectTopic(explicitTopicId!);
+        }
+    }
+    else{
+        adaptiveActive=await applyAdaptiveSafe();
+    }
+    if (!adaptiveActive&&!hasExplicitTopic&&appState.shuffle&&appState.currentMode==="single"){
+        let randomTopic=topics.pickRandomTopic();
+        if (randomTopic){
+            appState.selectedTopic=randomTopic;
+            for(let pill of dom.displays.topicPills){
+                pill.classList.toggle("active",pill.dataset.topicId===randomTopic);
+            }
+        }
+        else{
+            ui.showNotification("No topics available in current scope","warning");
+            return;
+        }
+    }
+    if (!appState.selectedTopic){
+        ui.showNotification("Please select a topic first","warning");
+        return;
+    }
+    if (!dom.displays.answerResults||!dom.inputs.userAnswer||!dom.displays.questionArea||!dom.buttons.checkAnswerButton) return;
+    if (appState.autoTimeout){
+        clearTimeout(appState.autoTimeout);
+        appState.autoTimeout=null;
+    }
+    dom.displays.answerResults.innerHTML=`
+    <div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
+      </svg>
+      <p>Your results will appear here after checking your answer</p>
+    </div>
+  `;
+    dom.displays.answerResults.className="results-display";
+    if (dom.buttons.copyAnswerBtn) dom.buttons.copyAnswerBtn.classList.add("hidden");
+    dom.inputs.userAnswer.value="";
+    if (dom.displays.expectedFormatDiv) dom.displays.expectedFormatDiv.textContent="";
+    questionState.correctAnswer={correct:"",alternate:"",display:""};
+    questionState.expectedFormat="";
+    questionState.hasQuestion=false;
+    dom.buttons.checkAnswerButton.disabled=true;
+    dom.inputs.userAnswer.disabled=true;
+    showQuestionSkeleton();
+    try {
+        // The source is threaded through rather than left to each generator's
+        // default, so a caller that supplies a seed gets the same question, and
+        // the same option order, on every visit. It is only passed when there
+        // is one, so an unseeded caller keeps the generators' own default.
+        if (rng){
+            lastDto=(await callGenerator(appState.selectedTopic,appState.currentDifficulty,rng))||undefined;
+        }
+        else{
+            lastDto=(await callGenerator(appState.selectedTopic,appState.currentDifficulty))||undefined;
+        }
+        hideQuestionSkeleton();
+        if (!questionState.correctAnswer.correct){
+            renderer.render(`<div class="empty-state"><p>Could not generate question. Please try another topic.</p></div>`);
+            questionState.hasQuestion=false;
+            dom.inputs.userAnswer.disabled=false;
+            dom.buttons.checkAnswerButton.disabled=true;
+            ui.updateUIState();
+            return;
+        }
+        questionState.hasQuestion=true;
+        // The help for this question is prepared before it is asked rather than
+        // after, so the hint button is never briefly enabled against the previous
+        // question's ladder.
+        let help=await import("./services/Help");
+        help.prepare(lastDto??{latex:"", correct:questionState.correctAnswer.correct});
+        if (appState.mcqMode){
+            await generateChoicesForCurrentQuestion(rng);
+        }
+        startQuestionTimer();
+    } catch (error) {
+        console.error("Question generation failed:", error);
+        hideQuestionSkeleton();
+        renderer.render(`
+            <div class="empty-state" style="color: var(--error);">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                <p>Failed to generate question. Please try again.</p>
+            </div>
+        `);
+        questionState.hasQuestion=false;
+        dom.inputs.userAnswer.disabled=false;
+        dom.buttons.checkAnswerButton.disabled=true;
+        ui.updateUIState();
+        return;
+    }
+    if (dom.displays.expectedFormatDiv&&questionState.expectedFormat){
+        dom.displays.expectedFormatDiv.textContent="Expected format: "+questionState.expectedFormat;
+    }
+    dom.inputs.userAnswer.disabled=false;
+    dom.inputs.userAnswer.removeAttribute("aria-disabled");
+    dom.buttons.checkAnswerButton.disabled=false;
+    dom.buttons.checkAnswerButton.setAttribute("aria-disabled","false");
+    dom.inputs.userAnswer.focus();
+    ui.updatePreview();
+    ui.updateUIState();
+    renderer.typeset();
+    }
+    finally{
+        appState.isGenerating=false;
+    }
+}

@@ -21,6 +21,14 @@
  *
  * @packageDocumentation
  */
-export * from "./arithmeticUtils.js";
-export * from "./arithmeticBasic.js";
-export * from "./arithmeticAdvanced.js";
+export * from "./ArithmeticUtils.js";
+export * from "./ArithmeticBasic.js";
+export * from "./ArithmeticAdvanced.js";
+export * from "./GenerateLcmPeriods.js";
+export * from "./GenerateLongDivision.js";
+export * from "./GenerateMoneyChange.js";
+export * from "./GenerateNegativeNumbers.js";
+export * from "./GeneratePlaceValue.js";
+export * from "./GeneratePowersOfTen.js";
+export * from "./GeneratePrimeFactorisation.js";
+export * from "./GenerateRoundingEstimate.js";

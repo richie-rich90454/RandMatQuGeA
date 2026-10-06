@@ -35,7 +35,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 
 ### Prerequisites
 
-- **Node.js**: Version 18 or higher
+- **Node.js**: Version 20.19 or higher (Vite 8 requirement; 22.12+ recommended)
 - **Rust**: Latest stable version (install via [rustup](https://rustup.rs/))
 - **Tauri CLI**: Provided via the project's `@tauri-apps/cli` devDependency; run Tauri commands with `npm run tauri ...` (no separate install needed).
 - **Platform-specific dependencies**:  
@@ -70,11 +70,14 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 ├── src/                    # Frontend source code (TypeScript, CSS, HTML)
 │   ├── index.html          # Main web application interface
 │   ├── script.ts           # App entry / wiring
-│   ├── style.css           # Global styles
+│   ├── style.css           # Global styles (glassmorphism theme)
+│   ├── vitest.setup.ts     # Vitest global mocks (Tauri API, three.js, canvas)
 │   ├── main/               # Core application code
-│   │   ├── core/           # domRegistry, questionState, stateStore, questionRenderer
-│   │   └── services/       # topicRegistry and other services
-│   ├── modules/            # Question generation modules (algebra, calculus, etc.)
+│   │   ├── core/           # StateStore, QuestionState, DomRegistry, QuestionRenderer
+│   │   ├── services/       # Storage, Scheduler, ReviewStore, TopicRegistry, EventBinder, MathWorkerClient, DailyChallenge, DailyMode, Help, Backend
+│   │   ├── ui/             # Skeleton, OfflineIndicator, VirtualTopicGrid
+│   │   └── ...             # Settings, Generation, Answer, Session, Mcq, PrintWorksheet, ...
+│   ├── modules/            # Question generation modules (7 subjects, 204 topics)
 │   │   ├── Algebra/
 │   │   ├── Arithmetic/
 │   │   ├── Calculus/
@@ -82,14 +85,19 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 │   │   ├── Geometry/
 │   │   ├── LinearAlgebra/
 │   │   └── Trigonometry/
+│   ├── __tests__/          # 10,000+ Vitest unit tests (mirror src structure)
 │   └── types/              # TypeScript type definitions (global.d.ts)
+├── e2e/                    # Playwright end-to-end tests (393 tests across desktop, Pixel 7, and iPhone 14 projects)
 ├── src-tauri/              # Rust backend (Tauri v2)
 │   ├── src/
-│   │   ├── lib.rs          # Main library logic
+│   │   ├── lib.rs          # Tauri commands (scores, performance, PDF, adaptive)
+│   │   ├── adaptive.rs     # Difficulty + weak-topic recommendation logic
+│   │   ├── pdf.rs          # Rust PDF worksheet engine (printpdf + RaTeX)
 │   │   └── main.rs         # Entry point (calls lib)
-│   ├── Cargo.toml          # Rust dependencies (sqlx, tauri, etc.)
+│   ├── Cargo.toml          # Rust dependencies (sqlx, tauri, printpdf, ratex)
 │   └── tauri.conf.json     # Tauri configuration (window, tray, updater)
-├── public/                 # Public assets (fonts, MathJax, KaTeX)
+├── public/                 # Public assets (fonts, MathJax, KaTeX, service worker)
+├── playwright.config.ts    # E2E config (bundled Chromium + WebKit, dev server on :1331)
 ├── package.json            # Node dependencies and scripts
 ├── vite.config.ts          # Vite build configuration
 ├── tsconfig.json           # TypeScript configuration
@@ -135,48 +143,67 @@ npm run tauri build
 
 The generated bundles will be located in `src-tauri/target/release/bundle/`.
 
+### Bundle Budget
+
+The project enforces a bundle budget to keep the initial-load size small. After building, run:
+```bash
+npm run bundle:check
+```
+
+This checks the gzipped sizes of the initial entry chunks against the budgets:
+- Initial JS entry chunk: ≤ 36 kB gzipped
+- Initial CSS chunk: ≤ 10 kB gzipped
+- Total initial load (HTML + JS + CSS): ≤ 55.5 kB gzipped
+
+Override budgets via env vars (useful for testing): `BUNDLE_JS_BUDGET_KB=40 npm run bundle:check`
+
+The check runs automatically in CI after the build step. If your PR adds a new dependency or significantly changes the initial bundle, verify locally with `npm run build && npm run bundle:check`.
+
 ---
 
 ## Code Style and Conventions
 
+**Read [CODE_STYLE.md](CODE_STYLE.md) at the repository root before you write code.** It is the single authority on formatting, naming, the programming paradigm, the complexity budget, generator correctness, and documentation obligations. Where this file or `AGENTS.md` disagrees with it, `CODE_STYLE.md` wins.
+
+In summary:
+
+- **4-space indentation**, enforced by `.editorconfig` and `rustfmt.toml`. Never tabs.
+- **Dense style**: no blank lines inside function bodies, no spaces around operators, no space between a keyword and its opening paren, `let` for all bindings, semicolons on every statement.
+- **Named exports only**; no default exports; `import type` for type-only imports.
+- **No framework.** This is a vanilla-DOM application with module-level singletons, and the 36 kB gzipped initial-JS budget in `scripts/bundle-check.js` depends on that. Do not add React, Vue or Svelte.
+- **Two invariants CI enforces**: a generator's printed question and its claimed answer must be the same problem, and a multiple choice question must have four options of which exactly one is correct.
+- **JSDoc on exported functions and non-obvious logic**, with `@param` and `@returns`.
+
 ### Rust
 
-- Follow the [Rust style guide](https://doc.rust-lang.org/nightly/style-guide/).
-- Use **tabs** for indentation (as configured in `rustfmt.toml`).
-- Run `cargo fmt` before committing.
+- Run `cargo fmt` before committing. `rustfmt.toml` sets 4-space indentation.
+- `cargo clippy` warnings are errors.
 - Document public functions with `///` comments.
-
-### TypeScript/JavaScript
-
-- Use **tabs** for indentation (configured in `.editorconfig` and `AGENTS.md`).
-- Prefer `let`/`const` over `var`; follow the `AGENTS.md` formatting rules (tabs, no blank lines, braces on the same line).
-- Use **named exports** instead of default exports where possible.
-- Run `npm run typecheck` (TypeScript strict, `tsc --noEmit`) to type-check; there is no ESLint setup.
-
-### CSS
-
-- Use **tabs** for indentation (as configured in `.editorconfig`).
-- Follow BEM naming conventions for class names when appropriate.
-- Keep selectors specific enough to avoid collisions.
+- Commands return `Result<T, String>` with sentence-case messages. Never return `serde_json::Value`; define a struct so the TypeScript side is typed.
+- Database changes go in `src-tauri/migrations/`. Never edit a shipped migration.
 
 ### Documentation
 
-- Add JSDoc comments to all exported functions and complex logic.
-- Use `@fileoverview` at the top of modules to describe the file’s purpose.
-- Include `@param` and `@returns` descriptions for functions.
+Behavior changes update the docs in the same commit. `CODE_STYLE.md` has the table
+mapping each kind of change to the document it requires.
 
 ---
 
 ## Testing
 
-We use **Vitest** for unit testing. Tests are colocated with source as `*.test.ts` files (e.g., `src/main/answer.test.ts`, `src/modules/Algebra/basics/generateFraction.test.ts`).
+The project uses a three-layer test strategy:
 
-To run tests:
-```bash
-npm test            # watch mode (local development)
-npm run test:run    # single non-watch run (CI / one-shot)
-npm run check       # typecheck + non-watch tests
-```
+- **Unit tests** — Vitest + jsdom, colocated under `src/__tests__/` (10,000+ cases):
+  ```bash
+  npm test            # watch mode (local development)
+  npm run test:run    # single non-watch run (CI / one-shot)
+  npm run check       # typecheck + full Vitest run (unit + oracle) + bundle check
+  ```
+- **End-to-end tests** — Playwright in `e2e/` (393 tests across desktop, Pixel 7, and iPhone 14 projects). Uses bundled Chromium + WebKit (desktop, Pixel 7, iPhone 14 projects) and auto-starts the Vite dev server on port 1331:
+  ```bash
+  npm run test:e2e
+  ```
+- **Rust tests** — `cargo test` in `src-tauri/` (227 cases for scores, performance, adaptive logic, and PDF export).
 
 Write tests for new features and bug fixes when applicable. Aim to cover edge cases, especially in answer‑checking logic.
 

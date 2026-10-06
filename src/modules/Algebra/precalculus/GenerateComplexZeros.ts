@@ -1,0 +1,81 @@
+﻿﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
+/**
+ * Complex zeros: Fundamental Theorem, conjugate pairs, factoring.
+ * @fileoverview Generates complex zero questions with MCQ distractors.
+ * @date 2026-04-18
+ */
+export function generateComplexZeros(difficulty?: string, rng: RngFn = Math.random): QuestionDto{
+    const types=["fundamental","conjugate","factor"];
+    const type=types[Math.floor(rng()*types.length)];
+    const max=getMaxForDifficulty(difficulty,3);
+    let expectedFormat="";
+    let correct="";
+    let alternate="";
+    let display="";
+    let mathExpression="";
+    let choices:string[]=[];
+    const a=Math.floor(rng()*max)+1;
+    const b=Math.floor(rng()*max)+1;
+    switch(type){
+        case "fundamental":{
+            const deg=Math.floor(rng()*2)+3;
+            mathExpression=`According to the Fundamental Theorem of Algebra, how many zeros does a polynomial of degree ${deg} have (counting multiplicity)?`;
+            correct=deg.toString();
+            alternate=correct;
+            display=correct;
+            choices=[correct];
+            choices.push((deg+1).toString());
+            choices.push((deg-1).toString());
+            choices.push((deg*2).toString());
+            choices.push((Math.floor(deg/2)).toString());
+            expectedFormat="Enter a number";
+            break;
+        }
+        case "conjugate":{
+            mathExpression=`If a polynomial with real coefficients has a zero at \\( ${a} + ${b}i \\), what other zero must it have?`;
+            const conj=`${a} - ${b}i`;
+            correct=conj;
+            alternate=conj;
+            display=conj;
+            choices=[correct];
+            choices.push(`${a} + ${b}i`);
+            choices.push(`${-a} - ${b}i`);
+            choices.push(`${-a} + ${b}i`);
+            choices.push(`${a} + ${b+1}i`);
+            expectedFormat="Enter as a+bi";
+            break;
+        }
+        case "factor":{
+            const root1=a;
+            const root2=b;
+            const poly=`x^2 - ${root1+root2}x + ${root1*root2}`;
+            mathExpression=`Factor \\( ${poly} \\) over the complex numbers.`;
+            const factored=`(x - ${root1})(x - ${root2})`;
+            correct=factored;
+            alternate=factored;
+            display=factored;
+            choices=[correct];
+            choices.push(`(x + ${root1})(x + ${root2})`);
+            choices.push(`(x - ${root1})(x + ${root2})`);
+            choices.push(`(x + ${root1})(x - ${root2})`);
+            choices.push(`(x - ${root1+1})(x - ${root2})`);
+            expectedFormat="Enter as (x - a)(x - b)";
+            break;
+        }
+    }
+    let uniqueChoices=[...new Set(choices)];
+    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+    if(!uniqueChoices.includes(correct)){
+        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
+        else uniqueChoices=[correct];
+    }
+    return {
+        latex: mathExpression,
+        correct: correct,
+        alternate: alternate,
+        display: display,
+        choices: uniqueChoices,
+        expectedFormat: expectedFormat
+    };
+}

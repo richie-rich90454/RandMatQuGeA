@@ -1,0 +1,1 @@
+﻿export{dom}from"./core/DomRegistry";

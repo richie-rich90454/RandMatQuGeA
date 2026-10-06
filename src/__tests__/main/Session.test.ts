@@ -1,0 +1,673 @@
+﻿/** @vitest-environment jsdom */
+import{describe,it,expect,vi,beforeAll,beforeEach,afterEach}from"vitest";
+vi.mock("../../main/core/DomRegistry",()=>{
+    const timerDisplay={innerHTML:"",style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
+    const scoreDisplay={innerHTML:""};
+    const mentalProgressBar={style:{width:""},setAttribute:vi.fn(),classList:{add:vi.fn(),remove:vi.fn()}};
+    const startSessionBtn={textContent:"",classList:{add:vi.fn(),remove:vi.fn()}};
+    const pauseSessionBtn={style:{display:""},innerHTML:"",setAttribute:vi.fn()};
+    const skipQuestionBtn={style:{display:""}};
+    const userAnswer={value:"",disabled:false,focus:vi.fn(),style:{display:"none"},removeAttribute:vi.fn(),setAttribute:vi.fn(),classList:{add:vi.fn(),remove:vi.fn()}};
+    const answerResults={innerHTML:"",className:"",classList:{add:vi.fn(),remove:vi.fn()}};
+    const questionArea={innerHTML:""};
+    const checkAnswerButton={disabled:false,setAttribute:vi.fn(),removeAttribute:vi.fn()};
+    const currentTopicDisplay={textContent:""};
+    const copyAnswerBtn={style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
+    const expectedFormatDiv={textContent:""};
+    const leaderboardContent={innerHTML:""};
+    const leaderboardCard={classList:{add:vi.fn(),remove:vi.fn()},style:{display:""}};
+    const mcqChoicesContainer={style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
+    const mathToolbar={style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
+    const statisticsPanel={style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
+    const accuracyStat={textContent:""};
+    const avgTimeStat={textContent:""};
+    const unlimitedToggle={checked:false};
+    const modeSingleBtn={classList:{add:vi.fn(),remove:vi.fn(),contains:vi.fn()}};
+    const modeMentalBtn={classList:{add:vi.fn(),remove:vi.fn()},click:vi.fn()};
+    const buttons={startSessionBtn,pauseSessionBtn,skipQuestionBtn,checkAnswerButton,copyAnswerBtn,modeSingleBtn,modeMentalBtn};
+    const inputs={userAnswer,unlimitedToggle};
+    const displays={timerDisplay,scoreDisplay,mentalProgressBar,answerResults,questionArea,currentTopicDisplay,expectedFormatDiv,leaderboardContent,mcqChoicesContainer,mathToolbar,statisticsPanel,accuracyStat,avgTimeStat};
+    const session={leaderboardCard};
+    const dom={buttons,inputs,displays,session};
+    return{dom};
+});
+vi.mock("../../main/core/StateStore",()=>{
+    let sessionActive=false;
+    let sessionPaused=false;
+    let sessionScore={correct:0,total:0};
+    let timeLeft=30;
+    let maxQuestions=5;
+    let currentDifficulty="medium";
+    let selectedTopic:string|null="add";
+    let mentalShuffle=false;
+    let mentalScope="simple";
+    let sessionTimer:any=null;
+    let mentalNextQuestionTimeout:any=null;
+    let unlimitedMode=false;
+    let mcqMode=false;
+    let currentQuestionStartTime:number|null=null;
+    let totalTimeSpent=0;
+    let answeredQuestionsCount=0;
+    const setSessionActive=vi.fn((a:boolean)=>{sessionActive=a;});
+    const setSessionPaused=vi.fn((p:boolean)=>{sessionPaused=p;});
+    const setSessionScore=vi.fn((s:{correct:number,total:number})=>{sessionScore=s;});
+    const setTimeLeft=vi.fn((t:number)=>{timeLeft=t;});
+    const setMaxQuestions=vi.fn((m:number)=>{maxQuestions=m;});
+    const setCurrentDifficulty=vi.fn((d:string)=>{currentDifficulty=d;});
+    const setSelectedTopic=vi.fn((t:string|null)=>{selectedTopic=t;});
+    const setMentalShuffle=vi.fn((s:boolean)=>{mentalShuffle=s;});
+    const setMentalScope=vi.fn((s:string)=>{mentalScope=s;});
+    const setSessionTimer=vi.fn((t:any)=>{sessionTimer=t;});
+    const setMentalNextQuestionTimeout=vi.fn((t:any)=>{mentalNextQuestionTimeout=t;});
+    const setUnlimitedMode=vi.fn((u:boolean)=>{unlimitedMode=u;});
+    const setMcqMode=vi.fn((m:boolean)=>{mcqMode=m;});
+    const setCurrentQuestionStartTime=vi.fn((t:number|null)=>{currentQuestionStartTime=t;});
+    const setTotalTimeSpent=vi.fn((t:number)=>{totalTimeSpent=t;});
+    const setAnsweredQuestionsCount=vi.fn((c:number)=>{answeredQuestionsCount=c;});
+    const appState={
+        get sessionActive(){return sessionActive;},
+        set sessionActive(v:boolean){sessionActive=v;setSessionActive(v);},
+        get sessionPaused(){return sessionPaused;},
+        set sessionPaused(v:boolean){sessionPaused=v;setSessionPaused(v);},
+        get sessionScore(){return sessionScore;},
+        set sessionScore(v:{correct:number,total:number}){sessionScore=v;setSessionScore(v);},
+        get timeLeft(){return timeLeft;},
+        set timeLeft(v:number){timeLeft=v;setTimeLeft(v);},
+        get maxQuestions(){return maxQuestions;},
+        set maxQuestions(v:number){maxQuestions=v;setMaxQuestions(v);},
+        get currentDifficulty(){return currentDifficulty;},
+        set currentDifficulty(v:string){currentDifficulty=v;setCurrentDifficulty(v);},
+        get selectedTopic(){return selectedTopic;},
+        set selectedTopic(v:string|null){selectedTopic=v;setSelectedTopic(v);},
+        get mentalShuffle(){return mentalShuffle;},
+        set mentalShuffle(v:boolean){mentalShuffle=v;setMentalShuffle(v);},
+        get mentalScope(){return mentalScope;},
+        set mentalScope(v:string){mentalScope=v;setMentalScope(v);},
+        get sessionTimer(){return sessionTimer;},
+        set sessionTimer(v:any){sessionTimer=v;setSessionTimer(v);},
+        get mentalNextQuestionTimeout(){return mentalNextQuestionTimeout;},
+        set mentalNextQuestionTimeout(v:any){mentalNextQuestionTimeout=v;setMentalNextQuestionTimeout(v);},
+        get unlimitedMode(){return unlimitedMode;},
+        set unlimitedMode(v:boolean){unlimitedMode=v;setUnlimitedMode(v);},
+        get mcqMode(){return mcqMode;},
+        set mcqMode(v:boolean){mcqMode=v;setMcqMode(v);},
+        get currentQuestionStartTime(){return currentQuestionStartTime;},
+        set currentQuestionStartTime(v:number|null){currentQuestionStartTime=v;setCurrentQuestionStartTime(v);},
+        get totalTimeSpent(){return totalTimeSpent;},
+        set totalTimeSpent(v:number){totalTimeSpent=v;setTotalTimeSpent(v);},
+        get answeredQuestionsCount(){return answeredQuestionsCount;},
+        set answeredQuestionsCount(v:number){answeredQuestionsCount=v;setAnsweredQuestionsCount(v);},
+        setSessionActive,
+        setSessionPaused,
+        setSessionScore,
+        setTimeLeft,
+        setMaxQuestions,
+        setCurrentDifficulty,
+        setSelectedTopic,
+        setMentalShuffle,
+        setMentalScope,
+        setSessionTimer,
+        setMentalNextQuestionTimeout,
+        setUnlimitedMode,
+        setMcqMode,
+        setCurrentQuestionStartTime,
+        setTotalTimeSpent,
+        setAnsweredQuestionsCount
+    };
+    return{appState};
+});
+vi.mock("../../main/core/QuestionState",()=>{
+    return{questionState:{
+        get correctAnswer(){return(window as any).correctAnswer;},
+        set correctAnswer(v:any){(window as any).correctAnswer=v;},
+        get expectedFormat(){return(window as any).expectedFormat;},
+        set expectedFormat(v:any){(window as any).expectedFormat=v;},
+        get hasQuestion(){return(window as any).hasQuestion;},
+        set hasQuestion(v:any){(window as any).hasQuestion=v;}
+    }};
+});
+// The mental session grades through Answer.gradeAnswer, whose last step is
+// Settings.isAnswerCorrect. A stub standing in for that function made every
+// grading assertion here meaningless, so the real one is loaded and only the
+// preferences object is faked.
+vi.mock("../../main/Settings.js",async()=>{
+    const actual=await vi.importActual<any>("../../main/Settings.js");
+    return{
+        settings:{
+            timer:30,
+            maxQuestions:5,
+            sound:false,
+            vibration:false,
+            autoCheckDelay:800,
+            notifications:true,
+            mcqMode:false,
+            decimalPlaces:2
+        },
+        isAnswerCorrect:actual.isAnswerCorrect
+    };
+});
+vi.mock("../../main/Ui.js",()=>({
+    showNotification:vi.fn(),
+    clearAllTimeouts:vi.fn(),
+    updateScoreDisplay:vi.fn(),
+    updateTimerDisplay:vi.fn(),
+    updateProgressBar:vi.fn(),
+    disableTopicSelection:vi.fn(),
+    disableModeButtons:vi.fn(),
+    disableDifficulty:vi.fn(),
+    setSessionButton:vi.fn(),
+    updateUIState:vi.fn(),
+    updatePreview:vi.fn(),
+    updateStatistics:vi.fn(),
+}));
+vi.mock("../../main/Topics.js",()=>({
+    pickRandomTopic:vi.fn(()=>"add"),
+    selectTopic:vi.fn(),
+    scopeIds:vi.fn(()=>["add","subtrt","mult","divid"]),
+    topicName:vi.fn((id:string)=>id),
+    default:{},
+}));
+vi.mock("../../main/QuestionGenerator.js",()=>({
+    generateQuestion:vi.fn(),
+}));
+vi.mock("../../main/Mcq.js",()=>({
+    generateChoicesForCurrentQuestion:vi.fn(),
+}));
+import{saveSessionSnapshot,restoreSessionSnapshot,startTimer,generateNextMentalQuestion,handleMentalAnswer,handleMcqChoice,startMentalSession,pauseMentalSession,skipMentalQuestion,stopMentalSession,endMentalSession,promptSaveScore,updateLeaderboard}from"../../main/Session.js";
+import{gradeAnswer}from"../../main/Answer.js";
+import*as stateStore from"../../main/core/StateStore";
+let state:any=stateStore.appState;
+import * as ui from "../../main/Ui.js";
+import * as settings from "../../main/Settings.js";
+import * as questionGenerator from "../../main/QuestionGenerator.js";
+import * as storage from "../../main/services/Storage.js";
+import{SESSION_STORAGE_KEY}from"../../main/Constants.js";
+let SESSION_KEY=SESSION_STORAGE_KEY;
+/**
+ * Makes this build look like a browser for the duration of a test, which is what
+ * selects the storage path rather than the desktop commands. The global is what
+ * the environment check reads, so removing it is the seam.
+ *
+ * @returns A function that puts the desktop environment back.
+ */
+function useBrowserBuild(): ()=>void{
+    let saved=(globalThis as Record<string, unknown>).__TAURI_INTERNALS__;
+    delete (globalThis as Record<string, unknown>).__TAURI_INTERNALS__;
+    return ()=>{
+        (globalThis as Record<string, unknown>).__TAURI_INTERNALS__=saved;
+    };
+}
+/**
+ * Lets the storage module finish loading and the write behind it settle. A
+ * snapshot is saved without being awaited by design, so a test that asserted in
+ * the same tick would be asserting nothing.
+ *
+ * @returns A promise resolving once the pending writes have had their turn.
+ */
+async function settleStorage(): Promise<void>{
+    for(let i=0;i<5;i++) await new Promise<void>(resolve=>setTimeout(resolve,0));
+}
+describe("session",()=>{
+    window.correctAnswer={correct:"42",alternate:"42",display:"42"};
+    window.hasQuestion=true;
+    it("should export saveSessionSnapshot",()=>{
+        expect(typeof saveSessionSnapshot).toBe("function");
+    });
+    it("saveSessionSnapshot should not throw",()=>{
+        expect(()=>saveSessionSnapshot()).not.toThrow();
+    });
+    it("should export restoreSessionSnapshot",()=>{
+        expect(typeof restoreSessionSnapshot).toBe("function");
+    });
+    it("should export startTimer",()=>{
+        expect(typeof startTimer).toBe("function");
+    });
+    it("should export generateNextMentalQuestion",()=>{
+        expect(typeof generateNextMentalQuestion).toBe("function");
+    });
+    it("should export handleMentalAnswer",()=>{
+        expect(typeof handleMentalAnswer).toBe("function");
+    });
+    it("should export handleMcqChoice",()=>{
+        expect(typeof handleMcqChoice).toBe("function");
+    });
+    it("should export startMentalSession",()=>{
+        expect(typeof startMentalSession).toBe("function");
+    });
+    it("should export pauseMentalSession",()=>{
+        expect(typeof pauseMentalSession).toBe("function");
+    });
+    it("should export skipMentalQuestion",()=>{
+        expect(typeof skipMentalQuestion).toBe("function");
+    });
+    it("should export stopMentalSession",()=>{
+        expect(typeof stopMentalSession).toBe("function");
+    });
+    it("should export endMentalSession",()=>{
+        expect(typeof endMentalSession).toBe("function");
+    });
+    it("should export promptSaveScore",()=>{
+        expect(typeof promptSaveScore).toBe("function");
+    });
+    it("should export updateLeaderboard",()=>{
+        expect(typeof updateLeaderboard).toBe("function");
+    });
+    describe("startMentalSession",()=>{
+        it("should be a function",()=>{
+            expect(typeof startMentalSession).toBe("function");
+        });
+        it("should set session active",()=>{
+            startMentalSession();
+            expect(state.setSessionActive).toHaveBeenCalledWith(true);
+        });
+        it("should reset session score",()=>{
+            startMentalSession();
+            expect(state.setSessionScore).toHaveBeenCalledWith({correct:0,total:0});
+        });
+        it("should start timer",()=>{
+            startMentalSession();
+            expect(state.setSessionTimer).toHaveBeenCalled();
+        });
+        it("should generate first question",()=>{
+            startMentalSession();
+            expect(questionGenerator.generateQuestion).toHaveBeenCalled();
+        });
+        it("should disable topic selection during session",()=>{
+            startMentalSession();
+            expect(ui.disableTopicSelection).toHaveBeenCalledWith(true);
+        });
+    });
+    describe("endMentalSession",()=>{
+        beforeEach(()=>{
+            vi.clearAllMocks();
+            state.setSessionActive(true);
+            state.setSessionPaused(true);
+        });
+        it("should be a function",()=>{
+            expect(typeof endMentalSession).toBe("function");
+        });
+        it("should set session inactive",async()=>{
+            await endMentalSession();
+            expect(state.setSessionActive).toHaveBeenCalledWith(false);
+        });
+        it("should clear session timer",async()=>{
+            await endMentalSession();
+            expect(state.setSessionPaused).toHaveBeenCalledWith(false);
+        });
+        it("should show final score",async()=>{
+            await endMentalSession();
+            expect(ui.showNotification).toHaveBeenCalled();
+        });
+        it("should no-op when no session is active",async()=>{
+            state.setSessionActive(false);
+            vi.clearAllMocks();
+            await endMentalSession();
+            expect(state.setSessionActive).not.toHaveBeenCalled();
+            expect(ui.showNotification).not.toHaveBeenCalled();
+        });
+    });
+    describe("pauseMentalSession",()=>{
+        it("should be a function",()=>{
+            expect(typeof pauseMentalSession).toBe("function");
+        });
+        it("should not throw when called",()=>{
+            expect(()=>pauseMentalSession()).not.toThrow();
+        });
+    });
+    describe("skipMentalQuestion",()=>{
+        it("should be a function",()=>{
+            expect(typeof skipMentalQuestion).toBe("function");
+        });
+        it("should not throw when called",()=>{
+            expect(()=>skipMentalQuestion()).not.toThrow();
+        });
+    });
+    describe("handleMentalAnswer",()=>{
+        it("should be a function",()=>{
+            expect(typeof handleMentalAnswer).toBe("function");
+        });
+        it("should not throw when called",async()=>{
+            await expect(handleMentalAnswer()).resolves.not.toThrow();
+        });
+    });
+    describe("handleMcqChoice",()=>{
+        it("should be a function",()=>{
+            expect(typeof handleMcqChoice).toBe("function");
+        });
+        it("should not throw when called",()=>{
+            expect(()=>handleMcqChoice("42")).not.toThrow();
+        });
+    });
+    describe("saveSessionSnapshot",()=>{
+        it("keeps a private session out of localStorage",async()=>{
+            // The promise a private session makes is that closing the tab erases
+            // every trace of it, and localStorage outlives the tab. A snapshot
+            // written straight to it would keep the score, the timer and the
+            // topic of a session the learner asked not to have kept.
+            let restoreBuild=useBrowserBuild();
+            let setItemSpy=vi.spyOn(Storage.prototype,"setItem");
+            try{
+                storage.setPersistenceMode("zdr");
+                state.setSessionActive(true);
+                saveSessionSnapshot();
+                await settleStorage();
+                let snapshot=setItemSpy.mock.calls.find((c: string[])=>c[0]==="mentalSessionSnapshot");
+                expect(snapshot).toBeUndefined();
+            }
+            finally{
+                setItemSpy.mockRestore();
+                restoreBuild();
+            }
+        });
+        it("should not throw when called",()=>{
+            expect(()=>saveSessionSnapshot()).not.toThrow();
+        });
+    });
+    describe("restoreSessionSnapshot",()=>{
+        it("should be a function",()=>{
+            expect(typeof restoreSessionSnapshot).toBe("function");
+        });
+        it("should not throw when called",async()=>{
+            await expect(restoreSessionSnapshot()).resolves.not.toThrow();
+        });
+    });
+    describe("updateLeaderboard",()=>{
+        it("should be a function",()=>{
+            expect(typeof updateLeaderboard).toBe("function");
+        });
+        it("should not throw when called",async()=>{
+            await expect(updateLeaderboard()).resolves.not.toThrow();
+        });
+    });
+    describe("promptSaveScore",()=>{
+        it("should be a function",()=>{
+            expect(typeof promptSaveScore).toBe("function");
+        });
+    });
+    describe("session scoring",()=>{
+        beforeAll(async()=>{
+            // The grader loads the math engine on first use, and that import alone
+            // can outrun the per-test timeout with coverage instrumentation
+            // multiplying the cost. Warming it once keeps the timeout sensitive to
+            // real hangs instead of the import.
+            await gradeAnswer("1","1");
+        }, 90000);
+        beforeEach(()=>{
+            vi.clearAllMocks();
+            (window as any).hasQuestion=true;
+            (window as any).correctAnswer={correct:"42",alternate:"42",display:"42"};
+        });
+        it("should increment correct count on correct answer",async()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setSessionScore({correct:0,total:0});
+            state.setUnlimitedMode(true);
+            await handleMentalAnswer("42");
+            expect(state.setSessionScore).toHaveBeenLastCalledWith({correct:1,total:1});
+        });
+        it("should increment total count on any answer",async()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setSessionScore({correct:2,total:3});
+            state.setUnlimitedMode(true);
+            await handleMentalAnswer("wrong");
+            expect(state.setSessionScore).toHaveBeenLastCalledWith({correct:2,total:4});
+        });
+        it("should calculate accuracy percentage",()=>{
+            state.setSessionScore({correct:3,total:5});
+            let accuracy=(state.sessionScore.correct/state.sessionScore.total)*100;
+            expect(accuracy).toBe(60);
+        });
+        it("should handle zero correct answers",()=>{
+            state.setSessionScore({correct:0,total:5});
+            let accuracy=(state.sessionScore.correct/state.sessionScore.total)*100;
+            expect(accuracy).toBe(0);
+        });
+        it("should handle perfect score",()=>{
+            state.setSessionScore({correct:5,total:5});
+            let accuracy=(state.sessionScore.correct/state.sessionScore.total)*100;
+            expect(accuracy).toBe(100);
+        });
+        it("should handle mixed correct and incorrect",async()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setSessionScore({correct:1,total:2});
+            state.setUnlimitedMode(true);
+            await handleMentalAnswer("42");
+            expect(state.setSessionScore).toHaveBeenLastCalledWith({correct:2,total:3});
+        });
+        it("should reset timeLeft immediately after scoring (A009 regression)",async()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setSessionScore({correct:0,total:0});
+            state.setUnlimitedMode(true);
+            state.setTimeLeft(1);
+            vi.mocked(ui.updateTimerDisplay).mockClear();
+            await handleMentalAnswer("42");
+            expect(state.setTimeLeft).toHaveBeenCalledWith((settings as any).settings.timer);
+            expect(ui.updateTimerDisplay).toHaveBeenCalled();
+        });
+    });
+    describe("mental-mode grading",()=>{
+        beforeEach(()=>{
+            vi.clearAllMocks();
+            (window as any).hasQuestion=true;
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setUnlimitedMode(true);
+        });
+        async function gradedAsCorrect(key: string, typed: string): Promise<boolean>{
+            (window as any).correctAnswer={correct:key,alternate:"",display:key};
+            state.setSessionScore({correct:0,total:0});
+            await handleMentalAnswer(typed);
+            return state.sessionScore.correct===1;
+        }
+        it("grades an answer with the single-mode comparison",async()=>{
+            // One grader decides in both modes, so an answer the single-question
+            // flow accepts is accepted in a session.
+            expect(await gradedAsCorrect("5","x=5")).toBe(true);
+            expect(await gradedAsCorrect("x^2+2x+1","(x+1)^2")).toBe(true);
+            expect(await gradedAsCorrect("x+2y","2y+x")).toBe(true);
+        });
+        it("accepts a degree-marked key and a \\cdot key",async()=>{
+            // Angles print as 45^{\circ} and a product as 2\cdot3, and the
+            // number the learner typed is the same answer.
+            expect(await gradedAsCorrect("45^{\\circ}","45")).toBe(true);
+            expect(await gradedAsCorrect("2\\cdot3","6")).toBe(true);
+        });
+    });
+    describe("session timer",()=>{
+        beforeEach(()=>{
+            vi.clearAllMocks();
+            vi.useFakeTimers();
+        });
+        afterEach(()=>{
+            vi.useRealTimers();
+        });
+        it("should count down from initial time",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setUnlimitedMode(false);
+            state.setTimeLeft(30);
+            startTimer();
+            vi.advanceTimersByTime(1000);
+            expect(state.setTimeLeft).toHaveBeenCalledWith(29);
+        });
+        it("should stop at zero",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setUnlimitedMode(false);
+            state.setTimeLeft(1);
+            startTimer();
+            vi.advanceTimersByTime(1000);
+            expect(state.setTimeLeft).toHaveBeenCalledWith(0);
+        });
+        it("should not go below zero",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setUnlimitedMode(false);
+            state.setTimeLeft(1);
+            startTimer();
+            vi.advanceTimersByTime(2000);
+            let calls=vi.mocked(state.setTimeLeft).mock.calls.map((c: number[])=>c[0]);
+            let belowZero=calls.some((v: number)=>v<0);
+            expect(belowZero).toBe(false);
+        });
+        it("should handle unlimited mode",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(false);
+            state.setUnlimitedMode(true);
+            startTimer();
+            expect(state.setSessionTimer).not.toHaveBeenCalled();
+        });
+        it("should pause timer correctly",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(true);
+            state.setUnlimitedMode(false);
+            state.setTimeLeft(30);
+            startTimer();
+            vi.advanceTimersByTime(2000);
+            expect(state.setTimeLeft).not.toHaveBeenCalledWith(29);
+        });
+        it("should resume timer correctly",()=>{
+            state.setSessionActive(true);
+            state.setSessionPaused(true);
+            state.setUnlimitedMode(false);
+            state.setTimeLeft(30);
+            startTimer();
+            state.setSessionPaused(false);
+            vi.advanceTimersByTime(1000);
+            expect(state.setTimeLeft).toHaveBeenCalled();
+        });
+    });
+    describe("session snapshot",()=>{
+        beforeEach(async()=>{
+            vi.clearAllMocks();
+            storage.setPersistenceMode("zdr");
+            await storage.remove(SESSION_KEY);
+        });
+        afterEach(async()=>{
+            // A restore resumes the session, which starts a timer and generates
+            // a question. Neither is awaited by the restore, so both are given a
+            // turn to finish here rather than landing inside the next test.
+            await settleStorage();
+            await storage.remove(SESSION_KEY);
+        });
+        async function readSnapshot(): Promise<any>{
+            await settleStorage();
+            return await storage.read<any>(SESSION_KEY);
+        }
+        it("should save topic to snapshot",async()=>{
+            state.setSessionActive(true);
+            state.setSelectedTopic("subtract");
+            saveSessionSnapshot();
+            let saved=await readSnapshot();
+            expect(saved).toBeTruthy();
+            expect(saved.selectedTopic).toBe("subtract");
+        });
+        it("should save score to snapshot",async()=>{
+            state.setSessionActive(true);
+            state.setSessionScore({correct:3,total:7});
+            saveSessionSnapshot();
+            let saved=await readSnapshot();
+            expect(saved).toBeTruthy();
+            expect(saved.sessionScore).toEqual({correct:3,total:7});
+        });
+        it("should save time remaining to snapshot",async()=>{
+            state.setSessionActive(true);
+            state.setTimeLeft(15);
+            saveSessionSnapshot();
+            let saved=await readSnapshot();
+            expect(saved).toBeTruthy();
+            expect(saved.timeLeft).toBe(15);
+        });
+        it("should restore topic from snapshot",async()=>{
+            await storage.write(SESSION_KEY,{
+                sessionScore:{correct:2,total:4},
+                timeLeft:20,
+                maxQuestions:5,
+                currentDifficulty:"hard",
+                mentalShuffle:false,
+                mentalScope:"simple",
+                selectedTopic:"mult",
+                timestamp:Date.now()
+            });
+            await restoreSessionSnapshot();
+            expect(state.setSelectedTopic).toHaveBeenCalledWith("mult");
+        });
+        it("should restore score from snapshot",async()=>{
+            await storage.write(SESSION_KEY,{
+                sessionScore:{correct:4,total:6},
+                timeLeft:10,
+                maxQuestions:5,
+                currentDifficulty:"easy",
+                mentalShuffle:false,
+                mentalScope:"simple",
+                selectedTopic:"add",
+                timestamp:Date.now()
+            });
+            await restoreSessionSnapshot();
+            expect(state.setSessionScore).toHaveBeenCalledWith({correct:4,total:6});
+        });
+        it("should handle corrupted snapshot",async()=>{
+            // A stored value is untrusted whatever wrote it, and a value that is
+            // not a snapshot at all is the shape corruption takes now that the
+            // snapshot is a structured record rather than a JSON string.
+            await storage.write(SESSION_KEY,"not-a-snapshot");
+            await expect(restoreSessionSnapshot()).resolves.not.toThrow();
+            expect(state.setSessionActive).not.toHaveBeenCalled();
+        });
+        it("should handle missing snapshot",async()=>{
+            await storage.remove(SESSION_KEY);
+            await expect(restoreSessionSnapshot()).resolves.not.toThrow();
+            expect(state.setSessionActive).not.toHaveBeenCalled();
+        });
+        it("should clear snapshot after restore",async()=>{
+            await storage.write(SESSION_KEY,{
+                sessionScore:{correct:1,total:3},
+                timeLeft:25,
+                maxQuestions:5,
+                currentDifficulty:"medium",
+                mentalShuffle:false,
+                mentalScope:"simple",
+                selectedTopic:"add",
+                timestamp:Date.now()
+            });
+            await restoreSessionSnapshot();
+            expect(await storage.read(SESSION_KEY)).toBeUndefined();
+        });
+        it("should discard a snapshot older than an hour",async()=>{
+            await storage.write(SESSION_KEY,{
+                sessionScore:{correct:1,total:3},
+                timeLeft:25,
+                maxQuestions:5,
+                currentDifficulty:"medium",
+                mentalShuffle:false,
+                mentalScope:"simple",
+                selectedTopic:"add",
+                timestamp:Date.now()-(2*60*60*1000)
+            });
+            await restoreSessionSnapshot();
+            expect(state.setSessionActive).not.toHaveBeenCalled();
+            expect(await storage.read(SESSION_KEY)).toBeUndefined();
+        });
+        it("keeps a snapshot out of localStorage in a private session",async()=>{
+            // The key this app reads is not one of the legacy keys the migration
+            // moves, so nothing else will ever clear a snapshot a build wrote
+            // straight to localStorage. It has to be stopped at the source.
+            let restoreBuild=useBrowserBuild();
+            let setItemSpy=vi.spyOn(Storage.prototype,"setItem");
+            try{
+                state.setSessionActive(true);
+                saveSessionSnapshot();
+                await settleStorage();
+                let written=setItemSpy.mock.calls.find((c: string[])=>c[0]===SESSION_KEY);
+                expect(written).toBeUndefined();
+            }
+            finally{
+                setItemSpy.mockRestore();
+                restoreBuild();
+            }
+        });
+    });
+});

@@ -1,0 +1,772 @@
+import{dom}from"./core/DomRegistry";
+import{appState}from"./core/StateStore";
+import{questionState}from"./core/QuestionState";
+import * as settings from"./Settings";
+import * as ui from"./Ui";
+import * as topics from"./Topics";
+import * as generation from"./Generation";
+import * as answer from"./Answer";
+import * as session from"./Session";
+import{checkForUpdate,relaunchApp}from"./services/Backend";
+import{isTauri,adaptiveAvailable}from"../utils/envUtils";
+import{effectivePersistence}from"./Settings";
+import type{PersistenceMode}from"./services/Storage";
+import type{Confidence}from"./services/Scheduler";
+import * as dailyMode from"./services/DailyMode";
+import packageJson from"../../package.json";
+export async function isVersionGreater(v1: string, v2: string): Promise<boolean>{
+    let semver=(await import("semver")).default;
+    let cleanV1=v1.replace(/^v/, "");
+    let cleanV2=v2.replace(/^v/, "");
+    return semver.gt(cleanV1, cleanV2);
+}
+export function switchToSingle(): void{
+    if (dom.buttons.modeSingleBtn?.classList.contains("disabled")) return;
+    ui.clearAllTimeouts();
+    // Leaving a mode that is not the one being entered is what keeps the daily
+    // set's own progress from being reset by an incidental switch.
+    if (dom.daily.modeDailyBtn?.classList.contains("active")) dailyMode.leave();
+    dom.buttons.modeSingleBtn?.classList.add("active");
+    dom.buttons.modeMentalBtn?.classList.remove("active");
+    dom.daily.modeDailyBtn?.classList.remove("active");
+    dom.daily.modeDailyBtn?.setAttribute("aria-pressed","false");
+    appState.currentMode="single";
+    if (dom.session.mentalControls) dom.session.mentalControls.classList.add("hidden");
+    if (dom.session.singleControls) dom.session.singleControls.classList.remove("hidden");
+    if (appState.sessionActive) session.endMentalSession().catch((err: unknown)=>console.error("endMentalSession failed:",err));
+    if (appState.autoTimeout){
+        clearTimeout(appState.autoTimeout);
+        appState.autoTimeout=null;
+    }
+    if (dom.inputs.scopeSelect) dom.inputs.scopeSelect.value=appState.scope;
+    if (dom.inputs.shuffleToggle) dom.inputs.shuffleToggle.checked=appState.shuffle;
+    ui.updateAriaPressed();
+    topics.renderTopicGrid();
+    ui.updateUIState();
+}
+export function switchToDaily(): void{
+    if (dom.daily.modeDailyBtn?.classList.contains("disabled")) return;
+    dailyMode.rememberMode(appState.currentMode==="mental"?"mental":"single");
+    ui.clearAllTimeouts();
+    dom.daily.modeDailyBtn?.classList.add("active");
+    dom.buttons.modeSingleBtn?.classList.remove("active");
+    dom.buttons.modeMentalBtn?.classList.remove("active");
+    appState.currentMode="single";
+    if (dom.session.mentalControls) dom.session.mentalControls.classList.add("hidden");
+    if (dom.session.singleControls) dom.session.singleControls.classList.remove("hidden");
+    if (appState.sessionActive) session.endMentalSession().catch((err: unknown)=>console.error("endMentalSession failed:",err));
+    if (appState.autoTimeout){
+        clearTimeout(appState.autoTimeout);
+        appState.autoTimeout=null;
+    }
+    ui.updateAriaPressed();
+    topics.renderTopicGrid();
+    dailyMode.enter().catch((err: unknown)=>console.error("daily challenge failed:",err));
+    ui.updateUIState();
+}
+export function switchToMental(): void{
+    if (dom.buttons.modeMentalBtn?.classList.contains("disabled")) return;
+    ui.clearAllTimeouts();
+    dom.buttons.modeMentalBtn?.classList.add("active");
+    dom.buttons.modeSingleBtn?.classList.remove("active");
+    dom.daily.modeDailyBtn?.classList.remove("active");
+    dom.daily.modeDailyBtn?.setAttribute("aria-pressed","false");
+    appState.currentMode="mental";
+    if (dom.session.mentalControls) dom.session.mentalControls.classList.remove("hidden");
+    if (dom.session.singleControls) dom.session.singleControls.classList.add("hidden");
+    if (appState.sessionActive) session.endMentalSession().catch((err: unknown)=>console.error("endMentalSession failed:",err));
+    if (appState.autoTimeout){
+        clearTimeout(appState.autoTimeout);
+        appState.autoTimeout=null;
+    }
+    if (dom.inputs.mentalScopeSelect) dom.inputs.mentalScopeSelect.value=appState.mentalScope;
+    if (dom.inputs.mentalShuffleToggle) dom.inputs.mentalShuffleToggle.checked=appState.mentalShuffle;
+    ui.updateAriaPressed();
+    topics.renderTopicGrid();
+    ui.updateUIState();
+}
+function handleMathShortcuts(e: KeyboardEvent): void{
+    if (!dom.inputs.userAnswer) return;
+    if (document.activeElement !== dom.inputs.userAnswer) return;
+    if (e.ctrlKey || e.metaKey) return;
+    switch (e.key){
+        case "/":
+            e.preventDefault();
+            ui.insertSymbol("\\frac{}{}");
+            break;
+        case "^":
+            e.preventDefault();
+            ui.insertSymbol("^{}");
+            break;
+        case "_":
+            e.preventDefault();
+            ui.insertSymbol("_{}");
+            break;
+    }
+}
+/** The element that opened the current modal, for focus to return to on close. */
+let modalTrigger: HTMLElement|null=null;
+/**
+ * Reports the six dialogs in a fixed order, skipping the ones that are absent.
+ *
+ * @returns The dialog elements that exist.
+ */
+function allModals(): HTMLElement[]{
+    let modals=[dom.modals.settingsModal, dom.modals.shortcutsModal, dom.modals.onboardingOverlay, dom.modals.printModal, dom.modals.weakTopicsModal, dom.modals.dataModal];
+    let found: HTMLElement[]=[];
+    for(let modal of modals){
+        if(modal) found.push(modal);
+    }
+    return found;
+}
+/**
+ * Reports the first keyboard target inside a dialog: its close button when it
+ * has one, else the first button, input, select or link.
+ *
+ * @param modal - The dialog to search.
+ * @returns The element to focus, or null when there is none.
+ */
+function firstFocusable(modal: HTMLElement): HTMLElement|null{
+    let close=modal.querySelector(".modal-close, [data-close]") as HTMLElement|null;
+    if(close) return close;
+    return modal.querySelector("button, input, select, textarea, a[href]") as HTMLElement|null;
+}
+/**
+ * Keeps keyboard focus inside open dialogs. Every dialog opens from a different
+ * call site, so watching the class list is the one hook that covers them all:
+ * on show the trigger is remembered and focus moves in, on hide focus returns.
+ * Without this, Tab walks out of the dialog into the app behind it.
+ */
+function watchModals(): void{
+    let observer=new MutationObserver((entries)=>{
+        for(let entry of entries){
+            let modal=entry.target as HTMLElement;
+            if(modal.classList.contains("show")){
+                if(document.activeElement instanceof HTMLElement) modalTrigger=document.activeElement;
+                let first=firstFocusable(modal);
+                if(first) first.focus();
+            }
+            else if(modalTrigger){
+                modalTrigger.focus();
+                modalTrigger=null;
+            }
+        }
+    });
+    for(let modal of allModals()){
+        try{
+            observer.observe(modal,{attributes:true,attributeFilter:["class"]});
+        }
+        catch(e){
+            console.warn("Could not watch a dialog for focus trapping:",e);
+        }
+    }
+}
+/**
+ * Cycles Tab inside the open dialog, if there is one. Tab on the last target
+ * returns to the first, and Shift+Tab on the first returns to the last, so the
+ * keyboard cannot leave for the app behind the dialog.
+ *
+ * @param event - The key event to handle, or null when no dialog is open.
+ * @returns True when the event was consumed by the trap.
+ */
+function trapModalTab(event: KeyboardEvent): boolean{
+    if(event.key!=="Tab") return false;
+    let open: HTMLElement|null=null;
+    for(let modal of allModals()){
+        if(modal.classList.contains("show")) open=modal;
+    }
+    if(!open) return false;
+    let items=open.querySelectorAll("button, input, select, textarea, a[href]");
+    let targets: HTMLElement[]=[];
+    for(let i=0;i<items.length;i++){
+        let item=items[i] as HTMLElement;
+        if(!item.hasAttribute("disabled")) targets.push(item);
+    }
+    if(targets.length===0) return false;
+    let first=targets[0];
+    let last=targets[targets.length-1];
+    if(event.shiftKey&&document.activeElement===first){
+        event.preventDefault();
+        last.focus();
+        return true;
+    }
+    else if(!event.shiftKey&&document.activeElement===last){
+        event.preventDefault();
+        first.focus();
+        return true;
+    }
+    return false;
+}
+export async function setupEventListeners(): Promise<void>{
+    watchModals();
+    if (dom.buttons.generateQuestionButton){
+        dom.buttons.generateQuestionButton.addEventListener("click",generation.debounceGenerate);
+    }
+    else{
+        console.warn("Missing element for listener: generateQuestionButton");
+    }
+    if (dom.buttons.checkAnswerButton){
+        dom.buttons.checkAnswerButton.addEventListener("click",()=>{
+            if (appState.currentMode==="single") answer.checkAnswer().catch((err: unknown)=>console.error("checkAnswer failed:",err));
+            else if (appState.sessionActive) session.handleMentalAnswer().catch((err: unknown)=>console.error("handleMentalAnswer failed:",err));
+        });
+    }
+    else{
+        console.warn("Missing element for listener: checkAnswerButton");
+    }
+    if (dom.inputs.userAnswer){
+        dom.inputs.userAnswer.addEventListener("keydown",(e: KeyboardEvent)=>{
+            if (e.shiftKey&&e.key==="Enter"){
+                e.preventDefault();
+                if (!questionState.hasQuestion) return;
+                if (dom.buttons.checkAnswerButton?.disabled) return;
+                if (appState.currentMode==="single") answer.checkAnswer().catch((err: unknown)=>console.error("checkAnswer failed:",err));
+                else if (appState.sessionActive) session.handleMentalAnswer().catch((err: unknown)=>console.error("handleMentalAnswer failed:",err));
+            }
+        });
+        dom.inputs.userAnswer.addEventListener("input",()=>{
+            ui.updatePreviewDebounced();
+        });
+        dom.inputs.userAnswer.addEventListener("keydown",handleMathShortcuts);
+    }
+    else{
+        console.warn("Missing element for listener: userAnswer");
+    }
+    document.addEventListener("keydown",(e: KeyboardEvent)=>{
+        if (e.ctrlKey||e.metaKey){
+            let ae=document.activeElement;
+            let isTyping=ae instanceof HTMLInputElement||ae instanceof HTMLTextAreaElement||ae instanceof HTMLSelectElement;
+            // These six are every element carrying the modal class, so asking
+            // them is the same question as searching the document for one that
+            // is shown, without a scan on a keystroke.
+            let modals=[dom.modals.settingsModal,dom.modals.shortcutsModal,dom.modals.onboardingOverlay,dom.modals.printModal,dom.modals.weakTopicsModal,dom.modals.dataModal];
+            if (modals.some(modal=>modal?.classList.contains("show"))) return;
+            switch (e.key){
+                case "g": case "G":
+                    if (isTyping) break;
+                    e.preventDefault();
+                    if (appState.currentMode==="single") generation.debounceGenerate();
+                    break;
+                case "Enter":
+                    if (e.shiftKey) break;
+                    if (!questionState.hasQuestion) break;
+                    if (dom.buttons.checkAnswerButton?.disabled) break;
+                    e.preventDefault();
+                    if (appState.currentMode==="single") answer.checkAnswer().catch((err: unknown)=>console.error("checkAnswer failed:",err));
+                    else if (appState.sessionActive) session.handleMentalAnswer().catch((err: unknown)=>console.error("handleMentalAnswer failed:",err));
+                    break;
+                case "1":
+                    if (isTyping) break;
+                    e.preventDefault();
+                    if (!dom.buttons.modeSingleBtn?.classList.contains("disabled")) dom.buttons.modeSingleBtn?.click();
+                    break;
+                case "2":
+                    if (isTyping) break;
+                    e.preventDefault();
+                    if (!dom.buttons.modeMentalBtn?.classList.contains("disabled")) dom.buttons.modeMentalBtn?.click();
+                    break;
+                case ",":
+                    if (isTyping) break;
+                    e.preventDefault();
+                    settings.openSettings();
+                    break;
+                case "t": case "T":
+                    if (e.shiftKey){
+                        if (isTyping) break;
+                        e.preventDefault();
+                        dom.buttons.themeToggle?.click();
+                    }
+                    break;
+            }
+        }
+    });
+    document.addEventListener("keydown", (e: KeyboardEvent)=>{
+        if(trapModalTab(e)) return;
+        if (e.key==="Escape") {
+            let dropdown=document.getElementById("math-dropdown");
+            if (dropdown&&dropdown.classList.contains("show")){
+                dropdown.classList.remove("show");
+                let dropdownBtn=document.getElementById("math-dropdown-btn");
+                if (dropdownBtn) dropdownBtn.setAttribute("aria-expanded","false");
+            }
+            let openModals=[dom.modals.settingsModal, dom.modals.shortcutsModal, dom.modals.onboardingOverlay, dom.modals.printModal, dom.modals.weakTopicsModal, dom.modals.dataModal];
+            openModals.forEach(modal=>{
+                if (modal && modal.classList.contains("show")) {
+                    modal.classList.remove("show");
+                    modal.classList.add("hidden");
+                    if (modal===dom.modals.settingsModal){ settings.closeSettings(); document.getElementById("settings-button")?.focus(); }
+                    else if (modal===dom.modals.shortcutsModal){ ui.hideShortcutsModal(); document.getElementById("shortcuts-button")?.focus(); }
+                    else if (modal===dom.modals.onboardingOverlay){ ui.hideOnboarding(); }
+                    else if (modal===dom.modals.printModal){ document.getElementById("print-worksheet-btn")?.focus(); }
+                    else if (modal===dom.modals.weakTopicsModal){ document.getElementById("recommend-btn")?.focus(); }
+                    else if (modal===dom.modals.dataModal){ document.getElementById("manage-data-btn")?.focus(); }
+                }
+            });
+        }
+    });
+    if (dom.buttons.helpButton){
+        dom.buttons.helpButton.addEventListener("click",()=>{
+            ui.showNotification("Select a topic, generate a question, enter your answer, and check it!","info");
+        });
+    }
+    else{
+        console.warn("Missing element for listener: helpButton");
+    }
+    if (dom.buttons.settingsButton){
+        dom.buttons.settingsButton.addEventListener("click",settings.openSettings);
+    }
+    else{
+        console.warn("Missing element for listener: settingsButton");
+    }
+    if (dom.buttons.settingsClose) dom.buttons.settingsClose.addEventListener("click",settings.closeSettings);
+    if (dom.buttons.settingsSave) dom.buttons.settingsSave.addEventListener("click",()=>{
+        settings.saveSettings();
+        ui.syncSettingsToState();
+        settings.closeSettings();
+    });
+    if (dom.buttons.settingsReset) dom.buttons.settingsReset.addEventListener("click",settings.resetSettings);
+    if (dom.modals.settingsModal) dom.modals.settingsModal.addEventListener("click",(e)=>{
+        if (e.target===dom.modals.settingsModal) settings.closeSettings();
+    });
+    if (dom.buttons.settingsTabBasic && dom.buttons.settingsTabAdvanced && dom.session.settingsBasicPanel && dom.session.settingsAdvancedPanel){
+        dom.buttons.settingsTabBasic.addEventListener("click",()=>{
+            dom.buttons.settingsTabBasic?.classList.add("active");
+            dom.buttons.settingsTabAdvanced?.classList.remove("active");
+            if (dom.session.settingsBasicPanel){dom.session.settingsBasicPanel.classList.remove("hidden");}
+            if (dom.session.settingsAdvancedPanel){dom.session.settingsAdvancedPanel.classList.add("hidden");}
+        });
+        dom.buttons.settingsTabAdvanced.addEventListener("click",()=>{
+            dom.buttons.settingsTabAdvanced?.classList.add("active");
+            dom.buttons.settingsTabBasic?.classList.remove("active");
+            if (dom.session.settingsAdvancedPanel){dom.session.settingsAdvancedPanel.classList.remove("hidden");}
+            if (dom.session.settingsBasicPanel){dom.session.settingsBasicPanel.classList.add("hidden");}
+        });
+    }
+    if (dom.settings.settingsTheme){
+        dom.settings.settingsTheme.addEventListener("change",(e)=>settings.previewSetting("theme",(e.target as HTMLSelectElement).value).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsDefaultMode){
+        dom.settings.settingsDefaultMode.addEventListener("change",(e)=>settings.previewSetting("defaultMode",(e.target as HTMLSelectElement).value).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsAutoContinue){
+        dom.settings.settingsAutoContinue.addEventListener("change",(e)=>settings.previewSetting("autoContinue",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsShuffle){
+        dom.settings.settingsShuffle.addEventListener("change",(e)=>settings.previewSetting("shuffle",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsScope){
+        dom.settings.settingsScope.addEventListener("change",(e)=>settings.previewSetting("scope",(e.target as HTMLSelectElement).value).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsDifficulty){
+        dom.settings.settingsDifficulty.addEventListener("change",(e)=>settings.previewSetting("difficulty",(e.target as HTMLSelectElement).value).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsTimer){
+        dom.settings.settingsTimer.addEventListener("input",(e)=>settings.previewSetting("timer",(e.target as HTMLInputElement).value).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsMaxQuestions){
+        dom.settings.settingsMaxQuestions.addEventListener("input",(e)=>settings.previewSetting("maxQuestions",(e.target as HTMLInputElement).value).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsFont){
+        dom.settings.settingsFont.addEventListener("change",(e)=>settings.previewSetting("font",(e.target as HTMLSelectElement).value).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsPerfMaster){
+        dom.settings.settingsPerfMaster.addEventListener("change",(e)=>settings.previewSetting("perfMaster",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsPerfWave){
+        dom.settings.settingsPerfWave.addEventListener("change",(e)=>settings.previewSetting("perfWave",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsPerfBlur){
+        dom.settings.settingsPerfBlur.addEventListener("change",(e)=>settings.previewSetting("perfBlur",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsPerfPreview){
+        dom.settings.settingsPerfPreview.addEventListener("change",(e)=>settings.previewSetting("perfPreview",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsPerfAnimations){
+        dom.settings.settingsPerfAnimations.addEventListener("change",(e)=>settings.previewSetting("perfAnimations",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsFpsCap){
+        dom.settings.settingsFpsCap.addEventListener("change",(e)=>settings.previewSetting("fpsCap",(e.target as HTMLSelectElement).value).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsNotifications){
+        dom.settings.settingsNotifications.addEventListener("change",(e)=>settings.previewSetting("notifications",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsAutoCheckDelay){
+        dom.settings.settingsAutoCheckDelay.addEventListener("input",(e)=>settings.previewSetting("autoCheckDelay",(e.target as HTMLInputElement).value).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsDecimalPlaces){
+        dom.settings.settingsDecimalPlaces.addEventListener("input",(e)=>settings.previewSetting("decimalPlaces",(e.target as HTMLInputElement).value).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsSound){
+        dom.settings.settingsSound.addEventListener("change",(e)=>settings.previewSetting("sound",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsVibration){
+        dom.settings.settingsVibration.addEventListener("change",(e)=>settings.previewSetting("vibration",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsMcqChoices){
+        dom.settings.settingsMcqChoices.addEventListener("input",(e)=>settings.previewSetting("mcqChoicesCount",parseInt((e.target as HTMLInputElement).value,10)||4).catch((err: unknown)=>console.error("previewSetting failed:",err)));
+    }
+    if (dom.settings.settingsAdaptive){
+        dom.settings.settingsAdaptive.addEventListener("change",(e)=>{
+            settings.previewSetting("adaptive",(e.target as HTMLInputElement).checked).catch((err: unknown)=>console.error("previewSetting failed:",err));
+            settings.saveSettings();
+        });
+    }
+    if (dom.settings.settingsPersistence){
+        dom.settings.settingsPersistence.addEventListener("change",async (e)=>{
+            let chosen: PersistenceMode=(e.target as HTMLSelectElement).value==="indexed"?"indexed":"zdr";
+            await settings.applyPersistence(chosen);
+            settings.applyPersistenceVisibility();
+            // A private session keeps the record in memory only, so it has to be
+            // read again from the store the new choice uses rather than left as it
+            // was when the session began.
+            (await import("./services/ReviewStore")).loadRecords();
+            settings.saveSettings();
+            ui.showNotification(chosen==="zdr"
+                ? "Private session on. Nothing will be kept after you close this tab."
+                : "Your progress will be remembered in this browser.");
+        });
+    }
+    if (dom.settings.settingsEraseData){
+        dom.settings.settingsEraseData.addEventListener("click",async ()=>{
+            if (!confirm("Erase your learning record and streak from this device? This cannot be undone.")) return;
+            let reviewStore=await import("./services/ReviewStore");
+            await reviewStore.forgetEverything();
+            let store=await import("./services/Storage");
+            await store.clear();
+            ui.showNotification("Your learning record has been erased from this device.");
+        });
+    }
+    if (dom.help.showHintBtn){
+        dom.help.showHintBtn.addEventListener("click",()=>{
+            import("./services/Help").then(h=>h.reveal()).catch((err:unknown)=>console.error("hint failed:",err));
+        });
+    }
+    if (dom.help.showSolutionBtn){
+        dom.help.showSolutionBtn.addEventListener("click",()=>{
+            import("./services/Help").then(h=>h.revealSolution()).catch((err:unknown)=>console.error("solution failed:",err));
+        });
+    }
+    for(let button of dom.help.confidenceButtons){
+        button.addEventListener("click",()=>{
+            let value=button.dataset.confidence as Confidence|undefined;
+            if (!value) return;
+            import("./services/Help").then(h=>h.recordConfidence(value, adaptiveAvailable(effectivePersistence()))).catch((err:unknown)=>console.error("confidence failed:",err));
+        });
+    }
+    if (dom.buttons.checkUpdatesBtn){
+        dom.buttons.checkUpdatesBtn.addEventListener("click", async ()=>{
+            if (!isTauri()){
+                ui.showNotification("Updates are only available in the desktop app.","warning");
+                return;
+            }
+            let button=dom.buttons.checkUpdatesBtn!;
+            button.disabled=true;
+            let originalText=button.textContent;
+            button.textContent="Checking...";
+            try{
+                let update=await checkForUpdate();
+                if (!update){
+                    ui.showNotification("You are already using the latest version.");
+                    return;
+                }
+                let currentVer=packageJson.version;
+                let updateVer=update.version.replace(/^v/, "");
+                if (!(await isVersionGreater(updateVer, currentVer))) {
+                    ui.showNotification("You are already using the latest version.");
+                    return;
+                }
+                if (!confirm(`Version ${update.version} is available!\n\nRelease notes:\n${update.body || "No release notes available"}\n\nDownload and install now?`)) {
+                    return;
+                }
+                button.textContent="Downloading 0%";
+                // The progress event reports the size of the chunk that just
+                // arrived, not a running total, so dividing one chunk by the
+                // content length restarts the percentage on every chunk and
+                // never reflects the download. The total is accumulated here and
+                // the content length is taken from the started event.
+                let downloaded=0;
+                let contentLength=0;
+                await update.downloadAndInstall((progress)=>{
+                    if (progress.event==="Started"){
+                        contentLength=progress.data.contentLength??0;
+                        return;
+                    }
+                    if (progress.event==="Progress"){
+                        downloaded+=progress.data.chunkLength??0;
+                        if (contentLength>0){
+                            let percent=Math.min(100, Math.round((downloaded/contentLength)*100));
+                            button.textContent="Downloading "+percent+"%";
+                        }
+                        return;
+                    }
+                    if (progress.event==="Finished"){
+                        button.textContent="Installing...";
+                    }
+                });
+                ui.showNotification("Update installed. The app will now restart.");
+                await relaunchApp();
+            } catch (err) {
+                // A failed update must be visible. Silently returning here left
+                // a user whose install failed with no indication of why, and the
+                // comment claimed these were all offline network errors.
+                console.error("Update check or install failed:",err);
+                ui.showNotification("The update could not be installed. You are still on version "+packageJson.version+".","warning");
+            } finally {
+                button.disabled=false;
+                button.textContent=originalText;
+            }
+        });
+    }
+    if (dom.buttons.modeSingleBtn){
+        dom.buttons.modeSingleBtn.addEventListener("click",switchToSingle);
+    }
+    else{
+        console.warn("Missing element for listener: modeSingleBtn");
+    }
+    if (dom.buttons.modeMentalBtn){
+        dom.buttons.modeMentalBtn.addEventListener("click",switchToMental);
+    }
+    else{
+        console.warn("Missing element for listener: modeMentalBtn");
+    }
+    if (dom.daily.modeDailyBtn){
+        dom.daily.modeDailyBtn.addEventListener("click",switchToDaily);
+    }
+    else{
+        console.warn("Missing element for listener: modeDailyBtn");
+    }
+    if (dom.daily.dailyStartBtn){
+        dom.daily.dailyStartBtn.addEventListener("click",()=>{
+            dailyMode.next().catch((err: unknown)=>console.error("daily challenge failed:",err));
+        });
+    }
+    if (dom.daily.dailyStreak){
+        dom.daily.dailyStreak.addEventListener("click",()=>{
+            dailyMode.enter().catch((err: unknown)=>console.error("daily challenge failed:",err));
+        });
+    }
+    if (dom.inputs.difficultySelect){
+        dom.inputs.difficultySelect.addEventListener("change",(e: Event)=>{
+            appState.currentDifficulty=(e.target as HTMLSelectElement).value;
+            appState.userPickedDifficulty=true;
+            settings.settings.difficulty=appState.currentDifficulty;
+            settings.saveSettings();
+        });
+    }
+    else{
+        console.warn("Missing element for listener: difficultySelect");
+    }
+    if (dom.buttons.startSessionBtn){
+        dom.buttons.startSessionBtn.addEventListener("click",()=>{
+            if (appState.sessionActive){
+                session.stopMentalSession();
+            }
+            else{
+                session.startMentalSession();
+            }
+        });
+    }
+    else{
+        console.warn("Missing element for listener: startSessionBtn");
+    }
+    if (dom.buttons.pauseSessionBtn){
+        dom.buttons.pauseSessionBtn.addEventListener("click",session.pauseMentalSession);
+    }
+    if (dom.buttons.skipQuestionBtn){
+        dom.buttons.skipQuestionBtn.addEventListener("click",session.skipMentalQuestion);
+    }
+    if (dom.inputs.autocontinueToggle){
+        dom.inputs.autocontinueToggle.addEventListener("change",(e)=>{
+            appState.autocontinue=(e.target as HTMLInputElement).checked;
+            ui.updateCheckboxAria(dom.inputs.autocontinueToggle);
+            if (!appState.autocontinue&&appState.autoTimeout){
+                clearTimeout(appState.autoTimeout);
+                appState.autoTimeout=null;
+            }
+        });
+    }
+    if (dom.inputs.scopeSelect){
+        dom.inputs.scopeSelect.addEventListener("change",(e)=>{
+            appState.scope=(e.target as HTMLSelectElement).value;
+            topics.renderTopicGrid();
+            if (appState.autoTimeout){
+                clearTimeout(appState.autoTimeout);
+                appState.autoTimeout=null;
+            }
+        });
+    }
+    if (dom.inputs.shuffleToggle){
+        dom.inputs.shuffleToggle.addEventListener("change",(e)=>{
+            appState.shuffle=(e.target as HTMLInputElement).checked;
+            ui.updateCheckboxAria(dom.inputs.shuffleToggle);
+        });
+    }
+    if (dom.inputs.mentalScopeSelect){
+        dom.inputs.mentalScopeSelect.addEventListener("change",(e)=>{
+            appState.mentalScope=(e.target as HTMLSelectElement).value;
+            topics.renderTopicGrid();
+        });
+    }
+    if (dom.inputs.mentalShuffleToggle){
+        dom.inputs.mentalShuffleToggle.addEventListener("change",(e)=>{
+            appState.mentalShuffle=(e.target as HTMLInputElement).checked;
+            ui.updateCheckboxAria(dom.inputs.mentalShuffleToggle);
+        });
+    }
+    if (dom.inputs.unlimitedToggle){
+        dom.inputs.unlimitedToggle.addEventListener("change",(e)=>{
+            appState.unlimitedMode=(e.target as HTMLInputElement).checked;
+            settings.settings.unlimitedMode=(e.target as HTMLInputElement).checked;
+            settings.saveSettings();
+        });
+    }
+    if (dom.inputs.mcqToggle){
+        dom.inputs.mcqToggle.addEventListener("change",()=>{
+            ui.toggleMcqMode();
+            settings.settings.mcqMode=dom.inputs.mcqToggle!.checked;
+            settings.saveSettings();
+        });
+    }
+    if (dom.inputs.topicSearch){
+        dom.inputs.topicSearch.addEventListener("input",()=>{
+            topics.renderTopicGrid();
+        });
+    }
+    if (dom.buttons.clearAnswerBtn){
+        dom.buttons.clearAnswerBtn.addEventListener("click",ui.clearAnswer);
+    }
+    if (dom.displays.mathToolbar){
+        for(let button of dom.displays.mathToolbarButtons){
+            button.addEventListener("click",(e)=>{
+                if (button.id==="math-dropdown-btn") return;
+                let target=e.target as HTMLElement;
+                let symbol=target.dataset.symbol||target.dataset.template||"";
+                ui.insertSymbol(symbol);
+            });
+        }
+        dom.inputs.userAnswer?.addEventListener("focus",()=>{
+            if (dom.modals.answerCard) dom.modals.answerCard.classList.add("focused");
+        });
+        dom.inputs.userAnswer?.addEventListener("blur", (e)=>{
+            // A WebKit touch tap reports a null related target, which is not evidence
+            // the learner left the card: dropping focus on it hides the toolbar under
+            // the finger. Touch pointers keep focus until something outside the card
+            // takes it.
+            if(e.relatedTarget===null&&window.matchMedia?.("(pointer: coarse)").matches) return;
+            if (dom.modals.answerCard&&e.relatedTarget instanceof Node&&dom.modals.answerCard.contains(e.relatedTarget)){
+                return;
+            }
+            if (dom.modals.answerCard) dom.modals.answerCard.classList.remove("focused");
+        });
+    }
+    if (dom.buttons.copyAnswerBtn){
+        dom.buttons.copyAnswerBtn.addEventListener("click",ui.copyCorrectAnswer);
+    }
+    if (dom.buttons.shortcutsButton){
+        dom.buttons.shortcutsButton.addEventListener("click",ui.showShortcutsModal);
+    }
+    if (dom.buttons.shortcutsClose){
+        dom.buttons.shortcutsClose.addEventListener("click",ui.hideShortcutsModal);
+    }
+    if (dom.buttons.shortcutsGotit){
+        dom.buttons.shortcutsGotit.addEventListener("click",ui.hideShortcutsModal);
+    }
+    if (dom.modals.shortcutsModal){
+        dom.modals.shortcutsModal.addEventListener("click",(e)=>{
+            if (e.target===dom.modals.shortcutsModal) ui.hideShortcutsModal();
+        });
+    }
+    if (dom.buttons.leaderboardClose){
+        dom.buttons.leaderboardClose.addEventListener("click",()=>{
+            if (dom.session.leaderboardCard) dom.session.leaderboardCard.classList.add("hidden");
+        });
+    }
+    if (dom.buttons.onboardingClose){
+        dom.buttons.onboardingClose.addEventListener("click",ui.hideOnboarding);
+    }
+    if (dom.buttons.onboardingGotit){
+        dom.buttons.onboardingGotit.addEventListener("click",ui.hideOnboarding);
+    }
+    if (dom.modals.onboardingOverlay){
+        dom.modals.onboardingOverlay.addEventListener("click",(e)=>{
+            if (e.target===dom.modals.onboardingOverlay) ui.hideOnboarding();
+        });
+    }
+    if (dom.modals.printModal){
+        dom.modals.printModal.addEventListener("click",(e)=>{
+            if (e.target===dom.modals.printModal){dom.modals.printModal!.classList.remove("show");dom.modals.printModal!.classList.add("hidden");}
+        });
+    }
+    if (dom.modals.weakTopicsModal){
+        dom.modals.weakTopicsModal.addEventListener("click",(e)=>{
+            if (e.target===dom.modals.weakTopicsModal){dom.modals.weakTopicsModal!.classList.remove("show");dom.modals.weakTopicsModal!.classList.add("hidden");}
+        });
+    }
+    if (dom.modals.dataModal){
+        dom.modals.dataModal.addEventListener("click",(e)=>{
+            if (e.target===dom.modals.dataModal){dom.modals.dataModal!.classList.remove("show");dom.modals.dataModal!.classList.add("hidden");}
+        });
+    }
+    let dropdownBtn=document.getElementById("math-dropdown-btn");
+    let dropdown=document.getElementById("math-dropdown");
+    if (dropdownBtn&&dropdown) {
+        dropdownBtn.addEventListener("click", (e)=>{
+            e.stopPropagation();
+            dropdown.classList.toggle("show");
+            dropdownBtn.setAttribute("aria-expanded", dropdown.classList.contains("show")?"true":"false");
+        });
+        document.addEventListener("click", (e)=>{
+            if (!dropdown.contains(e.target as Node)&&!dropdownBtn.contains(e.target as Node)) {
+                dropdown.classList.remove("show");
+            }
+        });
+    }
+    let results=await Promise.allSettled([
+        import("./PrintWorksheet"),
+        import("./DataManagement"),
+        import("./WeakTopics")
+    ]);
+    if (results[0].status==="fulfilled"){
+        try{
+            let printWorksheet=results[0].value;
+            printWorksheet.initPrintModal();
+            let printWorksheetBtn=document.getElementById("print-worksheet-btn");
+            if (printWorksheetBtn) printWorksheetBtn.addEventListener("click", printWorksheet.openPrintModal);
+        }
+        catch(err){
+            console.error("Failed to init printWorksheet module:",err);
+        }
+    }
+    else{
+        console.error("Failed to load printWorksheet module:",results[0].reason);
+    }
+    if (results[1].status==="fulfilled"){
+        try{
+            let dataManagement=results[1].value;
+            dataManagement.initDataModal();
+            let manageDataBtn=document.getElementById("manage-data-btn");
+            if (manageDataBtn) manageDataBtn.addEventListener("click", dataManagement.openDataModal);
+        }
+        catch(err){
+            console.error("Failed to init dataManagement module:",err);
+        }
+    }
+    else{
+        console.error("Failed to load dataManagement module:",results[1].reason);
+    }
+    if (results[2].status==="fulfilled"){
+        try{
+            let weakTopics=results[2].value;
+            let recommendBtn=dom.buttons.recommendBtn;
+            if (recommendBtn) recommendBtn.addEventListener("click", ()=>{
+                weakTopics.checkAndShowWeakTopicsPopup().catch(console.warn);
+            });
+        }
+        catch(err){
+            console.error("Failed to init weakTopics module:",err);
+        }
+    }
+    else{
+        console.error("Failed to load weakTopics module:",results[2].reason);
+    }
+}

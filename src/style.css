@@ -1,4 +1,12 @@
 .hidden{ display: none !important; }
+/*
+ * The attribute form, for the same reason. Several controls carry a bare
+ * `hidden` attribute rather than the class, and every one of them also has a
+ * class of its own that sets `display` — which outranks the user-agent rule
+ * for [hidden] and leaves the element on screen while the DOM reports it as
+ * hidden. Class-only `.hidden` above is unaffected by this rule.
+ */
+[hidden]{ display: none !important; }
 :root{
     --primary: #2B579A;
     --primary-dark: #1E4A8F;
@@ -7,6 +15,13 @@
     --accent: #107C10;
     --accent-alt: #0078D4;
     --success: #0DBC79;
+    /*
+     * The verdict text uses a darker cut of the same green: the pure success
+     * color on its own tinted background reads near 2:1, which fails AA for
+     * the one word the learner most needs to read.
+     */
+    --success-text: #0B6E43;
+    --error-text: #B4232A;
     --warning: #FF9D00;
     --error: #DC3545;
     --app-bg: #F8FAFC;
@@ -55,6 +70,13 @@
     --accent: #107C10;
     --accent-alt: #0078D4;
     --success: #0DBC79;
+    /*
+     * The verdict text uses a darker cut of the same green: the pure success
+     * color on its own tinted background reads near 2:1, which fails AA for
+     * the one word the learner most needs to read.
+     */
+    --success-text: #0B6E43;
+    --error-text: #B4232A;
     --warning: #FF9D00;
     --error: #DC3545;
     --app-bg: #F8FAFC;
@@ -79,6 +101,9 @@
     --primary: #4F9BFF;
     --primary-dark: #3B78D8;
     --primary-light: #60A9FF;
+    --success-text: #4ADE80;
+    --error-text: #F0705F;
+    --text-tertiary: #8FA0B8;
     --secondary: #B3B0AD;
     --accent: #0DBD6D;
     --accent-alt: #1C8FFF;
@@ -114,6 +139,8 @@
         --accent: #0DBD6D;
         --accent-alt: #1C8FFF;
         --success: #1ED690;
+        --success-text: #4ADE80;
+        --error-text: #F0705F;
         --warning: #FFB340;
         --error: #E74C3C;
         --app-bg: #1a1f2e;
@@ -124,6 +151,7 @@
         --surface-modal-alt: rgba(51, 65, 85, 0.95);
         --text-primary: #F1F5F9;
         --text-secondary: #a0aec0;
+        --text-tertiary: #8FA0B8;
         --border: rgba(71, 85, 105, 0.4);
         --border-strong: rgba(100, 116, 139, 0.7);
         --divider: rgba(51, 65, 85, 0.5);
@@ -136,24 +164,24 @@
         --wave-color-alt: rgba(150, 100, 180, 0.4);
         --overlay-color: rgba(255, 255, 255, 0.03);
     }
-    .dark .difficulty-select, .dark .scope-select{
-        background-color: #2D3748;
-        color: #F1F5F9;
-        border-color: #4A5568;
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a0aec0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
-    }
-    .dark .difficulty-select option, .dark .scope-select option{
-        background-color: #2d3748;
-        color: #f1f5f9;
-    }
-    .dark .difficulty-select:hover, .dark .scope-select:hover{
-        background-color: #374151;
-        border-color: #6B7280;
-    }
-    .dark .difficulty-select:focus-visible,.dark .scope-select:focus-visible{
-        outline: 2px solid var(--primary-light);
-        outline-offset: 1px;
-    }
+}
+.dark .difficulty-select, .dark .scope-select{
+    background-color: #2D3748;
+    color: #F1F5F9;
+    border-color: #4A5568;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a0aec0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+}
+.dark .difficulty-select option, .dark .scope-select option{
+    background-color: #2d3748;
+    color: #f1f5f9;
+}
+.dark .difficulty-select:hover, .dark .scope-select:hover{
+    background-color: #374151;
+    border-color: #6B7280;
+}
+.dark .difficulty-select:focus-visible,.dark .scope-select:focus-visible{
+    outline: 2px solid var(--primary-light);
+    outline-offset: 1px;
 }
 *{
     box-sizing: border-box;
@@ -187,6 +215,14 @@ body{
     font-family: "Libertinus Math";
     src: url("/LibertinusMath-Regular.ttf");
     font-display: swap;
+}
+@font-face{
+    font-family: "OpenDyslexic";
+    src: url("/OpenDyslexic-Regular.woff2") format("woff2");
+    font-display: swap;
+}
+body.font-opendyslexic{
+    font-family: "OpenDyslexic", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 #wave-container{
     position: fixed;
@@ -335,9 +371,77 @@ body{
     padding-right: var(--spacing-xs);
     max-height: 20dvh;
     overflow-y: auto;
-    padding-right: .5dvh;
     padding-top: 0.4rem;
     padding-bottom: 0.4rem;
+}
+/*
+ * The category filter row is the primary way into 204 topics. It sits above the
+ * pills because the pills are no longer browsable by scrolling: at this size a
+ * wrapped column of pills is a wall, and on a phone it was a horizontal strip of
+ * 204 unlabeled targets.
+ */
+.topic-filter-row{
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-top: 0.35rem;
+    min-width: 0;
+}
+.topic-category-chips{
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    min-width: 0;
+}
+.topic-category-chips::-webkit-scrollbar{
+    display: none;
+}
+.topic-chip{
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    font-size: 0.6rem;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--text-secondary);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+.topic-chip:hover{
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+}
+.topic-chip.active{
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--text-on-primary);
+}
+.topic-chip.empty{
+    opacity: 0.6;
+}
+.topic-count{
+    flex: 0 0 auto;
+    margin-left: auto;
+    font-size: 0.58rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+.topic-group-heading{
+    flex: 1 0 100%;
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    padding-top: 0.35rem;
+    padding-bottom: 0.1rem;
+    opacity: 0.8;
 }
 .topic-pill{
     padding: 5px var(--spacing-sm);
@@ -530,6 +634,22 @@ kbd.shortcut-hint{
     display: flex;
     gap: var(--spacing-sm);
     flex-shrink: 0;
+    flex-wrap: wrap;
+}
+/*
+ * The shortcut hints name desktop key bindings, so on narrow screens they add
+ * unbreakable width for shortcuts that do not exist there.
+ */
+@media (max-width: 480px){
+    kbd.shortcut-hint{
+        display: none;
+    }
+    .print-header-fields{
+        grid-template-columns: 1fr;
+    }
+    .choice-button{
+        min-width: 0;
+    }
 }
 .auto-controls{
     display: flex;
@@ -791,6 +911,7 @@ input[type="checkbox"]:hover{
     font-weight: 500;
     background: var(--surface);
     padding: 2px 6px;
+    overflow-wrap: anywhere;
     border-radius: var(--radius-full);
     border: 1px solid var(--border);
     transition: color var(--transition-fast), border-color var(--transition-fast), background-color 0.3s ease;
@@ -805,7 +926,7 @@ input[type="checkbox"]:hover{
     padding: var(--spacing-md);
 }
 .question-display{
-    display: inline-flexbox;
+    display: inline-block;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -821,6 +942,7 @@ input[type="checkbox"]:hover{
     border: 1px dashed var(--border);
     transition: border-color var(--transition-fast), background-color 0.3s ease;
     box-shadow: var(--shadow-sm);
+    width: 100%;
 }
 .question-display.has-content{
     border: 1px solid var(--border);
@@ -834,7 +956,7 @@ input[type="checkbox"]:hover{
     flex-direction: column;
     align-items: center;
     gap: var(--spacing-sm);
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
 }
 .empty-state svg{
     width: 40px;
@@ -881,6 +1003,7 @@ input[type="checkbox"]:hover{
 #topic-search{
     width: 100%;
     min-height: 28px;
+    resize: none;
     padding: 4px var(--spacing-sm);
     font-size: 0.8rem;
     background: var(--surface);
@@ -935,6 +1058,7 @@ input[type="checkbox"]:hover{
 .symbols-hint{
     margin-top: var(--spacing-sm);
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--spacing-xs);
     font-size: 0.7rem;
@@ -986,12 +1110,12 @@ input[type="checkbox"]:hover{
 .results-display.correct{
     background: rgba(13, 188, 121, 0.1);
     border: 1px solid var(--success);
-    color: var(--success);
+    color: var(--success-text);
 }
 .results-display.incorrect{
     background: rgba(220, 53, 69, 0.1);
     border: 1px solid var(--error);
-    color: var(--error);
+    color: var(--error-text);
 }
 .result-success, .result-error{
     display: flex;
@@ -1014,13 +1138,15 @@ input[type="checkbox"]:hover{
     color: var(--text-secondary);
 }
 .app-footer{
-    height: var(--footer-height);
+    height: auto;
+    min-height: var(--footer-height);
     background: var(--surface);
     border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: var(--shadow-glass);
+    padding-bottom: var(--safe-bottom);
 }
 .footer-content{
     display: flex;
@@ -1031,10 +1157,15 @@ input[type="checkbox"]:hover{
 .footer-text{
     opacity: 0.7;
 }
-.mjx-chtml, .MathJax_Display{
+.mjx-chtml{
     max-width: 100%;
     overflow-x: auto;
+    color: var(--text-primary) !important;
+}
+.mjx-container[display="true"], .MathJax_Display{
     display: block;
+    max-width: 100%;
+    overflow-x: auto;
     color: var(--text-primary) !important;
 }
 .mjx-container{
@@ -1077,8 +1208,10 @@ input[type="checkbox"]:hover{
 }
 .notification{
     position: fixed;
-    top: var(--spacing-lg);
-    right: var(--spacing-lg);
+    top: max(var(--spacing-lg), var(--safe-top));
+    right: max(var(--spacing-lg), var(--safe-right));
+    max-width: min(90vw, 360px);
+    overflow-wrap: anywhere;
     padding: var(--spacing-sm) var(--spacing-lg);
     border-radius: var(--radius-md);
     background: var(--surface-elevated);
@@ -1088,7 +1221,11 @@ input[type="checkbox"]:hover{
     box-shadow: var(--shadow-lg);
     color: var(--text-primary);
     font-size: 0.8rem;
-    z-index: 1000;
+    /*
+     * Below modals on purpose: a toast that pops over an open dialog reads as
+     * part of the dialog, and a dialog is the thing the learner is doing.
+     */
+    z-index: 900;
     animation: slideIn 0.2s ease;
     border: 1px solid var(--border);
 }
@@ -1175,11 +1312,28 @@ input[type="checkbox"]:hover{
         overflow-x: auto;
         padding-bottom: var(--spacing-xs);
         -webkit-overflow-scrolling: touch;
-        display: block;
+        display: flex;
     }
     .topic-pills-container::after{
         content: "";
         flex: 0 0 var(--spacing-sm);
+    }
+    /*
+     * In the horizontal strip a heading that took a full row would push every
+     * pill off the right edge, so on a phone the heading becomes a narrow divider
+     * between two runs of pills instead. The category chips above are what a
+     * phone user actually navigates by; the headings are a second route, not the
+     * only one.
+     */
+    .topic-group-heading{
+        flex: 0 0 auto;
+        padding: 0 0.5rem 0 0.2rem;
+        margin-right: 2px;
+        border-right: 1px solid var(--border);
+        align-self: center;
+    }
+    .topic-count{
+        font-size: 0.55rem;
     }
     .topic-pill{
         margin-bottom: .5dvh;
@@ -1229,6 +1383,10 @@ input[type="checkbox"]:hover{
     z-index: 1000;
     align-items: center;
     justify-content: center;
+    padding-top: max(12px, var(--safe-top));
+    padding-bottom: max(12px, var(--safe-bottom));
+    padding-left: max(12px, var(--safe-left));
+    padding-right: max(12px, var(--safe-right));
 }
 .modal.show{
     display: flex !important;
@@ -1241,8 +1399,17 @@ input[type="checkbox"]:hover{
     width: 90%;
     max-width: 500px;
     max-height: 80vh;
+    max-height: 80dvh;
     overflow-y: auto;
     animation: scaleIn 0.2s ease;
+}
+/*
+ * When the keyboard covers part of the screen the dialog shrinks with it,
+ * using the height the viewport module measures. Without this the 80vh cap
+ * describes a viewport the keyboard has already taken half of.
+ */
+.keyboard-open .modal-content{
+    max-height: calc(var(--visual-viewport-height, 80vh) * 0.85);
 }
 @keyframes scaleIn{
     from{
@@ -1267,6 +1434,9 @@ input[type="checkbox"]:hover{
     font-weight: 600;
 }
 .modal-close{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 28px;
     height: 28px;
 }
@@ -1322,6 +1492,21 @@ input[type="checkbox"]:hover{
 .setting-item label{
     font-size: 0.85rem;
     color: var(--text-secondary);
+    min-width: 0;
+}
+@media (max-width: 480px){
+    .setting-item{
+        flex-wrap: wrap;
+    }
+    .setting-item label{
+        flex: 1 1 100%;
+        margin-bottom: 4px;
+    }
+    .setting-item select,
+    .setting-item input[type="number"]{
+        width: 100%;
+        flex: 1 1 100%;
+    }
 }
 .setting-item input[type="checkbox"]{
     width: 16px;
@@ -1398,11 +1583,25 @@ input[type="checkbox"]:hover{
     justify-content: center;
     font-weight: bold;
 }
+.answer-card{
+    overflow: visible;
+}
 .answer-card .math-toolbar{
     display: none;
 }
 .answer-card.focused .math-toolbar{
     display: flex;
+}
+/*
+ * On touch screens the toolbar stays visible whether or not the answer card
+ * reports focus: a WebKit touch tap carries a null relatedTarget on blur, which
+ * drops the focused class mid-tap and hides the button under the finger. Fine
+ * pointers keep the focus-gated behavior above.
+ */
+@media (pointer: coarse){
+    .answer-card .math-toolbar{
+        display: flex;
+    }
 }
 #pause-session, #skip-question{
     transition: opacity 0.2s ease, transform 0.2s ease;
@@ -1421,11 +1620,6 @@ input[type="checkbox"]:hover{
 .setting-item input[type="number"]:hover{
     transition: all var(--transition-normal);
 }
-.results-display.correct,
-.results-display.incorrect{
-    animation-duration: 0.3s;
-    animation-timing-function: ease-in-out;
-}
 .math-toolbar{
     position: relative;
     display: flex;
@@ -1437,8 +1631,6 @@ input[type="checkbox"]:hover{
     border: 1px solid var(--border);
     box-shadow: var(--shadow-glass);
     margin-bottom: 0.5rem;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
 }
 .math-toolbar-row{
     display: flex;
@@ -1618,65 +1810,6 @@ input[type="checkbox"]:hover{
         font-size: 0.6rem;
     }
 }
-.context-menu-section{
-    position: relative;
-}
-.context-menu-item.has-submenu{
-    position: relative;
-    padding-right: 20px;
-}
-.context-menu-item.has-submenu::after{
-    content: "▸";
-    position: absolute;
-    right: 8px;
-    font-size: 10px;
-    opacity: 0.7;
-}
-.context-menu-submenu{
-    position: absolute;
-    left: 100%;
-    top: 0;
-    background: var(--surface-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg), var(--shadow-glass);
-    padding: var(--spacing-xs);
-    min-width: 180px;
-    display: none;
-    z-index: 2100;
-    backdrop-filter: blur(calc(var(--blur-amount) * 2));
-    -webkit-backdrop-filter: blur(calc(var(--blur-amount) * 2));
-}
-.context-menu-section:hover > .context-menu-submenu{
-    display: block;
-}
-hr.context-menu-divider{
-    margin: 4px 0;
-    border: none;
-    border-top: 1px solid var(--border);
-}
-#mental-menu-section, #mental-divider{
-    display: none;
-}
-.mental-active #mental-menu-section,
-.mental-active #mental-divider{
-    display: block;
-}
-.context-menu{
-    transition: opacity 0.15s ease, transform 0.15s ease;
-    opacity: 1;
-    transform: scale(1);
-    transform-origin: top left;
-}
-.context-menu.hidden{
-    opacity: 0;
-    transform: scale(0.95);
-    pointer-events: none;
-    visibility: hidden;
-}
-.context-menu.hidden{
-    display: block;
-}
 .setting-item select{
     width: 160px;
     padding: var(--spacing-xs) var(--spacing-xl) var(--spacing-xs) var(--spacing-sm);
@@ -1727,11 +1860,36 @@ hr.context-menu-divider{
 .setting-item input[type="number"]:hover::-webkit-outer-spin-button{
     opacity: 1;
 }
+.setting-item input[type="text"],
+.setting-item input[type="date"]{
+    flex: 1;
+    min-width: 0;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-strong);
+    background: var(--surface-modal-alt);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+}
+.setting-item input[type="text"]:hover,
+.setting-item input[type="date"]:hover{
+    border-color: var(--primary-light);
+    box-shadow: var(--shadow-md);
+}
+.setting-item input[type="text"]:focus,
+.setting-item input[type="date"]:focus{
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-light);
+}
 .statistics-panel{
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
     margin-top: var(--spacing-sm);
+    margin-left: auto;
 }
 /* MCQ Choices Container */
 .choices-container{
@@ -1745,6 +1903,7 @@ hr.context-menu-divider{
 .choice-button{
     flex: 1 1 auto;
     min-width: 80px;
+    overflow-wrap: anywhere;
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: 0.9rem;
     background: var(--surface);
@@ -1764,12 +1923,6 @@ hr.context-menu-divider{
 .choice-button:active{
     transform: translateY(0);
 }
-.statistics-panel{
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    margin-left: auto;
-}
 .statistics-panel .stat-with-icon{
     background: var(--surface-alt);
     padding: 2px 8px;
@@ -1788,69 +1941,186 @@ hr.context-menu-divider{
         justify-content: space-between;
     }
 }
-.print-preview{
+.print-header-fields{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--spacing-md);
+}
+.print-header-fields .setting-item{
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-xs);
+    margin-bottom: 0;
+}
+.print-header-fields .setting-item label{
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+.print-header-fields .setting-item input[type="text"],
+.print-header-fields .setting-item input[type="date"]{
+    width: 100%;
+    flex: none;
+}
+.print-toggles{
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+.print-toggles .setting-item{
+    flex: 1 1 auto;
+    min-width: 200px;
+}
+.print-preview-pane{
     margin-top: var(--spacing-lg);
     border-top: 1px solid var(--border);
     padding-top: var(--spacing-md);
-}
-.print-preview-content{
-    max-height: 400px;
+    min-height: 120px;
+    max-height: 360px;
     overflow-y: auto;
-    background: white;
-    color: black;
-    padding: var(--spacing-md);
+    background: var(--surface-modal-alt);
     border-radius: var(--radius-md);
-    font-family: monospace;
+    padding: var(--spacing-md);
 }
-.worksheet{
-    font-family: 'Times New Roman', serif;
-    font-size: 12pt;
-    margin: 0 auto;
-    padding: 0.5in;
+.print-preview-pane:empty::before{
+    content: "Click \"Generate Worksheet\" to preview.";
+    color: var(--text-muted, #888);
+    font-style: italic;
 }
-.worksheet h1, .worksheet h2{
+.ws-preview-wrapper{
+    background: #ffffff;
+    color: #000000;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: var(--spacing-lg);
+}
+.ws-preview-error, .ws-preview-loading{
+    padding: var(--spacing-lg);
     text-align: center;
+    color: var(--text-muted, #888);
 }
-.questions-list{
-    list-style: none;
-    counter-reset: question-counter;
+.ws-preview-loading{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
 }
-.question-item{
-    margin-bottom: 20px;
-    counter-increment: question-counter;
-    position: relative;
-    padding-left: 30px;
+.ws-document{
+    font-family: 'Times New Roman', Georgia, serif;
+    font-size: 12pt;
+    line-height: 1.45;
+    color: #000000;
+    background: #ffffff;
 }
-.question-item:before{
-    content: counter(question-counter) ".";
-    position: absolute;
-    left: 0;
-    font-weight: bold;
+.ws-title{
+    text-align: center;
+    font-size: 18pt;
+    margin: 0 0 12px 0;
 }
-.question-text{
-    margin-bottom: 10px;
+.ws-header-row{
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 8px;
+    font-size: 11pt;
 }
-.answer-space{
-    height: 1em;
+.ws-field{
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.ws-meta{
+    display: flex;
+    justify-content: space-between;
+    font-size: 10pt;
+    color: #444444;
+    margin-bottom: 8px;
+}
+.ws-divider{
+    border: none;
+    border-top: 1px solid #000000;
+    margin: 8px 0 16px 0;
+}
+.ws-questions{
+    margin: 0;
+    padding-left: 24px;
+}
+.ws-question{
+    margin-bottom: 18px;
+    page-break-inside: avoid;
+}
+.ws-question-text{
+    margin-bottom: 6px;
+}
+.ws-answer-space{
+    min-height: 28px;
+    border-bottom: 1px dashed #888888;
+    margin-top: 4px;
+}
+.ws-answer-key{
+    margin-top: 24px;
+}
+.ws-answer-title{
+    font-size: 14pt;
+    text-decoration: underline;
+    margin-bottom: 8px;
+}
+.ws-answer-list{
+    margin: 0;
+    padding-left: 24px;
+}
+.ws-answer{
+    margin-bottom: 6px;
+    page-break-inside: avoid;
+}
+.ws-page-break{
+    page-break-after: always;
+    break-after: page;
+}
+.ws-empty{
+    color: #444444;
+    font-style: italic;
 }
 @media print{
-    body *{
-        visibility: hidden;
-    }
-    .print-preview-content, .print-preview-content *{
-        visibility: visible;
-    }
-    .print-preview-content{
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0.5in;
-    }
-    .modal, .modal-content, .print-options, .modal-footer, #print-generate, #print-do-print{
+    /* Hide all top-level app chrome; only the print container should remain.
+       Using display:none (not visibility:hidden) removes hidden nodes from the
+       layout flow so page-break-after/break-after work correctly across pages. */
+    body > *:not(#ws-print-container){
         display: none !important;
     }
+    #ws-print-container{
+        display: block !important;
+        width: 100%;
+    }
+    /* Ensure worksheet paper is always white-on-black for printing, regardless
+       of the active app theme (dark/light). */
+    .ws-document{
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    /*
+     * Rendered math carries its on-screen color with !important, which would
+     * print near-white mathematics on white paper out of a dark theme. Paper
+     * gets no scrolling either, so overflowing equations show whole instead of
+     * clipped, and each question keeps to one page.
+     */
+    .ws-document .mjx-chtml,
+    .ws-document .mjx-container,
+    .ws-document .katex{
+        color: #000000 !important;
+    }
+    .ws-document .mjx-chtml,
+    .ws-document .mjx-container{
+        overflow: visible;
+    }
+    .ws-document .ws-question{
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+@page{
+    margin: 16mm;
 }
 .loading-overlay{
     position: absolute;
@@ -1862,7 +2132,10 @@ hr.context-menu-divider{
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    /*
+     * Above modals: a loading veil that a dialog can cover is not a veil.
+     */
+    z-index: 1100;
 }
 .print-content{
     position: relative;
@@ -1876,6 +2149,8 @@ hr.context-menu-divider{
 }
 .data-info{
     flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 .delete-record{
     margin-left: var(--spacing-sm);
@@ -1891,19 +2166,372 @@ hr.context-menu-divider{
     justify-content: space-between;
     align-items: center;
     padding: var(--spacing-sm);
-    background: var(--surface-2);
+    background: var(--surface-alt);
     border-radius: var(--radius-md);
 }
 .weak-topic-info{
     flex: 1;
+    min-width: 0;
 }
 .weak-topic-name{
     font-weight: bold;
+    overflow-wrap: anywhere;
 }
 .weak-topic-stats{
     font-size: 0.85em;
     color: var(--text-secondary);
 }
-.practice-topic-btn{
-    margin-left: var(--spacing-sm);
+@keyframes skeleton-shimmer{
+    0%{ background-position: -200% 0; }
+    100%{ background-position: 200% 0; }
+}
+.skeleton-container{
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+.skeleton-title{
+    height: 24px;
+    width: 60%;
+    background: linear-gradient(90deg,var(--border) 25%,var(--surface-elevated) 50%,var(--border) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+}
+.skeleton-line{
+    height: 16px;
+    background: linear-gradient(90deg,var(--border) 25%,var(--surface-elevated) 50%,var(--border) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+}
+.skeleton-line-long{ width: 90%; }
+.skeleton-line-medium{ width: 70%; }
+.skeleton-line-short{ width: 50%; }
+.skeleton-block{
+    height: 80px;
+    width: 100%;
+    background: linear-gradient(90deg,var(--border) 25%,var(--surface-elevated) 50%,var(--border) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-sm);
+}
+.offline-badge{
+    position: fixed;
+    top: max(var(--spacing-sm), var(--safe-top));
+    right: max(var(--spacing-sm), var(--safe-right));
+    background: var(--warning);
+    color: var(--text-on-primary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 900;
+    box-shadow: var(--shadow-md);
+}
+.error-card{
+    padding: var(--spacing-xl);
+    text-align: center;
+    border: 1px solid var(--error);
+    border-radius: var(--radius-lg);
+    background: var(--surface-modal);
+}
+.error-message{
+    color: var(--error);
+    margin-bottom: var(--spacing-md);
+    font-weight: 500;
+}
+.error-title{
+    color: var(--error);
+    margin-bottom: var(--spacing-sm);
+    font-size: 1.1em;
+}
+.error-retry-btn{
+    background: var(--primary);
+    color: var(--text-on-primary);
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background var(--transition-fast);
+}
+.error-retry-btn:hover{
+    background: var(--primary-dark);
+}
+/* ========================================
+   COARSE POINTER
+   ========================================
+   Width alone does not describe a touch device: a tablet in landscape is wide
+   but has no hover and no precise pointer, and a narrow window on a desktop has
+   both. These rules therefore key off the pointer, and they hold the floor the
+   platform guidelines set rather than shrinking further, which is what the width
+   rules above did on a phone. */
+@media (pointer: coarse){
+    /* A hover style that never fires leaves a control looking inert, and on
+       touch the pressed state is the only feedback a tap produces. */
+    .primary-button,
+    .secondary-button,
+    .icon-button,
+    .topic-pill,
+    .choice-button,
+    .math-toolbar-btn{
+        -webkit-tap-highlight-color: rgba(79, 155, 255, 0.25);
+    }
+    .primary-button:active:not(:disabled),
+    .secondary-button:active:not(:disabled),
+    .icon-button:active:not(:disabled),
+    .topic-pill:active,
+    .choice-button:active,
+    .math-toolbar-btn:active{
+        transform: scale(0.98);
+    }
+    /* Every interactive control is at least 44 by 44 CSS pixels, which is the
+       smallest target reliably hittable with a thumb. */
+    .primary-button,
+    .secondary-button,
+    .icon-button,
+    .topic-pill,
+    .topic-chip,
+    .mode-button,
+    .settings-tab,
+    .choice-button,
+    .math-toolbar-btn,
+    .error-retry-btn{
+        min-height: 44px;
+    }
+    .icon-button,
+    .math-toolbar-btn,
+    .topic-chip,
+    .mode-button{
+        min-width: 44px;
+    }
+    /*
+     * Checkboxes stay a 16px visual box, but the label row around them is a full
+     * 44px tall, so the hit area is a thumb while the control keeps its size.
+     * Selects take the same floor through height rather than padding.
+     */
+    label.shuffle-toggle,
+    .setting-item label:has(input[type="checkbox"]){
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+    select{
+        min-height: 44px;
+    }
+    #clear-answer{
+        min-width: 44px;
+        min-height: 44px;
+    }
+    .topic-pill{
+        padding: 10px 12px;
+    }
+    .answer-input{
+        min-height: 48px;
+        font-size: 1rem;
+    }
+    .question-display{
+        min-height: 72px;
+        font-size: 1.05rem;
+    }
+    .results-display{
+        min-height: 56px;
+        font-size: 0.95rem;
+    }
+    /* A hovered element on a touch screen stays hovered after the finger lifts,
+       so hover color is neutralised and the pressed state carries the signal. */
+    .primary-button:hover:not(:disabled){
+        background: var(--primary);
+    }
+    .secondary-button:hover:not(:disabled){
+        background: var(--secondary);
+    }
+    .icon-button:hover,
+    .topic-pill:hover,
+    .math-toolbar-btn:hover{
+        background: var(--surface);
+        border-color: var(--border);
+    }
+}
+@media (hover: none){
+    .primary-button:hover:not(:disabled){
+        background: var(--primary);
+    }
+    .secondary-button:hover:not(:disabled){
+        background: var(--secondary);
+    }
+    .icon-button:hover,
+    .topic-pill:hover,
+    .math-toolbar-btn:hover{
+        background: var(--surface);
+        border-color: var(--border);
+    }
+}
+/* ========================================
+   SAFE AREAS AND DYNAMIC VIEWPORT
+   ========================================
+   100vh is the viewport with the mobile browser chrome expanded, so the bottom of
+   the app sat under the collapsed address bar. The dynamic unit tracks the
+   visible area, and the safe-area insets keep the toolbar and footer clear of a
+   notch, a rounded corner, or a home indicator. */
+:root{
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+}
+body,
+.app-container{
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+.control-toolbar{
+    padding-top: calc(var(--spacing-sm) + var(--safe-top));
+    padding-left: max(var(--spacing-sm), var(--safe-left));
+    padding-right: max(var(--spacing-sm), var(--safe-right));
+}
+.app-content{
+    padding-left: max(var(--spacing-lg), var(--safe-left));
+    padding-right: max(var(--spacing-lg), var(--safe-right));
+    padding-bottom: calc(var(--spacing-md) + var(--safe-bottom));
+}
+.footer-content{
+    padding-bottom: calc(var(--spacing-sm) + var(--safe-bottom));
+}
+/* ========================================
+   HELP AND CONFIDENCE
+   ======================================== */
+.hint-panel{
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+.hint-row{
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: baseline;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.hint-label{
+    flex: 0 0 auto;
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.hint-text{
+    flex: 1 1 auto;
+}
+.help-footer{
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    align-items: flex-start;
+}
+.help-footer .hint-panel{
+    flex: 1 0 100%;
+}
+.confidence-row{
+    margin-top: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+.confidence-label{
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+.confidence-buttons{
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+.confidence-button{
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+.confidence-button.selected{
+    background: var(--primary);
+    color: var(--text-on-primary);
+    border-color: var(--primary);
+}
+.setting-help{
+    margin: var(--spacing-xs) 0 0;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+@media (max-width: 480px){
+    .confidence-row{
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .confidence-buttons{
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+}
+/* ========================================
+   DAILY CHALLENGE
+   ======================================== */
+.daily-summary{
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+}
+.daily-summary[hidden]{
+    display: none;
+}
+.daily-progress-track{
+    flex: 1 1 120px;
+    min-width: 90px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--border);
+    overflow: hidden;
+}
+.daily-progress-fill{
+    height: 100%;
+    width: 0;
+    background: var(--primary);
+    transition: width var(--transition-fast);
+}
+.daily-summary-text{
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+.streak-count{
+    margin-left: 2px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+#daily-streak{
+    position: relative;
+}
+@media (max-width: 480px){
+    .daily-summary{
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .daily-summary-text{
+        white-space: normal;
+    }
 }

@@ -1,0 +1,13 @@
+import{registerTopic}from"../../main/services/TopicRegistry";
+registerTopic("add","arithmetic","generateAddition");
+registerTopic("subtrt","arithmetic","generateSubtraction");
+registerTopic("mult","arithmetic","generateMultiplication");
+registerTopic("divid","arithmetic","generateDivision");
+registerTopic("lcm_periods","arithmetic","generateLcmPeriods");
+registerTopic("long_division","arithmetic","generateLongDivision");
+registerTopic("money_change","arithmetic","generateMoneyChange");
+registerTopic("negative_numbers","arithmetic","generateNegativeNumbers");
+registerTopic("place_value","arithmetic","generatePlaceValue");
+registerTopic("powers_of_ten","arithmetic","generatePowersOfTen");
+registerTopic("prime_factorisation","arithmetic","generatePrimeFactorisation");
+registerTopic("rounding_est","arithmetic","generateRoundingEstimate");

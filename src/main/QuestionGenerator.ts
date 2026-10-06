@@ -1,0 +1,81 @@
+﻿import{topicRegistry}from"./services/TopicRegistry";
+import{renderer}from"./core/QuestionRenderer";
+import{errorHandler}from"./core/ErrorHandler";
+import type{RngFn,QuestionDto}from"../types/global";
+import"../modules/Algebra/RegisterTopics";
+import"../modules/Arithmetic/RegisterTopics";
+import"../modules/Calculus/RegisterTopics";
+import"../modules/DiscreteMathematics/RegisterTopics";
+import"../modules/Geometry/RegisterTopics";
+import"../modules/LinearAlgebra/RegisterTopics";
+import"../modules/Trigonometry/RegisterTopics";
+type GeneratorFn=(difficulty?: string, rng?: RngFn)=>QuestionDto;
+let moduleCache: Map<string, Record<string, GeneratorFn>>=new Map();
+async function loadModule(scope: string): Promise<Record<string, GeneratorFn>>{
+    if(moduleCache.has(scope)){
+        return moduleCache.get(scope)!;
+    }
+    let mod: Record<string, GeneratorFn>;
+    switch(scope){
+        case"algebra":
+            mod=await import("../modules/Algebra/index") as unknown as Record<string, GeneratorFn>;
+            break;
+        case"arithmetic":
+            mod=await import("../modules/Arithmetic/index") as unknown as Record<string, GeneratorFn>;
+            break;
+        case"calculus":
+            mod=await import("../modules/Calculus/index") as unknown as Record<string, GeneratorFn>;
+            break;
+        case"discrete":
+            mod=await import("../modules/DiscreteMathematics/index") as unknown as Record<string, GeneratorFn>;
+            break;
+        case"geometry":
+            mod=await import("../modules/Geometry/index") as unknown as Record<string, GeneratorFn>;
+            break;
+        case"linearAlgebra":
+            mod=await import("../modules/LinearAlgebra/index") as unknown as Record<string, GeneratorFn>;
+            break;
+        case"trigonometry":
+            mod=await import("../modules/Trigonometry/index") as unknown as Record<string, GeneratorFn>;
+            break;
+        default:
+            mod=await import("../modules/Algebra/index") as unknown as Record<string, GeneratorFn>;
+    }
+    moduleCache.set(scope,mod);
+    return mod;
+}
+function isQuestionDto(value: unknown): value is QuestionDto{
+    return value!==null&&typeof value==="object"&&typeof(value as QuestionDto).latex==="string"&&typeof(value as QuestionDto).correct==="string";
+}
+export async function generateQuestion(topicId: string,difficulty: string,rng?: RngFn): Promise<QuestionDto|void>{
+    const entry=topicRegistry.getTopic(topicId);
+    if(!entry){
+        throw new Error("Unknown topic: "+topicId);
+    }
+    const mod=await loadModule(entry.scope);
+    const generator=mod[entry.fn];
+    if(!generator){
+        throw new Error("Generator function not found: "+entry.fn);
+    }
+    const result=await errorHandler.wrapAsync(async()=>generator(difficulty,rng));
+    if(result&&isQuestionDto(result)){
+        renderer.applyQuestionDto(result);
+    }
+    return result as QuestionDto|void;
+}
+export async function generateQuestionDto(topicId: string,difficulty: string,rng?: RngFn): Promise<QuestionDto>{
+    const entry=topicRegistry.getTopic(topicId);
+    if(!entry){
+        throw new Error("Unknown topic: "+topicId);
+    }
+    const mod=await loadModule(entry.scope);
+    const generator=mod[entry.fn];
+    if(!generator){
+        throw new Error("Generator function not found: "+entry.fn);
+    }
+    const result=await errorHandler.wrapAsync(async()=>generator(difficulty,rng));
+    if(!result||!isQuestionDto(result)){
+        throw new Error("Generator did not return a QuestionDto: "+topicId);
+    }
+    return result;
+}

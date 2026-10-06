@@ -40,6 +40,9 @@ coverage/
 .nyc_output/
 *.out
 coverage.out
+test-results/
+playwright-report/
+blob-report/
 
 # ── Build & bundle output ──────────────────────────────────────────────────────
 build/
@@ -140,8 +143,10 @@ tmp/
 temp/
 
 # ── Project-specific ignores ──────────────────────────────────────────────────
+# Source documents kept as local reference material, deliberately untracked.
+# src/random_math.docx is the original requirements document; survey.md is the
+# user survey it was built from. Neither is part of the shipped app.
+/src/random_math.docx
 random_math.docx
 plans/
 survey.md
-AGENTS.md
-docs/

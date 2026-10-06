@@ -26,13 +26,22 @@
  *
  * @packageDocumentation
  */
-export * from "./calculusUtils.js";
-export * from "./calculusDerivatives.js";
-export * from "./calculusIntegrals.js";
-export * from "./calculusLimitsRelated.js";
-export * from "./calculusLimitsContinuity.js";
-export * from "./calculusApplicationsDiff.js";
-export * from "./calculusIntegrationAdvanced.js";
-export * from "./calculusGraphical.js";
-export * from "./calculusParametricPolarVector.js";
-export * from "./calculusSequencesSeries.js";
+export * from "./CalculusUtils.js";
+export * from "./CalculusDerivatives.js";
+export * from "./CalculusIntegrals.js";
+export * from "./CalculusLimitsRelated.js";
+export * from "./CalculusLimitsContinuity.js";
+export * from "./CalculusApplicationsDiff.js";
+export * from "./CalculusIntegrationAdvanced.js";
+export * from "./CalculusGraphical.js";
+export * from "./CalculusParametricPolarVector.js";
+export * from "./CalculusSequencesSeries.js";
+export * from "./GenerateDivergenceCurl.js";
+export * from "./GenerateFundamentalTheorem.js";
+export * from "./GenerateImproperIntegrals.js";
+export * from "./GenerateLHospital.js";
+export * from "./GenerateMeanValueTheorem.js";
+export * from "./GenerateOptimization.js";
+export * from "./GenerateParametricCurves.js";
+export * from "./GeneratePartialDerivatives.js";
+export * from "./GenerateTaylor.js";

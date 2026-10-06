@@ -1,0 +1,947 @@
+/**
+ * Geometry visualizations using Canvas 2D and Three.js.
+ * @fileoverview Renders 2D (parabola, ellipse, hyperbola, polar conic, circle, triangle) and 3D (sphere, cube, cylinder, cone, pyramid, torus, points, line, plane) shapes. Cleans up previous visualizations and creates new ones in a dedicated container.
+ * @date 2026-03-15
+ */
+let questionArea: HTMLElement|null=null;
+function getQuestionArea(): HTMLElement|null{
+    if(!questionArea){
+        questionArea=document.getElementById("question-area");
+    }
+    return questionArea;
+}
+
+let THREE: any=null;
+let OrbitControls: any=null;
+let CSS2DRenderer: any=null;
+let CSS2DObject: any=null;
+async function ensureThree(): Promise<void>{
+    if (THREE) return;
+    const t=await import("three");
+    const o=await import("three/examples/jsm/controls/OrbitControls.js");
+    const c=await import("three/examples/jsm/renderers/CSS2DRenderer.js");
+    THREE=t;
+    OrbitControls=o.OrbitControls;
+    CSS2DRenderer=c.CSS2DRenderer;
+    CSS2DObject=c.CSS2DObject;
+}
+let currentRenderer: any=null;
+let currentLabelRenderer: any=null;
+let currentScene: any=null;
+let currentCamera: any=null;
+let currentControls: any=null;
+let canvasObserver: ResizeObserver|null=null;
+let threeObserver: ResizeObserver|null=null;
+let offscreenObserver: IntersectionObserver|null=null;
+let animFrameId: number|null=null;
+let motionQuery: any=null;
+let resolutionQuery: any=null;
+let onScreen: boolean=true;
+let reducedMotion: boolean=false;
+let lastFrameAt: number=0;
+let lastCamX: number=0;
+let lastCamY: number=0;
+let lastCamZ: number=0;
+let lastQuatW: number=0;
+let lastQuatX: number=0;
+let lastQuatY: number=0;
+let lastQuatZ: number=0;
+// A phone reports 3 or 4, and the graph is a 180px strip, so an uncapped
+// drawing buffer costs 9 to 16 times the fragments for no visible gain.
+let maxPixelRatio: number=2;
+// 32ms rather than 33.3: the vsync grid is 16ms, so 32 draws on every other
+// tick deterministically, where 33.3 lets the cadence alternate between two
+// and three ticks and reads as stutter. The scene is static, so the budget
+// only has to cover the damping tail of a drag.
+let frameBudgetMs: number=32;
+
+/**
+ * Computes a nice step size for axis ticks based on range.
+ * @param range - total range of data
+ * @returns step size
+ */
+function niceStep(range: number): number{
+    const roughStep=range/7;
+    const magnitude=Math.pow(10,Math.floor(Math.log10(roughStep)));
+    const normalized=roughStep/magnitude;
+    let step;
+    if (normalized<1.5) step=1*magnitude;
+    else if (normalized<3) step=2*magnitude;
+    else if (normalized<7) step=5*magnitude;
+    else step=10*magnitude;
+    return step;
+}
+
+/**
+ * Creates a 2D canvas visualization for a given shape.
+ * @param shape - shape type (parabola, ellipse, hyperbola, polarConic, circle, triangle)
+ * @param params - parameters (e.g., a, b, type, radius, base, height)
+ * @param container - DOM container element
+ */
+function createCanvas2DVisualization(shape: string, params: any, container: HTMLElement): void{
+    const canvas=document.createElement("canvas");
+    canvas.id="geometry-canvas";
+    canvas.style.width="100%";
+    canvas.style.height="100%";
+    canvas.style.display="block";
+    container.appendChild(canvas);
+    const ctx=canvas.getContext("2d")!;
+    const info=document.getElementById("geometry-info")!;
+    const draw=()=>{
+        const width=container.clientWidth;
+        const height=container.clientHeight;
+        if (width===0||height===0){
+            setTimeout(draw,50);
+            return;
+        }
+        const dpr=Math.min(window.devicePixelRatio||1,maxPixelRatio);
+        canvas.width=width*dpr;
+        canvas.height=height*dpr;
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        ctx.clearRect(0,0,width,height);
+        let xMin=-6,xMax=6,yMin=-6,yMax=6;
+        if (shape==="parabola"){
+            const a=params.a||1;
+            const type=params.type||"upward";
+            const targetExtent=8;
+            if (type==="upward"){
+                yMax=targetExtent;
+                yMin=-0.5;
+                const xHalf=Math.sqrt(yMax/a);
+                xMin=-xHalf;
+                xMax=xHalf;
+            }else{
+                xMax=targetExtent;
+                xMin=-0.5;
+                const yHalf=Math.sqrt(xMax/a);
+                yMin=-yHalf;
+                yMax=yHalf;
+            }
+        }else if (shape==="ellipse"){
+            const a=params.a||3;
+            const b=params.b||2;
+            const centerX=params.center==="translated"?params.h:0;
+            const centerY=params.center==="translated"?params.k:0;
+            xMin=centerX-a-1;
+            xMax=centerX+a+1;
+            yMin=centerY-b-1;
+            yMax=centerY+b+1;
+        }else if (shape==="hyperbola"){
+            const a=params.a||3;
+            const b=params.b||2;
+            const centerX=params.center==="translated"?params.h:0;
+            const centerY=params.center==="translated"?params.k:0;
+            const xSpan=Math.max(2*a,6);
+            const ySpan=Math.max(2*b,6);
+            xMin=centerX-xSpan;
+            xMax=centerX+xSpan;
+            yMin=centerY-ySpan;
+            yMax=centerY+ySpan;
+        }else if (shape==="polarConic"){
+            xMin=-3;
+            xMax=3;
+            yMin=-3;
+            yMax=3;
+        }else if (shape==="circle"){
+            const radius=params.radius||2;
+            xMin=-radius-1;
+            xMax=radius+1;
+            yMin=-radius-1;
+            yMax=radius+1;
+        }else if (shape==="triangle"){
+            const base=params.base||3;
+            const height=params.height||3;
+            xMin=-1;
+            xMax=base+1;
+            yMin=-1;
+            yMax=height+1;
+        }else if (shape==="graph"){
+            const fn=params.fn||"sin";
+            const amp=params.a||1;
+            xMin=params.xmin!==undefined?params.xmin:-2*Math.PI;
+            xMax=params.xmax!==undefined?params.xmax:2*Math.PI;
+            if(fn==="tan"){
+                yMin=-4;
+                yMax=4;
+            }
+            else{
+                yMin=-amp-0.5;
+                yMax=amp+0.5;
+            }
+        }
+        let dataWidth=xMax-xMin;
+        let dataHeight=yMax-yMin;
+        const targetRatio=1.2;
+        if (dataHeight>dataWidth*targetRatio){
+            const newWidth=dataHeight/targetRatio;
+            const centerX=(xMin+xMax)/2;
+            xMin=centerX-newWidth/2;
+            xMax=centerX+newWidth/2;
+            dataWidth=xMax-xMin;
+        }else if (dataWidth>dataHeight*targetRatio){
+            const newHeight=dataWidth/targetRatio;
+            const centerY=(yMin+yMax)/2;
+            yMin=centerY-newHeight/2;
+            yMax=centerY+newHeight/2;
+            dataHeight=yMax-yMin;
+        }
+        const xMargin=dataWidth*0.05;
+        const yMargin=dataHeight*0.05;
+        xMin-=xMargin;
+        xMax+=xMargin;
+        yMin-=yMargin;
+        yMax+=yMargin;
+        const offsetX=(xMin+xMax)/2;
+        const offsetY=(yMin+yMax)/2;
+        const scaleX=width/(xMax-xMin);
+        const scaleY=height/(yMax-yMin);
+        const scale=Math.min(scaleX,scaleY)*0.9;
+        ctx.save();
+        ctx.translate(width/2,height/2);
+        ctx.scale(scale,-scale);
+        ctx.translate(-offsetX,-offsetY);
+        ctx.beginPath();
+        ctx.strokeStyle="#99aaff";
+        ctx.lineWidth=2/scale;
+        ctx.moveTo(xMin,0);
+        ctx.lineTo(xMax,0);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0,yMin);
+        ctx.lineTo(0,yMax);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.strokeStyle="#44aaff";
+        ctx.lineWidth=3/scale;
+        switch (shape){
+            case "parabola":{
+                const a=params.a||1;
+                const type=params.type||"upward";
+                const steps=200;
+                if (type==="upward"){
+                    for (let i=0; i<=steps; i++){
+                        const x=xMin+(i/steps)*(xMax-xMin);
+                        const y=a*x*x;
+                        if (i===0) ctx.moveTo(x,y);
+                        else ctx.lineTo(x,y);
+                    }
+                }else{
+                    for (let i=0; i<=steps; i++){
+                        const y=yMin+(i/steps)*(yMax-yMin);
+                        const x=a*y*y;
+                        if (i===0) ctx.moveTo(x,y);
+                        else ctx.lineTo(x,y);
+                    }
+                }
+                ctx.stroke();
+                info.textContent=`Parabola: ${type==="upward"?"y = "+a+"x²":"x = "+a+"y²"}`;
+                break;
+            }
+            case "ellipse":{
+                const a=params.a||3;
+                const b=params.b||2;
+                const centerX=params.center==="translated"?params.h:0;
+                const centerY=params.center==="translated"?params.k:0;
+                for (let i=0; i<=200; i++){
+                    const t=(i/200)*2*Math.PI;
+                    const x=centerX+a*Math.cos(t);
+                    const y=centerY+b*Math.sin(t);
+                    if (i===0) ctx.moveTo(x,y);
+                    else ctx.lineTo(x,y);
+                }
+                ctx.closePath();
+                ctx.stroke();
+                const c=Math.sqrt(Math.abs(a*a-b*b));
+                ctx.fillStyle="#ffaa44";
+                ctx.beginPath();
+                ctx.arc(centerX+c,centerY,0.2,0,2*Math.PI);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(centerX-c,centerY,0.2,0,2*Math.PI);
+                ctx.fill();
+                info.textContent=`Ellipse: a = ${a}, b = ${b}`;
+                break;
+            }
+            case "hyperbola":{
+                const a=params.a||3;
+                const b=params.b||2;
+                const centerX=params.center==="translated"?params.h:0;
+                const centerY=params.center==="translated"?params.k:0;
+                const steps=200;
+                for (let i=0; i<=steps; i++){
+                    const t=-5+(i/steps)*10;
+                    const x=centerX+a*Math.cosh(t);
+                    const y=centerY+b*Math.sinh(t);
+                    if (i===0) ctx.moveTo(x,y);
+                    else ctx.lineTo(x,y);
+                }
+                ctx.stroke();
+                ctx.beginPath();
+                for (let i=0; i<=steps; i++){
+                    const t=-5+(i/steps)*10;
+                    const x=centerX-a*Math.cosh(t);
+                    const y=centerY+b*Math.sinh(t);
+                    if (i===0) ctx.moveTo(x,y);
+                    else ctx.lineTo(x,y);
+                }
+                ctx.stroke();
+                const dashLength=8/scale;
+                ctx.setLineDash([dashLength,dashLength]);
+                const slope1=b/a;
+                const slope2=-b/a;
+                ctx.beginPath();
+                ctx.moveTo(xMin,centerY+slope1*(xMin-centerX));
+                ctx.lineTo(xMax,centerY+slope1*(xMax-centerX));
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(xMin,centerY+slope2*(xMin-centerX));
+                ctx.lineTo(xMax,centerY+slope2*(xMax-centerX));
+                ctx.stroke();
+                ctx.setLineDash([]);
+                const c=Math.sqrt(a*a+b*b);
+                ctx.fillStyle="#ffaa44";
+                ctx.beginPath();
+                ctx.arc(centerX+c,centerY,0.2,0,2*Math.PI);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(centerX-c,centerY,0.2,0,2*Math.PI);
+                ctx.fill();
+                info.textContent=`Hyperbola: a = ${a}, b = ${b}`;
+                break;
+            }
+            case "polarConic":{
+                const e=params.e||1;
+                const k=params.k||2;
+                const sinOrCos=params.sinOrCos||"cos";
+                const sign=params.sign||"+";
+                const steps=200;
+                let first=true;
+                for (let i=0; i<=steps; i++){
+                    const theta=(i/steps)*2*Math.PI;
+                    const trig=sinOrCos==="cos"?Math.cos(theta):Math.sin(theta);
+                    const denominator=1+(sign==="+"?e*trig:-e*trig);
+                    const r=(k*e)/denominator;
+                    if (r<0){
+                        first=true;
+                        continue;
+                    }
+                    const x=r*Math.cos(theta);
+                    const y=r*Math.sin(theta);
+                    if (first){
+                        ctx.moveTo(x,y);
+                        first=false;
+                    }else{
+                        ctx.lineTo(x,y);
+                    }
+                }
+                ctx.stroke();
+                info.textContent=`Polar conic: e = ${e}`;
+                break;
+            }
+            case "circle":{
+                const radius=params.radius||2;
+                ctx.beginPath();
+                ctx.arc(0,0,radius,0,2*Math.PI);
+                ctx.stroke();
+                info.textContent=`Circle: radius = ${radius}`;
+                break;
+            }
+            case "triangle":{
+                const base=params.base||3;
+                const height=params.height||3;
+                ctx.beginPath();
+                ctx.moveTo(0,0);
+                ctx.lineTo(base,0);
+                ctx.lineTo(0,height);
+                ctx.closePath();
+                ctx.stroke();
+                info.textContent=`Triangle: base = ${base}, height = ${height}`;
+                break;
+            }
+            case "graph":{
+                const fn=params.fn||"sin";
+                const a=params.a||1;
+                const b=params.b||1;
+                const c=params.c||0;
+                ctx.beginPath();
+                ctx.strokeStyle="#44aaff";
+                ctx.lineWidth=3/scale;
+                let penDown=false;
+                const steps=400;
+                for (let i=0;i<=steps;i++){
+                    const x=xMin+(i/steps)*(xMax-xMin);
+                    let y: number;
+                    if (fn==="tan"){
+                        y=Math.tan(b*x-c);
+                    }
+                    else if (fn==="cos"){
+                        y=a*Math.cos(b*x+c);
+                    }
+                    else{
+                        y=a*Math.sin(b*x+c);
+                    }
+                    if (!isFinite(y)||Math.abs(y)>30){
+                        penDown=false;
+                        continue;
+                    }
+                    if (!penDown){
+                        ctx.moveTo(x,y);
+                        penDown=true;
+                    }
+                    else{
+                        ctx.lineTo(x,y);
+                    }
+                }
+                ctx.stroke();
+                if (fn==="tan"){
+                    info.textContent=`y = tan(${b}x ${c>=0?'−':'+'} ${Math.abs(c)})`;
+                }
+                else{
+                    info.textContent=`y = ${a}${fn}(${b}x ${c>=0?'+':'−'} ${Math.abs(c)})`;
+                }
+                break;
+            }
+        }
+        ctx.restore();
+        ctx.save();
+        ctx.font='12px Arial';
+        ctx.fillStyle='#cccccc';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        const worldToScreenX=(x: number)=>width/2+(x-offsetX)*scale;
+        const worldToScreenY=(y: number)=>height/2-(y-offsetY)*scale;
+        const stepX=niceStep(xMax-xMin);
+        const firstXTick=Math.ceil(xMin/stepX)*stepX;
+        for (let x=firstXTick; x<=xMax; x+=stepX){
+            if (Math.abs(x)<0.01) continue;
+            const sx=worldToScreenX(x);
+            const sy=worldToScreenY(0);
+            ctx.beginPath();
+            ctx.strokeStyle="#99aaff";
+            ctx.lineWidth=1;
+            ctx.moveTo(sx,sy-5);
+            ctx.lineTo(sx,sy+5);
+            ctx.stroke();
+            ctx.fillText(x.toFixed(2),sx,sy-15);
+        }
+        const stepY=niceStep(yMax-yMin);
+        const firstYTick=Math.ceil(yMin/stepY)*stepY;
+        for (let y=firstYTick; y<=yMax; y+=stepY){
+            if (Math.abs(y)<0.01) continue;
+            const sx=worldToScreenX(0);
+            const sy=worldToScreenY(y);
+            ctx.beginPath();
+            ctx.strokeStyle="#99aaff";
+            ctx.lineWidth=1;
+            ctx.moveTo(sx-5,sy);
+            ctx.lineTo(sx+5,sy);
+            ctx.stroke();
+            ctx.fillText(y.toFixed(2),sx-15,sy);
+        }
+        const ox=worldToScreenX(0);
+        const oy=worldToScreenY(0);
+        ctx.fillText("0",ox,oy-15);
+        ctx.restore();
+    };
+    draw();
+    canvasObserver=new ResizeObserver(()=>draw());
+    canvasObserver.observe(container);
+}
+
+/**
+ * Draws one frame and reports whether the camera is still moving, which is the
+ * only thing that can make this otherwise static scene need another frame.
+ * Nothing is allocated here: the previous camera state lives in module scalars
+ * so a frame costs one render pass and seven comparisons.
+ * @returns true while the camera is still moving
+ */
+function drawFrame(): boolean{
+    if(!currentRenderer||!currentScene||!currentCamera||!currentControls) return false;
+    currentControls.update();
+    const p=currentCamera.position;
+    const q=currentCamera.quaternion;
+    const moving=p.x!==lastCamX||p.y!==lastCamY||p.z!==lastCamZ||q.w!==lastQuatW||q.x!==lastQuatX||q.y!==lastQuatY||q.z!==lastQuatZ;
+    lastCamX=p.x;
+    lastCamY=p.y;
+    lastCamZ=p.z;
+    lastQuatW=q.w;
+    lastQuatX=q.x;
+    lastQuatY=q.y;
+    lastQuatZ=q.z;
+    currentRenderer.render(currentScene,currentCamera);
+    if(currentLabelRenderer) currentLabelRenderer.render(currentScene,currentCamera);
+    return moving;
+}
+
+/**
+ * Ends the loop by canceling the frame it has just asked for. Every exit from
+ * the loop goes through here, so there is exactly one live chain at a time.
+ */
+function stopLoop(): void{
+    if(animFrameId===null) return;
+    cancelAnimationFrame(animFrameId);
+    animFrameId=null;
+}
+
+/**
+ * One turn of the frame budget. The frame is armed before the body runs, so a
+ * change event that OrbitControls fires from inside update() finds the loop
+ * already alive and cannot start a second one.
+ * @param now - the rAF timestamp
+ */
+function renderLoop(now: number): void{
+    animFrameId=requestAnimationFrame(renderLoop);
+    if(document.hidden||!onScreen){
+        stopLoop();
+        return;
+    }
+    if(now-lastFrameAt<frameBudgetMs) return;
+    lastFrameAt=now;
+    // Motion reduced means no animation at all: draw the one frame the
+    // learner needs and let the loop die, whatever the camera is doing.
+    if(reducedMotion){
+        drawFrame();
+        stopLoop();
+        return;
+    }
+    if(!drawFrame()) stopLoop();
+}
+
+/**
+ * Asks for a draw. Refused while the view is offscreen or the tab is hidden,
+ * because the next visibility signal re-requests it.
+ */
+function requestRender(): void{
+    if(animFrameId!==null) return;
+    if(document.hidden||!onScreen) return;
+    lastFrameAt=-frameBudgetMs;
+    animFrameId=requestAnimationFrame(renderLoop);
+}
+
+function onMotionChange(event: any): void{
+    reducedMotion=event.matches===true;
+    if(currentControls) currentControls.enableDamping=!reducedMotion;
+    requestRender();
+}
+
+function onResolutionChange(): void{
+    if(currentRenderer) currentRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,maxPixelRatio));
+    watchResolution();
+    requestRender();
+}
+
+function onVisibilityChange(): void{
+    requestRender();
+}
+
+function onIntersection(entries: any[]): void{
+    for (let entry of entries) onScreen=entry.isIntersecting!==false;
+    requestRender();
+}
+
+/**
+ * Re-arms the resolution query, because a device-pixel-ratio change invalidates
+ * the query that was watching for it.
+ */
+function watchResolution(): void{
+    if(typeof window.matchMedia!=="function") return;
+    if(resolutionQuery) resolutionQuery.removeEventListener("change",onResolutionChange);
+    resolutionQuery=window.matchMedia(`(resolution: ${window.devicePixelRatio||1}dppx)`);
+    resolutionQuery.addEventListener("change",onResolutionChange);
+}
+
+/**
+ * Reads the motion preference and keeps watching it, so toggling the OS
+ * setting takes effect without a reload.
+ */
+function watchMotion(): void{
+    if(typeof window.matchMedia!=="function") return;
+    if(motionQuery) motionQuery.removeEventListener("change",onMotionChange);
+    motionQuery=window.matchMedia("(prefers-reduced-motion: reduce)");
+    reducedMotion=motionQuery.matches===true;
+    motionQuery.addEventListener("change",onMotionChange);
+}
+
+/**
+ * Wires the render loop to the signals that mean it should stop: the motion
+ * preference, the device-pixel ratio, the tab, and the viewport.
+ * @param container - the element holding the canvas
+ */
+function startRenderLoop(container: HTMLElement): void{
+    if(currentControls) currentControls.addEventListener("change",requestRender);
+    document.addEventListener("visibilitychange",onVisibilityChange);
+    watchResolution();
+    // No IntersectionObserver means no offscreen signal, which is the previous
+    // behavior: keep drawing at the budget.
+    if(typeof IntersectionObserver!=="undefined"){
+        offscreenObserver=new IntersectionObserver(onIntersection);
+        offscreenObserver.observe(container);
+    }
+    const p=currentCamera.position;
+    const q=currentCamera.quaternion;
+    lastCamX=p.x;
+    lastCamY=p.y;
+    lastCamZ=p.z;
+    lastQuatW=q.w;
+    lastQuatX=q.x;
+    lastQuatY=q.y;
+    lastQuatZ=q.z;
+    requestRender();
+}
+
+/**
+ * Creates a visualization (2D canvas or 3D Three.js) for a given shape.
+ * @param shape - shape type (parabola, ellipse, hyperbola, polarConic, circle, triangle, sphere, cube, cylinder, cone, pyramid, torus, points3D, line3D, plane3D)
+ * @param params - parameters for the shape
+ */
+export async function createVisualization(shape: string, params: any): Promise<void>{
+    cleanupVisualization();
+    const container=document.createElement("div");
+    container.id="geometry-visualization";
+    container.style.width="100%";
+    container.style.height="120px";
+    container.style.minHeight="120px";
+    container.style.maxHeight="180px";
+    container.style.marginTop="20px";
+    container.style.position="relative";
+    container.style.borderRadius="12px";
+    container.style.overflow="hidden";
+    container.style.boxShadow="0 4px 12px rgba(0,0,0,0.1)";
+    const info=document.createElement("div");
+    info.id="geometry-info";
+    info.style.position="absolute";
+    info.style.bottom="10px";
+    info.style.left="10px";
+    info.style.backgroundColor="rgba(0,0,0,0.7)";
+    info.style.color="white";
+    info.style.padding="4px 12px";
+    info.style.borderRadius="20px";
+    info.style.fontSize="14px";
+    info.style.pointerEvents="none";
+    container.appendChild(info);
+    if(!getQuestionArea()){
+        console.error("questionArea not found");
+        return;
+    }
+    getQuestionArea()!.appendChild(container);
+    // "graph" is a canvas shape here, not a 3D one: the trigonometric graph
+    // generator asks for it, and leaving it out of this list sent that request to
+    // the WebGL path, which loaded a renderer, found no case for it, and tore the
+    // whole visualization down again.
+    const twoDShapes=["parabola","ellipse","hyperbola","polarConic","circle","triangle","graph"];
+    if (twoDShapes.includes(shape)){
+        createCanvas2DVisualization(shape,params,container);
+        return;
+    }
+    const canvas=document.createElement("canvas");
+    canvas.id="geometry-canvas";
+    canvas.style.width="100%";
+    canvas.style.height="100%";
+    canvas.style.display="block";
+    container.appendChild(canvas);
+    await new Promise(resolve=>requestAnimationFrame(()=>resolve(null)));
+    const width=container.clientWidth||300;
+    const height=container.clientHeight||150;
+    await ensureThree();
+    let renderer: any=null;
+    try{
+        renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
+    }
+    catch(e){
+        console.warn("WebGL unavailable for 3D visualization:",e);
+        container.innerHTML='<div class="empty-state"><p>3D visualization is not available in this environment.</p></div>';
+        return;
+    }
+    renderer.setSize(width,height);
+    renderer.setClearColor(0x1a1a2e);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,maxPixelRatio));
+    currentRenderer=renderer;
+    const scene=new THREE.Scene();
+    currentScene=scene;
+    const camera=new THREE.PerspectiveCamera(45,width/height,0.1,1000);
+    camera.position.set(8,8,15);
+    camera.lookAt(0,0,0);
+    currentCamera=camera;
+    watchMotion();
+    const controls=new OrbitControls(camera,renderer.domElement);
+    // Damping is a motion effect, so it is the first thing motion reduction
+    // turns off; a drag then redraws per input event instead of easing.
+    controls.enableDamping=!reducedMotion;
+    controls.dampingFactor=0.05;
+    controls.screenSpacePanning=true;
+    controls.maxPolarAngle=Math.PI/2;
+    controls.enableZoom=true;
+    controls.zoomSpeed=1.2;
+    controls.minDistance=1.5;
+    controls.maxDistance=60;
+    currentControls=controls;
+    const labelRenderer=new CSS2DRenderer();
+    labelRenderer.setSize(width,height);
+    labelRenderer.domElement.style.position="absolute";
+    labelRenderer.domElement.style.top="0";
+    labelRenderer.domElement.style.left="0";
+    labelRenderer.domElement.style.pointerEvents="none";
+    container.appendChild(labelRenderer.domElement);
+    currentLabelRenderer=labelRenderer;
+    const ambientLight=new THREE.AmbientLight(0x404060);
+    scene.add(ambientLight);
+    const dirLight=new THREE.DirectionalLight(0xffffff,1);
+    dirLight.position.set(1,2,1);
+    scene.add(dirLight);
+    const backLight=new THREE.DirectionalLight(0x99aaff,0.5);
+    backLight.position.set(-1,-1,-1);
+    scene.add(backLight);
+    const gridHelper=new THREE.GridHelper(20,20,0x99aaff,0x334466);
+    scene.add(gridHelper);
+    const axesHelper=new THREE.AxesHelper(5);
+    scene.add(axesHelper);
+    function createAxisLabel(text: string,color: string,position: any): void{
+        const div=document.createElement("div");
+        div.textContent=text;
+        div.style.color=color;
+        div.style.fontSize="16px";
+        div.style.fontWeight="bold";
+        div.style.textShadow="1px 1px 2px black";
+        const label=new CSS2DObject(div);
+        label.position.copy(position);
+        scene.add(label);
+    }
+    createAxisLabel("X","#ff5555",new THREE.Vector3(6,0,0));
+    createAxisLabel("Y","#55ff55",new THREE.Vector3(0,6,0));
+    createAxisLabel("Z","#5555ff",new THREE.Vector3(0,0,6));
+    let mesh: any=null;
+    let infoText="";
+    switch (shape){
+        case "sphere":{
+            const radius=params.radius||2;
+            const geometry=new THREE.SphereGeometry(radius,32,16);
+            const material=new THREE.MeshStandardMaterial({color:0xffaa44,emissive:0x442200});
+            mesh=new THREE.Mesh(geometry,material);
+            scene.add(mesh);
+            infoText=`Sphere: radius = ${radius}`;
+            break;
+        }
+        case "cube":{
+            const size=params.size||2;
+            const geometry=new THREE.BoxGeometry(size,size,size);
+            const material=new THREE.MeshStandardMaterial({color:0x88ccff,emissive:0x224466});
+            mesh=new THREE.Mesh(geometry,material);
+            scene.add(mesh);
+            infoText=`Cube: side = ${size}`;
+            break;
+        }
+        case "cylinder":{
+            const radius=params.radius||1.5;
+            const height=params.height||3;
+            const geometry=new THREE.CylinderGeometry(radius,radius,height,32);
+            const material=new THREE.MeshStandardMaterial({color:0x66cc66,emissive:0x224422});
+            mesh=new THREE.Mesh(geometry,material);
+            scene.add(mesh);
+            infoText=`Cylinder: radius = ${radius}, height = ${height}`;
+            break;
+        }
+        case "cone":{
+            const radius=params.radius||1.5;
+            const height=params.height||3;
+            const geometry=new THREE.ConeGeometry(radius,height,32);
+            const material=new THREE.MeshStandardMaterial({color:0xff8866,emissive:0x442211});
+            mesh=new THREE.Mesh(geometry,material);
+            scene.add(mesh);
+            infoText=`Cone: radius = ${radius}, height = ${height}`;
+            break;
+        }
+        case "pyramid":{
+            const baseHalf=params.radius||1.5;
+            const height=params.height||3;
+            const geometry=new THREE.ConeGeometry(baseHalf,height,4);
+            const material=new THREE.MeshStandardMaterial({color:0xaa88ff,emissive:0x332266});
+            mesh=new THREE.Mesh(geometry,material);
+            scene.add(mesh);
+            infoText=`Pyramid: base side ≈ ${(baseHalf*1.414).toFixed(2)}, height = ${height}`;
+            break;
+        }
+        case "torus":{
+            const radius=params.radius||2;
+            const tube=params.tube||0.5;
+            const geometry=new THREE.TorusGeometry(radius,tube,16,64);
+            const material=new THREE.MeshStandardMaterial({color:0xff66aa,emissive:0x442233});
+            mesh=new THREE.Mesh(geometry,material);
+            scene.add(mesh);
+            infoText=`Torus: major radius = ${radius}, minor = ${tube}`;
+            break;
+        }
+        case "points3D":{
+            const points=params.points||[];
+            const group=new THREE.Group();
+            // One geometry and one material for the whole cloud. A pair per
+            // point means a pair per upload, per draw call, per teardown.
+            const pointGeo=new THREE.SphereGeometry(0.3,16);
+            const pointMat=new THREE.MeshStandardMaterial({color:0xff3333});
+            points.forEach((p: any)=>{
+                const sphere=new THREE.Mesh(pointGeo,pointMat);
+                sphere.position.set(p.x,p.y,p.z);
+                group.add(sphere);
+                const div=document.createElement("div");
+                div.textContent=`(${p.x},${p.y},${p.z})`;
+                div.style.color="white";
+                div.style.fontSize="12px";
+                div.style.backgroundColor="rgba(0,0,0,0.5)";
+                div.style.padding="2px 4px";
+                div.style.borderRadius="4px";
+                const label=new CSS2DObject(div);
+                label.position.set(p.x,p.y+0.5,p.z);
+                group.add(label);
+            });
+            scene.add(group);
+            mesh=group;
+            infoText=`Points in 3D`;
+            break;
+        }
+        case "line3D":{
+            const [x0,y0,z0]=params.point;
+            const [a,b,c]=params.direction;
+            const t=params.t;
+            const points=[
+                new THREE.Vector3(x0+(t-2)*a,y0+(t-2)*b,z0+(t-2)*c),
+                new THREE.Vector3(x0+(t+2)*a,y0+(t+2)*b,z0+(t+2)*c)
+            ];
+            const geometry=new THREE.BufferGeometry().setFromPoints(points);
+            const material=new THREE.LineBasicMaterial({color:0x44aaff});
+            const line=new THREE.Line(geometry,material);
+            scene.add(line);
+            const sphereGeo=new THREE.SphereGeometry(0.3,16);
+            const sphereMat=new THREE.MeshStandardMaterial({color:0xffaa44});
+            const sphere=new THREE.Mesh(sphereGeo,sphereMat);
+            sphere.position.set(x0+t*a,y0+t*b,z0+t*c);
+            scene.add(sphere);
+            const div=document.createElement("div");
+            div.textContent=`(${(x0+t*a).toFixed(2)}, ${(y0+t*b).toFixed(2)}, ${(z0+t*c).toFixed(2)})`;
+            div.style.color="white";
+            div.style.fontSize="12px";
+            div.style.backgroundColor="rgba(0,0,0,0.5)";
+            div.style.padding="2px 4px";
+            div.style.borderRadius="4px";
+            const label=new CSS2DObject(div);
+            label.position.set(x0+t*a,y0+t*b+0.5,z0+t*c);
+            scene.add(label);
+            mesh=line;
+            infoText=`Line in 3D`;
+            break;
+        }
+        case "plane3D":{
+            const [nx,ny,nz]=params.normal;
+            const d=params.d;
+            const [px,py,pz]=params.point;
+            const sphereGeo=new THREE.SphereGeometry(0.3,16);
+            const sphereMat=new THREE.MeshStandardMaterial({color:0xffaa44});
+            const sphere=new THREE.Mesh(sphereGeo,sphereMat);
+            sphere.position.set(px,py,pz);
+            scene.add(sphere);
+            const div=document.createElement("div");
+            div.textContent=`(${px.toFixed(2)}, ${py.toFixed(2)}, ${pz.toFixed(2)})`;
+            div.style.color="white";
+            div.style.fontSize="12px";
+            div.style.backgroundColor="rgba(0,0,0,0.5)";
+            div.style.padding="2px 4px";
+            div.style.borderRadius="4px";
+            const label=new CSS2DObject(div);
+            label.position.set(px,py+0.5,pz);
+            scene.add(label);
+            mesh=sphere;
+            infoText=`Plane: ${nx}x + ${ny}y + ${nz}z + ${d} = 0`;
+            break;
+        }
+        default:
+            console.warn("Unknown 3D shape:",shape);
+            cleanupVisualization();
+            return;
+    }
+    if (infoText) info.textContent=infoText;
+    if (mesh){
+        const box=new THREE.Box3().setFromObject(mesh);
+        const sphere=box.getBoundingSphere(new THREE.Sphere());
+        if (sphere.radius>0){
+            const distance=sphere.radius*2.5;
+            camera.position.set(distance,distance*0.8,distance*1.5);
+            controls.target.copy(sphere.center);
+            controls.update();
+        }
+    }
+    startRenderLoop(container);
+    threeObserver=new ResizeObserver(entries=>{
+        for (let entry of entries){
+            const{width,height}=entry.contentRect;
+            if (width===0||height===0) return;
+            renderer.setSize(width,height);
+            labelRenderer.setSize(width,height);
+            camera.aspect=width/height;
+            camera.updateProjectionMatrix();
+        }
+        requestRender();
+    });
+    threeObserver.observe(container);
+}
+
+/**
+ * Cleans up all visualization resources: stops animation, disposes renderers, removes DOM elements.
+ */
+export function cleanupVisualization(): void{
+    stopLoop();
+    if (canvasObserver){
+        canvasObserver.disconnect();
+        canvasObserver=null;
+    }
+    if (threeObserver){
+        threeObserver.disconnect();
+        threeObserver=null;
+    }
+    if (offscreenObserver){
+        offscreenObserver.disconnect();
+        offscreenObserver=null;
+    }
+    if (motionQuery){
+        motionQuery.removeEventListener("change",onMotionChange);
+        motionQuery=null;
+    }
+    if (resolutionQuery){
+        resolutionQuery.removeEventListener("change",onResolutionChange);
+        resolutionQuery=null;
+    }
+    document.removeEventListener("visibilitychange",onVisibilityChange);
+    onScreen=true;
+    reducedMotion=false;
+    if (currentRenderer){
+        currentRenderer.dispose();
+        currentRenderer=null;
+    }
+    if (currentLabelRenderer){
+        currentLabelRenderer.domElement.remove();
+        currentLabelRenderer=null;
+    }
+    if (currentControls){
+        currentControls.removeEventListener("change",requestRender);
+        currentControls.dispose();
+        currentControls=null;
+    }
+    currentCamera=null;
+    if (currentScene){
+        // Duck-typed rather than `instanceof Mesh`, because the grid, the axes
+        // and the line shapes are LineSegments and Line, and their buffers leak
+        // just as surely as a mesh's do.
+        currentScene.traverse((obj: any)=>{
+            if (obj.geometry&&typeof obj.geometry.dispose==="function") obj.geometry.dispose();
+            if (obj.material){
+                if (Array.isArray(obj.material)){
+                    obj.material.forEach((m: any)=>m.dispose());
+                }else{
+                    obj.material.dispose();
+                }
+            }
+        });
+        currentScene=null;
+    }
+    const container=document.getElementById("geometry-visualization");
+    if (container) container.remove();
+    const info=document.getElementById("geometry-info");
+    if (info) info.remove();
+}

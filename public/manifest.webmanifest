@@ -1,0 +1,34 @@
+{
+    "name": "RandMatQuGeA",
+    "short_name": "RandMatQuGeA",
+    "description": "Practice mathematics across 204 topics with worked solutions, printable worksheets and a daily challenge.",
+    "start_url": ".",
+    "scope": ".",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#28465C",
+    "theme_color": "#28465C",
+    "categories": ["education", "mathematics"],
+    "icons": [
+        {
+            "src": "favicon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Daily challenge",
+            "short_name": "Daily",
+            "url": "./?mode=daily",
+            "description": "Start today's set"
+        }
+    ]
+}

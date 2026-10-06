@@ -2,3 +2,15 @@
 [workspace]
 members = ["src-tauri"]
 resolver = "2"
+
+# Vendored crates with subprocess-spawning build dependencies removed.
+# The trae-sandbox blocks build scripts from spawning subprocesses (e.g.
+# `rustc --version`), which causes panics. These patches remove the
+# non-critical version checks (safe because rustc is well past the
+# thresholds being checked):
+# - slotmap: build.rs used version_check to set a `nightly` cfg flag
+#   (slotmap source never references `cfg(nightly)`)
+# - embed-resource: used rustc_version to check for >=1.50.0 (always true now)
+[patch.crates-io]
+slotmap = { path = "src-tauri/vendor/slotmap" }
+embed-resource = { path = "src-tauri/vendor/embed-resource" }

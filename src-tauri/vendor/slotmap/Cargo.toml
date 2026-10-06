@@ -1,0 +1,26 @@
+[package]
+edition = "2018"
+name = "slotmap"
+version = "1.1.1"
+authors = ["Orson Peters <orsonpeters@gmail.com>"]
+description = "Slotmap data structure (vendored: build script removed for sandbox compatibility)"
+license = "Zlib"
+repository = "https://github.com/orlp/slotmap"
+
+[features]
+default = ["std"]
+std = []
+unstable = []
+
+[lib]
+name = "slotmap"
+path = "src/lib.rs"
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive", "alloc"]
+optional = true
+default-features = false
+
+[lints.rust]
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(nightly)'] }

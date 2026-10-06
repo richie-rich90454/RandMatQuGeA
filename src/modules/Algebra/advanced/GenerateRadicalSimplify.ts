@@ -1,0 +1,204 @@
+﻿import type {RngFn, QuestionDto} from "../../../types/global";
+import {getMaxForDifficulty} from "../AlgebraUtils.js";
+function isSquareFree(n: number): boolean{
+    if(n<2) return true;
+    for(let i=2;i*i<=n;i++){
+        if(n%(i*i)===0) return false;
+    }
+    return true;
+}
+function isPerfectSquare(n: number): boolean{
+    if(n<1) return false;
+    let r=Math.round(Math.sqrt(n));
+    return r*r===n;
+}
+function simplifyRadical(radicand: number): string{
+    if(radicand<0) return `\\sqrt{${radicand}}`;
+    let s=1;
+    let r=radicand;
+    for(let i=Math.floor(Math.sqrt(radicand));i>=2;i--){
+        if(radicand%(i*i)===0){
+            s=i;
+            r=radicand/(i*i);
+            break;
+        }
+    }
+    if(s===1){
+        if(r===1) return "1";
+        return `\\sqrt{${r}}`;
+    }
+    if(r===1) return `${s}`;
+    return `${s}\\sqrt{${r}}`;
+}
+/**
+ * Radical simplification: simplify, add, subtract, multiply, divide, rationalize.
+ * @fileoverview Generates radical simplification questions with MCQ distractors. Sets window.correctAnswer with LaTeX expression and display.
+ * @date 2026-04-18
+ * @returns QuestionDto
+ */
+export function generateRadicalSimplify(difficulty?: string, rng: RngFn=Math.random): QuestionDto{
+    let types=["simplify","add","subtract","multiply","divide","rationalize"];
+    let type=types[Math.floor(rng()*types.length)];
+    let maxVal=getMaxForDifficulty(difficulty,20);
+    let expectedFormat="Enter a simplified radical expression";
+    let correct="";
+    let alternate="";
+    let display="";
+    let mathExpression="";
+    let choices:string[]=[];
+    switch(type){
+        case "simplify":{
+            let a=Math.floor(rng()*maxVal)+1;
+            let b=Math.floor(rng()*maxVal)+2;
+            let attempts=0;
+            while(!isSquareFree(b)&&attempts<100){
+                b=Math.floor(rng()*maxVal)+2;
+                attempts++;
+            }
+            if(!isSquareFree(b)) b=2;
+            let radicand=a*a*b;
+            correct=`${a}\\sqrt{${b}}`;
+            alternate=`${a}√${b}`;
+            display=correct;
+            mathExpression=`\\( \\sqrt{${radicand}} \\)`;
+            choices=[correct];
+            choices.push(`${a+1}\\sqrt{${b}}`);
+            choices.push(`${a-1}\\sqrt{${b}}`);
+            choices.push(`\\sqrt{${a*b}}`);
+            choices.push(`${a}\\sqrt{${b+1}}`);
+            break;
+        }
+        case "add":{
+            let a=Math.floor(rng()*maxVal)+1;
+            let c=Math.floor(rng()*maxVal)+1;
+            let b=Math.floor(rng()*maxVal)+2;
+            let attempts=0;
+            while(!isSquareFree(b)&&attempts<100){
+                b=Math.floor(rng()*maxVal)+2;
+                attempts++;
+            }
+            if(!isSquareFree(b)) b=2;
+            let coeff=a+c;
+            correct=`${coeff}\\sqrt{${b}}`;
+            alternate=`${coeff}√${b}`;
+            display=correct;
+            mathExpression=`\\( ${a}\\sqrt{${b}} + ${c}\\sqrt{${b}} \\)`;
+            choices=[correct];
+            choices.push(`${coeff+1}\\sqrt{${b}}`);
+            choices.push(`${coeff-1}\\sqrt{${b}}`);
+            choices.push(`${a}\\sqrt{${b}}`);
+            choices.push(`${c}\\sqrt{${b}}`);
+            break;
+        }
+        case "subtract":{
+            let a=Math.floor(rng()*maxVal)+1;
+            let c=Math.floor(rng()*maxVal)+1;
+            let b=Math.floor(rng()*maxVal)+2;
+            let attempts=0;
+            while(!isSquareFree(b)&&attempts<100){
+                b=Math.floor(rng()*maxVal)+2;
+                attempts++;
+            }
+            if(!isSquareFree(b)) b=2;
+            let coeff=a-c;
+            correct=`${coeff}\\sqrt{${b}}`;
+            alternate=`${coeff}√${b}`;
+            display=correct;
+            mathExpression=`\\( ${a}\\sqrt{${b}} - ${c}\\sqrt{${b}} \\)`;
+            choices=[correct];
+            choices.push(`${coeff+1}\\sqrt{${b}}`);
+            choices.push(`${coeff-1}\\sqrt{${b}}`);
+            choices.push(`${a}\\sqrt{${b}}`);
+            choices.push(`-${c}\\sqrt{${b}}`);
+            break;
+        }
+        case "multiply":{
+            let a=Math.floor(rng()*maxVal)+1;
+            let b=Math.floor(rng()*maxVal)+2;
+            let product=a*b;
+            let ans=simplifyRadical(product);
+            correct=ans;
+            alternate=ans;
+            display=ans;
+            mathExpression=`\\( \\sqrt{${a}} \\times \\sqrt{${b}} \\)`;
+            choices=[correct];
+            let wrongAns=simplifyRadical(product+1);
+            choices.push(wrongAns);
+            wrongAns=simplifyRadical(product-1);
+            choices.push(wrongAns);
+            choices.push(`\\sqrt{${a*b}}`);
+            choices.push(`${Math.sqrt(a*b).toFixed(2)}`);
+            break;
+        }
+        case "divide":{
+            // A perfect-square radicand makes the integer form and the
+            // two-decimal form the same value, so the offered decimal option
+            // was a second correct answer. Both radicands are non-squares.
+            let a=Math.floor(rng()*maxVal)+1;
+            let b=Math.floor(rng()*maxVal)+2;
+            let guard=0;
+            while((isPerfectSquare(a)||isPerfectSquare(b))&&guard<100){
+                a=Math.floor(rng()*maxVal)+1;
+                b=Math.floor(rng()*maxVal)+2;
+                guard++;
+            }
+            if(isPerfectSquare(a)) a+=1;
+            if(isPerfectSquare(b)) b+=1;
+            let num=Math.sqrt(a);
+            let den=Math.sqrt(b);
+            let ans: string;
+            if(Number.isInteger(num)&&Number.isInteger(den)){
+                ans=`\\frac{${num}}{${den}}`;
+            }
+            else{
+                ans=`\\frac{\\sqrt{${a*b}}}{${b}}`;
+            }
+            correct=ans;
+            alternate=ans;
+            display=ans;
+            mathExpression=`\\( \\frac{\\sqrt{${a}}}{\\sqrt{${b}}} \\)`;
+            choices=[correct];
+            let wrongAns1=`\\frac{\\sqrt{${a}}}{${b}}`;
+            let wrongAns2=`\\frac{\\sqrt{${a*b}}}{${a}}`;
+            choices.push(wrongAns1);
+            choices.push(wrongAns2);
+            choices.push(`\\frac{${Math.sqrt(a).toFixed(2)}}{${Math.sqrt(b).toFixed(2)}}`);
+            choices.push(`\\sqrt{${a/b}}`);
+            break;
+        }
+        case "rationalize":{
+            // a = 1 makes 1/sqrt(1) degenerate, and a perfect square makes the
+            // rationalized form reducible, so the key sqrt(a)/a would equal the
+            // offered distractor 1/a. The radicand is a fixed non-square.
+            let a=2;
+            while (isPerfectSquare(a)){
+                a++;
+            }
+            correct=`\\frac{\\sqrt{${a}}}{${a}}`;
+            alternate=`√${a}/${a}`;
+            display=correct;
+            mathExpression=`\\( \\frac{1}{\\sqrt{${a}}} \\)`;
+            choices=[correct];
+            choices.push(`\\frac{${a+1}}{\\sqrt{${a}}}`);
+            choices.push(`\\frac{1}{${a+1}}`);
+            choices.push(`\\sqrt{${a}}`);
+            choices.push(`\\frac{1}{\\sqrt{${a+1}}}`);
+            break;
+        }
+    }
+    let uniqueChoices=[...new Set(choices)];
+    if(uniqueChoices.length>4) uniqueChoices=uniqueChoices.slice(0,4);
+    if(!uniqueChoices.includes(correct)){
+        if(uniqueChoices.length>0) uniqueChoices[Math.floor(rng()*uniqueChoices.length)]=correct;
+        else uniqueChoices=[correct];
+    }
+    let latex=mathExpression;
+    return {
+        latex,
+        correct,
+        alternate,
+        display,
+        choices: uniqueChoices,
+        expectedFormat
+    };
+}

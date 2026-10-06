@@ -2,20 +2,26 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- viewport-fit=cover lets the safe-area insets reach the edges of a
+             notched display; without it the layout stops short of them and the
+             padding does nothing. -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
         <title>RandMatQuGeA</title>
         <meta name="application-name" content="RandMatQuGeA">
         <meta name="theme-color" content="#28465C">
+        <meta name="description" content="Practice mathematics across 204 topics with worked solutions, printable worksheets and a daily challenge.">
+        <meta name="color-scheme" content="light dark">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-title" content="RandMatQuGeA">
+        <meta name="mobile-web-app-capable" content="yes">
+        <link rel="manifest" href="/manifest.webmanifest">
         <link rel="icon" href="/favicon.png" type="image/png">
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-        <link rel="preload" href="/LibertinusMath-Regular.ttf" as="font" type="font/ttf" crossorigin>
-        <link rel="preload" href="/NotoSans-VariableFont_wdth_wght.ttf" as="font" type="font/ttf" crossorigin>
-        <link rel="preload" href="/OpenDyslexic-Regular.woff2" as="font" type="font/woff2" crossorigin>
-        <link rel="preload" href="/katex.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="stylesheet" href="/katex.min.css">
         <noscript><link rel="stylesheet" href="/katex.min.css"></noscript>
         <script defer src="/katex.min.js"></script>
         <script>window.MathJax={tex:{inlineMath:[["$","$"],["\\(","\\)"]],displayMath:[["$$","$$"],["\\[","\\]"]]},svg:{fontCache:"global"},options:{ignoreHtmlClass:"tex2jax_ignore",processHtmlClass:"tex2jax_process"}};</script>
-        <script id="MathJax-script" async src="/mathjax/tex-chtml.js"></script>
     </head>
     <body>
         <div id="onboarding-overlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
@@ -56,17 +62,39 @@
                         <div class="mode-selector" role="group" aria-label="Mode selection">
                             <button id="mode-single" class="mode-button active" aria-pressed="true">Single</button>
                             <button id="mode-mental" class="mode-button" aria-pressed="false">Mental</button>
+                            <button id="mode-daily" class="mode-button" aria-pressed="false">Daily</button>
+                        </div>
+                        <div class="daily-summary" id="daily-summary" hidden>
+                            <div class="daily-progress-track" role="progressbar" aria-labelledby="daily-summary-text"
+                                aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="daily-progress">
+                                <div class="daily-progress-fill" id="daily-progress-fill"></div>
+                            </div>
+                            <span class="daily-summary-text" id="daily-summary-text">Today's set</span>
+                            <button type="button" class="secondary-button" id="daily-start">Start today's set</button>
                         </div>
                         <div class="toolbar-section">
                             <h2 class="toolbar-title" id="topics-heading">Topics</h2>
                             <div class="topic-search-wrapper">
                                 <input type="text" id="topic-search" class="answer-input topic-search"
-                                    placeholder="Search topics..." aria-label="Search topics">
+                                    placeholder="Search topics, categories and skills..." aria-label="Search topics">
+                            </div>
+                            <div class="topic-filter-row">
+                                <div class="topic-category-chips" id="topic-category-filter" role="group"
+                                    aria-label="Filter topics by category"></div>
+                                <span class="topic-count" id="topic-count" role="status" aria-live="polite"></span>
                             </div>
                             <div class="topic-pills-container" id="topic-grid" role="group"
                                 aria-labelledby="topics-heading"></div>
                         </div>
                         <div class="utility-buttons">
+                            <button class="icon-button" id="daily-streak" aria-label="Today's progress and streak"
+                                title="Today's progress and streak" hidden>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M13.5 0.67s0.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8c0-5.39-2.59-10.2-6.5-13.33z" />
+                                </svg>
+                                <span class="streak-count" id="daily-streak-count">0</span>
+                            </button>
                             <button class="icon-button" id="theme-toggle" aria-label="Toggle theme"
                                 title="Toggle light/dark theme">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -100,12 +128,12 @@
                                         d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z" />
                                 </svg>
                             </button>
-                            <button class="icon-button" id="recommend-btn" title="Recommend topics to practice">
+                            <button class="icon-button" id="recommend-btn" aria-label="Recommend topics" title="Recommend topics to practice">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M12 2L15 9H22L16 14L19 21L12 16.5L5 21L8 14L2 9H9L12 2Z"/>
                                 </svg>
                             </button>
-                            <button class="icon-button" id="manage-data-btn" title="Manage performance data">
+                            <button class="icon-button" id="manage-data-btn" aria-label="Manage performance data" title="Manage performance data">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>
                                 </svg>
@@ -204,7 +232,7 @@
                                     title="Unlimited practice (no question limit)">
                                     <input type="checkbox" id="unlimited-toggle"> Unlimited
                                 </label>
-                                <div id="statistics-panel" class="statistics-panel" style="display: none;">
+                                <div id="statistics-panel" class="statistics-panel hidden">
                                     <span class="stat-with-icon" id="accuracy-stat" title="Accuracy">Accuracy: 0%</span>
                                     <span class="stat-with-icon" id="avg-time-stat" title="Average time per question">Avg:
                                         0.0s</span>
@@ -376,7 +404,7 @@
                                             <!-- Dropdown trigger -->
                                             <div class="math-toolbar-section dropdown-trigger">
                                                 <button class="math-toolbar-btn dropdown-btn" id="math-dropdown-btn"
-                                                    title="More symbols">⋯</button>
+                                                    title="More symbols" aria-haspopup="true" aria-expanded="false">⋯</button>
                                             </div>
                                         </div>
 
@@ -476,11 +504,11 @@
                                         </div>
                                     </div>
                                     <div class="answer-input-wrapper">
-                                        <div id="mcq-choices-container" class="choices-container" style="display: none;">
+                                        <div id="mcq-choices-container" class="choices-container hidden">
                                         </div>
                                         <textarea id="answer-box" class="answer-input"
                                             placeholder="Enter your answer here. Use Shift + Enter to submit." disabled
-                                            aria-describedby="expected-format symbols-hint"></textarea>
+                                            aria-describedby="expected-format"></textarea>
                                         <button id="clear-answer" class="icon-button clear-answer-btn"
                                             aria-label="Clear answer" title="Clear answer input">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -491,6 +519,19 @@
                                     </div>
                                     <div id="preview" class="math-preview"></div>
                                     <div id="expected-format" class="expected-format"></div>
+                                    <div id="confidence-row" class="confidence-row" hidden>
+                                        <span class="confidence-label" id="confidence-label">How sure were you?</span>
+                                        <div class="confidence-buttons" role="group" aria-labelledby="confidence-label">
+                                            <button type="button" class="secondary-button confidence-button" data-confidence="low">Guessing</button>
+                                            <button type="button" class="secondary-button confidence-button" data-confidence="medium">Fairly sure</button>
+                                            <button type="button" class="secondary-button confidence-button" data-confidence="high">Certain</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer help-footer">
+                                    <button type="button" class="secondary-button" id="show-hint" disabled>Hint</button>
+                                    <button type="button" class="secondary-button" id="show-solution" hidden>Show solution</button>
+                                    <div id="hint-panel" class="hint-panel" hidden aria-live="polite"></div>
                                 </div>
                             </div>
                             <div class="results-card card">
@@ -547,10 +588,28 @@
             <div class="modal-content print-content">
                 <div class="modal-header">
                     <h2 id="print-title">Print Worksheet</h2>
-                    <button class="icon-button modal-close" id="print-close">✕</button>
+                    <button class="icon-button modal-close" id="print-close" aria-label="Close print dialog">✕</button>
                 </div>
                 <div class="modal-body">
                     <div class="print-options">
+                        <div class="setting-item">
+                            <label for="print-title-input">Worksheet title</label>
+                            <input type="text" id="print-title-input" value="Math Worksheet" placeholder="Math Worksheet">
+                        </div>
+                        <div class="print-header-fields">
+                            <div class="setting-item">
+                                <label for="print-name-input">Student name</label>
+                                <input type="text" id="print-name-input" placeholder="Name">
+                            </div>
+                            <div class="setting-item">
+                                <label for="print-date-input">Date</label>
+                                <input type="date" id="print-date-input">
+                            </div>
+                            <div class="setting-item">
+                                <label for="print-period-input">Period</label>
+                                <input type="text" id="print-period-input" placeholder="Period">
+                            </div>
+                        </div>
                         <div class="setting-item">
                             <label for="print-question-count">Number of questions</label>
                             <select id="print-question-count" class="scope-select">
@@ -558,12 +617,6 @@
                                 <option value="10" selected>10</option>
                                 <option value="20">20</option>
                                 <option value="30">30</option>
-                            </select>
-                        </div>
-                        <div class="setting-item">
-                            <label for="print-topic">Topic</label>
-                            <select id="print-topic" class="scope-select">
-                                <option value="all">All topics (from selected scope)</option>
                             </select>
                         </div>
                         <div class="setting-item">
@@ -577,6 +630,12 @@
                             </select>
                         </div>
                         <div class="setting-item">
+                            <label for="print-topic">Topic</label>
+                            <select id="print-topic" class="scope-select">
+                                <option value="all">All topics (from selected scope)</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
                             <label for="print-difficulty">Difficulty</label>
                             <select id="print-difficulty" class="scope-select">
                                 <option value="easy">Easy</option>
@@ -586,13 +645,37 @@
                             </select>
                         </div>
                         <div class="setting-item">
-                            <label for="print-answer-key">Include answer key</label>
-                            <input type="checkbox" id="print-answer-key" class="settings-checkbox" checked>
+                            <label for="print-answer-key-mode">Answer key</label>
+                            <select id="print-answer-key-mode" class="scope-select">
+                                <option value="none">None</option>
+                                <option value="append" selected>Append after questions</option>
+                                <option value="separate">Separate page</option>
+                                <option value="only">Answer key only</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="print-seed-input">Seed (optional)</label>
+                            <input type="text" id="print-seed-input"
+                                placeholder="Leave empty for random seed" inputmode="numeric">
+                            <button type="button" id="print-copy-seed" class="secondary-button hidden"
+                                title="Copy seed to clipboard">Copy seed</button>
+                        </div>
+                        <div class="print-toggles">
+                            <div class="setting-item">
+                                <label for="print-page-numbers">Page numbers</label>
+                                <input type="checkbox" id="print-page-numbers" class="settings-checkbox">
+                            </div>
+                            <div class="setting-item">
+                                <label for="print-show-metadata">Show topic/difficulty metadata</label>
+                                <input type="checkbox" id="print-show-metadata" class="settings-checkbox" checked>
+                            </div>
                         </div>
                     </div>
+                    <div id="print-preview" class="print-preview-pane" aria-live="polite"></div>
                 </div>
                 <div class="modal-footer">
                     <button id="print-generate" class="primary-button">Generate Worksheet</button>
+                    <button id="print-export-pdf" class="primary-button">Export PDF</button>
                 </div>
             </div>
         </div>
@@ -613,14 +696,22 @@
                 </div>
             </div>
         </div>
-        <div id="data-modal" class="modal hidden" role="dialog">
+        <div id="data-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="data-title">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>Manage Performance Data</h2>
-                    <button class="icon-button modal-close" id="data-close">✕</button>
+                    <h2 id="data-title">Manage Performance Data</h2>
+                    <button class="icon-button modal-close" id="data-close" aria-label="Close data dialog">✕</button>
                 </div>
                 <div class="modal-body">
+                    <p id="data-record-intro">Your record is the review history, every recorded answer and the schedule. Export it to keep it, or import a record from another device.</p>
                     <div id="data-list"></div>
+                    <button id="export-data-btn" class="secondary-button" style="margin-top: 16px;">Export Data</button>
+                    <button id="import-data-btn" class="secondary-button" style="margin-top: 16px; margin-left: 8px;">Import Data</button>
+                    <label id="import-mode-label" for="import-mode" style="display: block; margin-top: 8px;">When importing:</label>
+                    <select id="import-mode" class="mode-button">
+                        <option value="merge">Merge with what is here</option>
+                        <option value="replace">Replace what is here</option>
+                    </select>
                     <button id="delete-all-btn" class="secondary-button" style="margin-top: 16px;">Delete All Data</button>
                     <button id="reset-all-btn" class="secondary-button" style="margin-top: 16px; margin-left: 8px;">Hard Reset (Scores + Data)</button>
                 </div>
@@ -641,7 +732,7 @@
                         <button id="settings-tab-advanced" class="mode-button settings-tab">Advanced</button>
                     </div>
                     <div id="settings-basic" class="settings-panel">
-                        <div class="settings-section">
+                        <div class="settings-section" id="updates-section">
                             <h3>Updates</h3>
                             <div class="setting-item">
                                 <label for="check-updates">Check for updates</label>
@@ -676,6 +767,21 @@
                                 </select>
                             </div>
                             <div class="setting-item">
+                                <label for="settings-persistence">Data on this device</label>
+                                <select id="settings-persistence" class="scope-select">
+                                    <option value="desktop">This computer (the desktop app)</option>
+                                    <option value="zdr">Private session (nothing is stored)</option>
+                                    <option value="indexed">Remember me (stored in this browser)</option>
+                                </select>
+                                <p class="setting-help" id="settings-persistence-help">A private session keeps nothing after you close the tab.
+                                Remembering lets your settings survive a reload, stored only in this browser.</p>
+                            </div>
+                            <div class="setting-item" id="setting-erase-data" hidden>
+                                <label>Erase my learning record</label>
+                                <button type="button" id="settings-erase-data" class="secondary-button">Erase everything</button>
+                                <p class="setting-help">Removes your review history and streak from this device. This cannot be undone.</p>
+                            </div>
+                            <div class="setting-item" id="setting-adaptive">
                                 <label for="settings-adaptive">Adaptive Learning (adjusts difficulty & recommends weak
                                     topics)</label>
                                 <input type="checkbox" id="settings-adaptive" class="settings-checkbox" checked>

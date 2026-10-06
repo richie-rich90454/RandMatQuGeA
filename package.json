@@ -1,6 +1,6 @@
 {
   "name": "randmatqugea",
-  "version": "2.2.3",
+  "version": "3.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,10 +10,17 @@
     "build": "npm run build:typescript && npm run build:web",
     "start:nodejs": "vite preview",
     "tauri": "tauri",
+    "tauri:fixed": "tauri build --config src-tauri/tauri.windows-fixed.conf.json",
+    "tauri:dev": "tauri dev",
+    "tauri:dev:fixed": "tauri dev --config src-tauri/tauri.windows-fixed.conf.json",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest --coverage",
-    "check": "npm run build:typescript && npm run test:run"
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run --project unit",
+    "test:oracle": "vitest run --project oracle",
+    "test:e2e": "playwright test",
+    "bundle:check": "node scripts/bundle-check.js",
+    "check": "npm run build:typescript && npm run test:run && npm run bundle:check"
   },
   "keywords": [
     "math",
@@ -25,11 +32,18 @@
   ],
   "author": "richie-rich90454",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/richie-rich90454/RandMatQuGeA.git"
+  },
+  "homepage": "https://github.com/richie-rich90454/RandMatQuGeA#readme",
+  "bugs": {
+    "url": "https://github.com/richie-rich90454/RandMatQuGeA/issues"
+  },
   "dependencies": {
     "@tauri-apps/api": "^2.12.0",
-    "@tauri-apps/plugin-global-shortcut": "^2.4.0",
+    "@tauri-apps/plugin-dialog": "^2.8.0",
     "@tauri-apps/plugin-process": "^2.4.0",
-    "@tauri-apps/plugin-sql": "^2.5.0",
     "@tauri-apps/plugin-updater": "^2.13.1",
     "mathjax": "^4.1.2",
     "mathjs": "^15.2.0",
@@ -38,14 +52,20 @@
   },
   "description": "Random math question generator made with HTML, CSS, and JS.",
   "devDependencies": {
-    "@tauri-apps/cli": "^2.12.0",
-    "@types/node": "^26.6.3",
+    "@fast-check/vitest": "^0.5.0",
+    "@playwright/test": "^1.56.0",
+    "@tauri-apps/cli": "^2.12.1",
+    "@types/node": "^26.6.4",
     "@types/semver": "^7.7.1",
     "@types/three": "^0.186.0",
+    "@vitest/coverage-v8": "^5.0.2",
+    "fast-check": "^4.10.2",
+    "fraction.js": "^5.3.4",
     "jsdom": "^29.1.1",
+    "katex": "^0.19.0",
     "rollup-plugin-visualizer": "^7.1.1",
     "typescript": "^7.0.2",
-    "vite": "^8.3.1",
+    "vite": "^8.3.3",
     "vitest": "^5.0.2"
   }
 }

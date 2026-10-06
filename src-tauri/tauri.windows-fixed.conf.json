@@ -1,0 +1,14 @@
+{
+    "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+    "productName": "RandMatQuGeA",
+    "bundle": {
+        "active": true,
+        "targets": ["nsis"],
+        "windows": {
+            "webviewInstallMode": {
+                "type": "offlineInstaller",
+                "silent": true
+            }
+        }
+    }
+}

@@ -1,8 +1,9 @@
-const PRECACHE="precache-v2.1.4";
-const RUNTIME="runtime-v2.1.4";
+const PRECACHE="precache-v3.1.0";
+const RUNTIME="runtime-v3.1.0";
 const PRECACHE_URLS=[
 	".",
 	"index.html",
+	"manifest.webmanifest",
 	"katex.min.css",
 	"katex.min.js",
 	"mathjax/tex-chtml.js",
@@ -115,6 +116,26 @@ self.addEventListener("fetch",(event)=>{
 	if (!sameOrigin){
 		return;
 	}
+	// Navigation (HTML) requests: network-first so rebuilt bundles are always
+	// picked up, with a cached fallback for offline use.
+	if (event.request.mode==="navigate"){
+		event.respondWith(
+			fetch(event.request).then((r)=>{
+				if (r&&r.ok){
+					const copy=r.clone();
+					caches.open(RUNTIME).then((cache)=>{
+						cache.put(event.request, copy);
+					}).catch(()=>{});
+				}
+				return r;
+			}).catch(()=>{
+				return caches.match(event.request).then((c)=>{
+					return c||caches.match(new URL("index.html", self.registration.scope)).then((h)=>h||Response.error());
+				});
+			})
+		);
+		return;
+	}
 	event.respondWith(
 		caches.match(event.request).then((cached)=>{
 			if (cached){
@@ -128,15 +149,55 @@ self.addEventListener("fetch",(event)=>{
 				return cached;
 			}
 			return fetch(event.request).then((r)=>{
-				if (r&&r.ok){
+				// A response that claims success but carries the wrong content type is
+				// not a success. A server configured to fall back to index.html answers
+				// a missing chunk with HTML, and caching that under the chunk's URL
+				// poisons the cache permanently: the failure survives the rebuild that
+				// would otherwise have fixed it, and every later load fails the same
+				// way. So the type is checked before anything is stored.
+				if (r&&r.ok&&isUsableAsset(event.request,r)){
 					caches.open(RUNTIME).then((cache)=>{
 						cache.put(event.request, r.clone());
 					}).catch(()=>{});
 				}
 				return r;
-			}).catch(()=>{
-				return caches.match(new URL("index.html", self.registration.scope))||Response.error();
+		}).catch(()=>{
+			// The shell is the fallback for a navigation, which is what makes an
+			// installed app open when the network is gone. It is never the answer to a
+			// request for a script: the browser would report a MIME type error and name
+			// neither the missing file nor the reason, and the application would lose
+			// one subject's generators at the moment a learner asks for a question. A
+			// 404 says what happened.
+			if (event.request.mode==="navigate"){
+				return caches.match(new URL("index.html", self.registration.scope)).then((r)=>r||Response.error());
+			}
+			return new Response("Not found: "+event.request.url, {
+				status:404,
+				headers:{"Content-Type":"text/plain"}
 			});
-		})
+		});
+	})
 	);
+});
+/**
+ * Reports whether a response may be stored for an asset request.
+ *
+ * @param {Request} request - The request being answered.
+ * @param {Response} response - The response the network gave.
+ * @returns {boolean} True when the response is safe to cache.
+ */
+function isUsableAsset(request, response){
+	const type=response.headers.get("Content-Type")||"";
+	const wantsScript=(request.url.endsWith(".js")||request.url.endsWith(".mjs"));
+	if (wantsScript&&type.indexOf("javascript")<0) return false;
+	if (request.url.endsWith(".css")&&type.indexOf("css")<0) return false;
+	return true;
+}
+// A request the cache cannot satisfy falls back to the shell, which is what makes
+// an installed app open when the network is gone rather than showing the browser's
+// own error page inside a window that looks like the app.
+self.addEventListener("message",(event)=>{
+	if (event.data==="skip-waiting"){
+		self.skipWaiting();
+	}
 });

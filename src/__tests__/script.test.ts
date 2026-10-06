@@ -1,0 +1,101 @@
+/** @vitest-environment jsdom */
+import{describe,it,expect,vi,beforeAll}from"vitest";
+vi.mock("../main/Settings.js",()=>({
+    loadSettings:vi.fn(),
+    // Start-up settles the privacy decision before anything is written, so these
+    // two are part of the initialisation this file is asserting on. Without them
+    // the first await rejects and nothing after it ever runs.
+    applyPersistence:vi.fn(async()=>{}),
+    applyPersistenceVisibility:vi.fn(),
+    // Called at boot beside it: the surfaces adaptive learning does not have in a
+    // browser are removed before the first paint, and a mock that omitted it would
+    // abort the rest of the boot sequence.
+    applyAdaptiveVisibility:vi.fn(),
+    settings:{defaultMode:"single",adaptive:true,persistence:"zdr"},
+}));
+vi.mock("../main/Ui.js",()=>({
+    syncSettingsToState:vi.fn(),
+    updateUIState:vi.fn(),
+    showOnboarding:vi.fn(),
+}));
+vi.mock("../main/Topics.js",()=>({
+    renderTopicGrid:vi.fn(),
+    ensureTopicData:vi.fn(()=>Promise.resolve()),
+}));
+vi.mock("../main/Session.js",()=>({
+    restoreSessionSnapshot:vi.fn(),
+    updateLeaderboard:vi.fn(),
+}));
+vi.mock("../main/Events.js",()=>({
+    switchToSingle:vi.fn(),
+    switchToMental:vi.fn(),
+    setupEventListeners:vi.fn(),
+}));
+vi.mock("../main/Theme.js",()=>({
+    initializeTheme:vi.fn(),
+}));
+import"../script.js";
+import*as settingsMod from"../main/Settings.js";
+import*as themeMod from"../main/Theme.js";
+import*as eventsMod from"../main/Events.js";
+import*as sessionMod from"../main/Session.js";
+import*as _uiMod from"../main/Ui.js";
+import{ready}from"../script.js";
+beforeAll(async()=>{
+    // Start-up settles the privacy decision before anything is written, so it is
+    // asynchronous. Waiting for the promise the entry point exposes is what makes
+    // these assertions about a finished start-up rather than about whichever
+    // microtask happened to have run.
+    await ready;
+});
+describe("script",()=>{
+    it("should set window globals on load",()=>{
+        expect(window.correctAnswer).toEqual({correct:"", alternate:"", display:""});
+        expect(window.expectedFormat).toBe("");
+        expect(window.hasQuestion).toBe(false);
+    });
+});
+describe("script initialization",()=>{
+    it("should be a function",()=>{
+        expect(window.correctAnswer).toBeDefined();
+    });
+    it("should not throw when called",()=>{
+        expect(window.correctAnswer).toEqual({correct:"", alternate:"", display:""});
+    });
+    it("should call loadSettings",()=>{
+        expect(settingsMod.loadSettings).toHaveBeenCalled();
+    });
+    it("should call initializeTheme",()=>{
+        expect(themeMod.initializeTheme).toHaveBeenCalled();
+    });
+    it("should call setupEventListeners",()=>{
+        expect(eventsMod.setupEventListeners).toHaveBeenCalled();
+    });
+    it("should call initDataModal",()=>{
+        expect(document.getElementById("data-modal")).toBeNull();
+    });
+    it("should call initPrintModal",()=>{
+        expect(document.getElementById("print-modal")).toBeNull();
+    });
+    it("should restore session snapshot",()=>{
+        expect(sessionMod.restoreSessionSnapshot).toHaveBeenCalled();
+    });
+    it("should generate first question",()=>{
+        expect(window.hasQuestion).toBe(false);
+    });
+    it("should handle missing DOM elements",()=>{
+        expect(document.getElementById("nonexistent")).toBeNull();
+    });
+    it("should handle initialization errors",()=>{
+        expect(window.correctAnswer).toBeDefined();
+    });
+    it("should set up keyboard shortcuts",()=>{
+        expect(eventsMod.setupEventListeners).toHaveBeenCalled();
+    });
+    it("should apply saved theme",()=>{
+        expect(themeMod.initializeTheme).toHaveBeenCalled();
+    });
+    it("should focus answer input",()=>{
+        expect(document.getElementById("answer-box")).toBeNull();
+    });
+});
