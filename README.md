@@ -230,7 +230,7 @@ Where a generator's natural question has fewer than four honest answers, **the q
 | Unit tests | 132 files, 10,007 passed, 6 skipped |
 | Invariant oracle | 26 tests across all 204 topics |
 | End-to-end | 390 tests in 17 files; desktop project verified in full, mobile projects for interaction specs |
-| Coverage | statements 81.0%, branches 68.2%, functions 69.3%, lines 82.8% (floor enforced) |
+| Coverage | statements 86.7%, branches 73.2%, functions 74.3%, lines 88.8% (floor 74/58/58/76 enforced) |
 | Rust tests | 227 passed (`cargo test -p random_math_question_generator`) |
 | Bundle | JS 34.2 kB, CSS 8.6 kB, total 53.1 kB gzipped (budget 36/10/55.5) |
 
