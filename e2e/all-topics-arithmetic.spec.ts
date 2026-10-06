@@ -5,7 +5,10 @@ const topicIds = topicsForCategory("Arithmetic");
 
 for (const diff of DIFFICULTIES){
     test(`Arithmetic topics generate and accept the correct answer (${diff})`, async ({page})=>{
-        test.setTimeout(600000);
+        // Sweeping a whole category on WebKit takes ten minutes and more; the old
+        // ten-minute cap failed the last few topics of Algebra for being slow
+        // rather than wrong, which reads as a broken generator.
+        test.setTimeout(1800000);
         await gotoApp(page, {appSettings: {scope: "all", difficulty: diff}});
         await verifyTopicMatrix(page, topicIds, diff);
     });
