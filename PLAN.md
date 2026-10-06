@@ -806,7 +806,7 @@ Last full green baseline after this session's work:
 | coverage | floor enforced (74/58/58/76); measured 86.53/72.92/74.31/88.63 |
 | `cargo test` | 227 passed |
 | `npm run build:web` | built green |
-| bundle | JS 34.73 kB, CSS 8.71 kB, total 53.81 kB against 36/10/55.5, referentially whole |
+| bundle | JS 34.82 kB, CSS 8.71 kB, total 53.90 kB against 36/10/55.5, referentially whole |
 | commits | one file per commit |
 | Playwright | 393 tests in 17 files, all three projects, everything run to completion |
 
