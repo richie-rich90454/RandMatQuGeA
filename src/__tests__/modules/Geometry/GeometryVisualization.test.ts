@@ -163,7 +163,7 @@ describe("shape routing",()=>{
         // "graph" has always had a canvas implementation. The router did not list
         // it among the 2D shapes, so a trigonometric graph question loaded a WebGL
         // renderer, found no case for the shape, warned, and removed the whole
-        // visualisation again: the learner saw no graph at all.
+        // visualization again: the learner saw no graph at all.
         const warn=vi.spyOn(console,"warn").mockImplementation(()=>{});
         const constructed=vi.mocked(WebGLRenderer).mock.calls.length;
         try{
