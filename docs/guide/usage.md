@@ -121,6 +121,16 @@ Answers use math.js syntax for evaluation:
 
 ## Adaptive Learning
 
+Adaptive learning needs two things, and both have to hold before it is offered: the
+desktop build, because the scheduler's inputs are performance records written
+through the Rust backend, and a store that will still hold those records tomorrow,
+because a private session discards them when the window closes. On the web build,
+and in a private session, the adaptive surfaces — the switch, the recommendation
+button, the confidence question and the streak badge — are absent rather than
+disabled, because a control that can only report that it cannot work is worse than
+no control at all. Turning a private session on removes them at that moment, not at
+the next start.
+
 The Rust backend tracks per-topic and per-difficulty accuracy. When enabled:
 
 - **Difficulty auto-adjusts**: accuracy < 40% → Easy, 40–80% → Medium, > 80% → Hard
