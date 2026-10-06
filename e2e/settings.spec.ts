@@ -227,3 +227,20 @@ test("settings persist across reload via localStorage", async ({page})=>{
     await expect(page.locator("#settings-font")).toHaveValue("opendyslexic");
     await expect(page.locator("#settings-notifications")).not.toBeChecked();
 });
+
+test("keyboard focus stays inside the settings dialog", async ({page})=>{
+    // Tab used to walk out of every modal into the app behind it. Opening the
+    // dialog moves focus in, and Shift+Tab from the first target cycles to the
+    // last instead of leaving.
+    await gotoApp(page);
+    await openSettings(page);
+    const modal = page.locator("#settings-modal");
+    await expect(modal).toBeVisible();
+    await expect(modal.locator(".modal-close")).toBeFocused();
+    await modal.locator(".modal-close").press("Shift+Tab");
+    const inside = await page.evaluate(()=>{
+        const modalEl = document.getElementById("settings-modal");
+        return !!modalEl && modalEl.contains(document.activeElement);
+    });
+    expect(inside).toBe(true);
+});
