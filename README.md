@@ -232,7 +232,7 @@ Where a generator's natural question has fewer than four honest answers, **the q
 | End-to-end | 390 tests in 17 files; desktop project verified in full, mobile projects for interaction specs |
 | Coverage | statements 86.7%, branches 73.2%, functions 74.3%, lines 88.8% (floor 74/58/58/76 enforced) |
 | Rust tests | 227 passed (`cargo test -p random_math_question_generator`) |
-| Bundle | JS 34.2 kB, CSS 8.6 kB, total 53.1 kB gzipped (budget 36/10/55.5) |
+| Bundle | JS 34.6 kB, CSS 8.7 kB, total 53.7 kB gzipped (budget 36/10/55.5) |
 
 ## ⚠️ A Note on Tauri Versions
 
