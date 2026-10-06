@@ -104,7 +104,96 @@ function handleMathShortcuts(e: KeyboardEvent): void{
             break;
     }
 }
+/** The element that opened the current modal, for focus to return to on close. */
+let modalTrigger: HTMLElement|null=null;
+/**
+ * Reports the six dialogs in a fixed order, skipping the ones that are absent.
+ *
+ * @returns The dialog elements that exist.
+ */
+function allModals(): HTMLElement[]{
+    let modals=[dom.modals.settingsModal, dom.modals.shortcutsModal, dom.modals.onboardingOverlay, dom.modals.printModal, dom.modals.weakTopicsModal, dom.modals.dataModal];
+    let found: HTMLElement[]=[];
+    for(let modal of modals){
+        if(modal) found.push(modal);
+    }
+    return found;
+}
+/**
+ * Reports the first keyboard target inside a dialog: its close button when it
+ * has one, else the first button, input, select or link.
+ *
+ * @param modal - The dialog to search.
+ * @returns The element to focus, or null when there is none.
+ */
+function firstFocusable(modal: HTMLElement): HTMLElement|null{
+    let close=modal.querySelector(".modal-close, [data-close]") as HTMLElement|null;
+    if(close) return close;
+    return modal.querySelector("button, input, select, textarea, a[href]") as HTMLElement|null;
+}
+/**
+ * Keeps keyboard focus inside open dialogs. Every dialog opens from a different
+ * call site, so watching the class list is the one hook that covers them all:
+ * on show the trigger is remembered and focus moves in, on hide focus returns.
+ * Without this, Tab walks out of the dialog into the app behind it.
+ */
+function watchModals(): void{
+    let observer=new MutationObserver((entries)=>{
+        for(let entry of entries){
+            let modal=entry.target as HTMLElement;
+            if(modal.classList.contains("show")){
+                if(document.activeElement instanceof HTMLElement) modalTrigger=document.activeElement;
+                let first=firstFocusable(modal);
+                if(first) first.focus();
+            }
+            else if(modalTrigger){
+                modalTrigger.focus();
+                modalTrigger=null;
+            }
+        }
+    });
+    for(let modal of allModals()){
+        observer.observe(modal,{attributes:true,attributeFilter:["class"]});
+    }
+}
+/**
+ * Cycles Tab inside the open dialog, if there is one. Tab on the last target
+ * returns to the first, and Shift+Tab on the first returns to the last, so the
+ * keyboard cannot leave for the app behind the dialog.
+ *
+ * @param event - The key event to handle, or null when no dialog is open.
+ * @returns True when the event was consumed by the trap.
+ */
+function trapModalTab(event: KeyboardEvent): boolean{
+    if(event.key!=="Tab") return false;
+    let open: HTMLElement|null=null;
+    for(let modal of allModals()){
+        if(modal.classList.contains("show")) open=modal;
+    }
+    if(!open) return false;
+    let items=open.querySelectorAll("button, input, select, textarea, a[href]");
+    let targets: HTMLElement[]=[];
+    for(let i=0;i<items.length;i++){
+        let item=items[i] as HTMLElement;
+        if(!item.hasAttribute("disabled")) targets.push(item);
+    }
+    if(targets.length===0) return false;
+    let first=targets[0];
+    let last=targets[targets.length-1];
+    if(event.shiftKey&&document.activeElement===first){
+        event.preventDefault();
+        last.focus();
+        return true;
+    }
+    else if(!event.shiftKey&&document.activeElement===last){
+        event.preventDefault();
+        first.focus();
+        return true;
+    }
+    return false;
+}
 export async function setupEventListeners(): Promise<void>{
+    watchModals();
     if (dom.buttons.generateQuestionButton){
         dom.buttons.generateQuestionButton.addEventListener("click",generation.debounceGenerate);
     }
@@ -187,6 +276,7 @@ export async function setupEventListeners(): Promise<void>{
         }
     });
     document.addEventListener("keydown", (e: KeyboardEvent)=>{
+        if(trapModalTab(e)) return;
         if (e.key==="Escape") {
             let dropdown=document.getElementById("math-dropdown");
             if (dropdown&&dropdown.classList.contains("show")){
