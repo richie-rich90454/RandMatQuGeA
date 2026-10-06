@@ -1,6 +1,6 @@
 /**
  * @file The law of sines: finding a side, finding an angle, an applied problem,
- * and recognising which theorem a question calls for.
+ * and recognizing which theorem a question calls for.
  * @description The side branch is exact by construction. Among the special angles
  * the only ratios of two sines that terminate are the ones pairing a third of a
  * turn with a right angle, so those are the angle pairs drawn and the key is a
