@@ -159,7 +159,7 @@ export let topics: Topic[]=[
     {id: "long_division", name: "Long Division", icon: "÷…r", category: "Arithmetic"},
     {id: "powers_of_ten", name: "Powers of Ten", icon: "10ⁿ", category: "Arithmetic"},
     {id: "rounding_est", name: "Rounding & Estimate", icon: "≈", category: "Arithmetic"},
-    {id: "prime_factorization", name: "Prime Factorization", icon: "p^a q^b", category: "Arithmetic"},
+    {id: "prime_factorisation", name: "Prime Factorization", icon: "p^a q^b", category: "Arithmetic"},
     {id: "lcm_periods", name: "LCM & Periods", icon: "lcm", category: "Arithmetic"},
     {id: "money_change", name: "Money & Change", icon: "$↔", category: "Arithmetic"},
     // Algebra procedures the existing topics stop short of
@@ -229,7 +229,7 @@ export let topics: Topic[]=[
     {id: "inverse_trig", name: "Inverse Trig Functions", icon: "arcsin", category: "Trigonometry"},
 ];
 export let scopeTopics = {
-    simple: ["add","subtrt","mult","divid","place_value","negative_numbers","long_division","powers_of_ten","rounding_est","prime_factorization","lcm_periods","money_change"],
+    simple: ["add","subtrt","mult","divid","place_value","negative_numbers","long_division","powers_of_ten","rounding_est","prime_factorisation","lcm_periods","money_change"],
     algebra: [
         "add","basic_funcs","cartesian","circle_eq","comb","complex_mult_div","complex_polar","complex_roots","complex_zeros","coord3d","cos","demoivre","divid","elev_dep","exp","exp_model","fact","finance","func_ops","func_props","inverse_funcs","line3d","line_plane_3d","linear_special","log","mult","parabola","perm","plane3d","poly_ineq","polar_to_rect","power_model","prob","pythag","rational_analysis","rational_eq","rect_to_polar","right_triangle_defs","root","ser","sin","special_triangle","sphere_eq","stats","subtrt","tan","transformations","volume_sphere",
         "fraction","percent","ratio","unit_conv","expr_eval","number_sets","properties","order_ops",
