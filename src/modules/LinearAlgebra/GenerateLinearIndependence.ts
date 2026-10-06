@@ -1,5 +1,5 @@
 /**
- * @file Linear independence: recognising a linear combination, spotting the dependent
+ * @file Linear independence: recognizing a linear combination, spotting the dependent
  * set, the test for being a basis, and the dimension of a span.
  * @description A pair of planar vectors is linearly dependent exactly when its
  * determinant is zero, so every "is this one in the span of that" question in this
