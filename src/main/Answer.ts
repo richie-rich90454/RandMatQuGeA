@@ -398,6 +398,18 @@ export async function gradeAnswer(userInput: string, correct: string, alternate?
  * @throws No exceptions are thrown; errors are caught and logged, with user‑friendly notifications.
  */
 let checkInFlight=false;
+/**
+ * Ends the current check as far as the learner is concerned. Called once the
+ * verdict is on screen, because everything after that is bookkeeping — the daily
+ * set advancing and the auto-continue timer — and a guard that is still held
+ * during that work swallows the next answer: the click returns silently, no
+ * verdict replaces the placeholder, and the learner is told nothing at all. A
+ * check that is still grading is genuinely reentrant and stays guarded; a check
+ * whose verdict is already rendered is not.
+ */
+export function releaseCheckGuard(): void{
+    checkInFlight=false;
+}
 export async function checkAnswer(userInput?: string): Promise<void>{
     if (checkInFlight) return;
     checkInFlight=true;
@@ -519,6 +531,13 @@ async function checkAnswerImpl(userInput?: string): Promise<void>{
         ui.updatePreview();
         dom.inputs.userAnswer.focus();
     }
+    // The verdict is on screen, so this check is over as far as the learner is
+    // concerned. Everything below is bookkeeping — the daily set advancing and
+    // the auto-continue timer — and holding the reentrancy guard across it would
+    // drop the next click with no feedback at all, which is not what the guard is
+    // for: it exists to stop the same answer being graded twice, and by this point
+    // the answer has been graded and shown.
+    releaseCheckGuard();
 // Asked after the result is shown rather than before the answer is graded, so
     // the learner is judging what they actually did rather than what they hoped.
     // It is not offered when the next question is already on its way, because a
