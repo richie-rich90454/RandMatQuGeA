@@ -32,18 +32,23 @@ export class ErrorHandler{
         this.retryFn=retryFn;
         let area=dom.displays.questionArea;
         if(!area)return;
-        area.innerHTML="<div class=\"error-card\">" +
-            "<p class=\"error-message\">"+message+"</p>" +
-            "<button class=\"error-retry-btn\">Try Again</button>" +
-            "</div>";
-        let retryBtn=area.querySelector(".error-retry-btn");
-        if(retryBtn){
-            retryBtn.addEventListener("click",()=>{
-                if(this.retryFn){
-                    this.retryFn();
-                }
-            });
-        }
+        area.innerHTML="";
+        let card=document.createElement("div");
+        card.className="error-card";
+        let messageEl=document.createElement("p");
+        messageEl.className="error-message";
+        messageEl.textContent=message;
+        let retryBtn=document.createElement("button");
+        retryBtn.className="error-retry-btn";
+        retryBtn.textContent="Try Again";
+        card.appendChild(messageEl);
+        card.appendChild(retryBtn);
+        area.appendChild(card);
+        retryBtn.addEventListener("click",()=>{
+            if(this.retryFn){
+                this.retryFn();
+            }
+        });
     }
     clearError(): void{
         this.lastError=null;
