@@ -388,6 +388,9 @@ struct SkillRow {
 /// the recommendations read; the row is what makes the learner's history theirs,
 /// exportable and rebuildable rather than only what the schema happens to
 /// summarize.
+// Tauri commands take one argument per IPC field, so grouping these would
+// change the frontend call shape rather than simplify it.
+#[allow(clippy::too_many_arguments)]
 #[tauri::command]
 async fn save_attempt(
     state: tauri::State<'_, DbState>,

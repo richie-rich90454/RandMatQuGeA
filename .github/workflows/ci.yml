@@ -73,6 +73,8 @@ jobs:
         with:
           tool: cargo-tauri
       - run: npm ci
+      - name: Install NSIS
+        run: choco install nsis -y
       # The default flavour downloads a WebView2 bootstrapper at install time,
       # which is what a machine with no outbound network cannot do, so the fixed
       # runtime flavour is the one that gets built and smoke tested.

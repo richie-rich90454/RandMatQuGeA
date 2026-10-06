@@ -3,7 +3,7 @@
     "productName": "RandMatQuGeA",
     "bundle": {
         "active": true,
-        "targets": ["nsis", "msi"],
+        "targets": ["nsis"],
         "windows": {
             "webviewInstallMode": {
                 "type": "offlineInstaller",

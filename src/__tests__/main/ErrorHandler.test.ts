@@ -5,6 +5,7 @@ vi.mock("../../main/core/DomRegistry",()=>({
         displays:{
             questionArea:{
                 innerHTML:"",
+                appendChild:vi.fn(),
                 querySelector:vi.fn(()=>null),
             }
         }

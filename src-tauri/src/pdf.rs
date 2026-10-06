@@ -186,10 +186,8 @@ fn to_subscript_char(c: char)->Option<char>{
 fn try_convert_superscript(content: &str)->Option<String>{
 	let mut result=String::new();
 	for c in content.chars(){
-		match to_superscript_char(c){
-			Some(sc)=>result.push(sc),
-			None=>return None,
-		}
+		let sc=to_superscript_char(c)?;
+		result.push(sc);
 	}
 	Some(result)
 }
@@ -198,10 +196,8 @@ fn try_convert_superscript(content: &str)->Option<String>{
 fn try_convert_subscript(content: &str)->Option<String>{
 	let mut result=String::new();
 	for c in content.chars(){
-		match to_subscript_char(c){
-			Some(sc)=>result.push(sc),
-			None=>return None,
-		}
+		let sc=to_subscript_char(c)?;
+		result.push(sc);
 	}
 	Some(result)
 }
@@ -297,11 +293,7 @@ fn process_matrix_environments(input: &str)->String{
 		let end_marker=format!("\\end{{{}}}", env);
 		// Repeatedly find and replace each matrix environment occurrence.
 		// A loop is needed because multiple matrices may appear in the same string.
-		loop{
-			let begin_pos=match result.find(&begin_marker){
-				Some(p)=>p,
-				None=>break,
-			};
+		while let Some(begin_pos)=result.find(&begin_marker){
 			let content_start=begin_pos+begin_marker.len();
 			let end_pos=match result[content_start..].find(&end_marker){
 				Some(p)=>content_start+p,
@@ -816,8 +808,7 @@ struct PdfWriter<'a>{
 }
 impl<'a> PdfWriter<'a>{
 	fn new(doc: &'a PdfDocumentReference, first_page: PdfPageIndex, first_layer: PdfLayerIndex)->Self{
-		let mut page_indices=Vec::new();
-		page_indices.push((first_page, first_layer));
+		let page_indices=vec![(first_page, first_layer)];
 		PdfWriter{
 			doc,
 			current_page: first_page,
@@ -923,7 +914,7 @@ impl<'a> PdfWriter<'a>{
 		let mut desired_h=pt_to_mm(font_size)*2.6;
 		let natural_w_mm=if px_h==0 { 0.0 } else { (px_w as f32/px_h as f32)*desired_h };
 		if natural_w_mm>available && natural_w_mm>0.0{
-			desired_h = desired_h * (available/natural_w_mm);
+			desired_h *= available/natural_w_mm;
 		}
 		let display_w_mm=if px_h==0 { 0.0 } else { (px_w as f32/px_h as f32)*desired_h };
 		let line_h=line_height(font_size);
