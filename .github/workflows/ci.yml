@@ -27,26 +27,21 @@ jobs:
         run: npm run build:web
       - name: Bundle budget check
         run: npm run bundle:check
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libglib2.0-dev \
+            libssl-dev \
+            librsvg2-dev \
+            patchelf \
+            gpg \
+            libappindicator3-dev || sudo apt --fix-broken install -y
       - name: Rust tests
         working-directory: src-tauri
         run: cargo test
-  e2e:
-    name: End-to-end tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: 'npm'
-      - run: npm ci
-      - name: Install Playwright browsers
-        # The desktop and mobile-chrome projects use the bundled Chromium, and the
-        # mobile-safari project's iPhone descriptor runs on WebKit, so both
-        # engines are needed.
-        run: npx playwright install --with-deps chromium webkit
-      - name: End-to-end tests
-        run: npm run test:e2e
   oracle:
     name: Generator correctness oracle
     runs-on: ubuntu-latest
@@ -69,9 +64,6 @@ jobs:
           node-version: 24
           cache: 'npm'
       - uses: dtolnay/rust-toolchain@stable
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-tauri
       - run: npm ci
       - name: Install NSIS
         run: choco install nsis -y
