@@ -16,6 +16,7 @@ import type{Update}from"@tauri-apps/plugin-updater";
 import{relaunch as relaunchCommand}from"@tauri-apps/plugin-process";
 import{getCurrentWindow}from"@tauri-apps/api/window";
 import type{Window}from"@tauri-apps/api/window";
+export type{Window};
 import{isTauri}from"../../utils/envUtils";
 import type{ExportDocument,ImportMode}from"../DataManagement";
 /** A difficulty recommendation with the weakest topic, as the backend sends it. */
