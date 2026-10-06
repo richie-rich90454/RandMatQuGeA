@@ -199,7 +199,7 @@ function structuredDistractors(answer: string, count: number): string[]{
 }
 
 /**
- * Builds distractors for a word or symbol answer that has no recognisable
+ * Builds distractors for a word or symbol answer that has no recognizable
  * structure, by perturbing the tokens of the answer itself. A token swap changes
  * the meaning while staying in the answer's own vocabulary, which is a far more
  * useful distractor than appending punctuation.
