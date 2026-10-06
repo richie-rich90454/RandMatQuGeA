@@ -153,7 +153,12 @@ function watchModals(): void{
         }
     });
     for(let modal of allModals()){
-        observer.observe(modal,{attributes:true,attributeFilter:["class"]});
+        try{
+            observer.observe(modal,{attributes:true,attributeFilter:["class"]});
+        }
+        catch(e){
+            console.warn("Could not watch a dialog for focus trapping:",e);
+        }
     }
 }
 /**
