@@ -1,5 +1,5 @@
 ﻿/** @vitest-environment jsdom */
-import{describe,it,expect,vi,beforeEach,afterEach}from"vitest";
+import{describe,it,expect,vi,beforeAll,beforeEach,afterEach}from"vitest";
 vi.mock("../../main/core/DomRegistry",()=>{
     const timerDisplay={innerHTML:"",style:{display:""},classList:{add:vi.fn(),remove:vi.fn()}};
     const scoreDisplay={innerHTML:""};
@@ -174,6 +174,7 @@ vi.mock("../../main/Mcq.js",()=>({
     generateChoicesForCurrentQuestion:vi.fn(),
 }));
 import{saveSessionSnapshot,restoreSessionSnapshot,startTimer,generateNextMentalQuestion,handleMentalAnswer,handleMcqChoice,startMentalSession,pauseMentalSession,skipMentalQuestion,stopMentalSession,endMentalSession,promptSaveScore,updateLeaderboard}from"../../main/Session.js";
+import{gradeAnswer}from"../../main/Answer.js";
 import*as stateStore from"../../main/core/StateStore";
 let state:any=stateStore.appState;
 import * as ui from "../../main/Ui.js";
@@ -384,6 +385,13 @@ describe("session",()=>{
         });
     });
     describe("session scoring",()=>{
+        beforeAll(async()=>{
+            // The grader loads the math engine on first use, and that import alone
+            // can outrun the per-test timeout with coverage instrumentation
+            // multiplying the cost. Warming it once keeps the timeout sensitive to
+            // real hangs instead of the import.
+            await gradeAnswer("1","1");
+        }, 90000);
         beforeEach(()=>{
             vi.clearAllMocks();
             (window as any).hasQuestion=true;
