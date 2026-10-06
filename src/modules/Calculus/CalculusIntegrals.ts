@@ -24,7 +24,7 @@ function formatFraction(num: number, den: number): string{
     }
 }
 /**
- * Normalises an antiderivative to the single spelling this generator grades and
+ * Normalizes an antiderivative to the single spelling this generator grades and
  * offers: no spaces, no braces, lower case. The answer and every option go through
  * it, so an option can never be the answer in a different spelling.
  */
