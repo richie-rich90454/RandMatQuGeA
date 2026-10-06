@@ -562,6 +562,45 @@ on properties across all twelve families, all drawn from the injected seed.
 Two rng fixtures moved with the narrower medium pool, and a new case asserts
 easy asks names only while hard reaches every family across seeds.
 
+### 4.29 The layout audit and its fixes
+
+A full static audit of the stylesheet, markup and viewport code found 35 items;
+the functional hunt alongside it found nothing — unit, oracle and tsc all green
+with baseline-matching numbers, and every risky area re-verified. The fixes:
+
+- **Hidden controls that never hid.** Bare `hidden` attributes lose to author
+  `display` rules, so five controls rendered while reported hidden. One global
+  `[hidden]` rule covers both mechanisms now.
+- **Keyboard reveal scrolled the wrong box.** Phones scroll the inner content,
+  not the window, so the answer stayed behind the keyboard. The nearest
+  scrollable ancestor takes the delta now.
+- **Dead keyboard path.** The viewport module wrote classes and variables no CSS
+  read; the modal cap and keyboard-open variant consume them now.
+- **Footer clipped on phones.** Fixed 28px height with two-line stacked content;
+  it sizes to content with a minimum now, carrying its own safe-area padding.
+- **Narrow overflow.** Setting rows, print fields, action buttons, worksheet
+  headers and long option/name/field text wrap or shrink at 320px; desktop
+  shortcut hints hide where the shortcuts do not exist.
+- **Touch targets.** Chips, mode and settings tabs, checkbox label rows, selects
+  and the clear button join the 44px floor on coarse pointers.
+- **Focus trap.** Tab walked out of every modal; one observer covers all six
+  dialogs from every open path, moving focus in and back, with Tab cycling
+  inside. Proven by a browser case, not by review.
+- **Toasts and badges** respect safe areas and sit below dialogs; the loading
+  veil sits above them.
+- **Print.** Dark-theme math prints black, equations show whole instead of
+  clipped, questions keep to one page, pages carry margins.
+- **Contrast.** Verdict text uses AA-passing cuts per theme; dark blocks declare
+  the tertiary they use.
+- **Dead code.** Sixty lines of context-menu rules styled no element in the app,
+  a duplicated panel rule merged, two animation declarations with no keyframes
+  removed, and the close button owns its layout.
+
+Left as is, deliberately: `body{overflow-x:hidden}` stays as the backstop now
+that each overflow has its own fix; the triplicated theme blocks work and
+merging them risks every color at once; the modal show/hide pair is load-bearing
+and covered by tests.
+
 ## 5. Open work register
 
 Ordered by consequence. Each row states the acceptance test that closes it.
@@ -712,7 +751,7 @@ Last full green baseline after this session's work:
 | coverage | floor enforced (74/58/58/76) |
 | `cargo test` | 227 passed |
 | `npm run build:web` | built green |
-| bundle | JS 34.17 kB, CSS 8.58 kB, total 53.12 kB against 36/10/55.5, referentially whole |
+| bundle | JS 34.59 kB, CSS 8.71 kB, total 53.67 kB against 36/10/55.5, referentially whole |
 | commits | one file per commit |
 | Playwright | desktop verified in full (see 4.14); mobile projects for interaction specs |
 
