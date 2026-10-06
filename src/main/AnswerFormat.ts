@@ -1,5 +1,5 @@
 /**
- * @file Answer normalisation shared by the checker, the option builder and the
+ * @file Answer normalization shared by the checker, the option builder and the
  * difficulty gate.
  * @description The app has to decide whether two answer strings mean the same
  * thing, and it has to do so in three places: when grading a typed answer, when
@@ -298,7 +298,7 @@ export function canonicalWordSet(value: string): string{
 
 /**
  * Reports whether two answers are the same words after canonicalisation, so
- * that a case or plural variant of the key is recognised as a second correct
+ * that a case or plural variant of the key is recognized as a second correct
  * option rather than a wrong one. Numbers are never words: a digit string and
  * a word are different answers, and two digit strings are compared numerically
  * elsewhere. Mathematical notation is never words either: anything carrying a
