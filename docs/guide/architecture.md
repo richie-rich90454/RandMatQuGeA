@@ -59,11 +59,11 @@ RandMatQuGeA is a **Tauri v2** application with a TypeScript frontend and a Rust
         expectedFormat?: string; // Format hint
         hint?: string;           // Optional hint text
         subskill?: string;       // Procedure within the topic, for scheduling
-        solution?: string;       // Worked solution steps
+        solution?: string[];    // Worked solution steps
         misconception?: string;  // The wrong turn this question guards against
-        hints?: string[];        // Branch-specific hint ladder
+        hints?: HintLadder;      // Branch-specific hint ladder
         skippable?: boolean;     // Whether the learner may skip
-        visualization?: object;  // 3D figure parameters, when there is one
+        visualization?: { shape: string; params?: Record<string, unknown> };  // 3D figure parameters, when there is one
     }
     ```
 5. **`QuestionRenderer.applyQuestionDto()`** — renders DTO to DOM, triggers MathJax typesetting
@@ -206,7 +206,7 @@ place to learn divisibility:
 
 | Topic | Covers |
 |---|---|
-| `divisibility` | Divisibility rules as recognition, counting multiples in a range, divisor counts from the prime factorisation, remainders |
+| `divisibility` | Divisibility rules as recognition, counting multiples in a range, divisor counts from the prime factorization, remainders |
 | `gcd_lcm` | The Euclidean algorithm, the identity `gcd(a,b) · lcm(a,b) = ab`, recovering one value from the other |
 | `modular` | Residues, solving a linear congruence, last digits of powers, congruence classes, divisibility as a congruence |
 | `data_analysis` | z-scores, percentile ranks, least-squares slope and prediction, sample standard deviation, quartiles |
