@@ -803,7 +803,7 @@ Last full green baseline after this session's work:
 | `tsc --noEmit` | clean |
 | unit | 132 files, 10,007 passed, 6 skipped |
 | oracle | 5 files, 30 passed, including the raw-option gate and table-versus-registry agreement over all 204 topics |
-| coverage | floor enforced (74/58/58/76); measured 86.7/73.2/74.3/88.8 |
+| coverage | floor enforced (74/58/58/76); measured 86.53/72.92/74.31/88.63 |
 | `cargo test` | 227 passed |
 | `npm run build:web` | built green |
 | bundle | JS 34.73 kB, CSS 8.71 kB, total 53.81 kB against 36/10/55.5, referentially whole |
