@@ -1,5 +1,5 @@
 import{getAppWindow}from"../services/Backend";
-import type{Window}from"@tauri-apps/api/window";
+import type{Window}from"../services/Backend";
 export class DomRegistry{
     private cache: Map<string,HTMLElement|null>=new Map();
     private _appWindow: Window|null=null;
