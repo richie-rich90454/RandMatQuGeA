@@ -451,11 +451,14 @@ Found while adding the gate, and neither is about the gate.
   synchronous call that set it. Asking the question and erasing the answer is why no
   record ever carried a confidence — not in a browser, and not on the desktop where the
   row was shown and the learner could watch it being collected.
-- **Still open: the ordering.** The review record for an answer is written before the
-  row is revealed, so the confidence for answer *N* cannot reach the record written for
-  answer *N*. Fixing it means moving the write to after the learner answers, which is an
-  ordering change to the answer flow rather than a fix to one function. Named here
-  rather than left to be discovered.
+- **The ordering is closed by deferral.** The review record for an answer used to be
+  written before the row was revealed, so the confidence for answer *N* could not reach
+  the record written for answer *N*. The record is now queued at answer time and
+  written at whichever comes first: the confidence answer (which carries it), the next
+  question or dismissal (flushed before the value is cleared), or a five-second
+  backstop. The slot is nulled synchronously before the first await, so rapid answers
+  still write exactly once. Five cases in `Help.test.ts` pin the hold, the flush, the
+  timeout, the exactly-once, and the no-queue where adaptive cannot run.
 
 ### 4.21 A five kilobyte regression that a size budget caught
 
