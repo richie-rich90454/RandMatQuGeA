@@ -87,7 +87,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 │   │   └── Trigonometry/
 │   ├── __tests__/          # 10,000+ Vitest unit tests (mirror src structure)
 │   └── types/              # TypeScript type definitions (global.d.ts)
-├── e2e/                    # Playwright end-to-end tests (390 tests across desktop, Pixel 7, and iPhone 14 projects)
+├── e2e/                    # Playwright end-to-end tests (393 tests across desktop, Pixel 7, and iPhone 14 projects)
 ├── src-tauri/              # Rust backend (Tauri v2)
 │   ├── src/
 │   │   ├── lib.rs          # Tauri commands (scores, performance, PDF, adaptive)
@@ -199,7 +199,7 @@ The project uses a three-layer test strategy:
   npm run test:run    # single non-watch run (CI / one-shot)
   npm run check       # typecheck + full Vitest run (unit + oracle) + bundle check
   ```
-- **End-to-end tests** — Playwright in `e2e/` (390 tests across desktop, Pixel 7, and iPhone 14 projects). Uses bundled Chromium + WebKit (desktop, Pixel 7, iPhone 14 projects) and auto-starts the Vite dev server on port 1331:
+- **End-to-end tests** — Playwright in `e2e/` (393 tests across desktop, Pixel 7, and iPhone 14 projects). Uses bundled Chromium + WebKit (desktop, Pixel 7, iPhone 14 projects) and auto-starts the Vite dev server on port 1331:
   ```bash
   npm run test:e2e
   ```
