@@ -1,12 +1,12 @@
 /**
- * @file Prime factorisation: writing a number as a product of primes, evaluating
+ * @file Prime factorization: writing a number as a product of primes, evaluating
  * a product of prime powers, counting divisors, and totaling the exponents.
- * @description A prime factorisation is exact integer work, so nothing in this file
+ * @description A prime factorization is exact integer work, so nothing in this file
  * introduces a float on the way to a printed value. The exponents are read off the
  * factor list rather than tracked separately, because an exponent kept alongside
  * the factors is a second copy of the same fact and the two can drift apart.
  *
- * The factorisation branch lists its options as prime factors separated by commas
+ * The factorization branch lists its options as prime factors separated by commas
  * rather than as a product, because options are rendered as plain text: a learner
  * reading "2 x 2 x 3" has to decode a multiplication, while a learner reading
  * "2, 2, 3" can check it against the number in one pass.
@@ -83,7 +83,7 @@ export function generatePrimeFactorisation(difficulty?: string, rng: RngFn=Math.
     let primes=difficulty==="hard"?[2, 3, 5, 7, 11]:difficulty==="easy"?[2, 3, 5]:[2, 3, 5, 7];
     let factorCount=difficulty==="hard"?randInt(rng, 4, 5):randInt(rng, 3, 4);
     // The number is built from its primes rather than drawn and then factored, so
-    // the factorisation is known to hold several factors and the question never
+    // the factorization is known to hold several factors and the question never
     // collapses to a single prime with nothing to say about it.
     let chosen:number[]=[];
     for(let i=0; i<factorCount; i++) chosen.push(pick(rng, primes));
@@ -114,7 +114,7 @@ export function generatePrimeFactorisation(difficulty?: string, rng: RngFn=Math.
             let repeats=factors.filter(factor=>factor===factors[0]).length;
             choices=fourOptions(key, [dropped.join(", "), doubled.join(", "), swapped.join(", ")]);
             rungs=[
-                "A prime factorisation lists every prime factor once per time it divides the number, so a prime that occurs three times in the number occurs three times in the answer.",
+                "A prime factorization lists every prime factor once per time it divides the number, so a prime that occurs three times in the number occurs three times in the answer.",
                 `Divide ${value} by the smallest prime that divides it, then repeat on whatever is left.`
             ];
             steps=[
@@ -153,7 +153,7 @@ export function generatePrimeFactorisation(difficulty?: string, rng: RngFn=Math.
             let factorsAdded=factors.length+pairs.length;
             choices=numberOptions(count, [count+pairs.length, count-1, count+1, factorsAdded], 0);
             rungs=[
-                "From a prime factorisation the number of positive divisors is the product of one more than each exponent, because a divisor is made by choosing an exponent for every prime independently.",
+                "From a prime factorization the number of positive divisors is the product of one more than each exponent, because a divisor is made by choosing an exponent for every prime independently.",
                 `${value} = ${written}, so multiply one more than each of the exponents.`
             ];
             steps=[
@@ -167,7 +167,7 @@ export function generatePrimeFactorisation(difficulty?: string, rng: RngFn=Math.
             let total=0;
             for(let pair of pairs) total+=pair[1];
             key=String(total);
-            latex=`The prime factorisation of \\( ${value} \\) is written with exponents, in the form \\( p^{a} q^{b} \\). What is the sum of those exponents?`;
+            latex=`The prime factorization of \\( ${value} \\) is written with exponents, in the form \\( p^{a} q^{b} \\). What is the sum of those exponents?`;
             choices=numberOptions(total, [factors.length+total, total-1, total+1, pairs.length], 0);
             rungs=[
                 "The sum of the exponents is how many prime factors there are counted with repetition, which is the length of the factor list rather than the number of distinct primes.",
