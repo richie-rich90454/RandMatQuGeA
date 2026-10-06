@@ -77,12 +77,29 @@ function bringIntoView(element: HTMLElement): void{
     let rect=element.getBoundingClientRect();
     if (rect.height>=height) return;
     let margin=12;
+    let delta=0;
     if (rect.top<top+margin){
-        window.scrollBy(0, rect.top-top-margin);
+        delta=rect.top-top-margin;
     }
     else if (rect.bottom>top+height-margin){
-        window.scrollBy(0, rect.bottom-top-height+margin);
+        delta=rect.bottom-top-height+margin;
     }
+    if (delta===0) return;
+    // The scroll container on phones is the inner content box, not the window,
+    // so scrolling the window moves nothing while the keyboard covers the answer.
+    // The nearest scrollable ancestor takes the delta; only when there is none
+    // does the window.
+    let box: HTMLElement|null=element.parentElement;
+    while(box){
+        let style=getComputedStyle(box);
+        let vertical=style.overflowY;
+        if ((vertical==="auto"||vertical==="scroll")&&box.scrollHeight>box.clientHeight){
+            box.scrollTop+=delta;
+            return;
+        }
+        box=box.parentElement;
+    }
+    window.scrollBy(0, delta);
 }
 
 /**
