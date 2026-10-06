@@ -36,7 +36,7 @@ The full house style lives in [CODE_STYLE.md](https://github.com/richie-rich9045
 2. Export a function matching: `(difficulty?: string, rng?: RngFn) => QuestionDto`
 3. Add `registerTopic(id, scope, fnName)` call in the subject's `RegisterTopics.ts`
 4. Export the function from the subject's `index.ts`
-5. Add the topic definition to `src/main/Constants.ts` (`topics` array + `scopeTopics` map)
+5. Add the topic definition to `src/main/TopicData.ts` (`topics` array + `scopeTopics` map; `Constants.ts` holds only `scopeLadder` + `SESSION_STORAGE_KEY`)
 6. Declare its sub-skills in the sub-skill table, so it can be scheduled independently
 7. Write tests in `src/__tests__/modules/<Subject>/`
 
@@ -71,7 +71,7 @@ Every generator must return a valid `QuestionDto`:
     correct: string,          // Canonical correct answer, exact unless the prompt says to round
     alternate?: string,       // Second accepted form, when one exists
     display?: string,         // KaTeX-rendered display form
-    choices?: string[],       // Exactly 4 options, choices[0] === correct, no distractor also correct
+    choices?: string[],       // Exactly 4 options, containing the key exactly once, in any position; no distractor also correct
     expectedFormat?: string,  // Input format hint, matching the actual answer shape
     subskill?: string,        // Sub-skill within the topic, used for per-skill scheduling
     misconception?: string,   // The wrong turn this question is designed to catch
