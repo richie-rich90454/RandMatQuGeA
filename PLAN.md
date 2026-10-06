@@ -474,11 +474,11 @@ the same time, one of which claimed a performance save in a browser where none h
 
 The budget then moved from 38/57 to 38.5/57.5. That is not the regression being
 absorbed — the residual is organic growth from features that were added and had to work.
-The fix that would make the budget irrelevant is written down in `scripts/bundle-check.js`
-and left undone: `Constants.ts` is 24.5 kB raw in the entry chunk, six modules read it,
-and `Topics.ts` reads it synchronously on the interaction path, so moving it behind a
-dynamic import is a boot-order change across most of the application worth roughly 4 to
-6 kB gzipped.
+The fix that would make the budget irrelevant was written down in `scripts/bundle-check.js`:
+`Constants.ts` was 24.5 kB raw in the entry chunk with six modules reading it, so moving
+it behind a dynamic import was estimated at roughly 4 to 6 kB gzipped. That split has
+since happened — see 4.23 — and measured within a tenth of the estimate, so this
+paragraph stays as the record of the decision, not as open work.
 
 ### 4.22 A missing chunk, and the build gate that now catches it
 
