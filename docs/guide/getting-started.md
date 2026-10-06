@@ -73,7 +73,7 @@ RandMatQuGeA/
 │   │   ├── ...
 │   ├── __tests__/          # 10,000+ Vitest unit tests
 │   └── types/              # TypeScript type definitions
-├── e2e/                    # Playwright end-to-end tests (390 tests)
+├── e2e/                    # Playwright end-to-end tests (393 tests)
 ├── src-tauri/              # Rust backend (SQLite, PDF, adaptive)
 ├── public/                 # Static assets (fonts, MathJax, KaTeX, service worker)
 ├── playwright.config.ts    # E2E config (bundled Chromium + WebKit, dev server on :1331)
