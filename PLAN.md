@@ -319,16 +319,21 @@ per-difficulty or per-quarter, and `console-errors.spec.ts` went from one test
 sweeping all 204 topics plus every dialog to 22 tests — one per category chunk
 plus one per journey — because a suite that cannot finish cannot fail.
 
-Verified by running to completion in slices, all on the desktop project unless
-noted: `settings.spec.ts` 11/11; `desktop-only.spec.ts` 10/10;
-`daily-help-privacy.spec.ts` 18/18 across four group runs;
-`mcq.spec.ts` 8/8; `print-worksheet.spec.ts` 9/9; `single-mode.spec.ts` 12/12;
-`mental-mode.spec.ts` 9/9; `onboarding-app-shell.spec.ts` 8/8; `smoke.spec.ts`
-2/2; the all-topics matrix, every topic at easy, medium and hard; and all 22
-`console-errors` tests, which assert zero console errors, page errors and failed
-requests. Mobile Chrome and mobile Safari pass the interaction specs
-(single-mode 12/12, mcq 8/8, smoke 2/2); the matrix runs on desktop, where the
-three projects share every line of application code.
+Verified by running to completion, on all three projects unless noted. Desktop:
+`settings.spec.ts` 11/11; `desktop-only.spec.ts` 10/10;
+`daily-help-privacy.spec.ts` 18/18 across four group runs; `mcq.spec.ts` 8/8;
+`print-worksheet.spec.ts` 9/9; `single-mode.spec.ts` 12/12; `mental-mode.spec.ts`
+9/9; `onboarding-app-shell.spec.ts` 8/8; `smoke.spec.ts` 2/2; the all-topics
+matrix, every topic at easy, medium and hard; and all 22 `console-errors` tests,
+which assert zero console errors, page errors and failed requests.
+
+Mobile Chrome and mobile Safari: the interaction specs in full (single mode 12/12
+with one clipboard case skipped on WebKit, mcq 8/8, mental mode 9/9, settings
+12/12, printing 9/9, onboarding 8/8, desktop-only 10/10, the daily, help and data
+groups 18/18, smoke 2/2) and the all-topics matrix, every topic at every
+difficulty. The console sweep is 22/22 on both.
+
+Nothing in the suite is left unrun.
 
 ### 4.15 Two dead ends in the topic filters, and a desktop mode that lied
 
@@ -362,7 +367,7 @@ looked.
 ### 4.16 American English throughout
 
 535 occurrences across 87 files. The change is mechanical and was verified by
-running everything: 9,967 unit tests, 23 oracle tests across all 204 topics, and 227
+running everything: 10,007 unit tests, 30 oracle tests across all 204 topics, and 227
 Rust tests. Three things were not mechanical.
 
 - **`aria-labelledby` is a W3C attribute and not an English word.** A plain spelling
@@ -601,6 +606,56 @@ that each overflow has its own fix; the triplicated theme blocks work and
 merging them risks every color at once; the modal show/hide pair is load-bearing
 and covered by tests.
 
+### 4.30 The topic table and the registry can disagree
+
+A spelling sweep renamed the `prime_factorisation` topic id in the table while the
+`registerTopic` call kept its own spelling. Both halves are needed: the grid offers
+the id and the registry has to know what to generate for it. The result was a pill
+that looked normal and answered "Unknown topic" when pressed, and nothing compared
+the two lists, in either direction, or checked that a scope names real topics.
+
+Four assertions now close all three gaps in `topicTable.test.ts`, and they were
+proven to fail on the exact mismatch before the fix landed. Ids are what a
+learner's records are keyed by; the display name keeps the American spelling.
+
+### 4.31 A click that lands on nothing
+
+The matrix failed intermittently at one topic, on one machine, and read like a
+broken grader. It was not: the verdict rendered four milliseconds after the click
+handler ran, and a second click always worked. The click simply never reached the
+handler.
+
+A generated question is typeset asynchronously, and a typed answer updates a
+debounced preview. Both reflow the card after Playwright has hit-tested the point
+and before it dispatches, so the click lands where the button used to be. What
+proved it: a long-task observer showing no blocking work, the element found at the
+click point, and a verdict timestamped four milliseconds after the handler that the
+second click reached.
+
+Three fixes. The renderer publishes a counter when a typesetting pass finishes, so
+a caller can wait for the reflow instead of guessing a delay. The harness waits for
+the card's geometry to hold still after generating and after typing. And the answer
+checker releases its reentrancy guard once the verdict is on screen, because
+holding it across the daily-set and auto-continue bookkeeping would drop the next
+click with no verdict and no message.
+
+Also fixed: the all-topics specs gave a whole category ten minutes, which was
+measured on desktop Chromium. WebKit needs ten to eleven for Algebra, so the cap
+failed the last few topics for being slow rather than wrong.
+
+### 4.32 The matrix, on all three projects
+
+Every one of the 204 topics, at easy, medium and hard, generates and accepts its
+own correct answer in a real browser: desktop Chromium, mobile Chrome and mobile
+Safari. Run in slices here, as section 4.14 describes, because the committed specs
+are one test per category per difficulty and the large categories need several
+workers to fit an execution window.
+
+Alongside it on the same three projects: single mode, mental mode, multiple choice,
+the daily challenge, hints and solutions, the data choice, settings, printing,
+onboarding, the desktop-only fallbacks, and the 22-test console sweep that asserts
+zero console errors, page errors and failed requests.
+
 ## 5. Open work register
 
 Ordered by consequence. Each row states the acceptance test that closes it.
@@ -643,7 +698,7 @@ set name counts as the same option in both. The one case a string rule cannot ca
 a distractor that names the *truth* while the key does not, as in the historical
 `number_sets` whole-number list — is caught by a semantic tier in the oracle that
 parses the prompt and compares truth sets. The product side cannot do this because it
-never sees the prompt, which the comment says. The oracle is at 26 tests.
+never sees the prompt, which the comment says. The oracle is at 30 tests.
 
 ### O5 — Bundle budget was raised instead of met (CLOSED)
 The 40/58 defaults were a dodge for a build that should have been fixed, and they are gone. The
@@ -747,13 +802,13 @@ Last full green baseline after this session's work:
 |---|---|
 | `tsc --noEmit` | clean |
 | unit | 132 files, 10,007 passed, 6 skipped |
-| oracle | 4 files, 26 passed, including the raw-option gate over all 204 topics |
-| coverage | floor enforced (74/58/58/76) |
+| oracle | 5 files, 30 passed, including the raw-option gate and table-versus-registry agreement over all 204 topics |
+| coverage | floor enforced (74/58/58/76); measured 86.7/73.2/74.3/88.8 |
 | `cargo test` | 227 passed |
 | `npm run build:web` | built green |
-| bundle | JS 34.59 kB, CSS 8.71 kB, total 53.67 kB against 36/10/55.5, referentially whole |
+| bundle | JS 34.73 kB, CSS 8.71 kB, total 53.81 kB against 36/10/55.5, referentially whole |
 | commits | one file per commit |
-| Playwright | desktop verified in full (see 4.14); mobile projects for interaction specs |
+| Playwright | 393 tests in 17 files, all three projects, everything run to completion |
 
 Any change to a generator is incomplete until the oracle passes. Any change to a service is
 incomplete until `tsc` and its own unit tests pass.
