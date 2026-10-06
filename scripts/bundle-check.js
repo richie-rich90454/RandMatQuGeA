@@ -11,9 +11,10 @@
  * the reason belongs here rather than in a commit message.
  *
  * The first move, 35/55 to 38/57, was measured against 137 topics with 0.93 kB of
- * headroom. The curriculum is now 204 topics, and the two tables in the entry chunk —
- * `Constants.ts` at 24.5 kB and `SubSkills.ts` at 22 kB raw — grew with it. That is
- * data, not code, and it is what the entry chunk now spends its bytes on.
+ * headroom. The curriculum is now 204 topics, and the curriculum table in the entry
+ * chunk — the 204 topic definitions and scope lists at 24.5 kB raw — grew with it.
+ * That is data, not code, and it is what the entry chunk spends its bytes on. (The
+ * sub-skill table was never in the entry chunk: only tests import it.)
  *
  * This second move is smaller, and it came after a real regression was found and
  * fixed, which is the part worth recording. An import of the settings module into the
