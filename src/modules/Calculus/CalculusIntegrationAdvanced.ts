@@ -447,7 +447,7 @@ export function generateIntegrationAdvanced(difficulty?: string, rng: RngFn=Math
         }
     }
     // The option set is built from the answer, not from a lower-cased copy of it.
-    // Normalising the options used to strip the case off every expression, so the
+    // Normalizing the options used to strip the case off every expression, so the
     // answer "y=C e^(1.50x^2)" was offered as "y=c e^(1.50x^2)" and none of the
     // four options was the answer the DTO claimed. The builder repaired that by
     // inserting the answer, which meant the learner was shown a distractor that
