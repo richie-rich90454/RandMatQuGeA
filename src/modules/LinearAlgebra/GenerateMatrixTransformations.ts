@@ -1,6 +1,6 @@
 /**
  * @file Matrices as linear transformations: the image of a vector, the image of the
- * standard basis, and recognising the rotations, scalings and reflections.
+ * standard basis, and recognizing the rotations, scalings and reflections.
  * @description A matrix and a transformation are the same object, and this file asks
  * about it from both directions: given a matrix, what does it send things to, and
  * given a description of a transformation, which matrix is it. The rotations and
