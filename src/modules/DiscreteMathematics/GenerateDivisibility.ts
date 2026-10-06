@@ -7,7 +7,7 @@
  * The rules of divisibility are asked as recognition rather than as a list to
  * memorize, because "which of these is divisible by 9" is a question with a
  * defensible wrong answer and "state the rule" is not. The divisor-count and
- * sum-of-divisors work is done from the prime factorisation, which is the only way
+ * sum-of-divisors work is done from the prime factorization, which is the only way
  * it should be done at any level, and the digit questions are asked so that the
  * answer requires the property rather than a coin toss.
  */
@@ -30,7 +30,7 @@ interface DivisibilityRule{
 /**
  * The rules, in the order they are usually taught. Only the digit-sum rules are
  * here because the others (four and twenty-five, eleven, eight) are not simply
- * "add the digits", and a rule that does not generalise is better left to the
+ * "add the digits", and a rule that does not generalize is better left to the
  * direct trial a learner can actually perform.
  */
 const RULES: DivisibilityRule[]=[
@@ -68,7 +68,7 @@ function alternatingSum(n: number): number{
     return total;
 }
 
-/** The prime factorisation of a positive integer, smallest factor first. */
+/** The prime factorization of a positive integer, smallest factor first. */
 export function factorize(n: number): number[]{
     let factors: number[]=[];
     let value=Math.abs(n);
