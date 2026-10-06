@@ -97,7 +97,7 @@ export function generateScientificNotation(difficulty?: string, rng: RngFn=Math.
             let sci2=`(${m2} \\times 10^{${q}})`;
             let lead=m1*m2;
             let product=lead*Math.pow(10, p+q);
-            // A product of two single digits is at most 81, so normalising it
+            // A product of two single digits is at most 81, so normalizing it
             // divides by ten at most once and the mantissa stays exact.
             let parts=lead<10?{mantissa:lead, exponent:p+q}:{mantissa:lead/10, exponent:p+q+1};
             correct=`${fmt(parts.mantissa,2)}e${parts.exponent}`;
