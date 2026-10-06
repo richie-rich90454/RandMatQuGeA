@@ -1,4 +1,12 @@
 .hidden{ display: none !important; }
+/*
+ * The attribute form, for the same reason. Several controls carry a bare
+ * `hidden` attribute rather than the class, and every one of them also has a
+ * class of its own that sets `display` — which outranks the user-agent rule
+ * for [hidden] and leaves the element on screen while the DOM reports it as
+ * hidden. Class-only `.hidden` above is unaffected by this rule.
+ */
+[hidden]{ display: none !important; }
 :root{
     --primary: #2B579A;
     --primary-dark: #1E4A8F;
@@ -7,6 +15,13 @@
     --accent: #107C10;
     --accent-alt: #0078D4;
     --success: #0DBC79;
+    /*
+     * The verdict text uses a darker cut of the same green: the pure success
+     * color on its own tinted background reads near 2:1, which fails AA for
+     * the one word the learner most needs to read.
+     */
+    --success-text: #0B6E43;
+    --error-text: #B4232A;
     --warning: #FF9D00;
     --error: #DC3545;
     --app-bg: #F8FAFC;
@@ -55,6 +70,13 @@
     --accent: #107C10;
     --accent-alt: #0078D4;
     --success: #0DBC79;
+    /*
+     * The verdict text uses a darker cut of the same green: the pure success
+     * color on its own tinted background reads near 2:1, which fails AA for
+     * the one word the learner most needs to read.
+     */
+    --success-text: #0B6E43;
+    --error-text: #B4232A;
     --warning: #FF9D00;
     --error: #DC3545;
     --app-bg: #F8FAFC;
@@ -79,6 +101,9 @@
     --primary: #4F9BFF;
     --primary-dark: #3B78D8;
     --primary-light: #60A9FF;
+    --success-text: #4ADE80;
+    --error-text: #F0705F;
+    --text-tertiary: #8FA0B8;
     --secondary: #B3B0AD;
     --accent: #0DBD6D;
     --accent-alt: #1C8FFF;
@@ -114,6 +139,8 @@
         --accent: #0DBD6D;
         --accent-alt: #1C8FFF;
         --success: #1ED690;
+        --success-text: #4ADE80;
+        --error-text: #F0705F;
         --warning: #FFB340;
         --error: #E74C3C;
         --app-bg: #1a1f2e;
@@ -124,6 +151,7 @@
         --surface-modal-alt: rgba(51, 65, 85, 0.95);
         --text-primary: #F1F5F9;
         --text-secondary: #a0aec0;
+        --text-tertiary: #8FA0B8;
         --border: rgba(71, 85, 105, 0.4);
         --border-strong: rgba(100, 116, 139, 0.7);
         --divider: rgba(51, 65, 85, 0.5);
@@ -395,7 +423,7 @@ body.font-opendyslexic{
     color: var(--text-on-primary);
 }
 .topic-chip.empty{
-    opacity: 0.45;
+    opacity: 0.6;
 }
 .topic-count{
     flex: 0 0 auto;
@@ -606,6 +634,22 @@ kbd.shortcut-hint{
     display: flex;
     gap: var(--spacing-sm);
     flex-shrink: 0;
+    flex-wrap: wrap;
+}
+/*
+ * The shortcut hints name desktop key bindings, so on narrow screens they add
+ * unbreakable width for shortcuts that do not exist there.
+ */
+@media (max-width: 480px){
+    kbd.shortcut-hint{
+        display: none;
+    }
+    .print-header-fields{
+        grid-template-columns: 1fr;
+    }
+    .choice-button{
+        min-width: 0;
+    }
 }
 .auto-controls{
     display: flex;
@@ -867,6 +911,7 @@ input[type="checkbox"]:hover{
     font-weight: 500;
     background: var(--surface);
     padding: 2px 6px;
+    overflow-wrap: anywhere;
     border-radius: var(--radius-full);
     border: 1px solid var(--border);
     transition: color var(--transition-fast), border-color var(--transition-fast), background-color 0.3s ease;
@@ -1013,6 +1058,7 @@ input[type="checkbox"]:hover{
 .symbols-hint{
     margin-top: var(--spacing-sm);
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--spacing-xs);
     font-size: 0.7rem;
@@ -1064,12 +1110,12 @@ input[type="checkbox"]:hover{
 .results-display.correct{
     background: rgba(13, 188, 121, 0.1);
     border: 1px solid var(--success);
-    color: var(--success);
+    color: var(--success-text);
 }
 .results-display.incorrect{
     background: rgba(220, 53, 69, 0.1);
     border: 1px solid var(--error);
-    color: var(--error);
+    color: var(--error-text);
 }
 .result-success, .result-error{
     display: flex;
@@ -1092,13 +1138,15 @@ input[type="checkbox"]:hover{
     color: var(--text-secondary);
 }
 .app-footer{
-    height: var(--footer-height);
+    height: auto;
+    min-height: var(--footer-height);
     background: var(--surface);
     border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: var(--shadow-glass);
+    padding-bottom: var(--safe-bottom);
 }
 .footer-content{
     display: flex;
@@ -1160,8 +1208,10 @@ input[type="checkbox"]:hover{
 }
 .notification{
     position: fixed;
-    top: var(--spacing-lg);
-    right: var(--spacing-lg);
+    top: max(var(--spacing-lg), var(--safe-top));
+    right: max(var(--spacing-lg), var(--safe-right));
+    max-width: min(90vw, 360px);
+    overflow-wrap: anywhere;
     padding: var(--spacing-sm) var(--spacing-lg);
     border-radius: var(--radius-md);
     background: var(--surface-elevated);
@@ -1171,7 +1221,11 @@ input[type="checkbox"]:hover{
     box-shadow: var(--shadow-lg);
     color: var(--text-primary);
     font-size: 0.8rem;
-    z-index: 1000;
+    /*
+     * Below modals on purpose: a toast that pops over an open dialog reads as
+     * part of the dialog, and a dialog is the thing the learner is doing.
+     */
+    z-index: 900;
     animation: slideIn 0.2s ease;
     border: 1px solid var(--border);
 }
@@ -1329,6 +1383,10 @@ input[type="checkbox"]:hover{
     z-index: 1000;
     align-items: center;
     justify-content: center;
+    padding-top: max(12px, var(--safe-top));
+    padding-bottom: max(12px, var(--safe-bottom));
+    padding-left: max(12px, var(--safe-left));
+    padding-right: max(12px, var(--safe-right));
 }
 .modal.show{
     display: flex !important;
@@ -1341,8 +1399,17 @@ input[type="checkbox"]:hover{
     width: 90%;
     max-width: 500px;
     max-height: 80vh;
+    max-height: 80dvh;
     overflow-y: auto;
     animation: scaleIn 0.2s ease;
+}
+/*
+ * When the keyboard covers part of the screen the dialog shrinks with it,
+ * using the height the viewport module measures. Without this the 80vh cap
+ * describes a viewport the keyboard has already taken half of.
+ */
+.keyboard-open .modal-content{
+    max-height: calc(var(--visual-viewport-height, 80vh) * 0.85);
 }
 @keyframes scaleIn{
     from{
@@ -1367,6 +1434,9 @@ input[type="checkbox"]:hover{
     font-weight: 600;
 }
 .modal-close{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 28px;
     height: 28px;
 }
@@ -1422,6 +1492,21 @@ input[type="checkbox"]:hover{
 .setting-item label{
     font-size: 0.85rem;
     color: var(--text-secondary);
+    min-width: 0;
+}
+@media (max-width: 480px){
+    .setting-item{
+        flex-wrap: wrap;
+    }
+    .setting-item label{
+        flex: 1 1 100%;
+        margin-bottom: 4px;
+    }
+    .setting-item select,
+    .setting-item input[type="number"]{
+        width: 100%;
+        flex: 1 1 100%;
+    }
 }
 .setting-item input[type="checkbox"]{
     width: 16px;
@@ -1534,11 +1619,6 @@ input[type="checkbox"]:hover{
 .setting-item select:hover,
 .setting-item input[type="number"]:hover{
     transition: all var(--transition-normal);
-}
-.results-display.correct,
-.results-display.incorrect{
-    animation-duration: 0.3s;
-    animation-timing-function: ease-in-out;
 }
 .math-toolbar{
     position: relative;
@@ -1730,65 +1810,6 @@ input[type="checkbox"]:hover{
         font-size: 0.6rem;
     }
 }
-.context-menu-section{
-    position: relative;
-}
-.context-menu-item.has-submenu{
-    position: relative;
-    padding-right: 20px;
-}
-.context-menu-item.has-submenu::after{
-    content: "▸";
-    position: absolute;
-    right: 8px;
-    font-size: 10px;
-    opacity: 0.7;
-}
-.context-menu-submenu{
-    position: absolute;
-    left: 100%;
-    top: 0;
-    background: var(--surface-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg), var(--shadow-glass);
-    padding: var(--spacing-xs);
-    min-width: 180px;
-    display: none;
-    z-index: 2100;
-    backdrop-filter: blur(calc(var(--blur-amount) * 2));
-    -webkit-backdrop-filter: blur(calc(var(--blur-amount) * 2));
-}
-.context-menu-section:hover > .context-menu-submenu{
-    display: block;
-}
-hr.context-menu-divider{
-    margin: 4px 0;
-    border: none;
-    border-top: 1px solid var(--border);
-}
-#mental-menu-section, #mental-divider{
-    display: none;
-}
-.mental-active #mental-menu-section,
-.mental-active #mental-divider{
-    display: block;
-}
-.context-menu{
-    transition: opacity 0.15s ease, transform 0.15s ease;
-    opacity: 1;
-    transform: scale(1);
-    transform-origin: top left;
-}
-.context-menu.hidden{
-    opacity: 0;
-    transform: scale(0.95);
-    pointer-events: none;
-    visibility: hidden;
-}
-.context-menu.hidden{
-    display: block !important;
-}
 .setting-item select{
     width: 160px;
     padding: var(--spacing-xs) var(--spacing-xl) var(--spacing-xs) var(--spacing-sm);
@@ -1868,6 +1889,7 @@ hr.context-menu-divider{
     align-items: center;
     gap: var(--spacing-md);
     margin-top: var(--spacing-sm);
+    margin-left: auto;
 }
 /* MCQ Choices Container */
 .choices-container{
@@ -1881,6 +1903,7 @@ hr.context-menu-divider{
 .choice-button{
     flex: 1 1 auto;
     min-width: 80px;
+    overflow-wrap: anywhere;
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: 0.9rem;
     background: var(--surface);
@@ -1899,12 +1922,6 @@ hr.context-menu-divider{
 }
 .choice-button:active{
     transform: translateY(0);
-}
-.statistics-panel{
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    margin-left: auto;
 }
 .statistics-panel .stat-with-icon{
     background: var(--surface-alt);
@@ -2003,12 +2020,15 @@ hr.context-menu-divider{
 .ws-header-row{
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 16px;
     margin-bottom: 8px;
     font-size: 11pt;
 }
 .ws-field{
     flex: 1 1 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 .ws-meta{
     display: flex;
@@ -2079,6 +2099,28 @@ hr.context-menu-divider{
         background: #ffffff !important;
         color: #000000 !important;
     }
+    /*
+     * Rendered math carries its on-screen color with !important, which would
+     * print near-white mathematics on white paper out of a dark theme. Paper
+     * gets no scrolling either, so overflowing equations show whole instead of
+     * clipped, and each question keeps to one page.
+     */
+    .ws-document .mjx-chtml,
+    .ws-document .mjx-container,
+    .ws-document .katex{
+        color: #000000 !important;
+    }
+    .ws-document .mjx-chtml,
+    .ws-document .mjx-container{
+        overflow: visible;
+    }
+    .ws-document .ws-question{
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+@page{
+    margin: 16mm;
 }
 .loading-overlay{
     position: absolute;
@@ -2090,7 +2132,10 @@ hr.context-menu-divider{
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    /*
+     * Above modals: a loading veil that a dialog can cover is not a veil.
+     */
+    z-index: 1100;
 }
 .print-content{
     position: relative;
@@ -2104,6 +2149,8 @@ hr.context-menu-divider{
 }
 .data-info{
     flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 .delete-record{
     margin-left: var(--spacing-sm);
@@ -2124,9 +2171,11 @@ hr.context-menu-divider{
 }
 .weak-topic-info{
     flex: 1;
+    min-width: 0;
 }
 .weak-topic-name{
     font-weight: bold;
+    overflow-wrap: anywhere;
 }
 .weak-topic-stats{
     font-size: 0.85em;
@@ -2171,15 +2220,15 @@ hr.context-menu-divider{
 }
 .offline-badge{
     position: fixed;
-    top: var(--spacing-sm);
-    right: var(--spacing-sm);
+    top: max(var(--spacing-sm), var(--safe-top));
+    right: max(var(--spacing-sm), var(--safe-right));
     background: var(--warning);
     color: var(--text-on-primary);
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--radius-full);
     font-size: 0.75rem;
     font-weight: 600;
-    z-index: 1000;
+    z-index: 900;
     box-shadow: var(--shadow-md);
 }
 .error-card{
@@ -2245,14 +2294,37 @@ hr.context-menu-divider{
     .secondary-button,
     .icon-button,
     .topic-pill,
+    .topic-chip,
+    .mode-button,
+    .settings-tab,
     .choice-button,
     .math-toolbar-btn,
     .error-retry-btn{
         min-height: 44px;
     }
     .icon-button,
-    .math-toolbar-btn{
+    .math-toolbar-btn,
+    .topic-chip,
+    .mode-button{
         min-width: 44px;
+    }
+    /*
+     * Checkboxes stay a 16px visual box, but the label row around them is a full
+     * 44px tall, so the hit area is a thumb while the control keeps its size.
+     * Selects take the same floor through height rather than padding.
+     */
+    label.shuffle-toggle,
+    .setting-item label:has(input[type="checkbox"]){
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+    select{
+        min-height: 44px;
+    }
+    #clear-answer{
+        min-width: 44px;
+        min-height: 44px;
     }
     .topic-pill{
         padding: 10px 12px;
