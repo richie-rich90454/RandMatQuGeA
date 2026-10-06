@@ -82,7 +82,49 @@ export async function selectTopic(page: Page, topicId: string): Promise<void>{
     await expect(page.locator("#current-topic")).not.toHaveText("Select a topic");
 }
 
+/**
+ * Waits until the controls a click depends on stop moving.
+ *
+ * A generated question is typeset asynchronously, and typesetting changes the
+ * height of the question area, which moves the Generate and Check buttons under
+ * the pointer. Playwright hit-tests the point, then dispatches, and a layout
+ * change in between sends the click into empty space: the handler never runs, no
+ * verdict appears, and the failure looks like a broken grader rather than a
+ * moving target. Waiting for the buttons' geometry to hold still twice is what
+ * makes the click land where it was aimed.
+ *
+ * @param page - The page to settle.
+ */
+export async function waitForLayoutSettled(page: Page): Promise<void>{
+    await page.evaluate(async ()=>{
+        const read=()=>{
+            const parts=["genQ","check-answer","preview-output","answer-box"].map(id=>{
+                const b=document.getElementById(id);
+                if(!b) return "none";
+                const r=b.getBoundingClientRect();
+                return `${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}`;
+            });
+            const card=document.querySelector(".answer-card");
+            if(card){
+                const r=card.getBoundingClientRect();
+                parts.push(`${Math.round(r.width)},${Math.round(r.height)}`);
+            }
+            return parts.join("|");
+        };
+        let last=read();
+        let stable=0;
+        for(let i=0;i<80;i++){
+            await new Promise((resolve)=>setTimeout(resolve,50));
+            const now=read();
+            stable=now===last?stable+1:0;
+            last=now;
+            if(stable>=4) return;
+        }
+    });
+}
+
 export async function generateQuestion(page: Page): Promise<void>{
+    const before = await typesetToken(page);
     await page.locator("#genQ").click();
     await expect(page.locator("#answer-box")).toBeDisabled({timeout: 5000}).catch(()=>{});
     await expect(page.locator("#answer-box")).toBeEnabled({timeout: 20000});
@@ -92,6 +134,20 @@ export async function generateQuestion(page: Page): Promise<void>{
             return w.correctAnswer?.correct ?? "";
         }), {timeout: 20000})
         .not.toBe("");
+    await expect
+        .poll(()=>typesetToken(page), {timeout: 20000})
+        .not.toBe(before);
+    await waitForLayoutSettled(page);
+}
+
+/**
+ * Reads the app's count of completed typesetting passes.
+ *
+ * @param page - The page to read.
+ * @returns The token, or an empty string when the app has not published one.
+ */
+async function typesetToken(page: Page): Promise<string>{
+    return page.evaluate(()=>document.documentElement.getAttribute("data-typeset-done") ?? "");
 }
 
 export async function getCorrectAnswer(page: Page): Promise<string>{
@@ -109,6 +165,12 @@ export async function submitAnswer(page: Page, answer: string, viaKeyboard = tru
     const box = page.locator("#answer-box");
     await expect(box).toBeEnabled();
     await box.fill(answer);
+    // Typing updates a preview, and that update is debounced: it can reflow the
+    // card after the fill returns and move the Check button between the click's
+    // hit test and its dispatch, which sends the click into empty space. The
+    // layout is waited out here, where the change comes from, rather than only
+    // after generation.
+    await waitForLayoutSettled(page);
     if (viaKeyboard){
         await box.press("Shift+Enter");
     }
