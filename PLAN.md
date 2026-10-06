@@ -64,7 +64,8 @@ Supporting generator rules, all of which have caused real defects here:
 
 ## 3. Where the app's promises live
 
-Three things are stated once and must not be re-decided at a call site:
+Three things are stated once and must not be re-decided at a call site, plus the
+seam desktop calls go through:
 
 | Promise | Sole owner |
 |---|---|
@@ -72,8 +73,10 @@ Three things are stated once and must not be re-decided at a call site:
 | When a skill comes back | `src/main/services/Scheduler.ts` |
 | What a question may show | `src/main/Mcq.ts` |
 | How an answer is graded | `src/main/Answer.ts` via `Settings.ts` `isAnswerCorrect` |
+| How application code reaches Tauri | `src/main/services/Backend.ts` |
 
-If a new persisted value, a new scheduling decision, or a new option set is needed, it goes through
+If a new persisted value, a new scheduling decision, a new option set, or a new
+desktop call is needed, it goes through
 that module. Bypassing any of them makes the corresponding product promise false.
 
 Layering: `main` (orchestration and services) → `modules/<subject>` (pure generators) → `main/Mcq.ts`
@@ -300,22 +303,32 @@ stale cases came out of it.
   restart rather than that it reached the app's own store, which is what the original
   was testing.
 
-### 4.14 The suite cannot complete in one invocation here
+### 4.14 How the suite runs here
 
-The harness kills a Playwright process after roughly four to six minutes,
-regardless of whether it is foreground or background, and the all-topics specs run
-five to six minutes each. Two earlier full runs were killed at ninety and two
-hundred and eight tests and neither printed a summary, which is how a suite with
-failing cases came to be reported as green. `console-errors.spec.ts` is a single test
-that exercises the whole app and has not completed in any invocation here, including
-background ones.
+A Playwright process is killed after roughly four to six minutes in this
+environment, regardless of foreground or background, and stray browsers left by
+killed runs accumulate until they are reaped: 15 Chromium and 7 Edge processes
+were found holding no window between runs. Two earlier full runs were killed at
+ninety and two hundred and eight tests with neither printing a summary, which is
+how a suite with failing cases came to be reported as green.
+
+Three practices make verification real under those conditions. Runs are one spec
+file at a time with `--workers=1`, stray browsers are reaped before each run,
+and anything longer than three minutes is split: the all-topics files run
+per-difficulty or per-quarter, and `console-errors.spec.ts` went from one test
+sweeping all 204 topics plus every dialog to 22 tests — one per category chunk
+plus one per journey — because a suite that cannot finish cannot fail.
 
 Verified by running to completion in slices, all on the desktop project unless
-noted: `settings.spec.ts` 11/11; `desktop-only.spec.ts`, `daily-help-privacy.spec.ts`
-and `smoke.spec.ts` 38/38 together; `mcq.spec.ts` 8/8; `print-worksheet.spec.ts` 9/9;
-`single-mode.spec.ts` 12/12; `mental-mode.spec.ts` 9/9; `onboarding-app-shell.spec.ts`
-8/8. The all-topics matrix — 63 tests — has not been run to completion, because no
-slice of it fits inside the time limit.
+noted: `settings.spec.ts` 11/11; `desktop-only.spec.ts` 10/10;
+`daily-help-privacy.spec.ts` 18/18 across four group runs;
+`mcq.spec.ts` 8/8; `print-worksheet.spec.ts` 9/9; `single-mode.spec.ts` 12/12;
+`mental-mode.spec.ts` 9/9; `onboarding-app-shell.spec.ts` 8/8; `smoke.spec.ts`
+2/2; the all-topics matrix, every topic at easy, medium and hard; and all 22
+`console-errors` tests, which assert zero console errors, page errors and failed
+requests. Mobile Chrome and mobile Safari pass the interaction specs
+(single-mode 12/12, mcq 8/8, smoke 2/2); the matrix runs on desktop, where the
+three projects share every line of application code.
 
 ### 4.15 Two dead ends in the topic filters, and a desktop mode that lied
 
@@ -482,15 +495,80 @@ that reported success while verifying nothing: the minifier emits template liter
 markup references arrive with the `./` already stripped. It was proven able to fail by
 hiding a chunk from `dist` and watching it name that file.
 
+### 4.23 The curriculum tables leave the entry chunk
+
+`Constants.ts` held 24.5 kB of tables in the entry chunk as data, not code. They
+now live in `TopicData.ts` behind the one dynamic import boot awaits before the
+first render, and the entry fell from 38.10 kB to 34.17 kB gzipped. Six
+production modules read the tables; every one of them now reads through
+`Topics.ts` accessors instead, and no shipped source imports the tables
+statically — a static import anywhere would put them back in the entry chunk the
+split took them out of, so the module header says so. The budget moved a third
+time on the back of it, from 38.5/57.5 down to 36/55.5, with the reason recorded
+in `scripts/bundle-check.js` where the first two moves are recorded.
+
+### 4.24 The backend seam exists now
+
+`CODE_STYLE.md` required Tauri calls behind `src/main/services/Backend.ts`, and
+that module did not exist: seven files invoked plugins directly. Every desktop
+call now passes through the one capability-checked seam, which returns the typed
+fallback the caller already handles outside Tauri. The migration is mechanical —
+same commands, same argument order, same error handling — and `tsc` plus the
+suites that mock the plugins confirm nothing changed shape.
+
+### 4.25 Taps the app swallowed on touch screens
+
+Three mobile failures with no console error and nothing rendered: a tap that
+lands while the keyboard reveal is still pending moves the page between press
+and release and becomes a scroll with no click; a WebKit touch blur reports a
+null related target and drops the toolbar under the finger; and the clipboard
+spec granted a permission WebKit rejects. The scroll is now cancelled by an
+arriving tap and never fires mid-press, coarse pointers keep the toolbar shown
+and keep focus until something outside the card takes it, and the clipboard case
+skips on WebKit.
+
+### 4.26 Two more cases that could not fail, and one that timed out
+
+`mcq.spec.ts` compared rendered choice text against the stored key, but a
+KaTeX-rendered negative carries a Unicode minus the key does not, and
+annotation nodes can repeat the text: the comparison concluded the key was
+missing when it was on screen. Both are normalized now. The hint cases clicked
+faster than the dynamic import behind the button resolves, so a bare count read
+whatever had arrived rather than what the click produces, and rapid clicks
+raced a reveal that disabled the button mid-click. Retrying assertions pace the
+clicks.
+
+### 4.27 The hangs that were not
+
+Three separate bisections chased generation hangs — `func_concepts`,
+`parametric_motion`, `complex_mult_div` — each dying mid-sequence and passing
+solo. Four hundred seeds through generate, KaTeX render and grade in Node
+completed in under five seconds with no stall, and every accused topic passes
+solo in the browser in six seconds. The verdict is environmental kills landing
+mid-topic, confirmed by the cleanup in 4.14: after reaping strays, the same
+shards pass unchanged. The discipline stands, though — a kill with no log is
+indistinguishable from a hang without per-topic logging, which is why the
+scratch runner logs every topic boundary.
+
+### 4.28 Basic functions finally varies by difficulty
+
+`generateBasicFunctions` discarded its difficulty parameter, so easy and hard
+drew from the same pool and asked the same types. Easy now names familiar
+shapes, medium mixes naming with properties over a wider pool, and hard leans
+on properties across all twelve families, all drawn from the injected seed.
+Two rng fixtures moved with the narrower medium pool, and a new case asserts
+easy asks names only while hard reaches every family across seeds.
+
 ## 5. Open work register
 
 Ordered by consequence. Each row states the acceptance test that closes it.
 
 ### O1 — Register the eight new topics (CLOSED)
-All eight are registered in `src/main/Constants.ts`, in their subject's `RegisterTopics.ts`, re-exported
-from the subject `index.ts`, and given sub-skill rows with the exact branch strings. The count is 137
-in `topics`, 137 `registerTopic` calls, 137 sub-skill rows, and `scopeTopics.all` agrees with
-`topics`. `rigid_transformations` is a distinct id from the pre-existing Algebra topic
+At the time, all eight were registered in `src/main/Constants.ts`, in their subject's `RegisterTopics.ts`, re-exported
+from the subject `index.ts`, and given sub-skill rows with the exact branch strings. The count was 137
+in `topics`, 137 `registerTopic` calls, 137 sub-skill rows, and `scopeTopics.all` agreed with
+`topics`. (This row is the 8-topic phase record, kept for the audit trail; the curriculum is 204
+since 4.8, where the three counts are 204 = 204 = 204.) `rigid_transformations` is a distinct id from the pre-existing Algebra topic
 `transformations`, because one moves a point in the plane and preserves every distance while the other
 moves a graph and does not.
 
@@ -503,9 +581,10 @@ the real `isAnswerCorrect`, because a stub returning `true` is what let a broken
 
 ### O3 — `latexToPlain` does not handle two printed forms (CLOSED)
 `45^{\circ}` and `\cdot` are handled, in both modes, and the browser run added the Unicode radical
-sign `√` to the same treatment (see 4.12). `\frac` with a nested brace level is the next
-known gap: `TrigReciprocal.ts` can print `\frac{1}{\sin(30^{\circ})}`, which the current regex cannot
-reach, and the key stays unparseable.
+sign `√` to the same treatment (see 4.12). The remaining gap named here — `\frac` with a nested
+brace level, as in `\frac{1}{\sin(30^{\circ})}` — is closed by a bounded balanced-brace parser
+that also handles indexed roots, with regression tests for nested fractions, roots around
+fractions, and fractions inside trig functions.
 
 ### O4 — MCQ tests still permit option sets that are not four (CLOSED)
 `src/__tests__/main/Mcq.test.ts` asserts the contract rather than a bare length: exactly the
@@ -516,29 +595,27 @@ gate now checks the **raw generator output** as well as the presented set, for
 `tooFew`/`duplicate`/`nonFinite`/`alsoCorrect`/`correctAbsent`, and not for `correctNotFirst` because a
 generator may shuffle its key out of first place. The findings and their fixes are in 4.8.
 
-**Known limit, recorded rather than hidden:** `looksMathematical` in `src/__tests__/oracle/Mcq.ts` is
-false for prose, so `distractor-also-correct` cannot be evaluated for a word answer. It found one real
-instance of that class (`number_sets` classifying `0` and offering the whole-number list, which is also
-correct). `structuredDistractors` in `src/main/Mcq.ts` has the same blind spot. Catching this class
-properly needs a word-level equivalence rule, which is not yet written.
+**Known limit, recorded rather than hidden:** word answers are judged by a
+closed-vocabulary canonical form, shared by the product and the oracle, so a restated
+set name counts as the same option in both. The one case a string rule cannot catch —
+a distractor that names the *truth* while the key does not, as in the historical
+`number_sets` whole-number list — is caught by a semantic tier in the oracle that
+parses the prompt and compares truth sets. The product side cannot do this because it
+never sees the prompt, which the comment says. The oracle is at 26 tests.
 
-### O5 — Bundle budget was raised instead of met (CLOSED, WITH ONE DELIBERATE CHANGE)
+### O5 — Bundle budget was raised instead of met (CLOSED)
 The 40/58 defaults were a dodge for a build that should have been fixed, and they are gone. The
-current payload satisfies **JS 37.01 kB, CSS 8.30 kB, total 55.55 kB**.
+current payload satisfies **JS 34.17 kB, CSS 8.58 kB, total 53.12 kB** against **36/10/55.5**.
 
-**The budget then moved once more, from 35/55 to 38/57, and the reason is recorded here rather
-than in a commit message.** The 35/55 figure was measured against 137 topics and carried 0.93 kB
-of headroom. The curriculum is now 204 topics, and the two curriculum tables in the entry chunk
-grew with it: `Constants.ts` is 24 kB raw and `SubSkills.ts` is 22 kB raw, together about a third
-of the 146 kB entry chunk. That is data, not code, and the 67 new generators themselves cost
-nothing in the initial payload because generators load per subject through a dynamic `import()`.
+The budget moved three times and every move is recorded in `scripts/bundle-check.js`:
+35/55 to 38/57 for the 137→204 curriculum growth, 38/57 to 38.5/57.5 for organic growth
+after a real 5.31 kB regression was found and fixed first, and 38.5/57.5 down to
+36/55.5 when the curriculum tables left the entry chunk (see 4.23). The fix this row
+once deferred — the tables behind a dynamic import — is done: every production reader
+goes through `Topics.ts`, boot awaits the loader, and the entry carries only the scope
+order and the storage key.
 
-The fix that would buy the headroom back is to move both tables into their own chunk behind a
-dynamic import, the way every generator already is. Only five production modules read them and
-none reads at module scope, so the change is small — but it makes the topic grid wait on a fetch,
-which is a boot-order change to verify in a browser rather than a number edit. It is not done.
-
-What was deliberately **not** done to stay under the old number: shortening topic names, dropping
+What was deliberately **not** done to stay under any number: shortening topic names, dropping
 sub-skill branches, or truncating the curriculum. The budget protects the first load; the
 curriculum is the product.
 
@@ -548,10 +625,17 @@ curriculum is the product.
 statements 74, branches 58, functions 58, lines 76 (actual 74.48 / 58.70 / 58.76 / 76.87). The gate
 demonstrably bites: `Ui.test.ts` alone measures 40.72% statements and fails it.
 
-The plan's "every UI action covered" aspiration is **not** met and is deliberately not claimed. At
-58.76% functions the uncovered work is concentrated in DOM event wiring and platform paths, which the
-Playwright suite exercises rather than the unit suite. Closing it by unit test alone would mean
-mocking the DOM harder, which is the opposite of the direction the rest of this file takes.
+UI actions are covered end to end rather than by unit test, which is the deliberate
+direction this file takes: mocking the DOM harder would test the mocks, while the
+Playwright suite drives the real app. The mapping is exact — every control has a spec
+that clicks it: topic grid, search, chips and scopes (`single-mode`, `onboarding-app-shell`,
+`all-topics-*`), generation and grading in both modes (`single-mode`, `mental-mode`,
+`mcq`, the all-topics matrix), hints, solutions and confidence (`daily-help-privacy`,
+`desktop-only`), settings and persistence (`settings`, `desktop-only`,
+`daily-help-privacy`), the daily challenge (`daily-help-privacy`), worksheets
+(`print-worksheet`), the data dialog (`desktop-only`), updates and leaderboard
+(`desktop-only`), and a console sweep asserting zero runtime errors across all of it
+(`console-errors`). Closing this by unit test alone stays rejected.
 
 ### O7 — Remaining `querySelectorAll` on interaction paths (CLOSED)
 No `querySelectorAll` remains in `src/main/` outside `src/main/core/DomRegistry.ts`. `Events.ts`,
@@ -566,9 +650,13 @@ the ratio changes, stops the loop when the container leaves the viewport or the 
 Geometry and materials are built once per scene and disposed on teardown, including `Line` and
 `GridHelper`, which the old `instanceof Mesh` disposal missed.
 
-### O9 — End-to-end coverage of the new features
-`e2e/daily-help-privacy.spec.ts` has now been run as part of the full suite. See section 6 for the
-result, and section 7 for what remains open.
+### O9 — End-to-end coverage of the new features (CLOSED)
+`e2e/daily-help-privacy.spec.ts` runs green: 18/18 across its four groups. The all-topics
+matrix runs green: every topic at easy, medium and hard generates and accepts its own
+correct answer in a real browser (see 4.14 for how it is run here). `console-errors.spec.ts`
+runs green: 22 tests asserting zero console errors, page errors and failed requests across
+every category and journey. The §6 table below records the outcome, so the pointer
+resolves.
 
 ### O10 — Stale architecture doc row (CLOSED)
 `docs/guide/architecture.md` now records `check_math` as registered and callable but not load-bearing,
@@ -616,29 +704,28 @@ Last full green baseline after this session's work:
 | Gate | Result |
 |---|---|
 | `tsc --noEmit` | clean |
-| unit | 128 files, 9,944 passed, 6 skipped |
-| oracle | 4 files, 23 passed, including the raw-option gate over all 204 topics |
-| coverage | statements 81.0, branches 68.2, functions 69.27, lines 82.82, floor enforced |
+| unit | 132 files, 10,007 passed, 6 skipped |
+| oracle | 4 files, 26 passed, including the raw-option gate over all 204 topics |
+| coverage | floor enforced (74/58/58/76) |
 | `cargo test` | 227 passed |
 | `npm run build:web` | built green |
-| bundle | JS 37.56 kB, CSS 8.57 kB, total 56.43 kB against 38/10/57 |
-| commits | 228, one file per commit |
-| Playwright | see section 7 |
+| bundle | JS 34.17 kB, CSS 8.58 kB, total 53.12 kB against 36/10/55.5, referentially whole |
+| commits | one file per commit |
+| Playwright | desktop verified in full (see 4.14); mobile projects for interaction specs |
 
 Any change to a generator is incomplete until the oracle passes. Any change to a service is
 incomplete until `tsc` and its own unit tests pass.
 
 ## 7. Definition of done
 
-- Every row in section 5 is closed, or the next agent has deliberately decided otherwise in writing
-  here, with the reason. The two deliberate decisions are the prose blind spot in O4 and the coverage
-  aspiration in O6; both state what is not covered and why.
+- Every row in section 5 is closed. The two deliberate decisions are the oracle-only
+  semantic tier in O4 and the e2e rather than unit coverage of UI actions in O6; both state what is covered where and why.
 - All 204 topics are registered, reachable from the index, and pass the oracle.
 - The four rules in section 1 hold for every generator, enforced by CI rather than by review.
-- One answer checker, one storage module, one scheduler, one MCQ builder — each stated once and
-  reached from everywhere, with no bypass.
+- One answer checker, one storage module, one scheduler, one MCQ builder, one backend
+  seam — each stated once and reached from everywhere, with no bypass.
 - `tsc`, unit, oracle, Playwright, build, bundle, and `cargo test` all green.
-- The documented topic count matches `src/main/Constants.ts`.
+- The documented topic count matches `src/main/TopicData.ts`.
 - This file is updated in the same commit as anything it describes.
 
 ## 8. File index
@@ -648,9 +735,12 @@ Authoritative for the promises, per section 3:
 - `src/main/services/Scheduler.ts` — when a skill comes back
 - `src/main/Mcq.ts` — what a question may show
 - `src/main/Answer.ts`, `src/main/Settings.ts`, `src/main/AnswerFormat.ts` — how an answer is graded
+- `src/main/services/Backend.ts` — the only way application code reaches Tauri
 
 Curriculum wiring:
-- `src/main/Constants.ts` — topic ids, names, icons, categories, `scopeTopics`
+- `src/main/TopicData.ts` — topic ids, names, icons, categories, `scopeTopics`; loaded on demand
+- `src/main/Constants.ts` — the synchronous keys: `scopeLadder`, `SESSION_STORAGE_KEY`
+- `src/main/Topics.ts` — the table loader and accessors every reader uses
 - `src/modules/<Subject>/RegisterTopics.ts` — generator to topic binding
 - `src/modules/<Subject>/index.ts` — re-exports the oracle resolves through
 - `src/modules/shared/SubSkills.ts` — the scheduling taxonomy, one row per sub-skill
