@@ -112,6 +112,12 @@ export class QuestionRenderer{
             if(window.MathJax.typesetPromise){
                 await window.MathJax.typesetPromise([area]);
             }
+            // Typesetting reflows the question, which moves the controls below it.
+            // Publishing a token when the reflow is over lets a test wait for the
+            // layout to stop moving rather than guessing at a delay; without it a
+            // click can be aimed at where a button was.
+            let root=document.documentElement;
+            root.setAttribute("data-typeset-done", String((Number(root.getAttribute("data-typeset-done"))||0)+1));
         }
         catch(err){
             console.log("MathJax typeset error:",err);
