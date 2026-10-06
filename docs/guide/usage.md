@@ -186,5 +186,5 @@ Configure the number of choices (2–6) in Advanced settings.
 The project has a three-layer test suite:
 
 - **Unit tests** (Vitest + jsdom): `npm run test:unit` — 10,000+ cases, including per-topic generator integrity and regression tests
-- **End-to-end tests** (Playwright, bundled Chromium + WebKit): `npm run test:e2e` — 390 tests covering all topics × difficulties, both modes, MCQ, settings, print worksheets, and desktop fallbacks
+- **End-to-end tests** (Playwright, bundled Chromium + WebKit): `npm run test:e2e` — 393 tests covering all topics × difficulties, both modes, MCQ, settings, print worksheets, and desktop fallbacks
 - **Rust tests**: `cargo test` in `src-tauri/` — 227 tests for scores, performance, adaptive logic, and PDF export
