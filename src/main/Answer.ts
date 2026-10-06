@@ -170,7 +170,7 @@ function convertLatex(s: string): string{
     return s;
 }
 /**
- * Reports whether two sanitised expressions denote the same thing, which is the
+ * Reports whether two sanitized expressions denote the same thing, which is the
  * comparison a whole answer and one side of an equation are both graded with.
  *
  * **Supported Features:**
