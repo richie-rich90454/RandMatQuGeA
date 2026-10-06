@@ -134,7 +134,7 @@ export function generateOptimization(difficulty?: string, rng: RngFn=Math.random
         default:{
             let flavor=Math.floor(rng()*2);
             if (flavor===0){
-                // Two quarters plus the width against a wall: the width that maximises
+                // Two quarters plus the width against a wall: the width that maximizes
                 // the area is a quarter of the fencing, and the area is then one
                 // eighth of its square. Drawing the total as a multiple of four makes
                 // both of those whole numbers.
