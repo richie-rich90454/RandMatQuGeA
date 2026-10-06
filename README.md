@@ -1,10 +1,10 @@
 # RandMatQuGeA (Random Math Question Generator App) 🧮 available at [math.richardsblogs.com](https://math.richardsblogs.com)
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/richie-rich90454/random-math-question-generator-app?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/random-math-question-generator-app/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/richie-rich90454/random-math-question-generator-app?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/random-math-question-generator-app/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/richie-rich90454/random-math-question-generator-app?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/random-math-question-generator-app/issues)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/richie-rich90454/random-math-question-generator-app?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/random-math-question-generator-app/releases)
+[![GitHub stars](https://img.shields.io/github/stars/richie-rich90454/RandMatQuGeA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/RandMatQuGeA/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/richie-rich90454/RandMatQuGeA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/RandMatQuGeA/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/richie-rich90454/RandMatQuGeA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/RandMatQuGeA/issues)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/richie-rich90454/RandMatQuGeA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/richie-rich90454/RandMatQuGeA/releases)
 [![Live Demo](https://img.shields.io/badge/demo-live-green?style=for-the-badge&logo=vercel&logoColor=white)](https://math.richardsblogs.com/)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.19.0-brightgreen?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/typescript-7.0.2-%23007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -56,7 +56,7 @@ Download the latest installer from **GitHub Releases**:
 - macOS: `.dmg`
 - Linux: `.AppImage` / `.deb`
 
-➡️ [https://github.com/richie-rich90454/random-math-question-generator-app/releases](https://github.com/richie-rich90454/random-math-question-generator-app/releases)
+➡️ [https://github.com/richie-rich90454/RandMatQuGeA/releases](https://github.com/richie-rich90454/RandMatQuGeA/releases)
 
 ## 📚 The Curriculum (204 topics)
 
@@ -77,8 +77,8 @@ Every topic below is generated, graded, and oracle-checked. Counts are the numbe
 ### Web (development)
 
 ```bash
-git clone https://github.com/richie-rich90454/random-math-question-generator-app.git
-cd random-math-question-generator-app
+git clone https://github.com/richie-rich90454/RandMatQuGeA.git
+cd RandMatQuGeA
 npm install
 npm run dev
 ```
@@ -97,7 +97,7 @@ npm run tauri dev      # starts the dev server and the native window
 ```bash
 npm run typecheck      # tsc --noEmit
 npm run test:unit      # Vitest unit suite (132 files, 10,007 cases)
-npm run test:oracle    # the invariant gate over all 204 topics
+npm run test:oracle    # the invariant gate over all 204 topics, plus table and registry agreement
 npm run test:coverage  # unit suite with the enforced coverage floor
 npm run test:e2e       # Playwright, Chromium + WebKit, desktop and mobile projects
 npm run bundle:check   # initial-load budget
@@ -182,7 +182,7 @@ Choosing *Private session* reads and then deletes anything an earlier build left
 ## 📁 Project Structure
 
 ```
-random-math-question-generator-app/
+RandMatQuGeA/
 ├── src/
 │   ├── index.html            # the single page
 │   ├── script.ts             # boot sequence
@@ -228,11 +228,11 @@ Where a generator's natural question has fewer than four honest answers, **the q
 |---|---|
 | Type check | clean |
 | Unit tests | 132 files, 10,007 passed, 6 skipped |
-| Invariant oracle | 26 tests across all 204 topics |
-| End-to-end | 390 tests in 17 files; desktop project verified in full, mobile projects for interaction specs |
+| Invariant oracle | 30 tests across all 204 topics, including table-versus-registry agreement |
+| End-to-end | 393 tests in 17 files, all three projects: every one of the 204 topics at every difficulty, every mode, and a console sweep asserting zero runtime errors |
 | Coverage | statements 86.7%, branches 73.2%, functions 74.3%, lines 88.8% (floor 74/58/58/76 enforced) |
 | Rust tests | 227 passed (`cargo test -p random_math_question_generator`) |
-| Bundle | JS 34.6 kB, CSS 8.7 kB, total 53.7 kB gzipped (budget 36/10/55.5) |
+| Bundle | JS 34.7 kB, CSS 8.7 kB, total 53.8 kB gzipped (budget 36/10/55.5) |
 
 ## ⚠️ A Note on Tauri Versions
 
@@ -254,7 +254,7 @@ Please see [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=richie-rich90454/random-math-question-generator-app&type=Date)](https://star-history.com/#richie-rich90454/random-math-question-generator-app&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=richie-rich90454/RandMatQuGeA&type=Date)](https://star-history.com/#richie-rich90454/RandMatQuGeA&Date)
 
 ## 📄 License
 
@@ -263,7 +263,7 @@ Apache License 2.0. See [LICENSE](LICENSE).
 ## 🔗 Links
 
 - **Live Demo**: [https://math.richardsblogs.com/](https://math.richardsblogs.com/)
-- **GitHub Repository**: [https://github.com/richie-rich90454/random-math-question-generator-app](https://github.com/richie-rich90454/random-math-question-generator-app)
+- **GitHub Repository**: [https://github.com/richie-rich90454/RandMatQuGeA](https://github.com/richie-rich90454/RandMatQuGeA)
 - **Main Website**: [https://www.richardsblogs.com](https://www.richardsblogs.com)
 - **Tauri Framework**: [https://tauri.app/](https://tauri.app/)
 - **Vite Build Tool**: [https://vitejs.dev/](https://vitejs.dev/)
