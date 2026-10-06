@@ -32,7 +32,7 @@ features:
     - title: Offline Ready
       details: Service worker, cached MathJax/KaTeX assets, IndexedDB/SQLite persistence via the Storage module
     - title: Thoroughly Tested
-      details: 10,000+ Vitest unit tests, 227 Rust tests, and a 390-test Playwright E2E suite covering all topics and modes
+      details: 10,000+ Vitest unit tests, 227 Rust tests, and a 393-test Playwright E2E suite covering all topics and modes
     - title: Accessibility
       details: OpenDyslexic font support, keyboard navigation, reduced motion, ARIA labels
 ---
