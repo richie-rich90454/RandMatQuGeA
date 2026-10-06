@@ -419,7 +419,7 @@ function eigenvectorDistractors(basis: number[][], index: number): string[]{
 }
 
 /**
- * The coefficients of the characteristic polynomial, from the monic factorisation
+ * The coefficients of the characteristic polynomial, from the monic factorization
  * over the eigenvalues. The multiplication stays in whole-number arithmetic, so no
  * root is ever approximated on the way to a printed coefficient.
  *
