@@ -57,7 +57,7 @@ export function linearExpr(coeff: number, constant: number, variable: string="x"
 
 /**
  * Formats a number for prompt display, dropping a redundant leading zero in the
- * fractional part and normalising negative zero.
+ * fractional part and normalizing negative zero.
  *
  * @param value - The value to render.
  * @param decimals - Decimal places to keep. Defaults to 2.
