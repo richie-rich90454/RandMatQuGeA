@@ -16,11 +16,11 @@ interface QuestionDto {
     expectedFormat?: string; // Format hint (e.g. "fraction")
     hint?: string;           // Optional hint text
     subskill?: string;       // Procedure within the topic, for scheduling
-    solution?: string;       // Worked solution steps
+    solution?: string[];    // Worked solution steps
     misconception?: string;  // The wrong turn this question guards against
-    hints?: string[];        // Branch-specific hint ladder
+    hints?: HintLadder;      // Branch-specific hint ladder
     skippable?: boolean;     // Whether the learner may skip
-    visualization?: object;  // 3D figure parameters, when there is one
+    visualization?: { shape: string; params?: Record<string, unknown> };  // 3D figure parameters, when there is one
 }
 ```
 
@@ -486,7 +486,7 @@ Topics: sin/cos/tan, identities, equations, unit circle across `trigonometry` an
 ### `topics`
 
 ```typescript
-let topics: Topic[];  // All 137 topic definitions with id, name, icon, category
+let topics: Topic[];  // All 204 topic definitions with id, name, icon, category
 ```
 
 ### `scopeTopics`
