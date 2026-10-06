@@ -236,7 +236,7 @@ export function generateGraphEuler(difficulty?: string, rng: RngFn=Math.random):
         case "bipartite_by_odd_degree":{
             // Four printed graphs on the same five vertices: one built with no odd
             // cycle and three built around an odd cycle, then all four tested by
-            // a two-coloring attempt. The relabelling keeps the questions from
+            // a two-coloring attempt. The relabeling keeps the questions from
             // repeating without changing which of the four is bipartite.
             let size=5;
             let offset=randInt(rng, 0, size-1);
