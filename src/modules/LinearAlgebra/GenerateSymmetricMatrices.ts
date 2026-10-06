@@ -1,5 +1,5 @@
 /**
- * @file Symmetric matrices: recognising symmetry, repeated eigenvalues, orthogonal
+ * @file Symmetric matrices: recognizing symmetry, repeated eigenvalues, orthogonal
  * diagonalisation, and the quadratic form.
  * @description The eigenvalue branches are built rather than sampled, because a
  * symmetric matrix drawn at random has irrational eigenvalues often enough that
