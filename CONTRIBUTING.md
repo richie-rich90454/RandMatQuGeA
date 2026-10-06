@@ -74,7 +74,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](https://www.c
 │   ├── vitest.setup.ts     # Vitest global mocks (Tauri API, three.js, canvas)
 │   ├── main/               # Core application code
 │   │   ├── core/           # StateStore, QuestionState, DomRegistry, QuestionRenderer
-│   │   ├── services/       # TopicRegistry, EventBinder, MathWorkerClient
+│   │   ├── services/       # Storage, Scheduler, ReviewStore, TopicRegistry, EventBinder, MathWorkerClient, DailyChallenge, DailyMode, Help, Backend
 │   │   ├── ui/             # Skeleton, OfflineIndicator, VirtualTopicGrid
 │   │   └── ...             # Settings, Generation, Answer, Session, Mcq, PrintWorksheet, ...
 │   ├── modules/            # Question generation modules (7 subjects, 204 topics)
@@ -185,9 +185,7 @@ In summary:
 ### Documentation
 
 Behavior changes update the docs in the same commit. `CODE_STYLE.md` has the table
-mapping each kind of change to the document it requires, and it names the current
-inaccuracies (`docs/api/index.md` documents snake_case arguments where the frontend
-sends camelCase; `docs/guide/architecture.md` omits three delete commands).
+mapping each kind of change to the document it requires.
 
 ---
 
