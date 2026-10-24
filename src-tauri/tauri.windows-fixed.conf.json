@@ -4,6 +4,7 @@
     "bundle": {
         "active": true,
         "targets": ["nsis"],
+        "createUpdaterArtifacts": false,
         "windows": {
             "webviewInstallMode": {
                 "type": "offlineInstaller",
