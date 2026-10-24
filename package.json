@@ -20,7 +20,7 @@
     "test:oracle": "vitest run --project oracle",
     "test:e2e": "playwright test",
     "bundle:check": "node scripts/bundle-check.js",
-    "check": "npm run build:typescript && npm run test:run && npm run bundle:check"
+    "check": "npm run build:typescript && npm run test:run && npm run build:web && npm run bundle:check"
   },
   "keywords": [
     "math",

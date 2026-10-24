@@ -8,15 +8,15 @@
 [![Live Demo](https://img.shields.io/badge/demo-live-green?style=for-the-badge&logo=vercel&logoColor=white)](https://math.richardsblogs.com/)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.19.0-brightgreen?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/typescript-7.0.2-%23007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tauri](https://img.shields.io/badge/tauri-2.12.1-%2324C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app/)
+[![Tauri](https://img.shields.io/badge/tauri-2.12.5-%2324C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://tauri.app/)
 [![Rust](https://img.shields.io/badge/rust-2021%20edition-%23DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![Vite](https://img.shields.io/badge/vite-8.3.1-%23646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Vitest](https://img.shields.io/badge/vitest-5.0.2-%236E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
-[![Playwright](https://img.shields.io/badge/playwright-1.56-%232EAD33?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev/)
-[![MathJax](https://img.shields.io/badge/MathJax-4.1.2-007ACC?style=for-the-badge&logo=mathjax&logoColor=white)](https://www.mathjax.org/)
-[![KaTeX](https://img.shields.io/badge/KaTeX-0.18.9-007ACC?style=for-the-badge&logo=katex&logoColor=white)](https://katex.org/)
+[![Vite](https://img.shields.io/badge/vite-8.3.5-%23646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Vitest](https://img.shields.io/badge/vitest-5.0.5-%236E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Playwright](https://img.shields.io/badge/playwright-1.64.1-%232EAD33?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev/)
+[![MathJax](https://img.shields.io/badge/MathJax-4.1.3-007ACC?style=for-the-badge&logo=mathjax&logoColor=white)](https://www.mathjax.org/)
+[![KaTeX](https://img.shields.io/badge/KaTeX-0.19.1-007ACC?style=for-the-badge&logo=katex&logoColor=white)](https://katex.org/)
 [![Math.js](https://img.shields.io/badge/math.js-15.2.0-007ACC?style=for-the-badge&logo=math.js&logoColor=white)](https://mathjs.org/)
-[![Three.js](https://img.shields.io/badge/three.js-0.186-%23000000?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
+[![Three.js](https://img.shields.io/badge/three.js-0.186.1-%23000000?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
 [![SQLite](https://img.shields.io/badge/sqlite-embedded-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
 [![Offline First](https://img.shields.io/badge/offline-first-success?style=for-the-badge&logo=offline&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Offline_service_workers)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge&logo=github&logoColor=white)](CONTRIBUTING.md)
@@ -98,10 +98,10 @@ npm run tauri dev      # starts the dev server and the native window
 npm run typecheck      # tsc --noEmit
 npm run test:unit      # Vitest unit suite (132 files, 10,007 cases)
 npm run test:oracle    # the invariant gate over all 204 topics, plus table and registry agreement
-npm run test:coverage  # unit suite with the enforced coverage floor
+npm run test:coverage  # full suite with the enforced coverage floor
 npm run test:e2e       # Playwright, Chromium + WebKit, desktop and mobile projects
 npm run bundle:check   # initial-load budget
-npm run check          # typecheck + full Vitest run (unit + oracle) + bundle check
+npm run check          # typecheck + full Vitest run (unit + oracle) + web build + bundle check
 cd src-tauri && cargo test   # Rust backend
 ```
 
@@ -171,13 +171,13 @@ Choosing *Private session* reads and then deletes anything an earlier build left
 ## 🛠️ Technology Stack
 
 - **Frontend**: TypeScript 7.0.2 (strict), vanilla DOM, no framework
-- **Build tool**: Vite 8.3.1
-- **Math rendering**: MathJax 4.1.2 and KaTeX 0.18.9
+- **Build tool**: Vite 8.3.5
+- **Math rendering**: MathJax 4.1.3 and KaTeX 0.19.1
 - **Math engine**: Math.js 15.2.0, with `fraction.js` for exact rational comparison
-- **3D / graphs**: Three.js 0.186, canvas rendering for trigonometric and polar graphs
-- **Desktop**: Tauri 2.12.1 (Rust 2021) with tray, dialog, process and updater plugins
+- **3D / graphs**: Three.js 0.186.1, canvas rendering for trigonometric and polar graphs
+- **Desktop**: Tauri 2.12.5 (Rust 2021), with CLI/API 2.12.4 and tray, dialog, process and updater plugins
 - **Database**: SQLite via `sqlx` on the desktop build; IndexedDB in the browser
-- **Testing**: Vitest 5.0.2 + jsdom, Playwright 1.56, `cargo test`
+- **Testing**: Vitest 5.0.5 + jsdom, Playwright 1.64.1, `cargo test`
 
 ## 📁 Project Structure
 
@@ -227,12 +227,12 @@ Where a generator's natural question has fewer than four honest answers, **the q
 | Gate | Result |
 |---|---|
 | Type check | clean |
-| Unit tests | 132 files, 10,007 passed, 6 skipped |
+| Unit tests | 132 files, 10,007 passed, 6 skipped (full run with oracle: 137 files, 10,037 passed) |
 | Invariant oracle | 30 tests across all 204 topics, including table-versus-registry agreement |
 | End-to-end | 393 tests in 17 files, all three projects: every one of the 204 topics at every difficulty, every mode, and a console sweep asserting zero runtime errors |
-| Coverage | statements 86.5%, branches 72.9%, functions 74.3%, lines 88.6% (floor 74/58/58/76 enforced) |
+| Coverage | statements 86.53%, branches 72.9%, functions 74.26%, lines 88.64% (floor 74/58/58/76 enforced) |
 | Rust tests | 227 passed (`cargo test -p random_math_question_generator`) |
-| Bundle | JS 34.8 kB, CSS 8.7 kB, total 53.9 kB gzipped (budget 36/10/55.5) |
+| Bundle | JS 34.95 kB, CSS 8.71 kB, total 54.00 kB gzipped (budget 36/10/55.5) |
 
 ## ⚠️ A Note on Tauri Versions
 
@@ -242,7 +242,7 @@ The JavaScript packages and the Rust crates must be on the **same major and mino
 Error: Found version mismatched Tauri packages...
 ```
 
-Both sides are pinned to a matching set (`tauri` 2.12.1 with `@tauri-apps/api` 2.12.1, and each plugin likewise), and the Rust requirements use `=` so cargo cannot resolve to a different minor on its own. If you upgrade one side, upgrade the other in the same commit and update the root `Cargo.lock` with `cargo fetch`. There is one workspace lock, at the repository root.
+Both sides are pinned to a matching set (`tauri` 2.12.5 with `@tauri-apps/api` 2.12.4 and CLI 2.12.4; `tauri-plugin-updater` 2.14.0 with `@tauri-apps/plugin-updater` 2.14.0; `tauri-plugin-dialog` 2.8.3 with `@tauri-apps/plugin-dialog` 2.8.3; `tauri-plugin-process` 2.4.0 with `@tauri-apps/plugin-process` 2.4.0), and the Rust requirements use `=` so cargo cannot resolve to a different minor on its own. If you upgrade one side, upgrade the other in the same commit and update the root `Cargo.lock` with `cargo fetch`. There is one workspace lock, at the repository root.
 
 ## 🤝 Contributing
 
