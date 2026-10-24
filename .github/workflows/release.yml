@@ -58,7 +58,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2.8.2
         with:
           workspaces: "./src-tauri -> target"
-      - uses: dtolnay/rust-toolchain@1.89.0
+      - uses: dtolnay/rust-toolchain@1.90.0
         with:
           targets: ${{ matrix.target }}
       - run: npm ci --prefer-offline
@@ -110,7 +110,9 @@ jobs:
         run: choco install nsis -y
 
       - name: Build Tauri
-        run: npx @tauri-apps/cli build --target ${{ matrix.target }}
+        run: |
+          npm run tauri -- --version
+          npm run tauri -- build --target ${{ matrix.target }}
 
       - name: Verify bundles exist
         shell: bash
@@ -157,6 +159,17 @@ jobs:
             echo "Found signature files:"
             echo "$sigs"
           fi
+
+      - name: Validate Linux AppImage AppDir
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          APPIMAGE=$(find target -path "*/bundle/appimage/*.AppImage" -type f -print -quit)
+          if [ -z "$APPIMAGE" ]; then
+            echo "Error: AppImage not found"
+            exit 1
+          fi
+          node scripts/check-appimage.js "$APPIMAGE"
 
       - name: Upload desktop artifacts
         uses: actions/upload-artifact@v6
