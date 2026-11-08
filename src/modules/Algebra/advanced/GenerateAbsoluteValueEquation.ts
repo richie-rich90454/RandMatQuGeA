@@ -28,7 +28,7 @@ import{randInt, shuffle}from"../../shared/Random";
 function inside(slope: number, constant: number): string{
     let head=Math.abs(slope)===1?"x":Math.abs(slope)+"x";
     if (constant===0) return head;
-    if (constant>0) return head+" - "+constant;
+    if (constant<0) return head+" - "+constant;
     return head+" + "+Math.abs(constant);
 }
 
@@ -91,17 +91,17 @@ export function generateAbsoluteValueEquation(difficulty?: string, rng: RngFn=Ma
             let constant=slope*center;
             let whole=randInt(rng, 1, difficulty==="hard"?14:9);
             let target=whole*slope;
-            let above=(constant+target)/slope;
-            let below=(constant-target)/slope;
+            let above=(target-constant)/slope;
+            let below=(-target-constant)/slope;
             key=String(above+below);
-            latex=`Solve \\( | ${inside(slope, -constant)} | = ${target} \\). What is the sum of the two solutions for \\( x \\)?`;
+            latex=`Solve \\( | ${inside(slope, constant)} | = ${target} \\). What is the sum of the two solutions for \\( x \\)?`;
             choices=numberOptions(above+below, [above, below, above+below+1, above+below-1, -(above+below)+1], 0);
             rungs=[
                 "The two cases are symmetric about the point where the expression inside the bars is zero, so the two solutions add up to twice that point rather than being solved for one at a time.",
                 `The inside of the bars is zero at x = ${center}, so the two solutions add up to 2 x ${center}.`
             ];
             steps=[
-                `Split into two cases: ${inside(slope, -constant)} = ${target} or ${inside(slope, -constant)} = ${-target}.`,
+                `Split into two cases: ${inside(slope, constant)} = ${target} or ${inside(slope, -constant)} = ${-target}.`,
                 `Those give x = ${above} and x = ${below}.`,
                 `${above} + ${below} = ${key}, so the sum of the two solutions is ${key}`
             ];
